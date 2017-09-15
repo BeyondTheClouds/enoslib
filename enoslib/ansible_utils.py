@@ -4,7 +4,7 @@ from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
 from collections import namedtuple
-from error import EnosFailedHostsError, EnosUnreachableHostsError
+from errors import EnosFailedHostsError, EnosUnreachableHostsError
 
 import logging
 
@@ -105,22 +105,52 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
-
 def generate_inventory(roles):
     """Generates an inventory files from roles
 
     :param roles: dict of roles (roles -> list of Host)
     """
-    def to_inventory_hostname(d):
-        s = []
-        s.append("%s" % d["host"])
-        s.append("ansible_user=root")
-        for nic, roles in d["nics"]:
-            s.extend([" %s=%s " % (role, nic) for role in roles])
-        return " ".join(s)
-
     inventory = []
     for role, desc in roles.items():
         inventory.append("[%s]" % role)
-        inventory.extend([to_inventory_hostname(d) for d in desc])
+        inventory.extend([_generate_inventory_string(d) for d in desc])
     return "\n".join(inventory)
+
+def _generate_inventory_string(host):
+    i = [host.alias, "ansible_host=%s" % host.address]
+    if host.user is not None:
+        i.append("ansible_ssh_user=%s" % host.user)
+    if host.port is not None:
+        i.append("ansible_port=%s" % host.port)
+    if host.keyfile is not None:
+        i.append("ansible_ssh_private_key_file=%s" % host.keyfile)
+    # Disabling hostkey ckecking
+    common_args = []
+    common_args.append("-o StrictHostKeyChecking=no")
+    common_args.append("-o UserKnownHostsFile=/dev/null")
+    forward_agent = host.extra.get('forward_agent', False)
+    if forward_agent:
+        common_args.append("-o ForwardAgent=yes")
+
+    gateway = host.extra.get('gateway', None)
+    if gateway is not None:
+        proxy_cmd = ["ssh -W %h:%p"]
+        # Disabling also hostkey checking for the gateway
+        proxy_cmd.append("-o StrictHostKeyChecking=no")
+        proxy_cmd.append("-o UserKnownHostsFile=/dev/null")
+        gateway_user = host.extra.get('gateway_user', host.user)
+        if gateway_user is not None:
+            proxy_cmd.append("-l %s" % gateway_user)
+
+        proxy_cmd.append(gateway)
+        proxy_cmd = " ".join(proxy_cmd)
+        common_args.append("-o ProxyCommand=\"%s\"" % proxy_cmd)
+
+    common_args = " ".join(common_args)
+    i.append("ansible_ssh_common_args='%s'" % common_args)
+
+    # Add custom variables
+    for k, v in host.extra.items():
+        if k not in ["gateway", "gateway_user", "forward_agent"]:
+            i.append("%s=%s" % (k, v))
+    return " ".join(i)
