@@ -1,0 +1,5 @@
+flake8>=3.3.0
+pytest
+pytest-cov
+mock>=2.0.0
+ddt>=1.1.0

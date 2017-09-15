@@ -4,6 +4,7 @@ from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
 from collections import namedtuple
+from error import EnosFailedHostsError, EnosUnreachableHostsError
 
 import logging
 
@@ -43,25 +44,25 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
     # NOTE(msimonin): The ansible api is "low level" in the
     # sense that we are redefining here all the default values
     # that are usually enforce by ansible called from the cli
-    Options = namedtuple('Options', ['listtags', 'listtasks',
-                                     'listhosts', 'syntax',
-                                     'connection', 'module_path',
-                                     'forks', 'private_key_file',
-                                     'ssh_common_args',
-                                     'ssh_extra_args',
-                                     'sftp_extra_args',
-                                     'scp_extra_args', 'become',
-                                     'become_method', 'become_user',
-                                     'remote_user', 'verbosity',
-                                     'check', 'tags', 'pipelining'])
+    Options = namedtuple("Options", ["listtags", "listtasks",
+                                     "listhosts", "syntax",
+                                     "connection", "module_path",
+                                     "forks", "private_key_file",
+                                     "ssh_common_args",
+                                     "ssh_extra_args",
+                                     "sftp_extra_args",
+                                     "scp_extra_args", "become",
+                                     "become_method", "become_user",
+                                     "remote_user", "verbosity",
+                                     "check", "tags", "pipelining"])
 
     options = Options(listtags=False, listtasks=False,
-                      listhosts=False, syntax=False, connection='ssh',
+                      listhosts=False, syntax=False, connection="ssh",
                       module_path=None, forks=100,
                       private_key_file=None, ssh_common_args=None,
                       ssh_extra_args=None, sftp_extra_args=None,
                       scp_extra_args=None, become=None,
-                      become_method='sudo', become_user='root',
+                      become_method="sudo", become_user="root",
                       remote_user=None, verbosity=2, check=False,
                       tags=tags, pipelining=True)
 
@@ -81,7 +82,7 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
         stats = pbex._tqm._stats
         hosts = stats.processed.keys()
         result = [{h: stats.summarize(h)} for h in hosts]
-        results = {'code': code, 'result': result, 'playbook': path}
+        results = {"code": code, "result": result, "playbook": path}
         print(results)
 
         failed_hosts = []
@@ -89,10 +90,10 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
 
         for h in hosts:
             t = stats.summarize(h)
-            if t['failures'] > 0:
+            if t["failures"] > 0:
                 failed_hosts.append(h)
 
-            if t['unreachable'] > 0:
+            if t["unreachable"] > 0:
                 unreachable_hosts.append(h)
 
         if len(failed_hosts) > 0:
@@ -103,6 +104,7 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
             logging.error("Unreachable hosts: %s" % unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
+
 
 def generate_inventory(roles):
     """Generates an inventory files from roles
