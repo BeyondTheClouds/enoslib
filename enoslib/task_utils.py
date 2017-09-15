@@ -78,8 +78,8 @@ def enostask(new=False):
         @wraps(fn)
         def decorated(*args, **kwargs):
             # Constructs the environment
+            k_env = kwargs.get("--env")
             if new:
-                k_env = kwargs.get("--env")
                 kwargs["env"] = make_env(k_env)
                 kwargs["env"]["resultdir"] = _set_resultdir(k_env)
                 # the previous SYMLINK to the created result_dir
