@@ -11,6 +11,8 @@ SYMLINK_NAME="current"
 def make_env(resultdir=None):
     """Loads the env from `resultdir` if not `None` or makes a new one.
 
+    :param resultdir: directory path to load the env from.
+
     An Enos environment handles all specific variables of an
     experiment. This function either generates a new environment or
     loads a previous one. If the value of `resultdir` is `None`, then
@@ -50,7 +52,10 @@ def make_env(resultdir=None):
 
 
 def save_env(env):
-    """Saves one environment."""
+    """Saves one environment.
+    
+    :param env: the env dict to save.
+    """
     env_path = os.path.join(env['resultdir'], 'env')
 
     if os.path.isdir(env['resultdir']):
@@ -63,6 +68,9 @@ def enostask(new=False):
 
     This decorator lets you define a new Enos task and helps you
     manage the environment.
+
+    :param new: flag that indicates if a new resultdir must be created
+    Usually this is set on the first task of the workflow.
 
     """
     def decorator(fn):
@@ -90,7 +98,6 @@ def check_env(fn):
     """Decorator for an Enos Task.
 
     This decorator checks if an environment file exists.
-
     """
     def decorator(*args, **kwargs):
         # If no directory is provided, set the default one
@@ -107,6 +114,8 @@ def check_env(fn):
 
 def _set_resultdir(name=None):
     """Set or get the directory to store experiment results.
+
+    :param name: name of the resultdir to create.
 
     Looks at the `name` and create the directory if it doesn't exist
     or returns it in other cases. If the name is `None`, then the

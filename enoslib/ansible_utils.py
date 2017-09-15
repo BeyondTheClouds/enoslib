@@ -10,6 +10,19 @@ import logging
 
 def run_ansible(playbooks, inventory_path, extra_vars={},
         tags=None, on_error_continue=False):
+    """Runs ansible playbooks
+
+    :param playbooks: list of the paths to playbooks to run.
+
+    :param inventory_path: path to the inventory.
+
+    :param extra_vars: extra_vars to pass to ansible. This is equivalent
+    to the -e switch of the ansible cli.
+
+    :param tags: run only runs tasks with the given tag
+
+    :param on_error_continue: True iff execution should continue after on error
+    """
     extra_vars = extra_vars or {}
     variable_manager = VariableManager()
     loader = DataLoader()
@@ -92,6 +105,10 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 def generate_inventory(roles):
+    """Generates an inventory files from roles
+
+    :param roles: dict of roles (roles -> list of Host)
+    """
     def to_inventory_hostname(d):
         s = []
         s.append("%s" % d["host"])
