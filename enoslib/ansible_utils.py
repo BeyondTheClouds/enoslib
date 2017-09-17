@@ -105,6 +105,7 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
+
 def generate_inventory(roles):
     """Generates an inventory files from roles
 
@@ -115,6 +116,7 @@ def generate_inventory(roles):
         inventory.append("[%s]" % role)
         inventory.extend([_generate_inventory_string(d) for d in desc])
     return "\n".join(inventory)
+
 
 def _generate_inventory_string(host):
     i = [host.alias, "ansible_host=%s" % host.address]
