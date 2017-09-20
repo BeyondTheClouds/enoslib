@@ -111,8 +111,12 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def generate_inventory(roles, inventory_path):
+def generate_inventory(roles, networks, inventory_path, check_networks=False):
     with open(inventory_path, "w") as f:
+            f.write(_generate_inventory(roles))
+    if check_networks:
+        _check_networks(roles, networks, inventory_path ,tmpdir=os.path.dirname(inventory_path))
+        with open(inventory_path, "w") as f:
             f.write(_generate_inventory(roles))
 
 
@@ -177,7 +181,7 @@ def _generate_inventory_string(host):
     return " ".join(i)
 
 
-def check_networks(roles, networks, inventory, tmpdir=None):
+def _check_networks(roles, networks, inventory, tmpdir=None):
     """Checks the network interfaces on the nodes
 
     Beware, this has a side effect on each Host in env['rsc'].
