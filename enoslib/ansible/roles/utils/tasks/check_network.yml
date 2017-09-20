@@ -1,0 +1,8 @@
+---
+- name: Dump network information in a file
+  template:
+    src: facts.yml.j2
+    dest: "{{ facts_file }}"
+  delegate_to: localhost
+  run_once: true
+

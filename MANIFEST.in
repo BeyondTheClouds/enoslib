@@ -1,0 +1,7 @@
+# http://stackoverflow.com/a/24727824
+# https://www.youtube.com/watch?v=o-UbWsO9rZk
+include README.rst
+include LICENSE
+
+recursive-include enoslib/ansible *
+recursive-include enoslib/provider *

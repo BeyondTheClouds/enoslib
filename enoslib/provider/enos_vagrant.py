@@ -1,5 +1,6 @@
 from enoslib.constants import PROVIDER_DIR
 from enoslib.host import Host
+from enoslib.utils import get_roles_as_list
 from netaddr import IPNetwork
 from jinja2 import Environment, FileSystemLoader
 from provider import Provider
@@ -38,14 +39,6 @@ FLAVORS = {
 TEMPLATE_DIR = PROVIDER_DIR
 
 
-def get_roles_as_list(desc):
-    roles = desc.get("role", [])
-    if roles:
-        roles = [roles]
-    roles.extend(desc.get("roles", []))
-    return roles
-
-
 # NOTE(msimonin) add provider config validation
 # for now :
 # provider_conf:
@@ -68,7 +61,7 @@ class Enos_vagrant(Provider):
         slash_24 = [IPNetwork("192.168.%s.1/24" % x) for x in slash_24]
         net_pool = [list(x)[10:-10] for x in slash_24]
 
-        machines = provider_conf["machines"]
+        machines = provider_conf["resources"]["machines"]
         # build the mapping network_name -> pool
         networks = [set(machine["networks"]) for machine in machines]
         networks = reduce(set.union, networks)
@@ -132,11 +125,13 @@ class Enos_vagrant(Provider):
             'start': str(pool[0]),
             'end': str(pool[-1]),
             'dns': '8.8.8.8',
-            'gateway': str(ipnet.ip)
-            } for ipnet, pool in zip(
+            'gateway': str(ipnet.ip),
+            'roles': [net]
+            } for ipnet, pool, net in zip(
                 slash_24,
-                net_pool[0: len(networks.keys())])]
-        logging.debug(roles, networks)
+                net_pool[0: len(networks.keys())], networks.keys())]
+        logging.debug(roles)
+        logging.debug(networks)
         return (roles, networks)
 
     def destroy(self, env):

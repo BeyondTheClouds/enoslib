@@ -2,6 +2,7 @@
 from deploy5k.api import Resources
 from enoslib.host import Host
 from enoslib.provider.provider import Provider
+from enoslib.utils import get_roles_as_list
 from netaddr import IPAddress, IPNetwork, IPSet
 
 import logging
@@ -38,7 +39,8 @@ def to_enos_networks(networks):
         net = {
             "cidr": str(network["network"]),
             "gateway": str(network["gateway"]),
-            "dns": "131.254.203.235"
+            "dns": "131.254.203.235",
+            "roles": get_roles_as_list(network)
         }
         if network["vlan_id"]:
             # On the network, the first IP are reserved to g5k machines.
@@ -58,7 +60,7 @@ def to_enos_networks(networks):
             # gateway, kavlan server...
             subnets = IPNetwork(network["network"])
             if network["vlan_id"] < 4:
-                #vlan local
+                # vlan local
                 subnets = list(subnets.subnet(24))
                 subnets = subnets[4:7]
             else:
@@ -72,6 +74,7 @@ def to_enos_networks(networks):
                 "start": str(IPAddress(ips.first)),
                 "end": str(IPAddress(ips.last))
             })
+        net.update({"roles": get_roles_as_list(network)})
         nets.append(net)
     logging.debug(nets)
     return nets

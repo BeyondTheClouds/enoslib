@@ -3,10 +3,15 @@ from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
+from enoslib.constants import ANSIBLE_DIR, SYMLINK_NAME
 from collections import namedtuple
 from errors import EnosFailedHostsError, EnosUnreachableHostsError
+from netaddr import IPAddress, IPSet
 
+import copy
 import logging
+import os
+import yaml
 
 
 def run_ansible(playbooks, inventory_path, extra_vars={},
@@ -106,7 +111,12 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def generate_inventory(roles):
+def generate_inventory(roles, inventory_path):
+    with open(inventory_path, "w") as f:
+            f.write(_generate_inventory(roles))
+
+
+def _generate_inventory(roles):
     """Generates an inventory files from roles
 
     :param roles: dict of roles (roles -> list of Host)
@@ -119,6 +129,15 @@ def generate_inventory(roles):
 
 
 def _generate_inventory_string(host):
+    def to_inventory_string(v):
+        """Handle the cas of List[String]."""
+        if isinstance(v, list):
+            # [a, b, c] -> "['a','b','c']"
+            s = map(lambda x: "'%s'" % x, v)
+            s = "\"[%s]\"" % ','.join(s)
+            return s
+        return v
+
     i = [host.alias, "ansible_host=%s" % host.address]
     if host.user is not None:
         i.append("ansible_ssh_user=%s" % host.user)
@@ -154,5 +173,99 @@ def _generate_inventory_string(host):
     # Add custom variables
     for k, v in host.extra.items():
         if k not in ["gateway", "gateway_user", "forward_agent"]:
-            i.append("%s=%s" % (k, v))
+            i.append("%s=%s" % (k, to_inventory_string(v)))
     return " ".join(i)
+
+
+def check_networks(roles, networks, inventory, tmpdir=None):
+    """Checks the network interfaces on the nodes
+
+    Beware, this has a side effect on each Host in env['rsc'].
+    """
+    def get_devices(facts):
+        """Extract the network devices information from the facts."""
+        devices = []
+        for interface in facts['ansible_interfaces']:
+            ansible_interface = 'ansible_' + interface
+            # filter here (active/ name...)
+            if 'ansible_' + interface in facts:
+                interface = facts[ansible_interface]
+                devices.append(interface)
+        return devices
+
+    if not tmpdir:
+        if os.path.exists(os.path.abspath(SYMLINK_NAME)):
+            tmpdir = os.path.abspath(SYMLINK_NAME)
+        else:
+            tmpdir = os.getcwd()
+    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
+    facts_file = os.path.join(tmpdir, 'facts.yml')
+    options = {
+        'enos_action': 'check_network',
+        'facts_file': facts_file
+    }
+    run_ansible([utils_playbook], inventory,
+        extra_vars=options,
+        on_error_continue=False)
+
+    # Read the file
+    # Match provider networks to interface names for each host
+    with open(facts_file) as f:
+        facts = yaml.load(f)
+        for _, host_facts in facts.items():
+            host_nets = map_device_on_host_networks(networks,
+                                                    get_devices(host_facts))
+            # Add the mapping : networks <-> nic name
+            host_facts['networks'] = host_nets
+
+    # Finally update the env with this information
+    update_hosts(roles, facts)
+
+
+def get_provider_net(provider_nets, criteria):
+    provider_net = provider_nets
+    for k, v in criteria.items():
+        provider_net = filter(lambda n: n[k] == v, provider_net)
+    return provider_net
+
+
+def map_device_on_host_networks(provider_nets, devices):
+    """Decorate each networks with the corresponding nic name."""
+    networks = copy.deepcopy(provider_nets)
+    for network in networks:
+        for device in devices:
+            network.setdefault('device', None)
+            ip_set = IPSet([network['cidr']])
+            if 'ipv4' not in device:
+                continue
+            ips = device['ipv4']
+            if not isinstance(ips, list):
+                ips = [ips]
+            if len(ips) < 1:
+                continue
+            ip = IPAddress(ips[0]['address'])
+            if ip in ip_set:
+                network['device'] = device['device']
+                continue
+    return networks
+
+
+def update_hosts(roles, facts, extra_mapping=None):
+    # Update every hosts in roles
+    # NOTE(msimonin): due to the deserialization
+    # between phases, hosts in rsc are unique instance so we need to update
+    # every single host in every single role
+    extra_mapping = extra_mapping or {}
+    for hosts in roles.values():
+        for host in hosts:
+            networks = facts[host.alias]['networks']
+            enos_devices = []
+            for network in networks:
+                device = network["device"]
+                if device:
+                    for role in network["roles"]:
+                        host.extra.update({role: device})
+                    enos_devices.append(device)
+
+            # Add the list of devices in used by Enos
+            host.extra.update({'enos_devices': enos_devices})

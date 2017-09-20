@@ -1,0 +1,5 @@
+---
+- name: Utils functions
+  hosts: all
+  roles:
+    - utils
