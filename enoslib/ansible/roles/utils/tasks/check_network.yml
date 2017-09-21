@@ -6,3 +6,8 @@
   delegate_to: localhost
   run_once: true
 
+- name: Create the fake interfaces
+  shell: ip link show {{ item }} || ip l a {{ item }} type dummy
+  with_items: "{{ fake_interfaces }}"
+  when: fake_interfaces is defined
+
