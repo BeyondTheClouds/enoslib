@@ -16,18 +16,22 @@ import yaml
 
 def run_ansible(playbooks, inventory_path, extra_vars={},
         tags=None, on_error_continue=False):
-    """Runs ansible playbooks
+    """Run Ansible.
 
-    :param playbooks: list of the paths to playbooks to run.
 
-    :param inventory_path: path to the inventory.
+    Args:
+        playbooks (list): list of paths to the playbooks to run
+        inventory_path (str): path to the hosts file (inventory)
+        extra_var (dict): extra vars to pass
+        tags (list): list of tags to run
+        on_error_continue(bool): Don't throw any exception in case a host is
+            unreachable or the playbooks run with errors
 
-    :param extra_vars: extra_vars to pass to ansible. This is equivalent
-    to the -e switch of the ansible cli.
-
-    :param tags: run only runs tasks with the given tag
-
-    :param on_error_continue: True iff execution should continue after on error
+    Raises:
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an error on a host and
+            ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is unreachable (through ssh) and
+            ``on_error_continue==False``
     """
     extra_vars = extra_vars or {}
     variable_manager = VariableManager()
@@ -113,6 +117,9 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
 
 def generate_inventory(roles, networks, inventory_path, check_networks=False,
         fake_interfaces=None):
+    """Generate an inventory file in the ini format.
+    """
+
     with open(inventory_path, "w") as f:
             f.write(_generate_inventory(roles))
     if check_networks:
@@ -235,7 +242,7 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
     update_hosts(roles, facts)
 
 
-def get_provider_net(provider_nets, criteria):
+def _get_provider_net(provider_nets, criteria):
     provider_net = provider_nets
     for k, v in criteria.items():
         provider_net = filter(lambda n: n[k] == v, provider_net)
