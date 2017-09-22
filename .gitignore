@@ -1,5 +1,6 @@
 Vagrantfile
 .vagrant
+facts.yml
 ################
 # VIM          #
 ################

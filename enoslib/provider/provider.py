@@ -18,6 +18,13 @@ class Provider:
         `dns`, and a pair that contains the name of network and
         external interfaces.
 
+        Args:
+            config (dict): config of the provider. Specific to the underlying
+                provider.
+            force (bool): Indicates that the resources must be redeployed.
+
+        Returns:
+            tuple: (roles, networks)
         """
         pass
 
@@ -30,7 +37,7 @@ class Provider:
     def default_config(self):
         """The default provider configuration.
 
-        Returns a dict with all keys used to initialise the provider
+        Returns a dict with all keys used to initialize the provider
         (section `provider` of reservation.yaml file). Keys should be
         provided with a default value. Keys set with `None` value must
         be override in the reservation.yaml.

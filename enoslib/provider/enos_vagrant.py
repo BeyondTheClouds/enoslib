@@ -52,9 +52,37 @@ TEMPLATE_DIR = PROVIDER_DIR
 #       networks: [network_names]
 class Enos_vagrant(Provider):
     def init(self, provider_conf, force_deploy=False):
-        """enos up
-        Read the resources in the configuration files. Resource claims must be
-        grouped by sizes according to the predefined SIZES map.
+        """Reserve and deploys the vagrant boxes.
+
+        Args:
+            provider_conf (dict): description of the resources and vagrant
+                configuration
+            force_deploy (bool): True iff new machines should be started
+
+        Examples:
+            .. code-block:: yaml
+
+                # in yaml
+                ---
+                backend: virtualbox
+                user: root
+                box: debian/jessie64
+                resources:
+                  machines:
+                    - roles: [telegraf]
+                      flavor: tiny
+                      number: 1
+                      networks: [control_network, internal_network]
+                    - roles:
+                        - control
+                        - registry
+                        - prometheus
+                        - grafana
+                        - telegraf
+                      flavor: medium
+                      number: 1
+                      networks: [control_network]
+
         """
         # Arbitrary net pool size
         slash_24 = [142 + x for x in range(0, 100)]
@@ -145,5 +173,4 @@ class Enos_vagrant(Provider):
             'backend': 'virtualbox',
             'box': 'debian/jessie64',
             'user': 'root',
-            'interfaces': ('eth1', 'eth2')
         }

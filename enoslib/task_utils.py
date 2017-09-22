@@ -8,10 +8,53 @@ import yaml
 import logging
 
 
-def make_env(resultdir=None):
-    """Loads the env from `resultdir` if not `None` or makes a new one.
+def enostask(new=False):
+    """Decorator for an Enos Task.
 
-    :param resultdir: directory path to load the env from.
+    This decorator lets you define a new Enos task and helps you manage the
+    environment. It injects the environment in the function called.
+
+    Args:
+        new (bool): indicates if a new environment must be created.
+            Usually this is set on the first task of the workflow.
+
+    Examples:
+
+        .. code-block:: python
+
+            @enostask(new=True)
+            def foo(env=None, **kwargs):
+                # The key resultdir is available once the env is created
+                print(env["resultdir"])
+
+            @enostask()
+            def myfunction(env=None, **kwargs):
+                # saving a new key
+                env['foo'] = 'bar'
+    """
+    def decorator(fn):
+        @wraps(fn)
+        def decorated(*args, **kwargs):
+            # Constructs the environment
+            k_env = kwargs.get("--env")
+            if new:
+                kwargs["env"] = _make_env(k_env)
+                kwargs["env"]["resultdir"] = _set_resultdir(k_env)
+                # the previous SYMLINK to the created result_dir
+            else:
+                kwargs["env"] = _make_env(k_env or SYMLINK_NAME)
+            # Proceeds with the function execution
+            try:
+                fn(*args, **kwargs)
+            # Save the environment
+            finally:
+                _save_env(kwargs["env"])
+        return decorated
+    return decorator
+
+
+def _make_env(resultdir=None):
+    """Loads the env from `resultdir` if not `None` or makes a new one.
 
     An Enos environment handles all specific variables of an
     experiment. This function either generates a new environment or
@@ -24,6 +67,8 @@ def make_env(resultdir=None):
     configuration file (the reservation.yaml) and reloads it. This
     lets the user update his configuration between each phase.
 
+    Args:
+        resultdir (str): directory path to load the env from.
     """
     env = {
         "config":      {},          # The config
@@ -51,10 +96,11 @@ def make_env(resultdir=None):
     return env
 
 
-def save_env(env):
+def _save_env(env):
     """Saves one environment.
 
-    :param env: the env dict to save.
+    Args:
+        env (dict): the env dict to save.
     """
     env_path = os.path.join(env["resultdir"], "env")
 
@@ -63,38 +109,7 @@ def save_env(env):
             yaml.dump(env, f)
 
 
-def enostask(new=False):
-    """Decorator for an Enos Task.
-
-    This decorator lets you define a new Enos task and helps you
-    manage the environment.
-
-    :param new: flag that indicates if a new resultdir must be created
-    Usually this is set on the first task of the workflow.
-
-    """
-    def decorator(fn):
-        @wraps(fn)
-        def decorated(*args, **kwargs):
-            # Constructs the environment
-            k_env = kwargs.get("--env")
-            if new:
-                kwargs["env"] = make_env(k_env)
-                kwargs["env"]["resultdir"] = _set_resultdir(k_env)
-                # the previous SYMLINK to the created result_dir
-            else:
-                kwargs["env"] = make_env(k_env or SYMLINK_NAME)
-            # Proceeds with the function execution
-            try:
-                fn(*args, **kwargs)
-            # Save the environment
-            finally:
-                save_env(kwargs["env"])
-        return decorated
-    return decorator
-
-
-def check_env(fn):
+def _check_env(fn):
     """Decorator for an Enos Task.
 
     This decorator checks if an environment file exists.
@@ -115,19 +130,19 @@ def check_env(fn):
 def _set_resultdir(name=None):
     """Set or get the directory to store experiment results.
 
-    :param name: name of the resultdir to create.
 
     Looks at the `name` and create the directory if it doesn"t exist
     or returns it in other cases. If the name is `None`, then the
     function generates an unique name for the results directory.
     Finally, it links the directory to `SYMLINK_NAME`.
 
-    :param name: file path to an existing directory. It could be
-    weather an absolute or a relative to the current working
-    directory.
+    Args:
+        name (str): file path to an existing directory. It could be
+            weather an absolute or a relative to the current working
+            directory.
 
-    Returns the file path of the results directory.
-
+    Returns:
+        the file path of the results directory.
     """
     # Compute file path of results directory
     resultdir_name = name or "enos_" + datetime.today().isoformat()

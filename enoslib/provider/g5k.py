@@ -10,11 +10,11 @@ import logging
 ROLE_DISTRIBUTION_MODE_STRICT = "strict"
 
 
-def to_enos_roles(roles):
-    """Transform the roles to use enoslib.host.Host hosts
-    instead of dict
+def _to_enos_roles(roles):
+    """Transform the roles to use enoslib.host.Host hosts.
 
-    :param roles: roles returned by deploy5k
+    Args:
+        roles (dict): roles returned by deploy5k
     """
 
     def to_host(h):
@@ -33,7 +33,12 @@ def to_enos_roles(roles):
     return enos_roles
 
 
-def to_enos_networks(networks):
+def _to_enos_networks(networks):
+    """Transform the networks returned by deploy5k.
+
+    Args:
+        networks (dict): networks returned by deploy5k
+    """
     nets = []
     for network in networks:
         net = {
@@ -82,18 +87,58 @@ def to_enos_networks(networks):
 
 class G5k(Provider):
     def init(self, provider_conf):
-        """Reserve and deploys the nodes accordina
-        g to the resources section
+        """Reserve and deploys the nodes according to the resources section
 
-        :param provider_conf: the provider config. It must contains a resource
-        section and some other options specific to g5k.
+        Args:
+            provider_conf (dict): description of the resources and job
+                information
+
+        Examples:
+            .. code-block:: yaml
+
+                # in yaml
+                ---
+                job_name: enoslib
+                walltime: 01:00:00
+                # will give all configured interfaces an IP
+                dhcp: True
+                # force_deploy: True
+                resources:
+                  machines:
+                    - roles: [telegraf]
+                      cluster: griffon
+                      nodes: 1
+                      primary_network: n1
+                      secondary_networks: []
+                      secondary_networks: [n2]
+                    - roles:
+                        - control
+                          registry
+                          prometheus
+                          grafana
+                          telegraf
+                      cluster: griffon
+                      nodes: 1
+                      primary_network: n1
+                      secondary_networks: []
+                      secondary_networks: [n2]
+                  networks:
+                    - id: n1
+                      roles: [control_network]
+                      type: prod
+                      site: nancy
+                    - id: n2
+                      roles: [internal_network]
+                      type: kavlan-local
+                      site: nancy
+
         """
         resources = provider_conf["resources"]
         r = Resources(resources)
         r.launch(**provider_conf)
         roles = r.get_roles()
         networks = r.get_networks()
-        return to_enos_roles(roles), to_enos_networks(networks)
+        return _to_enos_roles(roles), _to_enos_networks(networks)
 
     def destroy(self, provider_conf):
         # TODO(msimonin):implements destroy in deploy5k

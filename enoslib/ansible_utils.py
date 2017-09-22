@@ -18,7 +18,6 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
         tags=None, on_error_continue=False):
     """Run Ansible.
 
-
     Args:
         playbooks (list): list of paths to the playbooks to run
         inventory_path (str): path to the hosts file (inventory)
@@ -28,10 +27,10 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
             unreachable or the playbooks run with errors
 
     Raises:
-        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an error on a host and
-            ``on_error_continue==False``
-        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is unreachable (through ssh) and
-            ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
+            error on a host and ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
+            unreachable (through ssh) and ``on_error_continue==False``
     """
     extra_vars = extra_vars or {}
     variable_manager = VariableManager()
@@ -118,6 +117,23 @@ def run_ansible(playbooks, inventory_path, extra_vars={},
 def generate_inventory(roles, networks, inventory_path, check_networks=False,
         fake_interfaces=None):
     """Generate an inventory file in the ini format.
+
+    The inventory is generated using the ``roles``.  If
+    ``check_network == True``, the function will try to discover which networks
+    interfaces are available and map them to one network of the ``networks``
+    parameters.  Note that this autodiscovery feature requires the servers to
+    have their IP set.
+
+    Args:
+        roles (dict): role->hosts mapping as returned by
+            :py:meth:`enoslib.provider.provider.Provider.init`
+        networks (list): network list as returned by
+            :py:meth:`enoslib.provider.provider.Provider.init`
+        inventory_path (str): path to the inventory to generate
+        check_networks (bool): True to enable the auto-discovery of the mapping
+            interface name <-> network role
+        fake_interfaces (list): names of optionnal dummy interfaces to create
+            on the nodes
     """
 
     with open(inventory_path, "w") as f:
@@ -233,23 +249,16 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
     with open(facts_file) as f:
         facts = yaml.load(f)
         for _, host_facts in facts.items():
-            host_nets = map_device_on_host_networks(networks,
+            host_nets = _map_device_on_host_networks(networks,
                                                     get_devices(host_facts))
             # Add the mapping : networks <-> nic name
             host_facts['networks'] = host_nets
 
     # Finally update the env with this information
-    update_hosts(roles, facts)
+    _update_hosts(roles, facts)
 
 
-def _get_provider_net(provider_nets, criteria):
-    provider_net = provider_nets
-    for k, v in criteria.items():
-        provider_net = filter(lambda n: n[k] == v, provider_net)
-    return provider_net
-
-
-def map_device_on_host_networks(provider_nets, devices):
+def _map_device_on_host_networks(provider_nets, devices):
     """Decorate each networks with the corresponding nic name."""
     networks = copy.deepcopy(provider_nets)
     for network in networks:
@@ -270,7 +279,7 @@ def map_device_on_host_networks(provider_nets, devices):
     return networks
 
 
-def update_hosts(roles, facts, extra_mapping=None):
+def _update_hosts(roles, facts, extra_mapping=None):
     # Update every hosts in roles
     # NOTE(msimonin): due to the deserialization
     # between phases, hosts in rsc are unique instance so we need to update
