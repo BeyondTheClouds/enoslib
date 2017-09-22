@@ -6,8 +6,10 @@
 Welcome to EnOSlib's documentation!
 ===================================
 
-EnOSlib helps you deploy complex applications on various platforms.  It targets
-role based deployments and allows you to describe your operations using tasks.
+EnOSlib helps you deploy applications on various platforms.
+
+It targets role based deployments and allows you to describe your operations
+using tasks.
 
 .. hint ::
 

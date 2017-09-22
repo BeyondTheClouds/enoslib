@@ -1,6 +1,6 @@
 from enoslib.errors import *
 from enoslib.host import Host
-from enoslib.ansible_utils import _generate_inventory_string, _update_hosts, _map_device_on_host_networks
+from enoslib.api import _generate_inventory_string, _update_hosts, _map_device_on_host_networks
 from enoslib.utils import gen_rsc
 import mock
 import unittest

@@ -11,10 +11,10 @@ Subpackages
 Submodules
 ----------
 
-enoslib\.ansible\_utils module
-------------------------------
+enoslib\.api module
+-------------------
 
-.. automodule:: enoslib.ansible_utils
+.. automodule:: enoslib.api
     :members:
     :undoc-members:
     :show-inheritance:
@@ -43,18 +43,10 @@ enoslib\.host module
     :undoc-members:
     :show-inheritance:
 
-enoslib\.network\_utils module
-------------------------------
+enoslib\.task module
+--------------------
 
-.. automodule:: enoslib.network_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-enoslib\.task\_utils module
----------------------------
-
-.. automodule:: enoslib.task_utils
+.. automodule:: enoslib.task
     :members:
     :undoc-members:
     :show-inheritance:

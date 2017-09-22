@@ -1,4 +1,7 @@
+from enoslib.errors import EnosFilePathError
+
 import re
+import os
 
 
 def get_roles_as_list(desc):
@@ -21,7 +24,7 @@ def _expand_groups(grp):
         * grp[1-3] -> [grp1, grp2, grp3]
         * grp1 -> [grp1]
     """
-    p = re.compile('(?P<name>.+)\[(?P<start>\d+)-(?P<end>\d+)\]')
+    p = re.compile("(?P<name>.+)\[(?P<start>\d+)-(?P<end>\d+)\]")
     m = p.match(grp)
     if m is not None:
         s = int(m.group('start'))
@@ -30,3 +33,13 @@ def _expand_groups(grp):
         return map(lambda x: n + str(x), range(s, e + 1))
     else:
         return [grp]
+
+
+def _check_tmpdir(tmpdir):
+    if not os.path.exists(tmpdir):
+        os.mkdir(tmpdir)
+    else:
+        if not os.path.isdir(tmpdir):
+            raise EnosFilePathError("%s is not a directory" % tmpdir)
+        else:
+            pass

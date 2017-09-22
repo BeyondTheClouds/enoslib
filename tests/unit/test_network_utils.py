@@ -1,5 +1,5 @@
 import unittest
-from enoslib.network_utils import (_build_ip_constraints,
+from enoslib.api import (_build_ip_constraints,
                                    _expand_description,
                                    _expand_groups,
                                    _generate_default_grp_constraints,
