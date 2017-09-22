@@ -43,6 +43,14 @@ enoslib\.host module
     :undoc-members:
     :show-inheritance:
 
+enoslib\.network\_utils module
+------------------------------
+
+.. automodule:: enoslib.network_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 enoslib\.task\_utils module
 ---------------------------
 
