@@ -36,7 +36,7 @@ tc = {
     "default_rate": "1gbit",
 }
 inventory = os.path.join(os.getcwd(), "hosts")
-provider = Enos_vagrant()
+provider = G5k()
 roles, networks = provider.init(provider_conf)
 generate_inventory(roles, networks, inventory, check_networks=True)
 emulate_network(roles, inventory, tc)
