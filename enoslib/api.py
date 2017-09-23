@@ -15,7 +15,7 @@ import os
 import yaml
 
 
-def run_ansible(playbooks, inventory_path, extra_vars={},
+def run_ansible(playbooks, inventory_path, extra_vars=None,
         tags=None, on_error_continue=False):
     """Run Ansible.
 
@@ -119,10 +119,10 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
         fake_interfaces=None):
     """Generate an inventory file in the ini format.
 
-    The inventory is generated using the ``roles``.  If
+    The inventory is generated using the ``roles`` in the ``ini`` format.  If
     ``check_network == True``, the function will try to discover which networks
     interfaces are available and map them to one network of the ``networks``
-    parameters.  Note that this autodiscovery feature requires the servers to
+    parameters.  Note that this auto-discovery feature requires the servers to
     have their IP set.
 
     Args:
@@ -153,11 +153,86 @@ def emulate_network(roles, inventory, network_constraints):
     """Emulate network links.
 
     Read ``network_constraints`` and apply ``tc`` rules on all the nodes.
+    Constraints are applied between groups of machines. Theses groups are
+    described in the ``network_constraints`` variable and must be found in the
+    inventory file. The newtwork constraints support ``delay``, ``rate`` and
+    ``loss``.
 
     Args:
-        roles (dict):
-        inventory (str):
-        network_constraints (dict):
+        roles (dict): role->hosts mapping as returned by
+            :py:meth:`enoslib.provider.provider.Provider.init`
+        inventory (str): path to the inventory
+        network_constraints (dict): network constraints to apply
+
+    Examples:
+
+        * Using defaults
+
+        The following will apply the network constraints between every groups.
+        For instance the constraints will be applied for the communication
+        between "n1" and "n3" but not between "n1" and "n2". Note that using
+        default leads to symetric constraints.
+
+        .. code-block:: python
+
+            roles = {
+                "grp1": ["n1", "n2"],
+                "grp2": ["n3", "n4"],
+                "grp3": ["n3", "n4"],
+            }
+
+            tc = {
+                "enable": True,
+                "default_delay": "20ms",
+                "default_rate": "1gbit",
+            }
+            emulate_network(roles, inventory, tc)
+
+        If you want to control more precisely which groups need to be taken
+        into account, you can use ``except`` or ``groups`` key
+
+        .. code-block:: python
+
+            tc = {
+                "enable": True,
+                "default_delay": "20ms",
+                "default_rate": "1gbit",
+                "except": "grp3"
+            }
+            emulate_network(roles, inventory, tc)
+
+        is equivalent to
+
+        .. code-block:: python
+
+            tc = {
+                "enable": True,
+                "default_delay": "20ms",
+                "default_rate": "1gbit",
+                "groups": ["grp1", "grp2"]
+            }
+            emulate_network(roles, inventory, tc)
+
+        * Using ``src`` and ``dst``
+
+        The following will enforce a symetric constraint between ``grp1`` and
+        ``grp2``.
+
+        .. code-block:: python
+
+            tc = {
+                "enable": True,
+                "default_delay": "20ms",
+                "default_rate": "1gbit",
+                "constraints": [{
+                    "src": "grp1"
+                    "dst": "grp2"
+                    "delay": "10ms"
+                    "symetric": True
+                }]
+            }
+            emulate_network(roles, inventory, tc)
+
     """
     # 1) Retrieve the list of ips for all nodes (Ansible)
     # 2) Build all the constraints (Python)
@@ -210,11 +285,13 @@ def validate_network(roles, inventory):
     """Validate the network parameters (latency, bandwidth ...)
 
     Performs flent, ping tests to validate the constraints set by
-        :py:func:`emulate_network`
+    :py:func:`emulate_network`. Reports are available in the tmp directory used
+    by enos.
 
     Args:
-        roles (dict):
-        inventory (str)
+        roles (dict): role->hosts mapping as returned by
+            :py:meth:`enoslib.provider.provider.Provider.init`
+        inventory (str): path to the inventory
     """
     logging.debug('Checking the constraints')
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
@@ -339,8 +416,9 @@ def _generate_default_grp_constraints(roles, network_constraints):
     default_rate = network_constraints.get('default_rate')
     default_loss = network_constraints.get('default_loss', 0)
     except_groups = network_constraints.get('except', [])
+    grps = network_constraints.get('groups', roles.keys())
     # expand each groups
-    grps = map(lambda g: _expand_groups(g), roles.keys())
+    grps = [_expand_groups(g) for g in grps]
     # flatten
     grps = [x for expanded_group in grps for x in expanded_group]
     # building the default group constraints

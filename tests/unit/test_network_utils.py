@@ -137,6 +137,26 @@ class TestGenerateDefaultGrpConstraints(unittest.TestCase):
             self.assertTrue('grp1' != d['dst'])
 
 
+    def test_include_two_groups(self):
+        roles = {
+                'grp1': [],
+                'grp2': [],
+                'grp3': [],
+         }
+        network_constraints = {
+            'default_rate': '10mbit',
+            'default_delay': '10ms',
+            'groups': ['grp2', 'grp3']
+        }
+        descs = _generate_default_grp_constraints(roles, network_constraints)
+
+        # Cartesian product is applied but grp1 isn't taken
+        self.assertEquals(2, len(descs))
+
+        for d in descs:
+            self.assertTrue('grp1' != d['src'])
+            self.assertTrue('grp1' != d['dst'])
+
 class TestGenerateActualGrpConstraints(unittest.TestCase):
 
     def test_no_expansion_no_symetric(self):
