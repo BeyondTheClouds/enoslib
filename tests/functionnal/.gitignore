@@ -1,0 +1,5 @@
+Vagrantfile
+.vagrant
+facts.yml
+_tmp_enos_
+hosts
