@@ -1,9 +1,8 @@
-from enoslib.constants import PROVIDER_DIR
 from enoslib.host import Host
 from enoslib.utils import get_roles_as_list
 from netaddr import IPNetwork
 from jinja2 import Environment, FileSystemLoader
-from provider import Provider
+from enoslib.infra.provider import Provider
 
 import logging
 import os
@@ -36,7 +35,7 @@ FLAVORS = {
     }
 }
 
-TEMPLATE_DIR = PROVIDER_DIR
+TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 # NOTE(msimonin) add provider config validation

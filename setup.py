@@ -28,8 +28,10 @@ setup(
     packages=find_packages(),
     install_requires=[
         "ansible>=2.3.0,<2.4.0",
-        "deploy5k",
-        "python-vagrant",
+        "jsonschema >= 2.6.0, < 2.7",
+        "execo >= 2.6.2, < 2.7",
+        "requests>=2.18.0, <2.19",
+        "python-vagrant>=0.5.15",
         "netaddr>=0.7,<0.8"
     ],
     include_package_data=True

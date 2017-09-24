@@ -1,5 +1,5 @@
 from enoslib.api import generate_inventory, emulate_network, validate_network
-from enoslib.provider.enos_vagrant import Enos_vagrant
+from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 
 import os
 
@@ -30,6 +30,6 @@ tc = {
 inventory = os.path.join(os.getcwd(), "hosts")
 provider = Enos_vagrant()
 roles, networks = provider.init(provider_conf)
-#generate_inventory(roles, networks, inventory, check_networks=True)
-#emulate_network(roles, inventory, tc)
+generate_inventory(roles, networks, inventory, check_networks=True)
+emulate_network(roles, inventory, tc)
 validate_network(roles, inventory)

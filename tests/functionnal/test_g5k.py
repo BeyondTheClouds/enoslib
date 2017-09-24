@@ -1,5 +1,5 @@
 from enoslib.api import generate_inventory, emulate_network, validate_network
-from enoslib.provider.g5k import G5k
+from enoslib.infra.enos_g5k.provider import G5k
 
 import os
 

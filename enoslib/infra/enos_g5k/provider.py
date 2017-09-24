@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from deploy5k.api import Resources
+from enoslib.infra.enos_g5k.api import Resources
 from enoslib.host import Host
 from enoslib.provider.provider import Provider
 from enoslib.utils import get_roles_as_list
