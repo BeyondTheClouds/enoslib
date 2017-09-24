@@ -1,7 +1,6 @@
 import unittest
 from enoslib.api import (_build_ip_constraints,
                                    _expand_description,
-                                   _expand_groups,
                                    _generate_default_grp_constraints,
                                    _generate_actual_grp_constraints,
                                    _merge_constraints)
@@ -280,7 +279,7 @@ class TestMergeConstraints(unittest.TestCase):
             'rate': '20mbit',
         }
         overrides = [override]
-        merged = _merge_constraints(constraints, overrides)
+        _merge_constraints(constraints, overrides)
 
         override.update({'delay': '10ms'})
         self.assertDictEqual(override, constraints[0])

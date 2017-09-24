@@ -97,7 +97,7 @@ class Enos_vagrant(Provider):
         vagrant_roles = {}
         j = 0
         for machine in machines:
-            for i in range(machine["number"]):
+            for _ in range(machine["number"]):
                 vagrant_machine = {
                     "name": "enos-%s" % j,
                     "cpu": FLAVORS[machine["flavor"]]["cpu"],

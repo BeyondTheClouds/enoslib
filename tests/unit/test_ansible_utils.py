@@ -2,7 +2,6 @@ from enoslib.errors import *
 from enoslib.host import Host
 from enoslib.api import _generate_inventory_string, _update_hosts, _map_device_on_host_networks
 from enoslib.utils import gen_rsc
-import mock
 import unittest
 
 
@@ -13,7 +12,6 @@ class TestGenerateInventoryString(unittest.TestCase):
 
     def test_address_alias(self):
         h = Host("1.2.3.4", alias="alias")
-        role = "test"
         self.assertEqual("alias ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", _generate_inventory_string(h))
 
 
