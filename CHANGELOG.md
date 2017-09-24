@@ -1,4 +1,10 @@
-# 0.0.2 (current)
+# 0.0.3 (current)
+
+* Rearchitect providers
+* Add dummy functionnal tests
+* Add network emulation
+
+# 0.0.2 
 
 * Add fake interface creation option un check_network
 * Encapsulate check_network in generate_inventory
