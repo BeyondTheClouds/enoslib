@@ -10,14 +10,25 @@ NETWORK_TYPES = [PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN]
 SCHEMA = {
     "type": "object",
     "properties": {
-        "machines": {"type": "array", "items": {"$ref": "#/machine"}},
-        "networks": {
-            "type": "array",
-            "items": {"$ref": "#/network"},
-            "uniqueItems": True},
+        "resources": {"$ref": "#/resources"}
     },
-    "additionalProperties": False,
-    "required": ["machines", "networks"],
+    "additionalProperties": True,
+    "required": ["resources"],
+
+    "resources": {
+        "title": "Resource",
+
+        "type": "object",
+        "properties": {
+            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "networks": {
+                "type": "array",
+                "items": {"$ref": "#/network"},
+                "uniqueItems": True},
+        },
+        "additionalProperties": False,
+        "required": ["machines", "networks"],
+    },
 
     "machine": {
         "title": "Compute",
@@ -57,11 +68,16 @@ SCHEMA = {
 }
 
 
-def validate_schema(resources):
+def validate_schema(provider_conf):
+    """Validate the schema of the configuration.
+
+    Args:
+        provider_conf (dict): The provider configuration
+    """
     # First, validate the syntax
-    validate(resources, SCHEMA)
+    validate(provider_conf, SCHEMA)
     # Second, validate the network names
-    _validate_network_names(resources)
+    # _validate_network_names(d)
     # Third validate the network number on each nodes
 
 

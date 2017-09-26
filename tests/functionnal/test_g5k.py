@@ -36,8 +36,8 @@ tc = {
     "default_rate": "1gbit",
 }
 inventory = os.path.join(os.getcwd(), "hosts")
-provider = G5k()
-roles, networks = provider.init(provider_conf)
+provider = G5k(provider_conf)
+roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 emulate_network(roles, inventory, tc)
 validate_network(roles, inventory)

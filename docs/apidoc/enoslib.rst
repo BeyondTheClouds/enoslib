@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    enoslib.provider
+    enoslib.infra
 
 Submodules
 ----------

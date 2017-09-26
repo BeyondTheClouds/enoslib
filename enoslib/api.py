@@ -127,9 +127,9 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
 
     Args:
         roles (dict): role->hosts mapping as returned by
-            :py:meth:`enoslib.provider.provider.Provider.init`
+            :py:meth:`enoslib.infra.provider.Provider.init`
         networks (list): network list as returned by
-            :py:meth:`enoslib.provider.provider.Provider.init`
+            :py:meth:`enoslib.infra.provider.Provider.init`
         inventory_path (str): path to the inventory to generate
         check_networks (bool): True to enable the auto-discovery of the mapping
             interface name <-> network role
@@ -160,7 +160,7 @@ def emulate_network(roles, inventory, network_constraints):
 
     Args:
         roles (dict): role->hosts mapping as returned by
-            :py:meth:`enoslib.provider.provider.Provider.init`
+            :py:meth:`enoslib.infra.provider.Provider.init`
         inventory (str): path to the inventory
         network_constraints (dict): network constraints to apply
 
@@ -290,7 +290,7 @@ def validate_network(roles, inventory):
 
     Args:
         roles (dict): role->hosts mapping as returned by
-            :py:meth:`enoslib.provider.provider.Provider.init`
+            :py:meth:`enoslib.infra.provider.Provider.init`
         inventory (str): path to the inventory
     """
     logging.debug('Checking the constraints')

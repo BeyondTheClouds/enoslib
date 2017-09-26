@@ -1,5 +1,6 @@
 from enoslib.host import Host
 from enoslib.utils import get_roles_as_list
+from jsonschema import validate
 from netaddr import IPNetwork
 from jinja2 import Environment, FileSystemLoader
 from enoslib.infra.provider import Provider
@@ -37,6 +38,49 @@ FLAVORS = {
 
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
+# This is the schema for the abstract description of the resources
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "resources": {"$ref": "#/resources"}
+    },
+    "additionalProperties": True,
+    "required": ["resources"],
+
+    "resources": {
+        "title": "Resource",
+
+        "type": "object",
+        "properties": {
+            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "networks": {
+                "type": "array",
+                "items": {"$ref": "#/network"},
+                "uniqueItems": True},
+        },
+        "additionalProperties": False,
+        "required": ["machines"]
+    },
+
+    "machine": {
+        "title": "Compute",
+        "type": "object",
+        "properties": {
+            "anyOf": [
+                {"roles": {"type": "array", "items": {"type": "string"}}},
+                {"role": {"type": "string"}}
+            ],
+            "flavor": {"type": "string"},
+            "number": {"type": "number"},
+            "networks": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": [
+            "number",
+            "flavor"
+        ]
+    }
+}
+
 
 # NOTE(msimonin) add provider config validation
 # for now :
@@ -50,12 +94,15 @@ TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 #       (or roles:[...])
 #       networks: [network_names]
 class Enos_vagrant(Provider):
-    def init(self, provider_conf, force_deploy=False):
+    def __init__(self, provider_conf):
+        self.schema = SCHEMA
+        self.provider_conf = provider_conf.update(self.default_config())
+        validate(provider_conf, self.schema)
+
+    def init(self, force_deploy=False):
         """Reserve and deploys the vagrant boxes.
 
         Args:
-            provider_conf (dict): description of the resources and vagrant
-                configuration
             force_deploy (bool): True iff new machines should be started
 
         Examples:
@@ -88,9 +135,9 @@ class Enos_vagrant(Provider):
         slash_24 = [IPNetwork("192.168.%s.1/24" % x) for x in slash_24]
         net_pool = [list(x)[10:-10] for x in slash_24]
 
-        machines = provider_conf["resources"]["machines"]
+        machines = self.provider_conf["resources"]["machines"]
         # build the mapping network_name -> pool
-        networks = [set(machine["networks"]) for machine in machines]
+        networks = [set(machine.get("networks", [])) for machine in machines]
         networks = reduce(set.union, networks)
         networks = dict(zip(networks, net_pool))
         vagrant_machines = []
@@ -116,7 +163,7 @@ class Enos_vagrant(Provider):
         env = Environment(loader=loader)
         template = env.get_template('Vagrantfile.j2')
         vagrantfile = template.render(machines=vagrant_machines,
-                provider_conf=provider_conf)
+                provider_conf=self.provider_conf)
         vagrantfile_path = os.path.join(os.getcwd(), "Vagrantfile")
         with open(vagrantfile_path, 'w') as f:
             f.write(vagrantfile)
@@ -124,7 +171,7 @@ class Enos_vagrant(Provider):
         # Build env for Vagrant with a copy of env variables (needed by
         # subprocess opened by vagrant
         v_env = dict(os.environ)
-        v_env['VAGRANT_DEFAULT_PROVIDER'] = provider_conf['backend']
+        v_env['VAGRANT_DEFAULT_PROVIDER'] = self.provider_conf['backend']
 
         v = vagrant.Vagrant(root=os.getcwd(),
                             quiet_stdout=False,
@@ -143,7 +190,7 @@ class Enos_vagrant(Provider):
                 roles.setdefault(role, []).append(
                     Host(address,
                          alias=machine['name'],
-                         user=provider_conf['user'],
+                         user=self.provider_conf['user'],
                          port=port,
                          keyfile=keyfile))
 

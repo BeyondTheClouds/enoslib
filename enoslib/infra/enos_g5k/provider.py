@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 from enoslib.infra.enos_g5k.api import Resources
+from enoslib.infra.enos_g5k.schema import SCHEMA, validate
 from enoslib.host import Host
-from enoslib.provider.provider import Provider
+from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
 from netaddr import IPAddress, IPNetwork, IPSet
 
 import logging
-
-ROLE_DISTRIBUTION_MODE_STRICT = "strict"
 
 
 def _to_enos_roles(roles):
     """Transform the roles to use enoslib.host.Host hosts.
 
     Args:
-        roles (dict): roles returned by deploy5k
+        roles (dict): roles returned by
+            :py:func:`enoslib.infra.provider.Provider.init`
     """
 
     def to_host(h):
@@ -37,7 +37,8 @@ def _to_enos_networks(networks):
     """Transform the networks returned by deploy5k.
 
     Args:
-        networks (dict): networks returned by deploy5k
+        networks (dict): networks returned by
+            :py:func:`enoslib.infra.provider.Provider.init`
     """
     nets = []
     for network in networks:
@@ -86,7 +87,14 @@ def _to_enos_networks(networks):
 
 
 class G5k(Provider):
-    def init(self, provider_conf):
+
+    def __init__(self, provider_conf):
+        self.schema = SCHEMA
+        self.provider_conf = provider_conf
+        self.provider_conf = provider_conf.update(self.default_config())
+        validate(self.provider_conf)
+
+    def init(self):
         """Reserve and deploys the nodes according to the resources section
 
         Args:
@@ -133,12 +141,14 @@ class G5k(Provider):
                       site: nancy
 
         """
-        resources = provider_conf["resources"]
+        resources = self.provider_conf["resources"]
         r = Resources(resources)
-        r.launch(**provider_conf)
+        r.launch(**self.provider_conf)
         roles = r.get_roles()
         networks = r.get_networks()
-        return _to_enos_roles(roles), _to_enos_networks(networks)
+
+        return (_to_enos_roles(roles),
+                _to_enos_networks(networks))
 
     def destroy(self, provider_conf):
         # TODO(msimonin):implements destroy in deploy5k

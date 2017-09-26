@@ -1,5 +1,6 @@
 # 0.0.3 (current)
 
+* Add `provider_conf` validation
 * Rearchitect providers
 * Add dummy functionnal tests
 * Add network emulation

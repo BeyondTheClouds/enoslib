@@ -1,7 +1,6 @@
 from itertools import groupby
 from operator import itemgetter, add
 import enoslib.infra.enos_g5k.utils as utils
-import schema
 import copy
 
 ENV_NAME = "jessie-x64-nfs"
@@ -12,7 +11,6 @@ WALLTIME = "02:00:00"
 class Resources:
 
     def __init__(self, resources):
-        schema.validate_schema(resources)
         self.resources = resources
         # This one will be modified
         self.c_resources = copy.deepcopy(resources)
@@ -78,6 +76,11 @@ class Resources:
         return self.c_resources
 
     def get_networks(self):
+        """Get the networks assoiated with the resource description.
+
+        Returns
+            list of networks
+        """
         networks = self.c_resources["networks"]
         result = []
         for net in networks:
@@ -90,18 +93,24 @@ class Resources:
         return result
 
     def get_roles(self):
-        def denormalize(desc):
-            hosts = desc.get("_c_ssh_nodes", [])
-            nics = desc.get("_c_nics", [])
-            hosts = [{"host": h, "nics": nics} for h in hosts]
-            return hosts
+        """Get the roles associated with the hosts.
+
+        Returns
+            dict of role -> [host]
+        """
 
         machines = self.c_resources["machines"]
         result = {}
         for desc in machines:
             roles = utils.get_roles_as_list(desc)
-            hosts = denormalize(desc)
+            hosts = self._denormalize(desc)
             for r in roles:
                 result.setdefault(r, [])
                 result[r].extend(hosts)
         return result
+
+    def _denormalize(self, desc):
+            hosts = desc.get("_c_ssh_nodes", [])
+            nics = desc.get("_c_nics", [])
+            hosts = [{"host": h, "nics": nics} for h in hosts]
+            return hosts

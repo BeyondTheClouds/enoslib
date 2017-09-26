@@ -22,6 +22,7 @@ class TestGetNetwork(unittest.TestCase):
         networks = r.get_networks()
         self.assertItemsEqual(expected_networks, networks)
 
+
 class TestDeploy(unittest.TestCase):
 
     def test_prod(self):

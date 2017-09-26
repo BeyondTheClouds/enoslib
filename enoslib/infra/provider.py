@@ -24,7 +24,7 @@ class Provider:
             force (bool): Indicates that the resources must be redeployed.
 
         Returns:
-            tuple: (roles, networks)
+            tuple: (roles, networks, groups)
         """
         pass
 
@@ -34,8 +34,8 @@ class Provider:
         pass
 
     @abstractmethod
-    def default_config(self):
-        """The default provider configuration.
+    def default_config(self, provider_conf):
+        """Default config for the provider config.
 
         Returns a dict with all keys used to initialize the provider
         (section `provider` of reservation.yaml file). Keys should be
