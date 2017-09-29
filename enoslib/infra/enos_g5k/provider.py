@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from enoslib.infra.enos_g5k.api import Resources
-from enoslib.infra.enos_g5k.schema import SCHEMA, validate
+from enoslib.infra.enos_g5k.schema import SCHEMA
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
@@ -88,13 +88,7 @@ def _to_enos_networks(networks):
 
 class G5k(Provider):
 
-    def __init__(self, provider_conf):
-        self.schema = SCHEMA
-        self.provider_conf = provider_conf
-        self.provider_conf = provider_conf.update(self.default_config())
-        validate(self.provider_conf)
-
-    def init(self):
+    def init(self, force_deploy=False):
         """Reserve and deploys the nodes according to the resources section
 
         Args:
@@ -150,8 +144,7 @@ class G5k(Provider):
         return (_to_enos_roles(roles),
                 _to_enos_networks(networks))
 
-    def destroy(self, provider_conf):
-        # TODO(msimonin):implements destroy in deploy5k
+    def destroy(self):
         pass
 
     def default_config(self):
@@ -161,6 +154,9 @@ class G5k(Provider):
             'env_name': 'jessie-x64-min',
             'reservation': False,
         }
+
+    def schema(self):
+        return SCHEMA
 
     def __str__(self):
         return 'G5k'

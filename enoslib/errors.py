@@ -12,6 +12,11 @@ class EnosUnreachableHostsError(EnosError):
         self.hosts = hosts
 
 
+class EnosSSHNotReady(EnosError):
+    def __init__(self, msg):
+        super(EnosSSHNotReady, self).__init__(msg)
+
+
 class EnosFilePathError(EnosError):
     def __init__(self, filepath, msg=''):
         super(EnosFilePathError, self).__init__(msg)

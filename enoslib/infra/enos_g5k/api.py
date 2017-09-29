@@ -9,6 +9,29 @@ WALLTIME = "02:00:00"
 
 
 class Resources:
+    """Class to manipulate g5k resource.
+
+    This acts as an entry point to control the deployment life-cycle.
+    A typical workflow of use would be :
+
+    Examples:
+        .. code-block:: python
+
+            resources = { ... }
+            r = Resources(resources)
+            r.reserve()
+            r.deploy()
+            r.configure_network()
+
+        Or more concisely :
+
+            resources = { ... }
+            r = Resources(resources)
+            r.launch()
+
+    Note that ``resources`` dict is not validated here, but can be through
+    the :py:func:`enoslib.infra.enos_g5k.schema.validate_schema` function
+    """
 
     def __init__(self, resources):
         self.resources = resources

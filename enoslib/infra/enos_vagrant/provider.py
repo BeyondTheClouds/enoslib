@@ -1,6 +1,5 @@
 from enoslib.host import Host
 from enoslib.utils import get_roles_as_list
-from jsonschema import validate
 from netaddr import IPNetwork
 from jinja2 import Environment, FileSystemLoader
 from enoslib.infra.provider import Provider
@@ -94,10 +93,6 @@ SCHEMA = {
 #       (or roles:[...])
 #       networks: [network_names]
 class Enos_vagrant(Provider):
-    def __init__(self, provider_conf):
-        self.schema = SCHEMA
-        self.provider_conf = provider_conf.update(self.default_config())
-        validate(provider_conf, self.schema)
 
     def init(self, force_deploy=False):
         """Reserve and deploys the vagrant boxes.
@@ -220,3 +215,6 @@ class Enos_vagrant(Provider):
             'box': 'debian/jessie64',
             'user': 'root',
         }
+
+    def schema(self):
+        return SCHEMA

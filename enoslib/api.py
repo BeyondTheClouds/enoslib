@@ -6,12 +6,15 @@ from ansible.vars import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.utils import _expand_groups, _check_tmpdir
-from errors import EnosFailedHostsError, EnosUnreachableHostsError
+from errors import (EnosFailedHostsError,
+                    EnosUnreachableHostsError,
+                    EnosSSHNotReady)
 from netaddr import IPAddress, IPSet
 
 import copy
 import logging
 import os
+import time
 import yaml
 
 
@@ -300,6 +303,34 @@ def validate_network(roles, inventory):
     options = {'enos_action': 'tc_validate',
                'tc_output_dir': tmpdir}
     run_ansible([utils_playbook], inventory, extra_vars=options)
+
+
+def wait_ssh(inventory, retries=100, interval=30):
+    """Wait for all the machines to be ssh-reachable
+
+    Let ansible initiates a communication and retries if needed.
+
+    Args:
+        inventory (string): path to the inventoy file to test
+        retries (int): Number of time we'll be retrying an SSH connection
+        interval (int): Interval to wait in seconds between two retries
+    """
+    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
+    options = {'enos_action': 'ping'}
+
+    for i in range(0, retries):
+        try:
+            run_ansible([utils_playbook],
+                        inventory,
+                        extra_vars=options,
+                        on_error_continue=False)
+            break
+        except EnosUnreachableHostsError as e:
+            logging.info("Hosts unreachable: %s " % e.hosts)
+            logging.info("Retrying... %s/%s" % (i + 1, retries))
+            time.sleep(interval)
+    else:
+        raise EnosSSHNotReady('Maximum retries reached')
 
 
 def _generate_inventory(roles):

@@ -4,4 +4,4 @@ include README.rst
 include LICENSE
 
 recursive-include enoslib/ansible *
-recursive-include enoslib/provider *
+recursive-include enoslib/infra *

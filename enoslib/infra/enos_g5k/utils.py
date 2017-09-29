@@ -3,8 +3,8 @@ import execo_g5k.api_utils as api
 import logging
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k import remote
+from enoslib.infra.utils import pick_things, mk_pools
 from execo import Host
-from itertools import groupby
 from schema import PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN
 
 
@@ -128,25 +128,6 @@ def lookup_networks(network_id, networks):
     match = [net for net in networks if net["id"] == network_id]
     # if it has been validated the following is valid
     return match[0]
-
-
-def mk_pools(things, keyfnc=lambda x: x):
-    "Indexes a thing by the keyfnc to construct pools of things."
-    pools = {}
-    sthings = sorted(things, key=keyfnc)
-    for key, thingz in groupby(sthings, key=keyfnc):
-        pools.setdefault(key, []).extend(list(thingz))
-    return pools
-
-
-def pick_things(pools, key,  n):
-    "Picks a maximum of n things in a dict of indexed pool of things."
-    pool = pools.get(key)
-    if not pool:
-        return []
-    things = pool[:n]
-    del pool[:n]
-    return things
 
 
 def concretize_nodes(resources, nodes):

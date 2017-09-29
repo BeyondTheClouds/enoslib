@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
+import jsonschema
 
 
 class Provider:
     __metaclass__ = ABCMeta
 
+    def __init__(self, provider_conf):
+        """Routine to validate the config against the schema."""
+        self.provider_conf = provider_conf
+        self.provider_conf.update(self.default_config())
+        self.validate()
+
     @abstractmethod
-    def init(self, config, force=False):
+    def init(self, force_deploy=False):
         """Provides resources and provisions the environment.
 
         The `config` parameter contains the client request (eg, number
@@ -29,18 +36,24 @@ class Provider:
         pass
 
     @abstractmethod
-    def destroy(self, env):
+    def destroy(self):
         "Destroy the resources used for the deployment."
         pass
 
     @abstractmethod
-    def default_config(self, provider_conf):
+    def default_config(self):
         """Default config for the provider config.
 
         Returns a dict with all keys used to initialize the provider
         (section `provider` of reservation.yaml file). Keys should be
-        provided with a default value. Keys set with `None` value must
-        be override in the reservation.yaml.
-
+        provided with a default value.
         """
         pass
+
+    @abstractmethod
+    def schema(self):
+        """The jsonschema of the configuration."""
+
+    def validate(self):
+        """Validates the json schema."""
+        jsonschema.validate(self.provider_conf, self.schema())

@@ -32,7 +32,9 @@ setup(
         "execo >= 2.6.2, < 2.7",
         "requests>=2.18.0, <2.19",
         "python-vagrant>=0.5.15",
-        "netaddr>=0.7,<0.8"
+        "netaddr>=0.7,<0.8",
+        'python-openstackclient>=3.0.0,<=4.0.0',
+        'python-neutronclient==6.3.0',
     ],
     include_package_data=True
 )
