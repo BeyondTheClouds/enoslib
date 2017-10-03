@@ -9,7 +9,8 @@ class Provider:
     def __init__(self, provider_conf):
         """Routine to validate the config against the schema."""
         self.provider_conf = provider_conf
-        self.provider_conf.update(self.default_config())
+        self.provider_conf = self.default_config()
+        self.provider_conf.update(provider_conf)
         self.validate()
 
     @abstractmethod
