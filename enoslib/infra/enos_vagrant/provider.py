@@ -155,7 +155,7 @@ class Enos_vagrant(Provider):
         logging.debug(vagrant_roles)
 
         loader = FileSystemLoader(searchpath=TEMPLATE_DIR)
-        env = Environment(loader=loader)
+        env = Environment(loader=loader, autoescape=True)
         template = env.get_template('Vagrantfile.j2')
         vagrantfile = template.render(machines=vagrant_machines,
                 provider_conf=self.provider_conf)
@@ -203,7 +203,7 @@ class Enos_vagrant(Provider):
         logging.debug(networks)
         return (roles, networks)
 
-    def destroy(self, env):
+    def destroy(self):
         v = vagrant.Vagrant(root=os.getcwd(),
                             quiet_stdout=False,
                             quiet_stderr=True)

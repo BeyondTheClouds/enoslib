@@ -48,7 +48,7 @@ for role, machines in roles.items():
 resources["networks"] = networks
 
 provider = Static({"resources": resources})
-roles, network = provider.init()
+roles, _ = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 emulate_network(roles, inventory, tc)
 validate_network(roles, inventory)

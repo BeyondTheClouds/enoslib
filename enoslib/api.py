@@ -260,7 +260,7 @@ def emulate_network(roles, inventory, network_constraints):
     constraints = _build_grp_constraints(roles, network_constraints)
     # 2.b Building the ip/device level constaints
     with open(ips_file) as f:
-        ips = yaml.load(f)
+        ips = yaml.safe_load(f)
         # will hold every single constraint
         ips_with_constraints = _build_ip_constraints(roles,
                                                     ips,
@@ -582,7 +582,7 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None):
     # Read the file
     # Match provider networks to interface names for each host
     with open(facts_file) as f:
-        facts = yaml.load(f)
+        facts = yaml.safe_load(f)
         for _, host_facts in facts.items():
             host_nets = _map_device_on_host_networks(networks,
                                                     get_devices(host_facts))

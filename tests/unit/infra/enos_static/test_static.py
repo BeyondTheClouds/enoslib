@@ -22,7 +22,7 @@ class TestBuildResources(unittest.TestCase):
         }
 
         s = Static({"resources": resources})
-        roles, networks = s.init()
+        roles, _ = s.init()
         self.assertItemsEqual(["role1", "role2"], roles.keys())
         self.assertEquals(2, len(roles["role1"]))
         self.assertEquals(1, len(roles["role2"]))
