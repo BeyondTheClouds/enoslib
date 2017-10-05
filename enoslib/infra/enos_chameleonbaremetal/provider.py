@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from blazarclient import client as blazar_client
 from keystoneclient import client as keystone
 from neutronclient.neutron import client as neutron
@@ -165,13 +167,17 @@ def check_extra_ports(session, network, total):
 class Chameleonbaremetal(cc.Chameleonkvm):
 
     def init(self, force_deploy=False):
+        def by_flavor(x):
+            return x["flavor"]
+
         conf = self.provider_conf
         env = openstack.check_environment(conf)
         lease = check_reservation(conf)
-        extra_ips = check_extra_ports(env['session'], env['network'], conf['extra_ips'])
+        extra_ips = check_extra_ports(env['session'],
+                                      env['network'],
+                                      conf['extra_ips'])
         reservations = lease['reservations']
         machines = self.provider_conf["resources"]["machines"]
-        by_flavor = lambda x: x["flavor"]
         machines = sorted(machines, key=by_flavor)
         servers = []
         for flavor, descs in groupby(machines, key=by_flavor):

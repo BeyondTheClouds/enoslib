@@ -1,1 +1,1 @@
-# init
+# -*- coding: utf-8 -*-

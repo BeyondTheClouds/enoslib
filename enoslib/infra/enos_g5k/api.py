@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from itertools import groupby
 from operator import itemgetter, add
 import enoslib.infra.enos_g5k.utils as utils

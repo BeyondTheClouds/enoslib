@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list

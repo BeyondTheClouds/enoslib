@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 class Host(object):
 
     def __init__(

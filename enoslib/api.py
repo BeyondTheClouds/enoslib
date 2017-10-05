@@ -5,7 +5,7 @@ from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
-from enoslib.utils import _expand_groups, _check_tmpdir
+from enoslib.utils import _expand_groups, _check_tmpdir, get_roles_as_list
 from errors import (EnosFailedHostsError,
                     EnosUnreachableHostsError,
                     EnosSSHNotReady)
@@ -407,7 +407,7 @@ def _update_hosts(roles, facts, extra_mapping=None):
             for network in networks:
                 device = network["device"]
                 if device:
-                    for role in network["roles"]:
+                    for role in get_roles_as_list(network):
                         host.extra.update({role: device})
                     enos_devices.append(device)
 

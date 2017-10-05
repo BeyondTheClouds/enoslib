@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import enoslib.infra.enos_openstack.provider as openstack
 
 

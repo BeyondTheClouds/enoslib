@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from enoslib.errors import EnosFilePathError
 
 import re

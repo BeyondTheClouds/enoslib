@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from enoslib.host import Host
 from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.infra.provider import Provider

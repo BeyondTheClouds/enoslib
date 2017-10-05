@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from enoslib.infra.enos_g5k.api import Resources
 from enoslib.infra.enos_g5k.schema import SCHEMA
 from enoslib.host import Host
