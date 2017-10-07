@@ -1,4 +1,8 @@
-# 0.0.3 (current)
+# 0.0.4 (current)
+
+* TODO
+
+# 0.0.3
 
 * Add static provider
 * Add OpenStack provider (and chameleon derivatives)
