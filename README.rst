@@ -1,7 +1,7 @@
 EnosLib
 =======
 
-|Code style| |License| |Pypi|
+|Build Status| |Code style| |License| |Pypi|
 
 EnosLib is a library to
 
@@ -16,9 +16,9 @@ Links
 
 -  Discovery - https://beyondtheclouds.github.io/
    
-.. |Documentation Status| image:: https://readthedocs.org/projects/enos/badge/?version=stable
-   :target: http://enos.readthedocs.io/en/stable/?badge=stable
-   
+.. |Build Status| image:: https://travis-ci.org/BeyondTheClouds/enoslib.svg?branch=master
+   :target: https://travis-ci.org/BeyondTheClouds/enoslib
+      
 .. |Code style| image:: https://api.codacy.com/project/badge/Grade/87536e9c0f0d47e08d1b9e0950c9d14b
    :target: https://www.codacy.com/app/msimonin/enoslib?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BeyondTheClouds/enos&amp;utm_campaign=Badge_Grade
    
