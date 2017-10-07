@@ -1,5 +1,7 @@
 # 0.0.3 (current)
 
+* Add static provider
+* Add OpenStack provider (and chameleon derivatives)
 * Add `provider_conf` validation
 * Rearchitect providers
 * Add dummy functionnal tests
