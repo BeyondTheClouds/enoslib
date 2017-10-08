@@ -169,5 +169,6 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-
-
+rst_epilog = """
+.. |enoslib| replace:: EnOSlib
+"""
