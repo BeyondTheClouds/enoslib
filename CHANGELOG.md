@@ -1,6 +1,6 @@
 # 0.0.4 (current)
 
-* TODO
+* Exclude not involved machines from the tc.yml run
 
 # 0.0.3
 

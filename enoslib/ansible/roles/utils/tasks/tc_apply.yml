@@ -20,6 +20,7 @@
   command: "tc class add dev {{ item.1.device }} parent 1: classid 1:{{ item.0 + 1 }} htb rate {{ item.1.rate }}"
   with_indexed_items: "{{ ips_with_constraints[inventory_hostname].tc }}"
   when:
+    - ips_with_constraints[inventory_hostname].tc is defined
     - tc_enable
     - item[1].source == ansible_nodename
 
@@ -30,6 +31,7 @@
   command: "tc qdisc add dev {{ item.1.device }} parent 1:{{ item.0 + 1 }} handle {{ item.0 + 10 }}: netem delay {{ item.1.delay }}"
   with_indexed_items: "{{ ips_with_constraints[inventory_hostname].tc }}"
   when:
+    - ips_with_constraints[inventory_hostname].tc is defined
     - tc_enable
     - item[1].source == ansible_nodename
     - item[1].loss is not defined or item[1].loss == 0 or item[1].loss == '0%'
@@ -38,6 +40,7 @@
   command: "tc qdisc add dev {{ item.1.device }} parent 1:{{ item.0 + 1 }} handle {{ item.0 + 10 }}: netem delay {{ item.1.delay }} loss {{ item.1.loss }}"
   with_indexed_items: "{{ ips_with_constraints[inventory_hostname].tc }}"
   when:
+    - ips_with_constraints[inventory_hostname].tc is defined
     - tc_enable
     - item[1].source == ansible_nodename
     - item[1].loss is defined and item[1].loss != 0 and item[1].loss != '0%'
@@ -46,6 +49,7 @@
   command: "tc filter add dev {{ item.1.device }} parent 1: protocol ip  u32 match ip dst {{ item.1.target }} flowid 1:{{ item.0 + 1 }}"
   with_indexed_items: "{{ ips_with_constraints[inventory_hostname].tc }}"
   when:
+    - ips_with_constraints[inventory_hostname].tc is defined
     - tc_enable
     - item[1].source == ansible_nodename
 
