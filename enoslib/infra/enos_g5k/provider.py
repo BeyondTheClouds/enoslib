@@ -152,7 +152,7 @@ class G5k(Provider):
         return {
             'name': 'Enoslib',
             'walltime': '02:00:00',
-            'env_name': 'jessie-x64-min',
+            'env_name': 'jessie-x64-nfs',
             'reservation': False,
         }
 
