@@ -16,7 +16,7 @@ def dhcp_interfaces(c_resources):
     for desc in machines:
         nics = desc.get("_c_nics", [])
         nics_list = [nic for nic, _ in nics]
-        ifconfig = ["ifconfig %s up" % nic for nic in nics_list]
+        ifconfig = ["ip link set %s up" % nic for nic in nics_list]
         cmd = "%s ; dhclient %s" % (";".join(ifconfig), " ".join(nics_list))
         remote.exec_command_on_nodes(desc["_c_ssh_nodes"],
                                      cmd,
