@@ -1,6 +1,7 @@
 # 0.0.4 (current)
 
 * Exclude not involved machines from the tc.yml run
+* Take force_deploy in g5k provider
 
 # 0.0.3
 
