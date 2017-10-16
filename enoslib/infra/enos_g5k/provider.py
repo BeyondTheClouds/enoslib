@@ -138,6 +138,8 @@ class G5k(Provider):
         """
         resources = self.provider_conf["resources"]
         r = Resources(resources)
+        # insert force_deploy
+        self.provider_conf.setdefault("force_deploy", force_deploy)
         r.launch(**self.provider_conf)
         roles = r.get_roles()
         networks = r.get_networks()
