@@ -36,15 +36,16 @@ def enostask(new=False):
         @wraps(fn)
         def decorated(*args, **kwargs):
             # Constructs the environment
-            k_env = kwargs.get("--env")
+            # --env or env are reserved keyword to reuse existing env
+            k_env = kwargs.get("--env") or kwargs.get("env")
             if new:
                 kwargs["env"] = _make_env(k_env)
                 kwargs["env"]["resultdir"] = _set_resultdir(k_env)
                 # the previous SYMLINK to the created result_dir
             else:
                 kwargs["env"] = _make_env(k_env or SYMLINK_NAME)
-            # Proceeds with the function execution
             try:
+                # Proceeds with the function execution
                 fn(*args, **kwargs)
             # Save the environment
             finally:
