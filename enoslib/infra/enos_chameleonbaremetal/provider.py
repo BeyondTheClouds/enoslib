@@ -122,12 +122,12 @@ def create_reservation(bclient, provider_config):
 
 def wait_reservation(bclient, lease):
     logging.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
-    l = bclient.lease.get(lease['id'])
-    while(not lease_is_running(l)):
+    lease = bclient.lease.get(lease['id'])
+    while(not lease_is_running(lease)):
         time.sleep(10)
-        l = bclient.lease.get(lease['id'])
-        logging.info("[blazar]: Waiting for %s to start" % lease_to_s(l))
-    return l
+        lease = bclient.lease.get(lease['id'])
+        logging.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
+    return lease
 
 
 def check_reservation(config):
