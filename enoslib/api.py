@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
+from ansible.playbook import play
+from ansible.plugins.callback.default import CallbackModule
 from ansible.vars import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
@@ -18,25 +21,24 @@ import time
 import yaml
 
 
-def run_ansible(playbooks, inventory_path, extra_vars=None,
-        tags=None, on_error_continue=False):
-    """Run Ansible.
+COMMAND_NAME = u"enoslib_adhoc_command"
+STATUS_OK = "OK"
+STATUS_FAILED = "FAILED"
+STATUS_UNREACHABLE = "UNREACHABLE"
+STATUS_SKIPPED = "SKIPPED"
+DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
 
-    Args:
-        playbooks (list): list of paths to the playbooks to run
-        inventory_path (str): path to the hosts file (inventory)
-        extra_var (dict): extra vars to pass
-        tags (list): list of tags to run
-        on_error_continue(bool): Don't throw any exception in case a host is
-            unreachable or the playbooks run with errors
+AnsibleExecutionRecord = namedtuple(
+    'AnsibleExecutionRecord', ['host', 'status', 'task', 'payload'])
 
-    Raises:
-        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
-            error on a host and ``on_error_continue==False``
-        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
-            unreachable (through ssh) and ``on_error_continue==False``
-    """
+
+def _load_defaults(inventory_path, extra_vars=None, tags=None):
+    """Load common defaults data structures.
+
+    For factorization purpose."""
+
     extra_vars = extra_vars or {}
+    tags = tags or []
     variable_manager = VariableManager()
     loader = DataLoader()
 
@@ -49,10 +51,6 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
     if extra_vars:
         variable_manager.extra_vars = extra_vars
 
-    if tags is None:
-        tags = []
-
-    passwords = {}
     # NOTE(msimonin): The ansible api is "low level" in the
     # sense that we are redefining here all the default values
     # that are usually enforce by ansible called from the cli
@@ -78,6 +76,218 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
                       remote_user=None, verbosity=2, check=False,
                       tags=tags, pipelining=True)
 
+    return inventory, variable_manager, loader, options
+
+
+class _MyCallback(CallbackModule):
+
+    CALLBACK_VERSION = 2.0
+    CALLBACK_TYPE = 'stdout'
+    CALLBACK_NAME = 'mycallback'
+
+    def __init__(self, storage):
+        super(_MyCallback, self).__init__()
+        self.storage = storage
+
+    def _store(self, result, status):
+        record = AnsibleExecutionRecord(
+            host=result._host.get_name(), status=status,
+            task=result._task.get_name(), payload=result._result)
+        self.storage.append(record)
+
+    def v2_runner_on_failed(self, result, ignore_errors=False):
+        super(_MyCallback, self).v2_runner_on_failed(result)
+        self._store(result, STATUS_FAILED)
+
+    def v2_runner_on_ok(self, result):
+        super(_MyCallback, self).v2_runner_on_ok(result)
+        self._store(result, STATUS_OK)
+
+    def v2_runner_on_skipped(self, result):
+        super(_MyCallback, self).v2_runner_on_skipped(result)
+        self._store(result, STATUS_SKIPPED)
+
+    def v2_runner_on_unreachable(self, result):
+        super(_MyCallback, self).v2_runner_on_unreachable(result)
+        self._store(result, STATUS_UNREACHABLE)
+
+
+def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
+    on_error_continue=False):
+    """Run a play.
+
+    Args:
+        pattern_hosts (str): pattern to describe ansible hosts to target.
+            see https://docs.ansible.com/ansible/latest/intro_patterns.html
+        play_source (dict): ansible task
+        inventory_path (str): inventory to use
+        extra_vars (dict): extra_vars to use
+        on_error_continue(bool): Don't throw any exception in case a host is
+            unreachable or the playbooks run with errors
+
+    Raises:
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
+            error on a host and ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
+            unreachable (through ssh) and ``on_error_continue==False``
+
+    Returns:
+        List of all the results
+    """
+    # NOTE(msimonin): inventory could be infered from a host list (maybe)
+    results = []
+    inventory, variable_manager, loader, options = _load_defaults(
+        inventory_path,
+        extra_vars=extra_vars)
+    callback = _MyCallback(results)
+    passwords = {}
+    tqm = task_queue_manager.TaskQueueManager(
+        inventory=inventory,
+        variable_manager=variable_manager,
+        loader=loader,
+        options=options,
+        passwords=passwords,
+        stdout_callback=callback)
+
+    # create play
+    play_inst = play.Play().load(play_source,
+                         variable_manager=variable_manager,
+                         loader=loader)
+
+    # actually run it
+    try:
+        tqm.run(play_inst)
+    finally:
+        tqm.cleanup()
+
+    # Handling errors
+    failed_hosts = []
+    unreachable_hosts = []
+    for r in results:
+        if r.status == STATUS_UNREACHABLE:
+            unreachable_hosts.append(r)
+        if r.status == STATUS_FAILED:
+            failed_hosts.append(r)
+
+    if len(failed_hosts) > 0:
+        logging.error("Failed hosts: %s" % failed_hosts)
+        if not on_error_continue:
+            raise EnosFailedHostsError(failed_hosts)
+    if len(unreachable_hosts) > 0:
+        logging.error("Unreachable hosts: %s" % unreachable_hosts)
+        if not on_error_continue:
+            raise EnosUnreachableHostsError(unreachable_hosts)
+
+    return results
+
+
+def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
+    on_error_continue=False):
+    """Run a shell command on some remote hosts.
+
+    Args:
+        pattern_hosts (str): pattern to describe ansible hosts to target.
+            see https://docs.ansible.com/ansible/latest/intro_patterns.html
+        command (str): the command to run
+        inventory_path (str): inventory to use
+        extra_vars (dict): extra_vars to use
+        on_error_continue(bool): Don't throw any exception in case a host is
+            unreachable or the playbooks run with errors
+
+    Raises:
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
+            error on a host and ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
+            unreachable (through ssh) and ``on_error_continue==False``
+
+    Returns:
+        Dict combining the stdout and stderr of ok and failed hosts and every
+        results of tasks executed (this may include the fact gathering tasks)
+
+    Example:
+
+    .. code-block:: python
+
+        # Inventory
+        [control1]
+        enos-0
+        [control2]
+        enos-1
+
+        # Python
+        result = run_command("control*", "date", inventory)
+
+        # Result
+        {
+            'failed': {},
+            'ok':
+            {
+                u'enos-0':
+                {
+                    'stderr': u'',
+                    'stdout': u'Tue Oct 31 04:53:04 GMT 2017'
+                },
+                u'enos-1':
+                {
+                    'stderr': u'',
+                    'stdout': u'Tue Oct 31 04:53:05 GMT 2017'}
+                },
+            'results': [...]
+        }
+
+    If facts are gathers this is possible to use ansible templating
+
+    .. code-block:: python
+
+        result = run_command("control*", "ping -c 1
+        {{hostvars['enos-1']['ansible_' + n1].ipv4.address}}", inventory)
+    """
+
+    def filter_results(results, status):
+        s = dict([[
+            r.host, {
+                "stdout": r.payload.get("stdout"),
+                "stderr": r.payload.get("stderr")}]
+            for r in results if r.status == status and r.task == COMMAND_NAME])
+        return s
+
+    play_source = {
+        "hosts": pattern_hosts,
+        "tasks": [{
+            "name": COMMAND_NAME,
+            "shell": command,
+        }]
+    }
+    results = run_play(pattern_hosts, play_source, inventory_path, extra_vars)
+    ok = filter_results(results, STATUS_OK)
+    failed = filter_results(results, STATUS_FAILED)
+    return {"ok": ok, "failed": failed, "results": results}
+
+
+def run_ansible(playbooks, inventory_path, extra_vars=None,
+        tags=None, on_error_continue=False):
+    """Run Ansible.
+
+    Args:
+        playbooks (list): list of paths to the playbooks to run
+        inventory_path (str): path to the hosts file (inventory)
+        extra_var (dict): extra vars to pass
+        tags (list): list of tags to run
+        on_error_continue(bool): Don't throw any exception in case a host is
+            unreachable or the playbooks run with errors
+
+    Raises:
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
+            error on a host and ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
+            unreachable (through ssh) and ``on_error_continue==False``
+    """
+
+    inventory, variable_manager, loader, options = _load_defaults(
+        inventory_path,
+        extra_vars=extra_vars,
+        tags=tags)
+    passwords = {}
     for path in playbooks:
         logging.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
 
