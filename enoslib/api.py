@@ -775,6 +775,8 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None):
                 interface = facts[ansible_interface]
                 devices.append(interface)
         return devices
+
+    wait_ssh(inventory)
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     fake_interfaces = fake_interfaces or []
