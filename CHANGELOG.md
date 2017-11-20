@@ -1,4 +1,8 @@
-# 0.0.4 (current)
+# 0.0.5 (current)
+
+* TODO
+
+# 0.0.4
 
 * Exclude not involved machines from the tc.yml run
 * Take force_deploy in g5k provider
