@@ -2,6 +2,8 @@
 
 * Exclude not involved machines from the tc.yml run
 * Take force_deploy in g5k provider
+* Wait ssh to be ready when `check_network=True` in `generate_inventory`
+* Add start/end enostask logging
 
 # 0.0.3
 
