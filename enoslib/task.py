@@ -46,7 +46,9 @@ def enostask(new=False):
                 kwargs["env"] = _make_env(k_env or SYMLINK_NAME)
             try:
                 # Proceeds with the function execution
+                logging.info("- Task %s started -" % fn.__name__)
                 fn(*args, **kwargs)
+                logging.info("- Task %s finished -" % fn.__name__)
             # Save the environment
             finally:
                 _save_env(kwargs["env"])

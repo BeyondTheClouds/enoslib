@@ -3,6 +3,8 @@ from enoslib.task import enostask
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 
 import os
+import logging
+logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "backend": "virtualbox",
