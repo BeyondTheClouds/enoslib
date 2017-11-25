@@ -19,8 +19,8 @@ Links
 .. |Build Status| image:: https://travis-ci.org/BeyondTheClouds/enoslib.svg?branch=master
    :target: https://travis-ci.org/BeyondTheClouds/enoslib
       
-.. |Code style| image:: https://api.codacy.com/project/badge/Grade/87536e9c0f0d47e08d1b9e0950c9d14b
-   :target: https://www.codacy.com/app/msimonin/enoslib?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BeyondTheClouds/enos&amp;utm_campaign=Badge_Grade
+.. |Code style| image:: https://api.codacy.com/project/badge/Grade/c06e062f97f5473189ae527b8f1dfce4
+   :target: https://www.codacy.com/app/msimonin/enoslib?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BeyondTheClouds/enoslib&amp;utm_campaign=Badge_Grade
    
 .. |License| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
    :target: https://www.gnu.org/licenses/gpl-3.0
