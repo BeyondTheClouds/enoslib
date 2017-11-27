@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
-
 from abc import ABCMeta, abstractmethod
 import jsonschema
 
 
 class Provider:
+    """Base class for all providers."""
     __metaclass__ = ABCMeta
 
     def __init__(self, provider_conf):
-        """Routine to validate the config against the schema."""
+        """
+        The constructor takes care of loading the configuration and applying
+        the default parameters given by
+        :py:meth:`~enoslib.infra.provider.Provider.default_config`.
+        The resulting configuration is then validated using the
+        :py:meth:`~enoslib.infra.provider.validate` method.
+
+        Args:
+            provider_conf (dict): config of the provider. Specific to the
+                underlying provider.
+        """
         self.provider_conf = provider_conf
         self.provider_conf = self.default_config()
         self.provider_conf.update(provider_conf)
@@ -16,35 +26,30 @@ class Provider:
 
     @abstractmethod
     def init(self, force_deploy=False):
-        """Provides resources and provisions the environment.
+        """Abstract. Provides resources and provisions the environment.
 
-        The `config` parameter contains the client request (eg, number
-        of compute per role among other things). This method returns,
-        in this order, a list of the form [{Role: [Host]}], a dict to
-        configure the network with `start` the first available ip,
-        `end` the last available ip, `cidr` the network of available
-        ips, the ip address of the `gateway` and the ip address of the
-        `dns`, and a pair that contains the name of network and
-        external interfaces.
+        This calls the underlying provider and provision resources (machines
+        and networks).
 
         Args:
-            config (dict): config of the provider. Specific to the underlying
-                provider.
-            force (bool): Indicates that the resources must be redeployed.
+            force_deploy (bool): Indicates that the resources must be
+                redeployed.
 
         Returns:
-            tuple: (roles, networks, groups)
-        """
+            (roles, networks) tuple: roles is a dict whose key is a role and
+            the value is the machines associated with this role. networks is
+            the list of networks configured by the provider. see
+            :py:class:`~enoslib.infra.enos_vagrant.provider.Enos_vagrant`"""
         pass
 
     @abstractmethod
     def destroy(self):
-        "Destroy the resources used for the deployment."
+        "Abstract. Destroy the resources used for the deployment."
         pass
 
     @abstractmethod
     def default_config(self):
-        """Default config for the provider config.
+        """Abstract. Default config for the provider config.
 
         Returns a dict with all keys used to initialize the provider
         (section `provider` of reservation.yaml file). Keys should be
@@ -54,8 +59,11 @@ class Provider:
 
     @abstractmethod
     def schema(self):
-        """The jsonschema of the configuration."""
+        """Abstract. Returns the schema of the provider config"""
 
     def validate(self):
-        """Validates the json schema."""
+        """Validates the configuration.
+
+        By default validate the jsonschema.
+        """
         jsonschema.validate(self.provider_conf, self.schema())

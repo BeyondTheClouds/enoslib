@@ -1,0 +1,6 @@
+Vagrantfile
+.vagrant
+_tmp_enos_
+enos_*
+hosts
+current

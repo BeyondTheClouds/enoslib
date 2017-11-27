@@ -172,3 +172,7 @@ texinfo_documents = [
 rst_epilog = """
 .. |enoslib| replace:: EnOSlib
 """
+
+# Document also the __init__
+autoclass_content = "both"
+

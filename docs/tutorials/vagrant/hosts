@@ -1,0 +1,5 @@
+[control]
+enos-0 ansible_host=127.0.0.1 ansible_ssh_user=root ansible_port=2222 ansible_ssh_private_key_file=/Users/msimonin/sed/discovery/openstack/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-0/virtualbox/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' n1=eth1 enos_devices="['eth1']"
+enos-1 ansible_host=127.0.0.1 ansible_ssh_user=root ansible_port=2200 ansible_ssh_private_key_file=/Users/msimonin/sed/discovery/openstack/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/virtualbox/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' n1=eth1 enos_devices="['eth1']"
+[compute]
+enos-1 ansible_host=127.0.0.1 ansible_ssh_user=root ansible_port=2200 ansible_ssh_private_key_file=/Users/msimonin/sed/discovery/openstack/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/virtualbox/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' n1=eth1 enos_devices="['eth1']"

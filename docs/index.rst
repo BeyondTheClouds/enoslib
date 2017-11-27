@@ -20,13 +20,5 @@ using tasks.
    :maxdepth: 2
    :caption: Contents:
 
-   getting-started
-   apidoc/modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-
-.. * :ref:`modindex`
-.. * :ref:`search`
+   tutorials/index.rst
+   apidoc/index.rst

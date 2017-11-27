@@ -8,30 +8,39 @@ import logging
 import os
 import vagrant
 
+
+#: The default configuration of the vagrant provider
+DEFAULT_CONFIG = {
+    "backend": "virtualbox",
+    "box": "debian/jessie64",
+    "user": "root",
+}
+
+#: Sizes of the machines available for the configuration
 FLAVORS = {
-    'tiny': {
-        'cpu': 1,
-        'mem': 512
+    "tiny": {
+        "cpu": 1,
+        "mem": 512
     },
-    'small': {
-        'cpu': 1,
-        'mem': 1024
+    "small": {
+        "cpu": 1,
+        "mem": 1024
     },
-    'medium': {
-        'cpu': 2,
-        'mem': 2048
+    "medium": {
+        "cpu": 2,
+        "mem": 2048
     },
-    'big': {
-        'cpu': 3,
-        'mem': 3072,
+    "big": {
+        "cpu": 3,
+        "mem": 3072,
     },
-    'large': {
-        'cpu': 4,
-        'mem': 4096
+    "large": {
+        "cpu": 4,
+        "mem": 4096
     },
-    'extra-large': {
-        'cpu': 6,
-        'mem': 6144
+    "extra-large": {
+        "cpu": 6,
+        "mem": 6144
     }
 }
 
@@ -124,6 +133,48 @@ class Enos_vagrant(Provider):
                       number: 1
                       networks: [control_network]
 
+            The above will return a tuple (roles, networks) where:
+
+            .. code-block:: yaml
+
+                roles:
+                  telegraf:
+                    - !!python/object:enoslib.host.Host
+                      address: 127.0.0.1
+                      alias: enos-1
+                      extra:
+                        enos_devices: [eth1, eth2]
+                        control_network: eth1
+                        internal_network: eth2
+                      keyfile: ...
+                      port: '2205'
+                      user: root
+                    - !!python/object:enoslib.host.Host
+                      address: 127.0.0.1
+                      alias: enos-0
+                      extra:
+                        enos_devices: [eth1, eth2]
+                        control_network: eth1
+                        internal_network: eth2
+                      keyfile: ...
+                      port: '2204'
+                      user: root
+                  control:
+                    # machine with role control
+
+               networks:
+                 - cidr: 192.168.142.0/24
+                   dns: 8.8.8.8
+                   end: 192.168.142.243
+                   gateway: 192.168.142.1
+                   roles: [control_network]
+                   start: 192.168.142.10
+                 - cidr: 192.168.143.0/24
+                   dns: 8.8.8.8
+                   end: 192.168.143.244
+                   gateway: 192.168.143.1
+                   roles: [internal_network]
+                   start: 192.168.143.10
         """
         # Arbitrary net pool size
         slash_24 = [142 + x for x in range(0, 100)]
@@ -204,17 +255,18 @@ class Enos_vagrant(Provider):
         return (roles, networks)
 
     def destroy(self):
+        """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(),
                             quiet_stdout=False,
                             quiet_stderr=True)
         v.destroy()
 
     def default_config(self):
-        return {
-            'backend': 'virtualbox',
-            'box': 'debian/jessie64',
-            'user': 'root',
-        }
+        """
+        Default configuration
+        """
+        return DEFAULT_CONFIG
 
     def schema(self):
+        """Returns the schema of the provider config."""
         return SCHEMA

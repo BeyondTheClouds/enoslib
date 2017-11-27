@@ -9,6 +9,14 @@ from netaddr import IPAddress, IPNetwork, IPSet
 
 import logging
 
+#: The default configuration of the Grid5000 provider
+DEFAULT_CONFIG = {
+    'name': 'Enoslib',
+    'walltime': '02:00:00',
+    'env_name': 'jessie-x64-nfs',
+    'reservation': False,
+}
+
 
 def _to_enos_roles(roles):
     """Transform the roles to use enoslib.host.Host hosts.
@@ -92,6 +100,9 @@ class G5k(Provider):
     def init(self, force_deploy=False):
         """Reserve and deploys the nodes according to the resources section
 
+        In comparison to the vagrant provider, networks must be characterized
+        as in the networks key.
+
         Args:
             provider_conf (dict): description of the resources and job
                 information
@@ -148,17 +159,15 @@ class G5k(Provider):
                 _to_enos_networks(networks))
 
     def destroy(self):
+        """Destroys the reservation. NOT IMPLEMENTED YET."""
         pass
 
     def default_config(self):
-        return {
-            'name': 'Enoslib',
-            'walltime': '02:00:00',
-            'env_name': 'jessie-x64-nfs',
-            'reservation': False,
-        }
+        """Default config."""
+        return DEFAULT_CONFIG
 
     def schema(self):
+        """Returns the schema of the provider config"""
         return SCHEMA
 
     def __str__(self):

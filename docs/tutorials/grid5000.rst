@@ -1,0 +1,40 @@
+.. _installation:
+
+Working with Grid'5000
+======================
+
+Let's adapt the vagrant tutorial to Grid'5000.
+
+Installation
+------------
+
+On Grid'5000, you can got with a virtualenv :
+
+.. code-block:: bash
+
+    $ virtualenv venv
+    $ source venv/bin/activate
+    $ pip install -U pip
+
+    $ pip install enoslib
+
+Using the API
+-------------
+
+The following ``tuto_grid5000.py`` implements the desired workflow.
+
+.. literalinclude:: grid5000/tuto_grid5000.py
+   :language: python
+   :linenos:
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_grid5000.py
+
+
+- The content of the generated inventory should looks like the following:
+
+    .. literalinclude:: grid5000/hosts
+     :language: python
