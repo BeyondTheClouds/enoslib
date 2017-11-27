@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from enoslib.infra.enos_g5k.api import Resources
+import enoslib.infra.enos_g5k.api as api
 from enoslib.infra.enos_g5k.schema import SCHEMA
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
@@ -137,7 +137,7 @@ class G5k(Provider):
 
         """
         resources = self.provider_conf["resources"]
-        r = Resources(resources)
+        r = api.Resources(resources)
         # insert force_deploy
         self.provider_conf.setdefault("force_deploy", force_deploy)
         r.launch(**self.provider_conf)
