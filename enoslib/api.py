@@ -8,7 +8,7 @@ from ansible.plugins.callback.default import CallbackModule
 from ansible.vars import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
-from enoslib.utils import _expand_groups, _check_tmpdir, get_roles_as_list
+from enoslib.utils import _check_tmpdir, get_roles_as_list
 from errors import (EnosFailedHostsError,
                     EnosUnreachableHostsError,
                     EnosSSHNotReady)
@@ -17,6 +17,7 @@ from netaddr import IPAddress, IPSet
 import copy
 import logging
 import os
+import re
 import time
 import yaml
 
@@ -543,6 +544,32 @@ def wait_ssh(inventory, retries=100, interval=30):
         raise EnosSSHNotReady('Maximum retries reached')
 
 
+def expand_groups(grp):
+    """Expand group names.
+
+    Args:
+        grp (string): group names to expand
+
+    Returns:
+        list of groups
+
+    Examples:
+
+        * grp[1-3] will be expanded to [grp1, grp2, grp3]
+        * grp1 will be expanded to [grp1]
+    """
+    p = re.compile("(?P<name>.+)\[(?P<start>\d+)-(?P<end>\d+)\]")
+    m = p.match(grp)
+    if m is not None:
+        s = int(m.group('start'))
+        e = int(m.group('end'))
+        n = m.group('name')
+        return map(lambda x: n + str(x), range(s, e + 1))
+    else:
+        return [grp]
+
+
+# Private zone
 def _generate_inventory(roles):
     """Generates an inventory files from roles
 
@@ -630,8 +657,8 @@ def _expand_description(desc):
     e.g:
     {src: grp[1-3], dst: grp[4-6] ...} will generate 9 descriptions
     """
-    srcs = _expand_groups(desc['src'])
-    dsts = _expand_groups(desc['dst'])
+    srcs = expand_groups(desc['src'])
+    dsts = expand_groups(desc['dst'])
     descs = []
     for src in srcs:
         for dst in dsts:
@@ -659,7 +686,7 @@ def _generate_default_grp_constraints(roles, network_constraints):
     except_groups = network_constraints.get('except', [])
     grps = network_constraints.get('groups', roles.keys())
     # expand each groups
-    grps = [_expand_groups(g) for g in grps]
+    grps = [expand_groups(g) for g in grps]
     # flatten
     grps = [x for expanded_group in grps for x in expanded_group]
     # building the default group constraints
