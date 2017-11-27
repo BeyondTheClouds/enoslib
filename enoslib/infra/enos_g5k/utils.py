@@ -36,10 +36,10 @@ def to_vlan_type(vlan_id):
     return KAVLAN_GLOBAL
 
 
-def get_or_create_job(resources, job_name, walltime):
+def get_or_create_job(resources, job_name, walltime, reservation_date):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
-        gridjob = make_reservation(resources, job_name, walltime)
+        gridjob = make_reservation(resources, job_name, walltime, reservation_date)
     logging.info("Waiting for oargridjob %s to start" % gridjob)
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
@@ -166,7 +166,7 @@ def concretize_networks(resources, vlans):
             desc["_c_network"].update(site_info["kavlans"][str(vlan_id)])
 
 
-def make_reservation(resources, job_name, walltime):
+def make_reservation(resources, job_name, walltime, reservation_date):
     machines = resources["machines"]
     networks = resources["networks"]
 
@@ -195,6 +195,7 @@ def make_reservation(resources, job_name, walltime):
     gridjob, _ = ex5.oargridsub(
         jobs_specs,
         walltime=walltime.encode('ascii', 'ignore'),
+        reservation_date=reservation_date,
         job_type='deploy')
 
     if gridjob is None:

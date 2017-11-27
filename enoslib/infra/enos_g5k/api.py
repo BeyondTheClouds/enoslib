@@ -85,7 +85,12 @@ class Resources:
     def reserve(self, **kwargs):
         job_name = kwargs.get("job_name", JOB_NAME)
         walltime = kwargs.get("walltime", WALLTIME)
-        gridjob = utils.get_or_create_job(self.c_resources, job_name, walltime)
+        reservation_date = kwargs.get("reservation", False)
+        gridjob = utils.get_or_create_job(
+            self.c_resources,
+            job_name,
+            walltime,
+            reservation_date)
         utils.concretize_resources(self.c_resources, gridjob)
 
     def deploy(self, **kwargs):
