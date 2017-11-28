@@ -1,6 +1,10 @@
 EnosLib
 =======
 
+.. image:: https://badges.gitter.im/BeyondTheClouds/enoslib.svg
+   :alt: Join the chat at https://gitter.im/BeyondTheClouds/enoslib
+   :target: https://gitter.im/BeyondTheClouds/enoslib?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 |Build Status| |Code style| |License| |Pypi|
 
 EnosLib is a library to
