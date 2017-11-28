@@ -13,3 +13,4 @@ Tutorials
     vagrant
     grid5000
     using-tasks
+    ansible-integration
