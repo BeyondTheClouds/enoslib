@@ -1,6 +1,6 @@
 .. _installation:
 
-Integration with Ansible
-========================
+Tutorial 4 - Integration with Ansible
+=====================================
 
 TODO

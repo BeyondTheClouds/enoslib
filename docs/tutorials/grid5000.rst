@@ -1,7 +1,7 @@
 .. _installation:
 
-Working with Grid'5000
-======================
+Tutorial 2 - Working with Grid'5000
+===================================
 
 Let's adapt the vagrant tutorial to Grid'5000.
 

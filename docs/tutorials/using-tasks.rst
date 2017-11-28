@@ -1,7 +1,7 @@
 .. _installation:
 
-Using the Tasks API
-===================
+Tutorial 3 - Using the Tasks API
+================================
 
 Let's consider the following use case :
 
@@ -19,6 +19,7 @@ Installation
 .. note::
 
   It's a good practice to use a virtualenv or python version manager like `pyenv`_.
+
 Using the API
 -------------
 
