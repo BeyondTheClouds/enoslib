@@ -1,4 +1,8 @@
-# 0.0.5 (current)
+# 0.0.6 (current)
+
+* TODO
+
+# 0.0.5
 
 * reservation is supported in g5k provider
 * `expand_groups` is available in the api

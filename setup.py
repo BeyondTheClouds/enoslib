@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name="enoslib",
-    version="0.0.5",
+    version="0.0.6",
     description="",
     url="https://github.com/beyondtheclouds/enoslib",
     author="msimonin",
