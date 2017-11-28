@@ -1,6 +1,8 @@
 # 0.0.5 (current)
 
-* TODO
+* reservation is supported in g5k provider
+* `expand_groups` is available in the api
+* `get_cluster_interfaces` is available in the g5k api.
 
 # 0.0.4
 
