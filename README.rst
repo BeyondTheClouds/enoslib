@@ -3,6 +3,8 @@ EnosLib
 
 |Build Status| |Code style| |License| |Pypi|
 
+Join us on gitter :  |Gitter|
+
 EnosLib is a library to
 
 - acquire resources from different infrastructure or testbeds
@@ -10,6 +12,9 @@ EnosLib is a library to
 
 EnosLib is developed in the context of the
 `Discovery <https://beyondtheclouds.github.io/>`__ initiative
+
+
+Join is
 
 Links
 =====
@@ -27,3 +32,7 @@ Links
    
 .. |Pypi| image:: https://badge.fury.io/py/enoslib.svg
     :target: https://badge.fury.io/py/enoslib
+    
+.. |Gitter| image:: https://badges.gitter.im/BeyondTheClouds/enoslib.svg
+     :alt: Join the chat at https://gitter.im/BeyondTheClouds/enoslib
+     :target: https://gitter.im/BeyondTheClouds/enoslib?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
