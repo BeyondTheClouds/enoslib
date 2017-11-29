@@ -3,10 +3,13 @@
 Tutorial 3 - Using the Tasks API
 ================================
 
-Let's consider the following use case :
+In this tutorial, you will learn how to organize your code into tasks and
+integrate it with a command line interface.
+
+For the sake of illustration, let's consider the following scenario:
 
 - Get machines from vagrant
-- Apply some network constraints
+- Apply some network constraints between your machines
 - Validate those network constraints
 
 Installation

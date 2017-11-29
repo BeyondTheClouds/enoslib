@@ -8,7 +8,7 @@ Let's adapt the vagrant tutorial to Grid'5000.
 Installation
 ------------
 
-On Grid'5000, you can got with a virtualenv :
+On Grid'5000, you can go with a virtualenv :
 
 .. code-block:: bash
 
@@ -38,3 +38,8 @@ The following ``tuto_grid5000.py`` implements the desired workflow.
 
     .. literalinclude:: grid5000/hosts
      :language: python
+
+.. note::
+
+    In comparison with the vagrant provider, Grid'5000 requires a more precise
+    network description that should map what is available on the platform

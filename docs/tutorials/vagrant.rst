@@ -3,7 +3,7 @@
 Tutorial 1 - Working with Vagrant
 =================================
 
-This tutorial will let you get started using enoslib and vagrant. This will
+This tutorial will let you get started using |enoslib| and vagrant. This will
 present you the bare minimum to start some machines and distribute them into
 the desired roles.
 
@@ -16,7 +16,8 @@ Installation
 
 .. note::
 
-  It's a good practice to use a virtualenv or python version manager like `pyenv`_.
+  It's a good practice to use a virtualenv or a python version manager like
+  `pyenv`_.
 
 Using the API
 -------------
@@ -27,29 +28,15 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
    :language: python
    :linenos:
 
-- Lines 5-18 describe the wanted resources. Here we want two machines with roles
-  ``control`` and ``compute`` respectively. These two nodes will have one network card
-  configured using the same network whose role is ``n1``.
+- Lines 5-18 describe the wanted resources. Here we want two machines. Each
+  machine will be given some roles (``control`` and/or ``compute``). These two
+  nodes will have one network card configured using the same network whose role
+  is ``n1``.
 
     .. note::
 
         Machine roles and network roles are transparent to the |enoslib|. The
         semantic is left to the application using it.
-
-- Lines 19-23 describe some network constraints. Those constraints will be set
-  between the nodes of the two groups ``control`` and ``compute`` on the network
-  ``n1``.
-
-    .. note::
-
-        Under the hoods, |enoslib| leverages Ansible for many routine tasks and
-        thus an inventory must be generated. This is exactly the purpose of
-        :py:func:`enoslib.api.generate_inventory` function.  When
-        ``check_networks`` is set, |enoslib| will auto-discover the mapping
-        between the network roles and the available network interfaces. This is
-        convenient when it comes to deal with non uniform (or non
-        deterministic) network cards naming.
-
 
 - You can launch the script using :
 
