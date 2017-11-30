@@ -1,5 +1,3 @@
-.. _installation:
-
 Tutorial 3 - Using the Tasks API
 ================================
 
@@ -105,7 +103,7 @@ Integrating with a command line parser
 --------------------------------------
 
 Let's integrate our tasks with a command line parser. Here we choose `click`_.
-First enusre that it is installed:
+First ensure that it is installed:
 
 .. code-block:: bash
 

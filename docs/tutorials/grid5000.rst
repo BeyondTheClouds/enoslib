@@ -1,5 +1,3 @@
-.. _installation:
-
 Tutorial 2 - Working with Grid'5000
 ===================================
 
@@ -41,5 +39,5 @@ The following ``tuto_grid5000.py`` implements the desired workflow.
 
 .. note::
 
-    In comparison with the vagrant provider, Grid'5000 requires a more precise
-    network description that should map what is available on the platform
+    Compared to the vagrant provider, Grid'5000 requires a more precise
+    network description that should map what is available on the platform.

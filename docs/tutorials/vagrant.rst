@@ -1,5 +1,3 @@
-.. _installation:
-
 Tutorial 1 - Working with Vagrant
 =================================
 
