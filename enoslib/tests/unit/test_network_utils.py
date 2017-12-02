@@ -1,12 +1,12 @@
-import unittest
 from enoslib.api import (_build_ip_constraints,
                                    _expand_description,
                                    _generate_default_grp_constraints,
                                    _generate_actual_grp_constraints,
                                    _merge_constraints)
 from enoslib.host import Host
+from enoslib.tests.unit import EnosTest
 
-class TestExpandDescription(unittest.TestCase):
+class TestExpandDescription(EnosTest):
 
     def test_no_expansion(self):
         desc = {
@@ -89,7 +89,7 @@ class TestExpandDescription(unittest.TestCase):
         for d in descs:
             self.assertDictEqual(desc, d)
 
-class TestGenerateDefaultGrpConstraints(unittest.TestCase):
+class TestGenerateDefaultGrpConstraints(EnosTest):
 
     def test_no_expansion(self):
         roles = {
@@ -156,7 +156,7 @@ class TestGenerateDefaultGrpConstraints(unittest.TestCase):
             self.assertTrue('grp1' != d['src'])
             self.assertTrue('grp1' != d['dst'])
 
-class TestGenerateActualGrpConstraints(unittest.TestCase):
+class TestGenerateActualGrpConstraints(EnosTest):
 
     def test_no_expansion_no_symetric(self):
         constraints = [{
@@ -245,7 +245,7 @@ class TestGenerateActualGrpConstraints(unittest.TestCase):
             self.assertEquals('20mbit', d['rate'])
             self.assertEquals('20ms', d['delay'])
 
-class TestMergeConstraints(unittest.TestCase):
+class TestMergeConstraints(EnosTest):
 
     def test__merge_constraints(self):
         constraint = {
@@ -285,7 +285,7 @@ class TestMergeConstraints(unittest.TestCase):
         self.assertDictEqual(override, constraints[0])
 
 
-class TestBuildIpConstraints(unittest.TestCase):
+class TestBuildIpConstraints(EnosTest):
 
     def test_build_ip_constraints(self):
         # role distribution

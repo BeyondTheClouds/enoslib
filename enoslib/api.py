@@ -9,7 +9,7 @@ from ansible.vars import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.utils import _check_tmpdir, get_roles_as_list
-from errors import (EnosFailedHostsError,
+from enoslib.errors import (EnosFailedHostsError,
                     EnosUnreachableHostsError,
                     EnosSSHNotReady)
 from netaddr import IPAddress, IPSet
@@ -564,7 +564,7 @@ def expand_groups(grp):
         s = int(m.group('start'))
         e = int(m.group('end'))
         n = m.group('name')
-        return map(lambda x: n + str(x), range(s, e + 1))
+        return list(map(lambda x: n + str(x), range(s, e + 1)))
     else:
         return [grp]
 

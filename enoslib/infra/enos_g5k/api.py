@@ -4,7 +4,7 @@ import copy
 import enoslib.infra.enos_g5k.utils as utils
 import execo_g5k as EX5
 from itertools import groupby
-from operator import itemgetter, add
+from operator import itemgetter
 
 ENV_NAME = "jessie-x64-nfs"
 JOB_NAME = "deploy5k"
@@ -116,7 +116,8 @@ class Resources:
         for primary_network, i_descs in groupby(s_machines, key=key):
             descs = list(i_descs)
             nodes = [desc.get("_c_nodes", []) for desc in descs]
-            nodes = reduce(add, nodes)
+            # flatten
+            nodes = sum(nodes, [])
             options = {
                 "env_name": env_name
             }

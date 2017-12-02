@@ -183,8 +183,9 @@ class Enos_vagrant(Provider):
 
         machines = self.provider_conf["resources"]["machines"]
         # build the mapping network_name -> pool
-        networks = [set(machine.get("networks", [])) for machine in machines]
-        networks = reduce(set.union, networks)
+        networks = [machine.get("networks", []) for machine in machines]
+        # flatten and build the set of networks
+        networks = set([item for sublist in networks for item in sublist])
         networks = dict(zip(networks, net_pool))
         vagrant_machines = []
         vagrant_roles = {}

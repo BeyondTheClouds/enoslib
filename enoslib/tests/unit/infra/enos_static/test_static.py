@@ -1,7 +1,8 @@
 from enoslib.infra.enos_static.provider import Static
-import unittest
+from enoslib.tests.unit import EnosTest
 
-class TestBuildResources(unittest.TestCase):
+class TestBuildResources(EnosTest):
+
     def test_build_resources(self):
 
         resources = {
@@ -23,6 +24,6 @@ class TestBuildResources(unittest.TestCase):
 
         s = Static({"resources": resources})
         roles, _ = s.init()
-        self.assertItemsEqual(["role1", "role2"], roles.keys())
+        self.assertCountEqual(["role1", "role2"], roles.keys())
         self.assertEquals(2, len(roles["role1"]))
         self.assertEquals(1, len(roles["role2"]))

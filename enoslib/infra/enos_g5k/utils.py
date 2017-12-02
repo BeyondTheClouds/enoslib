@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+from enoslib.infra.enos_g5k import remote
+from enoslib.infra.enos_g5k.error import MissingNetworkError
+from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
+                                           KAVLAN)
+from enoslib.infra.utils import pick_things, mk_pools
+from execo import Host
 import execo_g5k as ex5
 import execo_g5k.api_utils as api
 import logging
-from enoslib.infra.enos_g5k.error import MissingNetworkError
-from enoslib.infra.enos_g5k import remote
-from enoslib.infra.utils import pick_things, mk_pools
-from execo import Host
-from schema import PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN
 
 
 def dhcp_interfaces(c_resources):

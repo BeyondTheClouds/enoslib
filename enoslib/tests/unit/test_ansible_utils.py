@@ -2,10 +2,11 @@ from enoslib.errors import *
 from enoslib.host import Host
 from enoslib.api import _generate_inventory_string, _update_hosts, _map_device_on_host_networks
 from enoslib.utils import gen_rsc
-import unittest
+
+from enoslib.tests.unit import EnosTest
 
 
-class TestGenerateInventoryString(unittest.TestCase):
+class TestGenerateInventoryString(EnosTest):
     def test_address(self):
         h = Host("1.2.3.4")
         self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", _generate_inventory_string(h))
@@ -29,7 +30,7 @@ class TestGenerateInventoryString(unittest.TestCase):
 
 
 
-class TestGetHostNet(unittest.TestCase):
+class TestGetHostNet(EnosTest):
     def test__map_devices_all_match_single(self):
         networks = [{
             "cidr": "1.2.3.4/24"
@@ -50,7 +51,7 @@ class TestGetHostNet(unittest.TestCase):
             "cidr": "1.2.3.4/24",
             "device": "eth0"
             }]
-        self.assertItemsEqual(expected, _map_device_on_host_networks(networks, devices))
+        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
 
     def test__map_devices_all_match_multiple(self):
         networks = [{
@@ -73,7 +74,7 @@ class TestGetHostNet(unittest.TestCase):
             "cidr": "4.5.6.7/24",
             "device": None
             }]
-        self.assertItemsEqual(expected, _map_device_on_host_networks(networks, devices))
+        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
 
     def test__map_devices_net_veth(self):
         networks = [{
@@ -95,10 +96,10 @@ class TestGetHostNet(unittest.TestCase):
             "cidr": "1.2.3.4/24",
             "device": "eth0"
             }]
-        self.assertItemsEqual(expected, _map_device_on_host_networks(networks, devices))
+        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
 
 
-class TestUpdateHosts(unittest.TestCase):
+class TestUpdateHosts(EnosTest):
 
     def test__update_hosts(self):
         rsc = {"control": [Host("1.2.3.4", alias="foo"), Host("1.2.3.5", alias="bar")]}
