@@ -14,12 +14,11 @@ EnosLib is developed in the context of the
 `Discovery <https://beyondtheclouds.github.io/>`__ initiative
 
 
-Join is
-
 Links
 =====
 
--  Discovery - https://beyondtheclouds.github.io/
+- Documentation - https://enoslib.readthedocs.io/en/latest/
+- Discovery - https://beyondtheclouds.github.io/
    
 .. |Build Status| image:: https://travis-ci.org/BeyondTheClouds/enoslib.svg?branch=master
    :target: https://travis-ci.org/BeyondTheClouds/enoslib
