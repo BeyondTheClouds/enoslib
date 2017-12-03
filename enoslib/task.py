@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from enoslib.constants import SYMLINK_NAME
+from enoslib.errors import EnosFilePathError
 from functools import wraps
-from errors import EnosFilePathError
 import os
 import yaml
 import logging

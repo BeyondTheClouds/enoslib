@@ -3,7 +3,6 @@ from docopt import docopt
 
 import json
 import os
-import sys
 
 PWD = os.getcwd()
 def create_previous_xp(exp_name):
