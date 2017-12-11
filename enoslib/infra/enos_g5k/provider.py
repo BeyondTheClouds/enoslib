@@ -96,6 +96,49 @@ def _to_enos_networks(networks):
 
 
 class G5k(Provider):
+    """The provider to use when deploying on Grid'5000
+
+        Examples:
+
+        .. code-block:: yaml
+
+            # provider_conf in yaml
+            ---
+            job_name: enoslib
+            walltime: 01:00:00
+            # will give all configured interfaces an IP
+            dhcp: True
+            # force_deploy: True
+            resources:
+                machines:
+                - roles: [telegraf]
+                    cluster: griffon
+                    nodes: 1
+                    primary_network: n1
+                    secondary_networks: []
+                    secondary_networks: [n2]
+                - roles:
+                    - control
+                        registry
+                        prometheus
+                        grafana
+                        telegraf
+                    cluster: griffon
+                    nodes: 1
+                    min: 1
+                    primary_network: n1
+                    secondary_networks: []
+                    secondary_networks: [n2]
+                networks:
+                - id: n1
+                    roles: [control_network]
+                    type: prod
+                    site: nancy
+                - id: n2
+                    roles: [internal_network]
+                    type: kavlan-local
+                    site: nancy
+    """
 
     def init(self, force_deploy=False):
         """Reserve and deploys the nodes according to the resources section
@@ -104,55 +147,13 @@ class G5k(Provider):
         as in the networks key.
 
         Args:
-            provider_conf (dict): description of the resources and job
-                information
-
+            force_deploy (bool): True iff the environment must be redeployed
         Raises:
             MissingNetworkError: If one network is missing in comparison to
                 what is claimed.
             NotEnoughNodesError: If the `min` constraints can't be met.
 
-        Examples:
-            .. code-block:: yaml
-
-                # in yaml
-                ---
-                job_name: enoslib
-                walltime: 01:00:00
-                # will give all configured interfaces an IP
-                dhcp: True
-                # force_deploy: True
-                resources:
-                  machines:
-                    - roles: [telegraf]
-                      cluster: griffon
-                      nodes: 1
-                      primary_network: n1
-                      secondary_networks: []
-                      secondary_networks: [n2]
-                    - roles:
-                        - control
-                          registry
-                          prometheus
-                          grafana
-                          telegraf
-                      cluster: griffon
-                      nodes: 1
-                      min: 1
-                      primary_network: n1
-                      secondary_networks: []
-                      secondary_networks: [n2]
-                  networks:
-                    - id: n1
-                      roles: [control_network]
-                      type: prod
-                      site: nancy
-                    - id: n2
-                      roles: [internal_network]
-                      type: kavlan-local
-                      site: nancy
-
-        """
+           """
         resources = self.provider_conf["resources"]
         r = api.Resources(resources)
         # insert force_deploy

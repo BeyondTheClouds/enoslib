@@ -102,6 +102,33 @@ SCHEMA = {
 #       (or roles:[...])
 #       networks: [network_names]
 class Enos_vagrant(Provider):
+    """The provider to use when working with vagrant (local machine).
+
+        Examples:
+
+            .. code-block:: yaml
+
+                # provider_conf in yaml
+                ---
+                backend: virtualbox
+                user: root
+                box: debian/jessie64
+                resources:
+                    machines:
+                    - roles: [telegraf]
+                        flavor: tiny
+                        number: 1
+                        networks: [control_network, internal_network]
+                    - roles:
+                        - control
+                        - registry
+                        - prometheus
+                        - grafana
+                        - telegraf
+                        flavor: medium
+                        number: 1
+                        networks: [control_network]
+    """
 
     def init(self, force_deploy=False):
         """Reserve and deploys the vagrant boxes.
@@ -109,31 +136,7 @@ class Enos_vagrant(Provider):
         Args:
             force_deploy (bool): True iff new machines should be started
 
-        Examples:
-            .. code-block:: yaml
-
-                # in yaml
-                ---
-                backend: virtualbox
-                user: root
-                box: debian/jessie64
-                resources:
-                  machines:
-                    - roles: [telegraf]
-                      flavor: tiny
-                      number: 1
-                      networks: [control_network, internal_network]
-                    - roles:
-                        - control
-                        - registry
-                        - prometheus
-                        - grafana
-                        - telegraf
-                      flavor: medium
-                      number: 1
-                      networks: [control_network]
-
-            The above will return a tuple (roles, networks) where:
+        The above ``provider_conf`` will return a tuple (roles, networks) where:
 
             .. code-block:: yaml
 
