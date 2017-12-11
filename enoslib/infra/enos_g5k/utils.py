@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from enoslib.infra.enos_g5k import remote
-from enoslib.infra.enos_g5k.error import MissingNetworkError
+from enoslib.infra.enos_g5k.error import (MissingNetworkError,
+                                          NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
                                            KAVLAN)
 from enoslib.infra.utils import pick_things, mk_pools
@@ -138,13 +139,27 @@ def concretize_nodes(resources, nodes):
     # force order to be a *function*
     snodes = sorted(nodes, key=lambda n: n.address)
     pools = mk_pools(snodes, lambda n: n.address.split('-')[0])
+
+    # We first try to fulfill min requirements
+    # Just considering machines with min value specified
     machines = resources["machines"]
+    min_machines = sorted(machines, key=lambda desc: desc.get("min", 0))
+    for desc in min_machines:
+        cluster = desc["cluster"]
+        nb = desc.get("min", 0)
+        c_nodes = pick_things(pools, cluster, nb)
+        if len(c_nodes) < nb:
+            raise NotEnoughNodesError("min requirement failed for %s " % desc)
+        desc["_c_nodes"] = [c_node.address for c_node in c_nodes]
+
+    # We then fill the remaining without
+    # If no enough nodes are there we silently continue
     for desc in machines:
         cluster = desc["cluster"]
-        nb = desc["nodes"]
+        nb = desc["nodes"] - len(desc["_c_nodes"])
         c_nodes = pick_things(pools, cluster, nb)
         #  put concrete hostnames here
-        desc["_c_nodes"] = [c_node.address for c_node in c_nodes]
+        desc["_c_nodes"].extend([c_node.address for c_node in c_nodes])
 
 
 def concretize_networks(resources, vlans):

@@ -1,6 +1,7 @@
 import copy
 from enoslib.infra.enos_g5k import utils
-from enoslib.infra.enos_g5k.error import MissingNetworkError
+from enoslib.infra.enos_g5k.error import (MissingNetworkError,
+                                         NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import KAVLAN, PROD
 from enoslib.tests.unit import EnosTest
 from execo import Host
@@ -170,3 +171,42 @@ class TestConcretizeNodes(EnosTest):
 
         self.assertCountEqual(resources_1["machines"][0]["_c_nodes"],
                               resources_2["machines"][0]["_c_nodes"])
+
+
+
+class TestConcretizeNodesMin(EnosTest):
+
+    def setUp(self):
+        self.resources = {
+            "machines": [{
+                "role": "compute",
+                "nodes": 1,
+                "cluster": "foocluster",
+            }, {
+                "role": "compute",
+                "nodes": 1,
+                "cluster": "foocluster",
+                "min": 1
+            }],
+        }
+
+    def test_exact(self):
+        nodes = [Host("foocluster-1"), Host("foocluster-2")]
+        utils.concretize_nodes(self.resources, nodes)
+        self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
+                              ["foocluster-2"])
+        # Description with min are filled first
+        self.assertCountEqual(self.resources["machines"][1]["_c_nodes"],
+                              ["foocluster-1"])
+
+    def test_one_missing(self):
+        nodes = [Host("foocluster-1")]
+        utils.concretize_nodes(self.resources, nodes)
+        self.assertCountEqual(self.resources["machines"][0]["_c_nodes"], [])
+        self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], ["foocluster-1"])
+
+    def test_all_missing(self):
+        nodes = []
+        with self.assertRaises(NotEnoughNodesError):
+            utils.concretize_nodes(self.resources, nodes)
+

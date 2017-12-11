@@ -107,6 +107,11 @@ class G5k(Provider):
             provider_conf (dict): description of the resources and job
                 information
 
+        Raises:
+            MissingNetworkError: If one network is missing in comparison to
+                what is claimed.
+            NotEnoughNodesError: If the `min` constraints can't be met.
+
         Examples:
             .. code-block:: yaml
 
@@ -133,6 +138,7 @@ class G5k(Provider):
                           telegraf
                       cluster: griffon
                       nodes: 1
+                      min: 1
                       primary_network: n1
                       secondary_networks: []
                       secondary_networks: [n2]

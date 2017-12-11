@@ -42,6 +42,7 @@ SCHEMA = {
             ],
             "cluster": {"type": "string"},
             "nodes": {"type": "number"},
+            "min": {"type": "number"},
             "primary_network": {"type": "string"},
             "secondary_networks": {
                 "type": "array",
