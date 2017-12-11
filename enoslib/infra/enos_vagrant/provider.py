@@ -136,7 +136,8 @@ class Enos_vagrant(Provider):
         Args:
             force_deploy (bool): True iff new machines should be started
 
-        The above ``provider_conf`` will return a tuple (roles, networks) where:
+        The above ``provider_conf`` will return a tuple (roles, networks)
+        where:
 
             .. code-block:: yaml
 

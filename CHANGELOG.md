@@ -1,6 +1,6 @@
 # 0.0.6 (current)
 
-* TODO
+* add `min` keyword in machine descipriotn on for G5K
 
 # 0.0.5
 
