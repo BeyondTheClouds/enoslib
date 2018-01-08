@@ -219,3 +219,11 @@ def make_reservation(resources, job_name, walltime,
     if gridjob is None:
         raise Exception('No oar job was created')
     return gridjob
+
+
+def destroy(job_name):
+    """Destroy the job."""
+    gridjob, _ = ex5.planning.get_job_by_name(job_name)
+    if gridjob is not None:
+        ex5.oargriddel([gridjob])
+        logging.info("Killing the job %s" % gridjob)

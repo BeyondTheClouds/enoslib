@@ -40,3 +40,6 @@ roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
 generate_inventory(roles, networks, inventory, check_networks=True)
+
+# destroy the reservation
+provider.destroy()

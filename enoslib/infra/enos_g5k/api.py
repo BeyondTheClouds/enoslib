@@ -177,6 +177,12 @@ class Resources:
                 result[r].extend(hosts)
         return result
 
+    @staticmethod
+    def destroy(**kwargs):
+        """Destroy the associated job."""
+        job_name = kwargs.get("job_name", JOB_NAME)
+        utils.destroy(job_name)
+
     def _denormalize(self, desc):
             hosts = desc.get("_c_ssh_nodes", [])
             nics = desc.get("_c_nics", [])

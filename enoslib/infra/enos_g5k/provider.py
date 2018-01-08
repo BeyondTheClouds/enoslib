@@ -166,7 +166,8 @@ class G5k(Provider):
                 _to_enos_networks(networks))
 
     def destroy(self):
-        """Destroys the reservation. NOT IMPLEMENTED YET."""
+        """Destroys the jobs."""
+        api.Resources.destroy(**self.provider_conf)
         pass
 
     def default_config(self):
