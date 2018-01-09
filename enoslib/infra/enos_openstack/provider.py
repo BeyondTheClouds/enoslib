@@ -60,7 +60,7 @@ SCHEMA = {
                 "type": "array",
                 "items": {"type": "string"},
                 "minItems": 1,
-                "maxItems": 1
+#                "maxItems": 1
             }
         },
         "additionalProperties": False,
@@ -104,7 +104,7 @@ def check_glance(session, image_name):
     """
     gclient = glance.Client(GLANCE_VERSION, session=session)
     images = gclient.images.list()
-    name_ids = map(lambda n: {'name': n['name'], 'id': n['id']}, images)
+    name_ids = [{'name': i['name'], 'id': i['id']} for i in images]
     if image_name not in map(itemgetter('name'), name_ids):
         logging.error("[glance]: Image %s is missing" % image_name)
         raise Exception("Image %s is missing" % image_name)
@@ -230,7 +230,7 @@ def check_network(session, configure_network, network, subnet,
 def get_free_floating_ip(env):
     nclient = neutron.Client('2', session=env['session'])
     fips = nclient.list_floatingips()['floatingips']
-    fips = filter(lambda fip: fip['fixed_ip_address'] is None, fips)
+    fips = [fip for fip in fips if fip['fixed_ip_address'] is None]
     if len(fips) > 0:
         fip = fips.pop()
     else:
@@ -328,9 +328,10 @@ def check_gateway(env, with_gateway, servers):
     if with_gateway:
         nclient = nova.Client(NOVA_VERSION, session=env['session'])
         gateway = nclient.servers.get(gateway.id)
-        gw_floating_ips = filter(
-            lambda n: n['OS-EXT-IPS:type'] == 'floating',
-            gateway.addresses[env['network']['name']])
+        gw_floating_ips = [
+            n for n in gateway.addresses[env['network']['name']]
+                if n['OS-EXT-IPS:type'] == 'floating'
+        ]
         if len(gw_floating_ips) == 0:
             fip = get_free_floating_ip(env)
             gateway.add_floating_ip(fip['floating_ip_address'])
@@ -410,9 +411,10 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
             flavor = desc["flavor"]
             nb = desc["number"]
             roles = get_roles_as_list(desc)
+            nodes = pick_things(pools, flavor, nb)
             for role in roles:
-                result.setdefault(role, []).extend(
-                    pick_things(pools, flavor, nb))
+                result.setdefault(role, []).extend(nodes)
+
         return result
 
     # Distribute the machines according to the resource/topology
@@ -422,9 +424,10 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
     extra = {}
     network_name = provider_conf['network']['name']
     if provider_conf['gateway']:
-        gw_floating_ip = filter(
-            lambda n: n['OS-EXT-IPS:type'] == 'floating',
-            gateway.addresses[network_name])[0]['addr']
+        gw_floating_ip = [
+            n for n in gateway.addresses[network_name] if n['OS-EXT-IPS:type'] == 'floating'
+        ]
+        gw_floating_ip = gw_floating_ip[0]['addr']
         user = provider_conf.get('user')
         gw_user = provider_conf.get('gateway_user', user)
         extra.update({
@@ -456,7 +459,7 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
         'extra_ips': extra_ips,
         'gateway': env['subnet']["gateway_ip"],
         'dns': '8.8.8.8',
-        'roles': provider_conf.get("networks", ["default_network"])
+        'roles': provider_conf["resources"].get("networks", ["default_network"])
     }
     return roles, [network]
 
