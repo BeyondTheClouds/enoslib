@@ -425,7 +425,8 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
     network_name = provider_conf['network']['name']
     if provider_conf['gateway']:
         gw_floating_ip = [
-            n for n in gateway.addresses[network_name] if n['OS-EXT-IPS:type'] == 'floating'
+            n for n in gateway.addresses[network_name]
+                if n['OS-EXT-IPS:type'] == 'floating'
         ]
         gw_floating_ip = gw_floating_ip[0]['addr']
         user = provider_conf.get('user')
@@ -459,7 +460,9 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
         'extra_ips': extra_ips,
         'gateway': env['subnet']["gateway_ip"],
         'dns': '8.8.8.8',
-        'roles': provider_conf["resources"].get("networks", ["default_network"])
+        'roles': provider_conf["resources"].get(
+            "networks", ["default_network"]
+        )
     }
     return roles, [network]
 
