@@ -733,6 +733,8 @@ def _merge_constraints(constraints, overrides):
                 constraints[i].update(o)
                 break
             i = i + 1
+        else:
+            constraints.append(o)
 
 
 def _build_grp_constraints(roles, network_constraints):
