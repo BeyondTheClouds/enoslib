@@ -86,11 +86,16 @@ class Resources:
         job_name = kwargs.get("job_name", JOB_NAME)
         walltime = kwargs.get("walltime", WALLTIME)
         reservation_date = kwargs.get("reservation", False)
+        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
+        # the queues and it was quiet convenient
+        # see https://github.com/BeyondTheClouds/enos/pull/62
+        queue = kwargs.get("queue", None)
         gridjob = utils.get_or_create_job(
             self.c_resources,
             job_name,
             walltime,
-            reservation_date)
+            reservation_date,
+            queue)
         utils.concretize_resources(self.c_resources, gridjob)
 
     def deploy(self, **kwargs):
