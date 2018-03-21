@@ -768,6 +768,12 @@ def _build_ip_constraints(roles, ips, constraints):
             # Get all the active devices for this source
             active_devices = filter(lambda x: x["active"],
                                     local_ips[s.alias]['devices'])
+            # Get only the devices specified in the network constraint
+            if 'network' in constraint:
+                active_devices = filter(
+                    lambda x:
+                    x['device'] == s.extra[constraint['network']],
+                    active_devices)
             # Get only the name of the active devices
             sdevices = map(lambda x: x['device'], active_devices)
             for sdevice in sdevices:
