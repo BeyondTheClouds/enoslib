@@ -268,8 +268,7 @@ class TestGenerateActualGrpConstraints(EnosTest):
     def test_same_src_and_dest_without_defaults(self):
         roles = {
             'grp1': [Host('node1')],
-            'grp2': [Host('node2')],
-            'grp3': [Host('node3')]
+            'grp2': [Host('node2')]
         }
         constraints = [{
             'src': 'grp1',
@@ -281,6 +280,7 @@ class TestGenerateActualGrpConstraints(EnosTest):
             'constraints': constraints
         }
         descs = _build_grp_constraints(roles, network_constraints)
+        self.assertEquals(3, len(descs))
         # bw/rate are applied
         for d in descs:
             self.assertEquals('10mbit', d.get('rate'))
