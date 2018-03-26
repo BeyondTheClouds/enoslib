@@ -670,6 +670,17 @@ def _expand_description(desc):
     return descs
 
 
+def _src_equals_dst_in_constraints(network_constraints, grp1):
+    if 'constraints' in network_constraints:
+        constraints = network_constraints['constraints']
+        for desc in constraints:
+            descs = _expand_description(desc)
+            for d in descs:
+                if grp1 == d['src'] and d['src'] == d['dst']:
+                    return True
+    return False
+
+
 def _same(g1, g2):
     """Two network constraints are equals if they have the same
     sources and destinations
@@ -697,7 +708,7 @@ def _generate_default_grp_constraints(roles, network_constraints):
             'rate': default_rate,
             'loss': default_loss
         } for grp1 in grps for grp2 in grps
-        if grp1 != grp2 and grp1 not in except_groups and
+        if (grp1 != grp2 or _src_equals_dst_in_constraints(network_constraints, grp1)) and grp1 not in except_groups and
             grp2 not in except_groups]
 
 
@@ -733,8 +744,6 @@ def _merge_constraints(constraints, overrides):
                 constraints[i].update(o)
                 break
             i = i + 1
-        else:
-            constraints.append(o)
 
 
 def _build_grp_constraints(roles, network_constraints):

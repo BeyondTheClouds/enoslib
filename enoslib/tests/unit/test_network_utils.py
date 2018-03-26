@@ -2,6 +2,7 @@ from enoslib.api import (_build_ip_constraints,
                                    _expand_description,
                                    _generate_default_grp_constraints,
                                    _generate_actual_grp_constraints,
+                                   _build_grp_constraints,
                                    _merge_constraints)
 from enoslib.host import Host
 from enoslib.tests.unit import EnosTest
@@ -127,7 +128,6 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
             'except': ['grp1']
         }
         descs = _generate_default_grp_constraints(roles, network_constraints)
-
         # Cartesian product is applied but grp1 isn't taken
         self.assertEquals(2, len(descs))
 
@@ -244,6 +244,47 @@ class TestGenerateActualGrpConstraints(EnosTest):
         for d in descs:
             self.assertEquals('20mbit', d['rate'])
             self.assertEquals('20ms', d['delay'])
+
+    def test_same_src_and_dest_defaults_embedded(self):
+        constraints = [{
+            'src': 'grp1',
+            'dst': 'grp1',
+            'rate': '20mbit',
+            'delay': '20ms'
+            }]
+        network_constraints = {
+            'default_rate': '10mbit',
+            'default_delay': '10ms',
+            'constraints' : constraints
+        }
+        descs = _generate_actual_grp_constraints(network_constraints)
+
+        self.assertEquals(1, len(descs))
+        self.assertDictEqual(constraints[0], descs[0])
+        for d in descs:
+            self.assertTrue('grp1' == d['src'])
+            self.assertTrue('grp1' == d['dst'])
+
+    def test_same_src_and_dest_without_defaults(self):
+        roles = {
+            'grp1': [Host('node1')],
+            'grp2': [Host('node2')],
+            'grp3': [Host('node3')]
+        }
+        constraints = [{
+            'src': 'grp1',
+            'dst': 'grp1'
+        }]
+        network_constraints = {
+            'default_rate': '10mbit',
+            'default_delay': '10ms',
+            'constraints': constraints
+        }
+        descs = _build_grp_constraints(roles, network_constraints)
+        # bw/rate are applied
+        for d in descs:
+            self.assertEquals('10mbit', d.get('rate'))
+            self.assertEquals('10ms', d['delay'])
 
 class TestMergeConstraints(EnosTest):
 
