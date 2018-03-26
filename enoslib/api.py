@@ -708,8 +708,9 @@ def _generate_default_grp_constraints(roles, network_constraints):
             'rate': default_rate,
             'loss': default_loss
         } for grp1 in grps for grp2 in grps
-        if (grp1 != grp2 or _src_equals_dst_in_constraints(network_constraints, grp1)) and grp1 not in except_groups and
-            grp2 not in except_groups]
+        if (grp1 != grp2 or
+            src_equals_dst_in_constraints(network_constraints, grp1)) and
+            grp1 not in except_groups and grp2 not in except_groups]
 
 
 def _generate_actual_grp_constraints(network_constraints):
