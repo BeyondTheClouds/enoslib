@@ -33,8 +33,10 @@ setup(
         "requests>=2.18.0, <2.19",
         "python-vagrant>=0.5.15",
         "netaddr>=0.7,<0.8",
-        'python-openstackclient>=3.0.0,<=4.0.0',
-        'python-neutronclient==6.3.0',
+        # Chameleon provider
+        "python-openstackclient>=3.0.0,<=4.0.0",
+        "python-novaclient<10",
+        "python-neutronclient==6.3.0",
     ],
     include_package_data=True
 )
