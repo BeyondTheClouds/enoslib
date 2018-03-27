@@ -37,6 +37,7 @@ setup(
         "python-openstackclient>=3.0.0,<=4.0.0",
         "python-novaclient<10",
         "python-neutronclient==6.3.0",
+        "python-blazarclient==1.0.1",
     ],
     include_package_data=True
 )
