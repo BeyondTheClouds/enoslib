@@ -282,9 +282,14 @@ class TestGenerateActualGrpConstraints(EnosTest):
         descs = _build_grp_constraints(roles, network_constraints)
         self.assertEquals(3, len(descs))
         # bw/rate are applied
+        count_src_equals_dst = 0
         for d in descs:
-            self.assertEquals('10mbit', d.get('rate'))
+            self.assertEquals('10mbit', d['rate'])
             self.assertEquals('10ms', d['delay'])
+            if d['src'] == d['dst'] == 'grp1':
+                count_src_equals_dst += 1
+        self.assertEquals(1,count_src_equals_dst)
+
 
 class TestMergeConstraints(EnosTest):
 
