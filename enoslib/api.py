@@ -670,6 +670,17 @@ def _expand_description(desc):
     return descs
 
 
+def _src_equals_dst_in_constraints(network_constraints, grp1):
+    if 'constraints' in network_constraints:
+        constraints = network_constraints['constraints']
+        for desc in constraints:
+            descs = _expand_description(desc)
+            for d in descs:
+                if grp1 == d['src'] and d['src'] == d['dst']:
+                    return True
+    return False
+
+
 def _same(g1, g2):
     """Two network constraints are equals if they have the same
     sources and destinations
@@ -697,8 +708,9 @@ def _generate_default_grp_constraints(roles, network_constraints):
             'rate': default_rate,
             'loss': default_loss
         } for grp1 in grps for grp2 in grps
-        if grp1 != grp2 and grp1 not in except_groups and
-            grp2 not in except_groups]
+        if (grp1 != grp2 or
+            _src_equals_dst_in_constraints(network_constraints, grp1)) and
+            grp1 not in except_groups and grp2 not in except_groups]
 
 
 def _generate_actual_grp_constraints(network_constraints):
@@ -766,6 +778,12 @@ def _build_ip_constraints(roles, ips, constraints):
             # Get all the active devices for this source
             active_devices = filter(lambda x: x["active"],
                                     local_ips[s.alias]['devices'])
+            # Get only the devices specified in the network constraint
+            if 'network' in constraint:
+                active_devices = filter(
+                    lambda x:
+                    x['device'] == s.extra[constraint['network']],
+                    active_devices)
             # Get only the name of the active devices
             sdevices = map(lambda x: x['device'], active_devices)
             for sdevice in sdevices:
