@@ -4,9 +4,6 @@ from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 import os
 
 provider_conf = {
-    "backend": "virtualbox",
-    "user": "root",
-    "box": "debian/jessie64",
     "resources": {
         "machines": [{
             "role": "control",

@@ -1,5 +1,5 @@
-192.168.142.245 : 0.03 0.03 0.03 0.04 0.03
-192.168.142.244 : 40.99 41.50 42.10 41.32 41.58
+192.168.142.245 : 0.07 0.04 0.04 0.04 0.03
+192.168.142.244 : 43.65 41.98 41.47 42.71 41.23
 
        2 targets
        2 alive
@@ -12,7 +12,7 @@
        0 other ICMP received
 
  0.03 ms (min round trip time)
- 20.7 ms (avg round trip time)
- 42.1 ms (max round trip time)
+ 21.1 ms (avg round trip time)
+ 43.6 ms (max round trip time)
         4.071 sec (elapsed real time)
 

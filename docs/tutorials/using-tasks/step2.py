@@ -8,7 +8,6 @@ import os
 provider_conf = {
     "backend": "virtualbox",
     "user": "root",
-    "box": "debian/jessie64",
     "resources": {
         "machines": [{
             "role": "control",
@@ -32,9 +31,8 @@ tc = {
 
 
 @enostask(new=True)
-def up(force, env=None, **kwargs):
+def up(force=True, env=None, **kwargs):
     "Starts a new experiment"
-    import ipdb; ipdb.set_trace()
     inventory = os.path.join(os.getcwd(), "hosts")
     provider = Enos_vagrant(provider_conf)
     roles, networks = provider.init()

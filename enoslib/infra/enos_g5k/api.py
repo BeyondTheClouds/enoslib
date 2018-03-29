@@ -6,7 +6,7 @@ import execo_g5k as EX5
 from itertools import groupby
 from operator import itemgetter
 
-ENV_NAME = "jessie-x64-nfs"
+ENV_NAME = "debian9-x64-nfs"
 JOB_NAME = "deploy5k"
 WALLTIME = "02:00:00"
 

@@ -12,7 +12,7 @@ import vagrant
 #: The default configuration of the vagrant provider
 DEFAULT_CONFIG = {
     "backend": "virtualbox",
-    "box": "debian/jessie64",
+    "box": "bento/debian-9",
     "user": "root",
 }
 
