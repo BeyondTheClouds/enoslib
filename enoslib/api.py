@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
-from ansible.inventory import Inventory
+# Note(msimonin): PRE 2.4 is
+# from ansible.inventory import Inventory
+from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
-from ansible.vars import VariableManager
+# Note(msimonin): PRE 2.4 is
+# from ansible.vars import VariableManager
+from ansible.vars.manager import VariableManager
 from collections import namedtuple
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.utils import _check_tmpdir, get_roles_as_list
@@ -40,14 +44,13 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
 
     extra_vars = extra_vars or {}
     tags = tags or []
-    variable_manager = VariableManager()
     loader = DataLoader()
 
     inventory = Inventory(loader=loader,
-        variable_manager=variable_manager,
-        host_list=inventory_path)
+        sources=inventory_path)
 
-    variable_manager.set_inventory(inventory)
+    variable_manager = VariableManager(loader=loader,
+        inventory=inventory)
 
     if extra_vars:
         variable_manager.extra_vars = extra_vars
@@ -65,7 +68,8 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
                                      "scp_extra_args", "become",
                                      "become_method", "become_user",
                                      "remote_user", "verbosity",
-                                     "check", "tags", "pipelining"])
+                                     "check", "tags",
+                                     "diff"])
 
     options = Options(listtags=False, listtasks=False,
                       listhosts=False, syntax=False, connection="ssh",
@@ -75,7 +79,7 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
                       scp_extra_args=None, become=None,
                       become_method="sudo", become_user="root",
                       remote_user=None, verbosity=2, check=False,
-                      tags=tags, pipelining=True)
+                      tags=tags, diff=None)
 
     return inventory, variable_manager, loader, options
 
