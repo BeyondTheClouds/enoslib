@@ -1,18 +1,26 @@
 ---
-- include: "setup_flent_{{ ansible_distribution }}.yml"
+# From https://github.com/BeyondTheClouds/enos/commit/4f1ccef13e3c68b0d033c408b022824ec741ccd7
+- name: Active unfree repository (for netperf)
+  apt_repository:
+    repo: deb http://deb.debian.org/debian/ stable main contrib non-free
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
 
-- name: Installing flent/netperf
+- name: Installing fping, netperf
   apt:
     name: "{{ item }}"
-    allow_unauthenticated: yes
   with_items:
-    - flent
+    - fping
     - netperf
+    - python-pip
 
-- name: Installing fping
-  apt:
-   name: fping
-   update_cache: true
+- name: Installing flent
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - numpy
+    - flent
 
 - name: Uploading the host list
   template:
@@ -27,6 +35,7 @@
     src: /tmp/result
     dest: "/{{ tc_output_dir }}/{{ inventory_hostname }}.out"
     flat: yes
+
 
 - debug: msg="flent tcp_upload -l 5 -H {{ hostvars[item[0]]['ansible_' + item[1]]['ipv4']['address']   }} -f stats -o /tmp/tcp_upload_{{ inventory_hostname }}_{{ item[1] }}_{{ item[0]  }}.stats || true 2>/dev/null"
   when: inventory_hostname == groups.all[0]
