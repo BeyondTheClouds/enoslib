@@ -8,6 +8,7 @@ from enoslib.utils import get_roles_as_list
 from netaddr import IPAddress, IPNetwork, IPSet
 
 import logging
+logger = logging.getLogger(__name__)
 
 #: The default configuration of the Grid5000 provider
 DEFAULT_CONFIG = {
@@ -38,7 +39,7 @@ def _to_enos_roles(roles):
     enos_roles = {}
     for role, hosts in roles.items():
         enos_roles[role] = [to_host(h) for h in hosts]
-    logging.debug(enos_roles)
+    logger.debug(enos_roles)
     return enos_roles
 
 
@@ -91,7 +92,7 @@ def _to_enos_networks(networks):
             })
         net.update({"roles": get_roles_as_list(network)})
         nets.append(net)
-    logging.debug(nets)
+    logger.debug(nets)
     return nets
 
 

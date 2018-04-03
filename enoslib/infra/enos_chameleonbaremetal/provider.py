@@ -12,6 +12,8 @@ import logging
 import os
 import time
 
+logger = logging.getLogger(__name__)
+
 LEASE_NAME = "enos-lease"
 PORT_NAME = "enos-port"
 
@@ -66,13 +68,13 @@ def get_reservation(bclient):
     if len(leases) >= 1:
         lease = leases[0]
         if lease_is_reusable(lease):
-            logging.info("Reusing lease %s" % lease_to_s(lease))
+            logger.info("Reusing lease %s" % lease_to_s(lease))
             return lease
         elif lease_is_terminated(lease):
-            logging.warning("%s is terminated, destroy it" % lease_to_s(lease))
+            logger.warning("%s is terminated, destroy it" % lease_to_s(lease))
             return lease
         else:
-            logging.error("Error with %s" % lease_to_s(lease))
+            logger.error("Error with %s" % lease_to_s(lease))
             raise Exception("lease_error")
     else:
         return None
@@ -94,7 +96,7 @@ def create_reservation(bclient, provider_config):
     end_datetime = start_datetime + delta
     start_date = start_datetime.strftime('%Y-%m-%d %H:%M')
     end_date = end_datetime.strftime('%Y-%m-%d %H:%M')
-    logging.info("[blazar]: Claiming a lease start_date=%s, end_date=%s",
+    logger.info("[blazar]: Claiming a lease start_date=%s, end_date=%s",
                  start_date,
                  end_date)
 
@@ -121,12 +123,12 @@ def create_reservation(bclient, provider_config):
 
 
 def wait_reservation(bclient, lease):
-    logging.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
+    logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
     lease = bclient.lease.get(lease['id'])
     while(not lease_is_running(lease)):
         time.sleep(10)
         lease = bclient.lease.get(lease['id'])
-        logging.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
+        logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
     return lease
 
 
@@ -136,18 +138,18 @@ def check_reservation(config):
     if lease is None:
         lease = create_reservation(bclient, config)
     wait_reservation(bclient, lease)
-    logging.info("[blazar]: Using %s" % lease_to_s(lease))
-    logging.debug(lease)
+    logger.info("[blazar]: Using %s" % lease_to_s(lease))
+    logger.debug(lease)
     return lease
 
 
 def check_extra_ports(session, network, total):
     nclient = neutron.Client('2', session=session)
     ports = nclient.list_ports()['ports']
-    logging.debug("Found %s ports" % ports)
+    logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
     ports_with_name = filter(lambda p: p['name'] == port_name, ports)
-    logging.info("[neutron]: Reusing %s ports" % len(ports_with_name))
+    logger.info("[neutron]: Reusing %s ports" % len(ports_with_name))
     # create missing ports
     for _ in range(0, total - len(ports_with_name)):
         port = {'admin_state_up': True,
@@ -160,7 +162,7 @@ def check_extra_ports(session, network, total):
     ip_addresses = []
     for port in ports_with_name:
         ip_addresses.append(port['fixed_ips'][0]['ip_address'])
-    logging.info("[neutron]: Returning %s free ip addresses" % ip_addresses)
+    logger.info("[neutron]: Returning %s free ip addresses" % ip_addresses)
     return ip_addresses
 
 
@@ -219,7 +221,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         bclient = create_blazar_client(self.provider_conf)
         lease = get_reservation(bclient)
         bclient.lease.delete(lease['id'])
-        logging.info("Destroyed %s" % lease_to_s(lease))
+        logger.info("Destroyed %s" % lease_to_s(lease))
 
     def default_config(self):
         default_config = super(Chameleonbaremetal, self).default_config()

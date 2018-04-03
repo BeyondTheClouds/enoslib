@@ -7,6 +7,8 @@ import os
 import yaml
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 def enostask(new=False):
     """Decorator for an Enos Task.
@@ -46,9 +48,9 @@ def enostask(new=False):
                 kwargs["env"] = _make_env(k_env or SYMLINK_NAME)
             try:
                 # Proceeds with the function execution
-                logging.info("- Task %s started -" % fn.__name__)
+                logger.info("- Task %s started -" % fn.__name__)
                 fn(*args, **kwargs)
-                logging.info("- Task %s finished -" % fn.__name__)
+                logger.info("- Task %s finished -" % fn.__name__)
             # Save the environment
             finally:
                 _save_env(kwargs["env"])
@@ -88,13 +90,13 @@ def _make_env(resultdir=None):
         if os.path.isfile(env_path):
             with open(env_path, "r") as f:
                 env.update(yaml.load(f))
-                logging.debug("Loaded environment %s", env_path)
+                logger.debug("Loaded environment %s", env_path)
 
         # Resets the configuration of the environment
         if os.path.isfile(env["config_file"]):
             with open(env["config_file"], "r") as f:
                 env["config"].update(yaml.load(f))
-                logging.debug("Reloaded config %s", env["config"])
+                logger.debug("Reloaded config %s", env["config"])
 
     return env
 
@@ -160,7 +162,7 @@ def _set_resultdir(name=None):
     # Create the result directory if it does not exist
     if not os.path.isdir(resultdir_path):
         os.mkdir(resultdir_path)
-        logging.info("Generate results directory %s" % resultdir_path)
+        logger.info("Generate results directory %s" % resultdir_path)
 
     # Symlink the result directory with the "cwd/current" directory
     link_path = SYMLINK_NAME
@@ -168,11 +170,11 @@ def _set_resultdir(name=None):
         os.remove(link_path)
     try:
         os.symlink(resultdir_path, link_path)
-        logging.info("Symlink %s to %s" % (resultdir_path, link_path))
+        logger.info("Symlink %s to %s" % (resultdir_path, link_path))
     except OSError:
         # An harmless error can occur due to a race condition when
         # multiple regions are simultaneously deployed
-        logging.warning("Symlink %s to %s failed" %
+        logger.warning("Symlink %s to %s failed" %
                         (resultdir_path, link_path))
 
     return resultdir_path

@@ -11,6 +11,8 @@ import execo_g5k as ex5
 import execo_g5k.api_utils as api
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 def dhcp_interfaces(c_resources):
     # TODO(msimonin) add a filter
@@ -43,7 +45,7 @@ def get_or_create_job(resources, job_name, walltime, reservation_date, queue):
     if gridjob is None:
         gridjob = make_reservation(resources, job_name, walltime,
             reservation_date, queue)
-    logging.info("Waiting for oargridjob %s to start" % gridjob)
+    logger.info("Waiting for oargridjob %s to start" % gridjob)
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
 
@@ -65,7 +67,7 @@ def concretize_resources(resources, gridjob):
 
 def _deploy(nodes, force_deploy, options):
     # For testing purpose
-    logging.info("Deploying %s with options %s" % (nodes, options))
+    logger.info("Deploying %s with options %s" % (nodes, options))
     dep = ex5.Deployment(nodes, **options)
     return ex5.deploy(dep, check_deployed_command=not force_deploy)
 
@@ -104,7 +106,7 @@ def _mount_secondary_nics(desc, networks):
         nic = nics[idx]
         nodes_to_set = [Host(n) for n in desc["_c_nodes"]]
         vlan_id = net["_c_network"]["vlan_id"]
-        logging.info("Put %s in vlan id %s for nodes %s" % (nic,
+        logger.info("Put %s in vlan id %s for nodes %s" % (nic,
                                                             vlan_id,
                                                             nodes_to_set))
         api.set_nodes_vlan(net["site"],
@@ -227,4 +229,4 @@ def destroy(job_name):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is not None:
         ex5.oargriddel([gridjob])
-        logging.info("Killing the job %s" % gridjob)
+        logger.info("Killing the job %s" % gridjob)

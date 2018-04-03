@@ -26,6 +26,8 @@ import time
 import yaml
 
 
+logger = logging.getLogger(__name__)
+
 COMMAND_NAME = u"enoslib_adhoc_command"
 STATUS_OK = "OK"
 STATUS_FAILED = "FAILED"
@@ -175,11 +177,11 @@ def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
             failed_hosts.append(r)
 
     if len(failed_hosts) > 0:
-        logging.error("Failed hosts: %s" % failed_hosts)
+        logger.error("Failed hosts: %s" % failed_hosts)
         if not on_error_continue:
             raise EnosFailedHostsError(failed_hosts)
     if len(unreachable_hosts) > 0:
-        logging.error("Unreachable hosts: %s" % unreachable_hosts)
+        logger.error("Unreachable hosts: %s" % unreachable_hosts)
         if not on_error_continue:
             raise EnosUnreachableHostsError(unreachable_hosts)
 
@@ -294,8 +296,7 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
         tags=tags)
     passwords = {}
     for path in playbooks:
-        logging.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
-
+        logger.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
         pbex = PlaybookExecutor(
             playbooks=[path],
             inventory=inventory,
@@ -324,11 +325,11 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
                 unreachable_hosts.append(h)
 
         if len(failed_hosts) > 0:
-            logging.error("Failed hosts: %s" % failed_hosts)
+            logger.error("Failed hosts: %s" % failed_hosts)
             if not on_error_continue:
                 raise EnosFailedHostsError(failed_hosts)
         if len(unreachable_hosts) > 0:
-            logging.error("Unreachable hosts: %s" % unreachable_hosts)
+            logger.error("Unreachable hosts: %s" % unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
@@ -461,7 +462,7 @@ def emulate_network(roles, inventory, network_constraints):
     #    - allow finer grained filtering based on network roles and/or nic name
 
     # 1. getting  ips/devices information
-    logging.debug('Getting the ips of all nodes')
+    logger.debug('Getting the ips of all nodes')
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
@@ -471,7 +472,7 @@ def emulate_network(roles, inventory, network_constraints):
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
     # 2.a building the group constraints
-    logging.debug('Building all the constraints')
+    logger.debug('Building all the constraints')
     constraints = _build_grp_constraints(roles, network_constraints)
     # 2.b Building the ip/device level constaints
     with open(ips_file) as f:
@@ -487,7 +488,7 @@ def emulate_network(roles, inventory, network_constraints):
             yaml.dump(ips_with_constraints, g)
 
     # 3. Enforcing those constraints
-    logging.info('Enforcing the constraints')
+    logger.info('Enforcing the constraints')
     # enabling/disabling network constraints
     enable = network_constraints.setdefault('enable', True)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
@@ -511,7 +512,7 @@ def validate_network(roles, inventory):
             :py:meth:`enoslib.infra.provider.Provider.init`
         inventory (str): path to the inventory
     """
-    logging.debug('Checking the constraints')
+    logger.debug('Checking the constraints')
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
@@ -541,8 +542,8 @@ def wait_ssh(inventory, retries=100, interval=30):
                         on_error_continue=False)
             break
         except EnosUnreachableHostsError as e:
-            logging.info("Hosts unreachable: %s " % e.hosts)
-            logging.info("Retrying... %s/%s" % (i + 1, retries))
+            logger.info("Hosts unreachable: %s " % e.hosts)
+            logger.info("Retrying... %s/%s" % (i + 1, retries))
             time.sleep(interval)
     else:
         raise EnosSSHNotReady('Maximum retries reached')

@@ -4,6 +4,8 @@ import execo as ex
 import logging
 import sys
 
+logger = logging.getLogger(__name__)
+
 if sys.version_info.major == 3:
     BASESTRING = str
 else:
@@ -29,6 +31,6 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     if conn_params is None:
         conn_params = DEFAULT_CONN_PARAMS
 
-    logging.debug("Running %s on %s " % (label, nodes))
+    logger.debug("Running %s on %s " % (label, nodes))
     remote = ex.Remote(cmd, nodes, conn_params)
     remote.run()

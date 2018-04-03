@@ -1,7 +1,10 @@
 from enoslib.api import generate_inventory, emulate_network, validate_network
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 
+import logging
 import os
+
+logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "resources": {

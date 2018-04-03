@@ -8,6 +8,7 @@ import logging
 import os
 import vagrant
 
+logger = logging.getLogger(__name__)
 
 #: The default configuration of the vagrant provider
 DEFAULT_CONFIG = {
@@ -208,7 +209,7 @@ class Enos_vagrant(Provider):
                     vagrant_roles.setdefault(role, []).append(vagrant_machine)
                 j = j + 1
 
-        logging.debug(vagrant_roles)
+        logger.debug(vagrant_roles)
 
         loader = FileSystemLoader(searchpath=TEMPLATE_DIR)
         env = Environment(loader=loader, autoescape=True)
@@ -255,8 +256,8 @@ class Enos_vagrant(Provider):
             } for ipnet, pool, net in zip(
                 slash_24,
                 net_pool[0: len(networks.keys())], networks.keys())]
-        logging.debug(roles)
-        logging.debug(networks)
+        logger.debug(roles)
+        logger.debug(networks)
         return (roles, networks)
 
     def destroy(self):
