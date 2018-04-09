@@ -1,5 +1,5 @@
 ---
-# Resetting network constraints
+# Resetting network constraints for the current groups
 - name: Removing root qdisc for {{ item.device }}
   shell: "tc qdisc del dev {{ item.device }} root || true"
   with_items: "{{ ips_with_constraints[inventory_hostname].devices }}"
