@@ -521,6 +521,25 @@ def validate_network(roles, inventory):
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
+def reset_network(roles, inventory):
+    """Reset the network constraints (latency, bandwidth ...)
+
+    Remove any filter that have been applied to shape the traffic.
+
+    Args:
+        roles (dict): role->hosts mapping as returned by
+            :py:meth:`enoslib.infra.provider.Provider.init`
+        inventory (str): path to the inventory
+    """
+    logger.debug('Reset the constraints')
+    tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+    _check_tmpdir(tmpdir)
+    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
+    options = {'enos_action': 'tc_reset',
+               'tc_output_dir': tmpdir}
+    run_ansible([utils_playbook], inventory, extra_vars=options)
+
+
 def wait_ssh(inventory, retries=100, interval=30):
     """Wait for all the machines to be ssh-reachable
 
