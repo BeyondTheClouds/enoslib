@@ -500,7 +500,7 @@ def emulate_network(roles, inventory, network_constraints):
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
-def validate_network(roles, inventory):
+def validate_network(roles, inventory, output_dir=None):
     """Validate the network parameters (latency, bandwidth ...)
 
     Performs flent, ping tests to validate the constraints set by
@@ -511,13 +511,17 @@ def validate_network(roles, inventory):
         roles (dict): role->hosts mapping as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
         inventory (str): path to the inventory
+        output_dir (str): directory where validation files will be stored.
+            Default to :py:const:`enoslib.constants.TMP_DIRNAME`.
     """
     logger.debug('Checking the constraints')
-    tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
-    _check_tmpdir(tmpdir)
+    if not output_dir:
+        output_dir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+    output_dir = os.path.abspath(output_dir)
+    _check_tmpdir(output_dir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     options = {'enos_action': 'tc_validate',
-               'tc_output_dir': tmpdir}
+               'tc_output_dir': output_dir}
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
