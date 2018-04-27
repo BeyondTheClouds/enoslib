@@ -1,4 +1,5 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
+from enoslib.api import generate_inventory, emulate_network,\
+    validate_network, reset_network
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 
 import logging
@@ -41,3 +42,9 @@ emulate_network(roles, inventory, tc)
 
 # validate network constraints
 validate_network(roles, inventory)
+
+# reset network constraints
+reset_network(roles, inventory)
+
+# validate network constraints and saving in an alternative
+validate_network(roles, inventory, output_dir="after_reset")
