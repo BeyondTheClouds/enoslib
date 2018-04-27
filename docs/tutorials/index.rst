@@ -14,3 +14,4 @@ Tutorials
     grid5000
     using-tasks
     ansible-integration
+    chameleon
