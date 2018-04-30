@@ -1,26 +1,9 @@
 ---
-# From https://github.com/BeyondTheClouds/enos/commit/4f1ccef13e3c68b0d033c408b022824ec741ccd7
-- name: Active unfree repository (for netperf)
-  apt_repository:
-    repo: deb http://deb.debian.org/debian/ stable main contrib non-free
-    state: present
-    update_cache: yes
-  when: ansible_os_family == 'Debian'
-
-- name: Installing fping, netperf
+- name: Installing fping
   apt:
     name: "{{ item }}"
   with_items:
     - fping
-    - netperf
-    - python-pip
-
-- name: Installing flent
-  pip:
-    name: "{{ item }}"
-  with_items:
-    - numpy
-    - flent
 
 - name: Uploading the host list
   template:
@@ -28,41 +11,10 @@
     dest: /tmp/hosts
 
 - name: Get the latencies between all the nodes
-  shell: "fping -C 5 -q -s -e -f /tmp/hosts 2>/tmp/result"
+  shell: "fping -C 10 -q -s -e -f /tmp/hosts 2>/tmp/result"
 
 - name: Fetching the results
   fetch:
     src: /tmp/result
     dest: "/{{ tc_output_dir }}/{{ inventory_hostname }}.out"
     flat: yes
-
-
-- debug: msg="flent tcp_upload -l 5 -H {{ hostvars[item[0]]['ansible_' + item[1]]['ipv4']['address']   }} -f stats -o /tmp/tcp_upload_{{ inventory_hostname }}_{{ item[1] }}_{{ item[0]  }}.stats || true 2>/dev/null"
-  when: inventory_hostname == groups.all[0]
-  with_nested:
-    - "{{ groups.all }}"
-    - "{{ enos_devices }}"
-
-
-- name: Running flent (tcp_upload)
-  shell: "flent tcp_upload -l 5 -H {{ hostvars[item[0]]['ansible_' + item[1]]['ipv4']['address']   }} -f stats -o /tmp/tcp_upload_{{ inventory_hostname }}_{{ item[1]  }}_{{ item[0] }}.stats || true 2>/dev/null"
-  when: inventory_hostname == groups.all[0]
-  with_nested:
-    - "{{ groups.all }}"
-    - "{{ enos_devices }}"
-
-- debug: msg="/tmp/tcp_upload_{{ inventory_hostname }}_{{ item[1]  }}_{{ item[0] }}.stats"
-  when: inventory_hostname == groups.all[0]
-  with_nested:
-    - "{{ groups.all }}"
-    - "{{ enos_devices }}"
-
-- name: Fetching the results
-  fetch:
-    src: "/tmp/tcp_upload_{{ inventory_hostname }}_{{ item[1]  }}_{{ item[0] }}.stats"
-    dest: "{{ tc_output_dir }}/tcp_upload_{{ inventory_hostname }}_{{ item[1]  }}_{{ item[0] }}.stats"
-    flat: yes
-  when: inventory_hostname == groups.all[0]
-  with_nested:
-    - "{{ groups.all }}"
-    - "{{ enos_devices }}"
