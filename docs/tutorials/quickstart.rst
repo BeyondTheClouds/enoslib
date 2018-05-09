@@ -37,4 +37,28 @@ You'll be asked for some information::
     cli_name [my_project]: mp
 
 
+Using the new project
+---------------------
+
+Within a virtualenv you can do::
+
+    pip install -e .
+
+and start using the cli (the cli name has been filled above)::
+
+    mp --help
+
+    Usage: mp [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      --help  Show this message and exit.
+
+    Commands:
+      backup     Backup the deployed environment
+      deploy     Claim resources from a PROVIDER and configure...
+      destroy    Destroy the deployed environment
+      g5k        Claim resources on Grid'5000 (frontend).
+      inventory  Generate the Ansible inventory [after g5k or...
+      prepare    Configure available resources [after deploy,...
+      vagrant    Claim resources on vagrant (localhost).
 
