@@ -10,6 +10,7 @@ Tutorials
     :maxdepth: 2
     :caption: Contents:
 
+    quickstart
     vagrant
     grid5000
     using-tasks
