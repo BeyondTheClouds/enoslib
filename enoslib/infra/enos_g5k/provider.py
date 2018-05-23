@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG = {
     'name': 'Enoslib',
     'walltime': '02:00:00',
-    'env_name': 'jessie-x64-nfs',
+    'env_name': 'debian9-x64-nfs',
     'reservation': False,
 }
 

@@ -135,7 +135,5 @@ First ensure that it is installed:
         up        Starts a new experiment using vagrant
         validate  Validates the network constraints.
 
-.. references::
-
 .. _click: http://click.pocoo.org/
 .. _pyenv: https://github.com/pyenv/pyenv

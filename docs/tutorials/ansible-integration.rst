@@ -33,10 +33,9 @@ Let's consider the following script :
     - the Ansible inventory
 
 - The ``result`` variable is a dict containing the results of the execution of the
-command.
-
+  command.
 - Inspecting the ``ok`` key will give you the stderr and stdout where the commands
-where successfully launched.
+  where successfully launched.
 
 .. literalinclude:: ansible-integration/result_ok
    :language: javascript

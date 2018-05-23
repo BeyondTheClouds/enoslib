@@ -27,8 +27,6 @@ Grid5000 Provider Class
     :undoc-members:
     :show-inheritance:
 
-    .. autodata::
-
 Openstack Provider Class
 ------------------------
 
