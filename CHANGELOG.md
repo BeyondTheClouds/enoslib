@@ -1,4 +1,25 @@
-# 0.0.6 (current)
+# 1.4.0
+
+* Fix the autodoc generation
+* Document the cookiecutter generation
+* Default to debian9 for g5k
+
+# 1.3.0
+
+* Change setup format
+* Move chameleon dependencies to extra_require
+
+# 1.2.1
+
+* Drop validation of the bandwitdh
+* Add missing host file
+
+# 1.2.0
+
+* Add reset network
+
+
+# 0.0.6 
 
 * add `min` keyword in machine descipriotn on for G5K
 
