@@ -214,7 +214,7 @@ def make_reservation(resources, job_name, walltime,
     # Make the reservation
     gridjob, _ = ex5.oargridsub(
         jobs_specs,
-        walltime=walltime.encode('ascii', 'ignore'),
+        walltime=walltime,
         reservation_date=reservation_date,
         job_type='deploy',
         queue=queue)
