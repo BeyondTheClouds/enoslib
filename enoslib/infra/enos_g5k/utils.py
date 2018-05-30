@@ -76,10 +76,10 @@ def mount_nics(c_resources):
     machines = c_resources["machines"]
     networks = c_resources["networks"]
     for desc in machines:
-        primary_nic = get_cluster_interfaces(desc["cluster"],
+        _, nic_name = get_cluster_interfaces(desc["cluster"],
                                              lambda nic: nic['mounted'])[0]
         net = lookup_networks(desc["primary_network"], networks)
-        desc["_c_nics"] = [(primary_nic, get_roles_as_list(net))]
+        desc["_c_nics"] = [(nic_name, get_roles_as_list(net))]
         _mount_secondary_nics(desc, networks)
     return c_resources
 
@@ -103,18 +103,19 @@ def _mount_secondary_nics(desc, networks):
         if net["type"] == PROD:
             # nothing to do
             continue
-        nic = nics[idx]
+        nic_device, nic_name = nics[idx]
         nodes_to_set = [Host(n) for n in desc["_c_nodes"]]
         vlan_id = net["_c_network"]["vlan_id"]
-        logger.info("Put %s in vlan id %s for nodes %s" % (nic,
+        logger.info("Put %s, %s in vlan id %s for nodes %s" % (nic_device,
+                                                            nic_name,
                                                             vlan_id,
                                                             nodes_to_set))
         api.set_nodes_vlan(net["site"],
                            nodes_to_set,
-                           nic,
+                           nic_device,
                            vlan_id)
         # recording the mapping, just in case
-        desc["_c_nics"].append((nic, get_roles_as_list(net)))
+        desc["_c_nics"].append((nic_name, get_roles_as_list(net)))
         idx = idx + 1
 
 
@@ -123,7 +124,13 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     nics = ex5.get_resource_attributes(
         "/sites/%s/clusters/%s/nodes" % (site, cluster))
     nics = nics['items'][0]['network_adapters']
-    nics = [nic['device'] for nic in nics
+    # NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
+    # the api description keep the legacy name (device key) and the new
+    # predictable name (key name).  The legacy names is still used for api
+    # request to the vlan endpoint This should be fixed in
+    # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
+    # When its fixed we should be able to only use the new predictable name.
+    nics = [(nic['device'], nic['name']) for nic in nics
            if nic['mountable'] and
            nic['interface'] == 'Ethernet' and
            not nic['management'] and extra_cond(nic)]
@@ -214,7 +221,7 @@ def make_reservation(resources, job_name, walltime,
     # Make the reservation
     gridjob, _ = ex5.oargridsub(
         jobs_specs,
-        walltime=walltime.encode('ascii', 'ignore'),
+        walltime=walltime,
         reservation_date=reservation_date,
         job_type='deploy',
         queue=queue)

@@ -26,10 +26,10 @@ class TestMountNics(EnosTest):
         }
 
     @mock.patch("enoslib.infra.enos_g5k.utils._mount_secondary_nics")
-    @mock.patch("enoslib.infra.enos_g5k.utils.get_cluster_interfaces", return_value=["eth0"])
+    @mock.patch("enoslib.infra.enos_g5k.utils.get_cluster_interfaces", return_value=[("eth0", "en0")])
     def test_primary(self, mock__mount_secondary_nics, mock_get_cluster_interfaces):
         utils.mount_nics(self.c_resources)
-        self.assertCountEqual([("eth0", ["n1", "n2"])], self.c_resources["machines"][0]["_c_nics"])
+        self.assertCountEqual([("en0", ["n1", "n2"])], self.c_resources["machines"][0]["_c_nics"])
 
 
 class TestMountSecondaryNics(EnosTest):
@@ -55,11 +55,11 @@ class TestMountSecondaryNics(EnosTest):
                 "site": "rennes",
                 "_c_network": {"vlan_id": 5, "site": "rennes"}},
         ]
-        utils.get_cluster_interfaces = mock.MagicMock(return_value=["eth0", "eth1"])
+        utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
         ex5.get_cluster_site = mock.MagicMock(return_value="rennes")
         api.set_nodes_vlan = mock.MagicMock()
         utils._mount_secondary_nics(desc, networks)
-        self.assertCountEqual([("eth0", ["net_role_1"]), ("eth1", ["net_role_2", "net_role_3"])], desc["_c_nics"])
+        self.assertCountEqual([("en0", ["net_role_1"]), ("en1", ["net_role_2", "net_role_3"])], desc["_c_nics"])
 
 
 class TestConcretizeNetwork(EnosTest):
