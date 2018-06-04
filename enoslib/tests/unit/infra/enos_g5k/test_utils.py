@@ -2,7 +2,7 @@ import copy
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                          NotEnoughNodesError)
-from enoslib.infra.enos_g5k.schema import KAVLAN, PROD
+from enoslib.infra.enos_g5k.schema import KAVLAN, PROD, SLASH_22, SLASH_18
 from enoslib.tests.unit import EnosTest
 from execo import Host
 import execo_g5k as ex5
@@ -76,6 +76,20 @@ class TestConcretizeNetwork(EnosTest):
                 "id": "role2"
             }]
         }
+        # used fot the subnet testing
+        self.resources_subnet = {
+            "networks": [{
+                "type": SLASH_22,
+                "site": "rennes",
+                "id": "role1"
+            }, {
+                "type": SLASH_18,
+                "site": "rennes",
+                "id": "role1"
+            }
+
+            ]
+        }
         ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {},'4': {}, '5': {}}})
 
     def test_act(self):
@@ -83,16 +97,30 @@ class TestConcretizeNetwork(EnosTest):
             { "site": "rennes", "vlan_id": 4},
             { "site": "rennes", "vlan_id": 5}
         ]
-        utils.concretize_networks(self.resources, networks)
+        subnets = []
+        utils.concretize_networks(self.resources, networks, subnets)
         self.assertEquals(networks[0], self.resources["networks"][0]["_c_network"])
         self.assertEquals(networks[1], self.resources["networks"][1]["_c_network"])
+
+
+    def test_act_subnets(self):
+        networks = []
+        subnets = [
+            { "site": "rennes", "ip_prefix": "10.156.1.0/18" },
+            { "site": "rennes", "ip_prefix": "10.156.0.0/22" },
+        ]
+        utils.concretize_networks(self.resources_subnet, networks, subnets)
+        self.assertEquals(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
+        self.assertEquals(subnets[0], self.resources_subnet["networks"][1]["_c_network"])
+
 
     def test_prod(self):
         self.resources["networks"][0]["type"] = PROD
         networks = [
             { "site": "rennes", "vlan_id": 5}
         ]
-        utils.concretize_networks(self.resources, networks)
+        subnets = []
+        utils.concretize_networks(self.resources, networks, subnets)
         # self.assertEquals(networks[0], self.resources["networks"][0]["_c_network"])
         self.assertEquals(None, self.resources["networks"][0]["_c_network"]["vlan_id"])
         self.assertEquals(networks[0], self.resources["networks"][1]["_c_network"])
@@ -101,8 +129,9 @@ class TestConcretizeNetwork(EnosTest):
         networks = [
             { "site": "rennes", "vlan_id": 4},
         ]
+        subnets = []
         with self.assertRaises(MissingNetworkError):
-            utils.concretize_networks(self.resources, networks)
+            utils.concretize_networks(self.resources, networks, subnets)
 
     def test_not_order_dependent(self):
         networks_1 = [
@@ -113,10 +142,11 @@ class TestConcretizeNetwork(EnosTest):
             { "site": "rennes", "vlan_id": 5},
             { "site": "rennes", "vlan_id": 4}
         ]
+        subnets = []
         resources_1 = copy.deepcopy(self.resources)
         resources_2 = copy.deepcopy(self.resources)
-        utils.concretize_networks(resources_1, networks_1)
-        utils.concretize_networks(resources_2, networks_2)
+        utils.concretize_networks(resources_1, networks_1, [])
+        utils.concretize_networks(resources_2, networks_2, [])
         self.assertCountEqual(resources_1["networks"], resources_2["networks"])
 
 

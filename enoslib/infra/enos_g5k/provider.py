@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import enoslib.infra.enos_g5k.api as api
-from enoslib.infra.enos_g5k.schema import SCHEMA
+from enoslib.infra.enos_g5k.schema import SCHEMA, KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
@@ -58,7 +58,7 @@ def _to_enos_networks(networks):
             "dns": "131.254.203.235",
             "roles": get_roles_as_list(network)
         }
-        if network["vlan_id"]:
+        if network["type"] in KAVLAN_TYPE:
             # On the network, the first IP are reserved to g5k machines.
             # For a routed vlan I don't know exactly how many ip are
             # reserved. However, the specification is clear about global
@@ -90,6 +90,11 @@ def _to_enos_networks(networks):
                 "start": str(IPAddress(ips.first)),
                 "end": str(IPAddress(ips.last))
             })
+        elif network["type"] in SUBNET_TYPE:
+            net.update({
+                "start": network["ipmac"][0],
+                "end": network["ipmac"][-1]
+            })
         net.update({"roles": get_roles_as_list(network)})
         nets.append(net)
     logger.debug(nets)
@@ -116,7 +121,6 @@ class G5k(Provider):
                     cluster: griffon
                     nodes: 1
                     primary_network: n1
-                    secondary_networks: []
                     secondary_networks: [n2]
                 - roles:
                     - control
@@ -128,7 +132,6 @@ class G5k(Provider):
                     nodes: 1
                     min: 1
                     primary_network: n1
-                    secondary_networks: []
                     secondary_networks: [n2]
                 networks:
                 - id: n1
@@ -139,6 +142,22 @@ class G5k(Provider):
                     roles: [internal_network]
                     type: kavlan-local
                     site: nancy
+
+
+        Supported network types are
+
+            - kavlan
+            - kavlan-local
+            - kavlan-global
+            - prod
+            - slash_22 (subnet reservation)
+            - slash_18 (subnet reservation)
+
+    Machines must use at least one network of type prod or kavlan*. Subnets are
+    optional and must not be linked to any interfaces as they are a way to
+    claim extra ips and corresponding macs. In this case the returned network
+    attributes `start` and `end` corresponds to the first and last mapping of
+    (ip, mac).
     """
 
     def init(self, force_deploy=False):
