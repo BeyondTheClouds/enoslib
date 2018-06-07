@@ -40,21 +40,43 @@ def to_vlan_type(vlan_id):
     return KAVLAN_GLOBAL
 
 
-def get_or_create_job(resources, job_name, walltime, reservation_date, queue):
+def get_or_create_job(resources, job_name, walltime, reservation_date, queue, reservation_type):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
         gridjob = make_reservation(resources, job_name, walltime,
-            reservation_date, queue)
-    logger.info("Waiting for oargridjob %s to start" % gridjob)
-    ex5.wait_oargrid_job_start(gridjob)
+            reservation_date, queue, reservation_type)
+    if reservation_type == "oar":
+        logger.info("Waiting for oarjob %s to start" % gridjob)
+        ex5.wait_oar_job_start(gridjob)
+    else:
+        logger.info("Waiting for oargridjob %s to start" % gridjob)
+        ex5.wait_oargrid_job_start(gridjob)
     return gridjob
 
 
-def concretize_resources(resources, gridjob):
-    nodes = ex5.get_oargrid_job_nodes(gridjob)
+def concretize_resources(resources, gridjob, reservation_type):
+    if reservation_type == "oar":
+        nodes = ex5.get_oar_job_nodes(gridjob)
+    else:
+        nodes = ex5.get_oargrid_job_nodes(gridjob)
+
     concretize_nodes(resources, nodes)
 
-    job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
+    if reservation_type == "oar":
+        # This block is in charge of detecting the site of the oar reservation
+        site_candidates = []
+        for network_description in resources.get("machines", []):
+            cluster = network_description.get("cluster")
+            site_candidates += [ex5.get_cluster_site(cluster)]
+        for network_description in resources.get("networks", []):
+            site_candidates += [network_description.get("site", "unknown")]
+        if len(set(site_candidates)) == 1:
+            site = site_candidates[0]
+        else:
+            raise "Could not detect the g5k site of the oarjob %" % gridjob
+        job_sites = [(gridjob, site)]
+    else:
+        job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
     vlans = []
     for (job_id, site) in job_sites:
         vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
@@ -193,7 +215,7 @@ def concretize_networks(resources, vlans):
 
 
 def make_reservation(resources, job_name, walltime,
-    reservation_date, queue):
+    reservation_date, queue, reservation_type):
     machines = resources["machines"]
     networks = resources["networks"]
 
@@ -219,12 +241,23 @@ def make_reservation(resources, job_name, walltime,
                     for s, c in criteria.items()]
 
     # Make the reservation
-    gridjob, _ = ex5.oargridsub(
-        jobs_specs,
-        walltime=walltime,
-        reservation_date=reservation_date,
-        job_type='deploy',
-        queue=queue)
+    if reservation_type == "oar":
+        oarsub_description = jobs_specs[0][0]
+        oarsub_description.walltime = walltime
+        oarsub_description.reservation_date = reservation_date
+        oarsub_description.job_type = 'deploy'
+        oarsub_description.queue = queue
+        gridjobs = ex5.oarsub(
+            jobs_specs)
+        if len(gridjobs) > 0:
+            gridjob = gridjobs[0][0]
+    else:
+        gridjob, _ = ex5.oargridsub(
+            jobs_specs,
+            walltime=walltime,
+            reservation_date=reservation_date,
+            job_type='deploy',
+            queue=queue)
 
     if gridjob is None:
         raise Exception('No oar job was created')

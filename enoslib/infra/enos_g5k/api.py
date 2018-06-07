@@ -9,6 +9,7 @@ from operator import itemgetter
 ENV_NAME = "debian9-x64-nfs"
 JOB_NAME = "deploy5k"
 WALLTIME = "02:00:00"
+RESERVATION_TYPE = "oargrid"
 
 
 def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
@@ -86,6 +87,7 @@ class Resources:
         job_name = kwargs.get("job_name", JOB_NAME)
         walltime = kwargs.get("walltime", WALLTIME)
         reservation_date = kwargs.get("reservation", False)
+        reservation_type = kwargs.get("reservation_type", RESERVATION_TYPE)
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect
         # the queues and it was quiet convenient
         # see https://github.com/BeyondTheClouds/enos/pull/62
@@ -95,8 +97,9 @@ class Resources:
             job_name,
             walltime,
             reservation_date,
-            queue)
-        utils.concretize_resources(self.c_resources, gridjob)
+            queue,
+            reservation_type)
+        utils.concretize_resources(self.c_resources, gridjob, reservation_type)
 
     def deploy(self, **kwargs):
         def translate_vlan(primary_network, networks, nodes):
