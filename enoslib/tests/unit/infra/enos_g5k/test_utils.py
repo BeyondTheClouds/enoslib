@@ -145,8 +145,8 @@ class TestConcretizeNetwork(EnosTest):
         subnets = []
         resources_1 = copy.deepcopy(self.resources)
         resources_2 = copy.deepcopy(self.resources)
-        utils.concretize_networks(resources_1, networks_1, [])
-        utils.concretize_networks(resources_2, networks_2, [])
+        utils.concretize_networks(resources_1, networks_1, subnets)
+        utils.concretize_networks(resources_2, networks_2, subnets)
         self.assertCountEqual(resources_1["networks"], resources_2["networks"])
 
 
