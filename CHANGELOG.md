@@ -1,3 +1,8 @@
+# 1.5.0
+
+* python3 compatibility
+* Confirm with predictable NIC names on g5k
+
 # 1.4.0
 
 * Fix the autodoc generation
