@@ -41,3 +41,13 @@ The following ``tuto_grid5000.py`` implements the desired workflow.
 
     Compared to the vagrant provider, Grid'5000 requires a more precise
     network description that should map what is available on the platform.
+
+
+Subnet reservation
+------------------
+
+The following ``tuto_grid5000_subnet.py`` shows how to deal with a subnet reservation.
+
+.. literalinclude:: grid5000/tuto_grid5000_subnet.py
+    :language: python
+    :linenos:

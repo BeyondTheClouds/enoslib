@@ -5,8 +5,15 @@ from jsonschema import validate
 KAVLAN = "kavlan"
 KAVLAN_LOCAL = "kavlan-local"
 KAVLAN_GLOBAL = "kavlan-global"
+KAVLAN_TYPE = [KAVLAN, KAVLAN_LOCAL, KAVLAN_GLOBAL]
+
+SLASH_22 = "slash_22"
+SLASH_18 = "slash_18"
+SUBNET_TYPE = [SLASH_18, SLASH_22]
+
 PROD = "prod"
-NETWORK_TYPES = [PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN]
+
+NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPE
 
 # This is the schema for the abstract description of the resources
 SCHEMA = {

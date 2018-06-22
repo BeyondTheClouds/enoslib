@@ -4,7 +4,7 @@ from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
-                                           KAVLAN)
+                                           KAVLAN, KAVLAN_TYPE, SUBNET_TYPE)
 from enoslib.infra.utils import pick_things, mk_pools
 from execo import Host
 import execo_g5k as ex5
@@ -40,6 +40,10 @@ def to_vlan_type(vlan_id):
     return KAVLAN_GLOBAL
 
 
+def to_subnet_type(ip_prefix):
+    return "slash_%s" % ip_prefix[-2:]
+
+
 def get_or_create_job(resources, job_name, walltime, reservation_date, queue):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
@@ -56,13 +60,25 @@ def concretize_resources(resources, gridjob):
 
     job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
     vlans = []
+    subnets = []
     for (job_id, site) in job_sites:
         vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
         vlans.extend([{
             "site": site,
             "vlan_id": vlan_id} for vlan_id in vlan_ids])
-
-    concretize_networks(resources, vlans)
+        # NOTE(msimonin): this currently returned only one subnet
+        # even if several are reserved
+        # We'll need to patch execo the same way it has been patched for vlans
+        ipmac, info = ex5.get_oar_job_subnets(job_id, site)
+        subnet = {
+            "site": site,
+            "ipmac": ipmac,
+         }
+        subnet.update(info)
+        # Mandatory key when it comes to concretize resources
+        subnet.update({"network": info["ip_prefix"]})
+        subnets.append(subnet)
+    concretize_networks(resources, vlans, subnets)
 
 
 def _deploy(nodes, force_deploy, options):
@@ -171,10 +187,17 @@ def concretize_nodes(resources, nodes):
         desc["_c_nodes"].extend([c_node.address for c_node in c_nodes])
 
 
-def concretize_networks(resources, vlans):
+def concretize_networks(resources, vlans, subnets):
+    # avoid any non-determinism
     s_vlans = sorted(vlans, key=lambda v: (v["site"], v["vlan_id"]))
-    pools = mk_pools(s_vlans,
-                     lambda n: (n["site"], to_vlan_type(n["vlan_id"])))
+    s_subnets = sorted(subnets, key=lambda s: (s["site"], s["ip_prefix"]))
+    pools = mk_pools(
+        s_vlans,
+        lambda n: (n["site"], to_vlan_type(n["vlan_id"])))
+    pools_subnets = mk_pools(
+        s_subnets,
+        lambda n: (n["site"], to_subnet_type(n["ip_prefix"])))
+
     for desc in resources["networks"]:
         site = desc["site"]
         site_info = ex5.get_resource_attributes('/sites/%s' % site)
@@ -182,7 +205,7 @@ def concretize_networks(resources, vlans):
         if n_type == PROD:
             desc["_c_network"] = {"site": site, "vlan_id": None}
             desc["_c_network"].update(site_info["kavlans"]["default"])
-        else:
+        elif n_type in KAVLAN_TYPE:
             networks = pick_things(pools, (site, n_type), 1)
             if len(networks) < 1:
                 raise MissingNetworkError(site, n_type)
@@ -190,6 +213,11 @@ def concretize_networks(resources, vlans):
             desc["_c_network"] = networks[0]
             vlan_id = desc["_c_network"]["vlan_id"]
             desc["_c_network"].update(site_info["kavlans"][str(vlan_id)])
+        elif n_type in SUBNET_TYPE:
+            networks = pick_things(pools_subnets, (site, n_type), 1)
+            if len(networks) < 1:
+                raise MissingNetworkError(site, n_type)
+            desc["_c_network"] = networks[0]
 
 
 def make_reservation(resources, job_name, walltime,
@@ -207,11 +235,20 @@ def make_reservation(resources, job_name, walltime,
         criteria.setdefault(site, []).append(criterion)
 
     # network reservations
-    non_prod = [network for network in networks if network["type"] != "prod"]
-    for desc in non_prod:
+    vlans = [network for network in networks
+            if network["type"] in KAVLAN_TYPE]
+    for desc in vlans:
         site = desc["site"]
         n_type = desc["type"]
         criterion = "{type='%s'}/vlan=1" % n_type
+        criteria.setdefault(site, []).append(criterion)
+
+    subnets = [network for network in networks
+               if network["type"] in SUBNET_TYPE]
+    for desc in subnets:
+        site = desc["site"]
+        n_type = desc["type"]
+        criterion = "%s=1" % n_type
         criteria.setdefault(site, []).append(criterion)
 
     jobs_specs = [(ex5.OarSubmission(resources='+'.join(c),
