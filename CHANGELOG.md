@@ -1,3 +1,7 @@
+# 1.6.0
+
+* Add subnet support
+
 # 1.5.0
 
 * python3 compatibility
