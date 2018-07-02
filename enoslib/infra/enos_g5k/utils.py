@@ -27,6 +27,18 @@ def dhcp_interfaces(c_resources):
                                      cmd)
 
 
+def grant_root_access(c_resources):
+    machines = c_resources["machines"]
+    for desc in machines:
+        cmd = ["cat ~/.ssh/id_rsa.pub"]
+        cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
+        cmd = "|".join(cmd)
+        remote.exec_command_on_nodes(desc["_c_nodes"],
+                                     cmd,
+                                     cmd,
+                                     conn_params={})
+
+
 def is_prod(network, networks):
     net = lookup_networks(network, networks)
     return net["type"] == PROD
@@ -44,11 +56,12 @@ def to_subnet_type(ip_prefix):
     return "slash_%s" % ip_prefix[-2:]
 
 
-def get_or_create_job(resources, job_name, walltime, reservation_date, queue):
+def get_or_create_job(resources, job_name, walltime, reservation_date,
+                      queue, job_type):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
         gridjob = make_reservation(resources, job_name, walltime,
-            reservation_date, queue)
+            reservation_date, queue, job_type)
     logger.info("Waiting for oargridjob %s to start" % gridjob)
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
@@ -224,7 +237,7 @@ def concretize_networks(resources, vlans, subnets):
 
 
 def make_reservation(resources, job_name, walltime,
-    reservation_date, queue):
+    reservation_date, queue, job_type):
     machines = resources["machines"]
     networks = resources["networks"]
 
@@ -263,7 +276,7 @@ def make_reservation(resources, job_name, walltime,
         jobs_specs,
         walltime=walltime,
         reservation_date=reservation_date,
-        job_type='deploy',
+        job_type=job_type,
         queue=queue)
 
     if gridjob is None:
