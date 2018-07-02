@@ -70,6 +70,9 @@ def concretize_resources(resources, gridjob):
         # even if several are reserved
         # We'll need to patch execo the same way it has been patched for vlans
         ipmac, info = ex5.get_oar_job_subnets(job_id, site)
+        if not ipmac:
+            logger.debug("No subnet information found for this job")
+            continue
         subnet = {
             "site": site,
             "ipmac": ipmac,
