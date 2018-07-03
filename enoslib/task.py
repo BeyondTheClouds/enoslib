@@ -49,8 +49,9 @@ def enostask(new=False):
             try:
                 # Proceeds with the function execution
                 logger.info("- Task %s started -" % fn.__name__)
-                fn(*args, **kwargs)
+                r = fn(*args, **kwargs)
                 logger.info("- Task %s finished -" % fn.__name__)
+                return r
             # Save the environment
             finally:
                 _save_env(kwargs["env"])
