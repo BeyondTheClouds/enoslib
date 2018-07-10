@@ -52,14 +52,16 @@ def create_blazar_client(config):
     auth = kclient.authenticate()
     if auth:
         blazar_url = kclient.service_catalog.url_for(
-            service_type='reservation')
+            service_type='reservation',
+            region_name=os.environ["OS_REGION_NAME"])
     else:
         raise Exception("User *%s* is not authorized." %
                 os.environ["OS_USERNAME"])
 
     # let the version by default
     return blazar_client.Client(blazar_url=blazar_url,
-            auth_token=kclient.auth_token)
+            auth_token=kclient.auth_token,
+            region_name=os.environ["OS_REGION_NAME"])
 
 
 def get_reservation(bclient, provider_conf):
