@@ -62,7 +62,7 @@ def create_blazar_client(config):
             auth_token=kclient.auth_token)
 
 
-def get_reservation(bclient, provide_conf):
+def get_reservation(bclient, provider_conf):
     leases = bclient.lease.list()
     leases = [l for l in leases if l["name"] == provider_conf['lease_name']]
     if len(leases) >= 1:
@@ -105,6 +105,7 @@ def create_reservation(bclient, provider_config):
         host_type = machine["flavor"]
         total = machine["number"]
         resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % host_type
+
         reservations.append({
             "min": total,
             "max": total,
@@ -112,6 +113,7 @@ def create_reservation(bclient, provider_config):
             "resource_type": "physical:host",
             "hypervisor_properties": ""
             })
+
 
     lease = bclient.lease.create(
         provider_config['lease_name'],
@@ -148,7 +150,7 @@ def check_extra_ports(session, network, total):
     ports = nclient.list_ports()['ports']
     logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
-    ports_with_name = filter(lambda p: p['name'] == port_name, ports)
+    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
     logger.info("[neutron]: Reusing %s ports" % len(ports_with_name))
     # create missing ports
     for _ in range(0, total - len(ports_with_name)):
@@ -158,7 +160,7 @@ def check_extra_ports(session, network, total):
         # Checking port with PORT_NAME
         nclient.create_port({'port': port})
     ports = nclient.list_ports()['ports']
-    ports_with_name = filter(lambda p: p['name'] == port_name, ports)
+    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
     ip_addresses = []
     for port in ports_with_name:
         ip_addresses.append(port['fixed_ips'][0]['ip_address'])
@@ -184,8 +186,9 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         servers = []
         for flavor, descs in groupby(machines, key=by_flavor):
             machines = list(descs)
-            reservation = filter(lambda r: flavor in r['resource_properties'],
-                                 reservations)[0]
+            reservation = list(filter(
+                lambda r: flavor in r['resource_properties'],
+                reservations))[0]
             os_servers = openstack.check_servers(
                 env['session'],
                 {"machines": machines},
