@@ -148,7 +148,8 @@ def check_reservation(config):
 
 
 def check_extra_ports(session, network, total):
-    nclient = neutron.Client('2', session=session)
+    nclient = neutron.Client('2', session=session,
+                             region_name=os.environ['OS_REGION_NAME'])
     ports = nclient.list_ports()['ports']
     logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
@@ -194,7 +195,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             os_servers = openstack.check_servers(
                 env['session'],
                 {"machines": machines},
-                extra_prefix=flavor,
+                extra_prefix="{}-{}".format(conf['prefix'], flavor),
                 force_deploy=force_deploy,
                 key_name=conf.get('key_name'),
                 image_id=env['image_id'],

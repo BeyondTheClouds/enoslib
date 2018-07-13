@@ -486,6 +486,7 @@ class Openstack(Provider):
         servers = check_servers(
             env['session'],
             self.provider_conf['resources'],
+            self.provider_conf['prefix'],
             force_deploy=force_deploy,
             key_name=self.provider_conf.get('key_name'),
             image_id=env['image_id'],
@@ -524,6 +525,7 @@ class Openstack(Provider):
             'subnet': {'name': SUBNET_NAME, 'cidr': SUBNET_CIDR},
             'dns_nameservers': DNS_NAMESERVERS,
             'allocation_pool': ALLOCATION_POOL,
+            'prefix': PREFIX,
             'gateway': True,
             }
 
