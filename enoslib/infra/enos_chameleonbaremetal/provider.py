@@ -116,7 +116,6 @@ def create_reservation(bclient, provider_config):
             "hypervisor_properties": ""
             })
 
-
     lease = bclient.lease.create(
         provider_config['lease_name'],
         start_date,
