@@ -1,6 +1,7 @@
 # 1.6.0
 
 * Add subnet support
+* An enostask can now returns a value
 
 # 1.5.0
 
