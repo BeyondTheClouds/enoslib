@@ -105,7 +105,8 @@ def check_glance(session, image_name):
     Fails if the base image isn't added.
     This means the image should be added manually.
     """
-    gclient = glance.Client(GLANCE_VERSION, session=session)
+    gclient = glance.Client(GLANCE_VERSION, session=session,
+                            region_name=os.environ['OS_REGION_NAME'])
     images = gclient.images.list()
     name_ids = [{'name': i['name'], 'id': i['id']} for i in images]
     if image_name not in map(itemgetter('name'), name_ids):
@@ -123,7 +124,8 @@ def check_flavors(session, resources):
 
     returns the mappings id <-> flavor
     """
-    nclient = nova.Client(NOVA_VERSION, session=session)
+    nclient = nova.Client(NOVA_VERSION, session=session,
+                          region_name=os.environ['OS_REGION_NAME'])
     flavors = nclient.flavors.list()
     to_id = dict(map(lambda n: [n.name, n.id], flavors))
     to_flavor = dict(map(lambda n: [n.id, n.name], flavors))
@@ -138,7 +140,8 @@ def check_network(session, configure_network, network, subnet,
         * private network /subnet
         * router between this network and the external network
     """
-    nclient = neutron.Client('2', session=session)
+    nclient = neutron.Client('2', session=session,
+                             region_name=os.environ['OS_REGION_NAME'])
 
     # Check the security groups
     secgroups = nclient.list_security_groups()['security_groups']
@@ -231,7 +234,8 @@ def check_network(session, configure_network, network, subnet,
 
 
 def get_free_floating_ip(env):
-    nclient = neutron.Client('2', session=env['session'])
+    nclient = neutron.Client('2', session=env['session'],
+                             region_name=os.environ['OS_REGION_NAME'])
     fips = nclient.list_floatingips()['floatingips']
     fips = [fip for fip in fips if fip['fixed_ip_address'] is None]
     if len(fips) > 0:
@@ -250,7 +254,8 @@ def wait_for_servers(session, servers):
 
     Note(msimonin): we don't garantee the SSH connection to be ready.
     """
-    nclient = nova.Client(NOVA_VERSION, session=session)
+    nclient = nova.Client(NOVA_VERSION, session=session,
+                          region_name=os.environ['OS_REGION_NAME'])
     while True:
         deployed = []
         undeployed = []
@@ -283,7 +288,8 @@ def check_servers(session, resources, extra_prefix="",
     This server can be used as a gateway to the others.
     """
     scheduler_hints = scheduler_hints or {}
-    nclient = nova.Client(NOVA_VERSION, session=session)
+    nclient = nova.Client(NOVA_VERSION, session=session,
+                          region_name=os.environ['OS_REGION_NAME'])
     servers = nclient.servers.list(
         search_opts={'name': '-'.join([PREFIX, extra_prefix])})
     wanted = _get_total_wanted_machines(resources)
@@ -329,7 +335,8 @@ def check_servers(session, resources, extra_prefix="",
 def check_gateway(env, with_gateway, servers):
     gateway = sorted(servers, key=lambda s: s.id)[0]
     if with_gateway:
-        nclient = nova.Client(NOVA_VERSION, session=env['session'])
+        nclient = nova.Client(NOVA_VERSION, session=env['session'],
+                              region_name=os.environ['OS_REGION_NAME'])
         gateway = nclient.servers.get(gateway.id)
         gw_floating_ips = [
             n for n in gateway.addresses[env['network']['name']]
@@ -357,7 +364,8 @@ def allow_address_pairs(session, network, subnet):
 
     This is particularly useful when working with virtual ips.
     """
-    nclient = neutron.Client('2', session=session)
+    nclient = neutron.Client('2', session=session,
+                             region_name=os.environ['OS_REGION_NAME'])
     ports = nclient.list_ports()
     ports_to_update = filter(
         lambda p: p['network_id'] == network['id'],
@@ -478,6 +486,7 @@ class Openstack(Provider):
         servers = check_servers(
             env['session'],
             self.provider_conf['resources'],
+            self.provider_conf['prefix'],
             force_deploy=force_deploy,
             key_name=self.provider_conf.get('key_name'),
             image_id=env['image_id'],
@@ -516,6 +525,7 @@ class Openstack(Provider):
             'subnet': {'name': SUBNET_NAME, 'cidr': SUBNET_CIDR},
             'dns_nameservers': DNS_NAMESERVERS,
             'allocation_pool': ALLOCATION_POOL,
+            'prefix': PREFIX,
             'gateway': True,
             }
 
@@ -524,7 +534,8 @@ class Openstack(Provider):
 
     def destroy(self):
         session = get_session()
-        nclient = nova.Client(NOVA_VERSION, session=session)
+        nclient = nova.Client(NOVA_VERSION, session=session,
+                              region_name=os.environ['OS_REGION_NAME'])
         servers = nclient.servers.list()
         for server in servers:
             if is_in_current_deployment(server):

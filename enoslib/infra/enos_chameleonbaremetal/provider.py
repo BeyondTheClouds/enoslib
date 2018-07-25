@@ -52,19 +52,21 @@ def create_blazar_client(config):
     auth = kclient.authenticate()
     if auth:
         blazar_url = kclient.service_catalog.url_for(
-            service_type='reservation')
+            service_type='reservation',
+            region_name=os.environ["OS_REGION_NAME"])
     else:
         raise Exception("User *%s* is not authorized." %
                 os.environ["OS_USERNAME"])
 
     # let the version by default
     return blazar_client.Client(blazar_url=blazar_url,
-            auth_token=kclient.auth_token)
+            auth_token=kclient.auth_token,
+            region_name=os.environ["OS_REGION_NAME"])
 
 
-def get_reservation(bclient):
+def get_reservation(bclient, provider_conf):
     leases = bclient.lease.list()
-    leases = [l for l in leases if l["name"] == LEASE_NAME]
+    leases = [l for l in leases if l["name"] == provider_conf['lease_name']]
     if len(leases) >= 1:
         lease = leases[0]
         if lease_is_reusable(lease):
@@ -105,6 +107,7 @@ def create_reservation(bclient, provider_config):
         host_type = machine["flavor"]
         total = machine["number"]
         resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % host_type
+
         reservations.append({
             "min": total,
             "max": total,
@@ -134,7 +137,7 @@ def wait_reservation(bclient, lease):
 
 def check_reservation(config):
     bclient = create_blazar_client(config)
-    lease = get_reservation(bclient)
+    lease = get_reservation(bclient, config)
     if lease is None:
         lease = create_reservation(bclient, config)
     wait_reservation(bclient, lease)
@@ -144,11 +147,12 @@ def check_reservation(config):
 
 
 def check_extra_ports(session, network, total):
-    nclient = neutron.Client('2', session=session)
+    nclient = neutron.Client('2', session=session,
+                             region_name=os.environ['OS_REGION_NAME'])
     ports = nclient.list_ports()['ports']
     logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
-    ports_with_name = filter(lambda p: p['name'] == port_name, ports)
+    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
     logger.info("[neutron]: Reusing %s ports" % len(ports_with_name))
     # create missing ports
     for _ in range(0, total - len(ports_with_name)):
@@ -158,7 +162,7 @@ def check_extra_ports(session, network, total):
         # Checking port with PORT_NAME
         nclient.create_port({'port': port})
     ports = nclient.list_ports()['ports']
-    ports_with_name = filter(lambda p: p['name'] == port_name, ports)
+    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
     ip_addresses = []
     for port in ports_with_name:
         ip_addresses.append(port['fixed_ips'][0]['ip_address'])
@@ -184,12 +188,13 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         servers = []
         for flavor, descs in groupby(machines, key=by_flavor):
             machines = list(descs)
-            reservation = filter(lambda r: flavor in r['resource_properties'],
-                                 reservations)[0]
+            reservation = list(filter(
+                lambda r: flavor in r['resource_properties'],
+                reservations))[0]
             os_servers = openstack.check_servers(
                 env['session'],
                 {"machines": machines},
-                extra_prefix=flavor,
+                extra_prefix="{}-{}".format(conf['prefix'], flavor),
                 force_deploy=force_deploy,
                 key_name=conf.get('key_name'),
                 image_id=env['image_id'],
@@ -219,7 +224,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
     def destroy(self):
         # destroy the associated lease should be enough
         bclient = create_blazar_client(self.provider_conf)
-        lease = get_reservation(bclient)
+        lease = get_reservation(bclient, self.provider_conf)
         bclient.lease.delete(lease['id'])
         logger.info("Destroyed %s" % lease_to_s(lease))
 
