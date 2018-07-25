@@ -1,7 +1,10 @@
 # 1.6.0
 
-* Add subnet support
+* G5K: add subnet support
 * An enostask can now returns a value
+* Openstack/Chameleon: support region name
+* Openstack/Chameleon: support for extra prefix for the resources
+* Chameleon: use config lease name
 
 # 1.5.0
 
