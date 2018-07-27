@@ -1,3 +1,7 @@
+# 1.7.0 (unreleased)
+
+* TODO
+
 # 1.6.0
 
 * G5K: add subnet support
