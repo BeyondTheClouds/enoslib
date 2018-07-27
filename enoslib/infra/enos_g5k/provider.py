@@ -16,6 +16,7 @@ DEFAULT_CONFIG = {
     'walltime': '02:00:00',
     'env_name': 'debian9-x64-nfs',
     'reservation': False,
+    'job_type': 'deploy'
 }
 
 
@@ -34,6 +35,7 @@ def _to_enos_roles(roles):
         for nic, roles in h["nics"]:
             for role in roles:
                 extra[role] = nic
+
         return Host(h["host"], user="root", extra=extra)
 
     enos_roles = {}

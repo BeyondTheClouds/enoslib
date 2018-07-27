@@ -9,6 +9,7 @@ from operator import itemgetter
 ENV_NAME = "debian9-x64-nfs"
 JOB_NAME = "deploy5k"
 WALLTIME = "02:00:00"
+JOB_TYPE = "deploy"
 
 
 def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
@@ -79,12 +80,17 @@ class Resources:
 
     def launch(self, **kwargs):
         self.reserve(**kwargs)
-        self.deploy(**kwargs)
-        self.configure_network(**kwargs)
+        if kwargs.get("job_type") == JOB_TYPE:
+            self.deploy(**kwargs)
+            self.configure_network(**kwargs)
+        else:
+            # make sure we can connect as root on non-deploy nodes
+            self.grant_root_access(**kwargs)
 
     def reserve(self, **kwargs):
         job_name = kwargs.get("job_name", JOB_NAME)
         walltime = kwargs.get("walltime", WALLTIME)
+        job_type = kwargs.get("job_type", JOB_TYPE)
         reservation_date = kwargs.get("reservation", False)
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect
         # the queues and it was quiet convenient
@@ -95,7 +101,8 @@ class Resources:
             job_name,
             walltime,
             reservation_date,
-            queue)
+            queue,
+            job_type)
         utils.concretize_resources(self.c_resources, gridjob)
 
     def deploy(self, **kwargs):
@@ -111,6 +118,7 @@ class Resources:
             net = utils.lookup_networks(primary_network, networks)
             vlan_id = net["_c_network"]["vlan_id"]
             return [translate(node, vlan_id) for node in nodes]
+
         env_name = kwargs.get("env_name", ENV_NAME)
         force_deploy = kwargs.get("force_deploy", False)
 
@@ -147,6 +155,9 @@ class Resources:
         if dhcp:
             utils.dhcp_interfaces(self.c_resources)
         return self.c_resources
+
+    def grant_root_access(self, **kwargs):
+        utils.grant_root_access(self.c_resources)
 
     def get_networks(self):
         """Get the networks assoiated with the resource description.
@@ -189,7 +200,7 @@ class Resources:
         utils.destroy(job_name)
 
     def _denormalize(self, desc):
-            hosts = desc.get("_c_ssh_nodes", [])
+            hosts = desc.get("_c_ssh_nodes", desc.get("_c_nodes", []))
             nics = desc.get("_c_nics", [])
             hosts = [{"host": h, "nics": nics} for h in hosts]
             return hosts

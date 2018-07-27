@@ -51,3 +51,21 @@ The following ``tuto_grid5000_subnet.py`` shows how to deal with a subnet reserv
 .. literalinclude:: grid5000/tuto_grid5000_subnet.py
     :language: python
     :linenos:
+
+
+Non deploy reservation
+----------------------
+
+The following ``tuto_grid5000_non_deploy.py`` shows how to deal with a non
+deploy reservation. Root ssh access will be granted to the nodes. For this
+purpose you must have a ``~/.ssh/id_rsa.pub`` file available. All the
+connections will be done as root user allowing to mimic the behaviour of deploy
+jobs (without the kadeploy3 step). This is particularly interesting if your
+deployment does't require more than one network interface.
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
+    :language: python
+    :linenos:
+
+
+
