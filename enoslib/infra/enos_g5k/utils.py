@@ -40,7 +40,8 @@ def to_vlan_type(vlan_id):
     return KAVLAN_GLOBAL
 
 
-def get_or_create_job(resources, job_name, walltime, reservation_date, queue, reservation_type):
+def get_or_create_job(resources, job_name, walltime, reservation_date, queue,
+                      reservation_type):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
         gridjob = make_reservation(resources, job_name, walltime,
