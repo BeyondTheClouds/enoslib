@@ -73,7 +73,7 @@ def concretize_resources(resources, gridjob, reservation_type):
         if len(set(site_candidates)) == 1:
             site = site_candidates[0]
         else:
-            raise "Could not detect the g5k site of the oarjob %" % gridjob
+            raise "Could not detect the g5k site of the oarjob %s" % gridjob
         job_sites = [(gridjob, site)]
     else:
         job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
