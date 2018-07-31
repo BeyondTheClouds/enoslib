@@ -39,7 +39,7 @@ AnsibleExecutionRecord = namedtuple(
     'AnsibleExecutionRecord', ['host', 'status', 'task', 'payload'])
 
 
-def _load_defaults(inventory_path, extra_vars=None, tags=None):
+def _load_defaults(inventory_path, extra_vars=None, tags=None, basedir=False):
     """Load common defaults data structures.
 
     For factorization purpose."""
@@ -47,12 +47,18 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
     extra_vars = extra_vars or {}
     tags = tags or []
     loader = DataLoader()
+    if basedir:
+        loader.set_basedir(basedir)
 
     inventory = Inventory(loader=loader,
         sources=inventory_path)
 
     variable_manager = VariableManager(loader=loader,
         inventory=inventory)
+
+    # seems mandatory to load group_vars variable
+    if basedir:
+        variable_manager.safe_basedir = True
 
     if extra_vars:
         variable_manager.extra_vars = extra_vars
@@ -71,7 +77,7 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
                                      "become_method", "become_user",
                                      "remote_user", "verbosity",
                                      "check", "tags",
-                                     "diff"])
+                                     "diff", "basedir"])
 
     options = Options(listtags=False, listtasks=False,
                       listhosts=False, syntax=False, connection="ssh",
@@ -81,7 +87,7 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None):
                       scp_extra_args=None, become=None,
                       become_method="sudo", become_user="root",
                       remote_user=None, verbosity=2, check=False,
-                      tags=tags, diff=None)
+                      tags=tags, diff=None, basedir=basedir)
 
     return inventory, variable_manager, loader, options
 
@@ -272,7 +278,7 @@ def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
 
 
 def run_ansible(playbooks, inventory_path, extra_vars=None,
-        tags=None, on_error_continue=False):
+        tags=None, on_error_continue=False, basedir='.'):
     """Run Ansible.
 
     Args:
@@ -293,7 +299,9 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
     inventory, variable_manager, loader, options = _load_defaults(
         inventory_path,
         extra_vars=extra_vars,
-        tags=tags)
+        tags=tags,
+        basedir=basedir
+    )
     passwords = {}
     for path in playbooks:
         logger.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
