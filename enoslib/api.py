@@ -343,7 +343,7 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
 
 
 def generate_inventory(roles, networks, inventory_path, check_networks=False,
-        fake_interfaces=None):
+        fake_interfaces=None, fake_networks=None):
     """Generate an inventory file in the ini format.
 
     The inventory is generated using the ``roles`` in the ``ini`` format.  If
@@ -362,16 +362,22 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
             interface name <-> network role
         fake_interfaces (list): names of optionnal dummy interfaces to create
             on the nodes
-    """
+        fake_networks (list): names of the roles to associate with the fake
+            interfaces. Like reguilar network interfaces, the mapping will be added
+            to the host vars. Internally this will be zipped with the
+            fake_interfaces to produce the mapping. """
 
     with open(inventory_path, "w") as f:
             f.write(_generate_inventory(roles))
+
     if check_networks:
         _check_networks(
             roles,
             networks,
             inventory_path,
-            fake_interfaces=fake_interfaces)
+            fake_interfaces=fake_interfaces,
+            fake_networks=fake_networks
+        )
         with open(inventory_path, "w") as f:
             f.write(_generate_inventory(roles))
 
@@ -677,6 +683,7 @@ def _update_hosts(roles, facts, extra_mapping=None):
         for host in hosts:
             networks = facts[host.alias]['networks']
             enos_devices = []
+            host.extra.update(extra_mapping)
             for network in networks:
                 device = network["device"]
                 if device:
@@ -841,7 +848,8 @@ def _build_ip_constraints(roles, ips, constraints):
     return local_ips
 
 
-def _check_networks(roles, networks, inventory, fake_interfaces=None):
+def _check_networks(roles, networks, inventory, fake_interfaces=None,
+                    fake_networks=None):
     """Checks the network interfaces on the nodes
 
     Beware, this has a side effect on each Host in env['rsc'].
@@ -861,6 +869,8 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None):
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     fake_interfaces = fake_interfaces or []
+    fake_networks = fake_networks or []
+
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     facts_file = os.path.join(tmpdir, 'facts.yml')
     options = {
@@ -883,7 +893,9 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None):
             host_facts['networks'] = host_nets
 
     # Finally update the env with this information
-    _update_hosts(roles, facts)
+    # generate the extra_mapping for the fake interfaces
+    extra_mapping = dict(zip(fake_networks, fake_interfaces))
+    _update_hosts(roles, facts, extra_mapping=extra_mapping)
 
 
 def _map_device_on_host_networks(provider_nets, devices):
