@@ -363,8 +363,8 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
         fake_interfaces (list): names of optionnal dummy interfaces to create
             on the nodes
         fake_networks (list): names of the roles to associate with the fake
-            interfaces. Like reguilar network interfaces, the mapping will be added
-            to the host vars. Internally this will be zipped with the
+            interfaces. Like reguilar network interfaces, the mapping will be
+            added to the host vars. Internally this will be zipped with the
             fake_interfaces to produce the mapping. """
 
     with open(inventory_path, "w") as f:
