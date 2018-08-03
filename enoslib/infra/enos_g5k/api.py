@@ -2,7 +2,6 @@
 
 import copy
 import enoslib.infra.enos_g5k.utils as utils
-import execo_g5k as EX5
 from itertools import groupby
 from operator import itemgetter
 
