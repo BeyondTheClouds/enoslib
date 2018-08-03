@@ -2,7 +2,6 @@
 
 import copy
 import enoslib.infra.enos_g5k.utils as utils
-import execo_g5k as EX5
 from itertools import groupby
 from operator import itemgetter
 
@@ -32,19 +31,12 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
             expected = {"paravance": ["eth0", "eth1"]}
             assertDictEquals(expected, actual)
     """
-    utils.get_clusters_interfaces(clusters, extra_cond=extra_cond)
+
     interfaces = {}
     for cluster in clusters:
-        site = EX5.get_cluster_site(cluster)
-        nics = EX5.get_resource_attributes(
-            "/sites/%s/clusters/%s/nodes" % (site, cluster))
-        nics = nics['items'][0]['network_adapters']
-        nics = [nic['device'] for nic in nics
-            if nic['mountable'] and
-            nic['interface'] == 'Ethernet' and
-            not nic['management'] and extra_cond(nic)]
-        nics = sorted(nics)
+        nics = utils.get_cluster_interfaces(cluster, extra_cond=extra_cond)
         interfaces.setdefault(cluster, nics)
+
     return interfaces
 
 
