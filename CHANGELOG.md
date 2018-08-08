@@ -1,6 +1,8 @@
-# 1.7.0 (unreleased)
+# 1.7.0
 
-* TODO
+* G5K api: fixed get_clusters_interfaces function
+* Ansible: group vars were'nt loaded
+* Allow fake interfaces to be mapped to net roles
 
 # 1.6.0
 
