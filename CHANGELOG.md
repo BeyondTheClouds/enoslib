@@ -1,3 +1,7 @@
+# 1.8.0 (unreleased)
+
+* TODO
+
 # 1.7.0
 
 * G5K api: fixed get_clusters_interfaces function
