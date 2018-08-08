@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import execo as ex
 import logging
 import sys
 
+import execo as ex
+
+
 logger = logging.getLogger(__name__)
+
 
 if sys.version_info.major == 3:
     BASESTRING = str
 else:
     BASESTRING = basestring
+
 
 DEFAULT_CONN_PARAMS = {'user': 'root'}
 
@@ -25,12 +29,15 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     :param conn_params: connection parameters passed to the execo.Remote
                         function
     """
+
     if isinstance(nodes, BASESTRING):
         nodes = [nodes]
 
     if conn_params is None:
         conn_params = DEFAULT_CONN_PARAMS
 
-    logger.debug("Running %s on %s " % (label, nodes))
+    logger.debug("Running %s on %s ", label, nodes)
     remote = ex.Remote(cmd, nodes, conn_params)
     remote.run()
+    if not remote.finished_ok:
+        raise Exception('An error occcured during remote execution')

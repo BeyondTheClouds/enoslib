@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import enoslib.infra.enos_g5k.utils as utils
+
 from itertools import groupby
 from operator import itemgetter
+
+from enoslib.infra.enos_g5k import remote
+from enoslib.infra.enos_g5k import utils
+
 
 ENV_NAME = "debian9-x64-nfs"
 JOB_NAME = "deploy5k"
@@ -38,6 +42,22 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
         interfaces.setdefault(cluster, nics)
 
     return interfaces
+
+
+def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
+    """Execute a command on a node (id or hostname) or on a set of nodes.
+
+    Args:
+        nodes (list):  list of targets of the command cmd. Each must be an
+    execo.Host.
+        cmd (str): string representing the command to run on the remote nodes.
+        label (str):  string for debugging purpose.
+        conn_params (dict): connection parameters passed to the execo.Remote
+    function.
+
+    """
+
+    remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
 
 
 class Resources:
@@ -180,9 +200,9 @@ class Resources:
         for desc in machines:
             roles = utils.get_roles_as_list(desc)
             hosts = self._denormalize(desc)
-            for r in roles:
-                result.setdefault(r, [])
-                result[r].extend(hosts)
+            for role in roles:
+                result.setdefault(role, [])
+                result[role].extend(hosts)
         return result
 
     @staticmethod
@@ -192,7 +212,7 @@ class Resources:
         utils.destroy(job_name)
 
     def _denormalize(self, desc):
-            hosts = desc.get("_c_ssh_nodes", desc.get("_c_nodes", []))
-            nics = desc.get("_c_nics", [])
-            hosts = [{"host": h, "nics": nics} for h in hosts]
-            return hosts
+        hosts = desc.get("_c_ssh_nodes", desc.get("_c_nodes", []))
+        nics = desc.get("_c_nics", [])
+        hosts = [{"host": h, "nics": nics} for h in hosts]
+        return hosts
