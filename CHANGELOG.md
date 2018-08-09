@@ -1,6 +1,8 @@
-# 1.8.0 (unreleased)
+# 1.8.0
 
-* TODO
+* G5K api: expose exec_command_on_nodes
+* Openstack: enable the use of session for blazar
+* Openstack: Allow keystone v3 authentification
 
 # 1.7.0
 
