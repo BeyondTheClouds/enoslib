@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from blazarclient import client as blazar_client
-from keystoneclient import client as keystone
 from neutronclient.neutron import client as neutron
 from itertools import groupby
 

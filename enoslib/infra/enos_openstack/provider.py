@@ -269,6 +269,7 @@ def set_free_floating_ip(env, server_id):
     nclient.update_floatingip(fip['id'], {'floatingip': {'port_id': port_id}})
     return fip['floating_ip_address']
 
+
 def wait_for_servers(session, servers):
     """Wait for the servers to be ready.
 
