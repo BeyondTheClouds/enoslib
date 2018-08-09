@@ -40,28 +40,11 @@ def lease_to_s(lease):
         lease['status'])
 
 
-def create_blazar_client(config):
+def create_blazar_client(config, session):
     """Check the reservation, creates a new one if nescessary."""
-
-    kclient = keystone.Client(
-        auth_url=os.environ["OS_AUTH_URL"],
-        username=os.environ["OS_USERNAME"],
-        password=os.environ["OS_PASSWORD"],
-        tenant_id=os.environ["OS_TENANT_ID"])
-
-    auth = kclient.authenticate()
-    if auth:
-        blazar_url = kclient.service_catalog.url_for(
-            service_type='reservation',
-            region_name=os.environ["OS_REGION_NAME"])
-    else:
-        raise Exception("User *%s* is not authorized." %
-                os.environ["OS_USERNAME"])
-
-    # let the version by default
-    return blazar_client.Client(blazar_url=blazar_url,
-            auth_token=kclient.auth_token,
-            region_name=os.environ["OS_REGION_NAME"])
+    return blazar_client.Client(session=session,
+                                service_type="reservation",
+                                region_name=os.environ["OS_REGION_NAME"])
 
 
 def get_reservation(bclient, provider_conf):
@@ -135,8 +118,8 @@ def wait_reservation(bclient, lease):
     return lease
 
 
-def check_reservation(config):
-    bclient = create_blazar_client(config)
+def check_reservation(config, session):
+    bclient = create_blazar_client(config, session)
     lease = get_reservation(bclient, config)
     if lease is None:
         lease = create_reservation(bclient, config)
@@ -178,7 +161,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
 
         conf = self.provider_conf
         env = openstack.check_environment(conf)
-        lease = check_reservation(conf)
+        lease = check_reservation(conf, env['session'])
         extra_ips = check_extra_ports(env['session'],
                                       env['network'],
                                       conf['extra_ips'])
@@ -223,7 +206,8 @@ class Chameleonbaremetal(cc.Chameleonkvm):
 
     def destroy(self):
         # destroy the associated lease should be enough
-        bclient = create_blazar_client(self.provider_conf)
+        session = openstack.get_session()
+        bclient = create_blazar_client(self.provider_conf, session)
         lease = get_reservation(bclient, self.provider_conf)
         bclient.lease.delete(lease['id'])
         logger.info("Destroyed %s" % lease_to_s(lease))

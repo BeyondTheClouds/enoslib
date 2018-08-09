@@ -5,7 +5,7 @@ from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
 from glanceclient import client as glance
-from keystoneauth1.identity import v2
+from keystoneauth1.identity import v2, v3
 from keystoneauth1 import session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
@@ -91,11 +91,26 @@ SCHEMA = {
 
 def get_session():
     """Build the session object."""
-    auth = v2.Password(
-        auth_url=os.environ["OS_AUTH_URL"],
-        username=os.environ["OS_USERNAME"],
-        password=os.environ["OS_PASSWORD"],
-        tenant_id=os.environ["OS_TENANT_ID"])
+    # NOTE(msimonin): We provide only a basic support which focus
+    # Chameleon cloud and its rc files
+    if os.environ.get("OS_IDENTITY_API_VERSION") == "3":
+        logging.info("Creating a v3 Keystone Session")
+        auth = v3.Password(
+            auth_url=os.environ["OS_AUTH_URL"],
+            username=os.environ["OS_USERNAME"],
+            password=os.environ["OS_PASSWORD"],
+            project_id=os.environ["OS_PROJECT_ID"],
+            user_domain_name=os.environ["OS_USER_DOMAIN_NAME"]
+        )
+
+    else:
+        logging.info("Creating a v2 Keystone Session")
+        auth = v2.Password(
+            auth_url=os.environ["OS_AUTH_URL"],
+            username=os.environ["OS_USERNAME"],
+            password=os.environ["OS_PASSWORD"],
+            tenant_id=os.environ["OS_TENANT_ID"])
+
     return session.Session(auth=auth)
 
 
@@ -233,7 +248,7 @@ def check_network(session, configure_network, network, subnet,
     return (ext_net, network, subnet)
 
 
-def get_free_floating_ip(env):
+def set_free_floating_ip(env, server_id):
     nclient = neutron.Client('2', session=env['session'],
                              region_name=os.environ['OS_REGION_NAME'])
     fips = nclient.list_floatingips()['floatingips']
@@ -246,8 +261,13 @@ def get_free_floating_ip(env):
         fip = nclient.create_floatingip({'floatingip': floatingip})
         fip = fip['floatingip']
     logger.info("[neutron]: Using floating ip: %s", fip)
-    return fip
 
+    # Getting the port fior server_id
+    ports = nclient.list_ports(device_id=server_id).get('ports')
+    port_id = ports[0]['id']
+    logger.info("[neutron]: Associate floating ip with the port %s" % ports)
+    nclient.update_floatingip(fip['id'], {'floatingip': {'port_id': port_id}})
+    return fip['floating_ip_address']
 
 def wait_for_servers(session, servers):
     """Wait for the servers to be ready.
@@ -343,12 +363,14 @@ def check_gateway(env, with_gateway, servers):
                 if n['OS-EXT-IPS:type'] == 'floating'
         ]
         if len(gw_floating_ips) == 0:
-            fip = get_free_floating_ip(env)
-            gateway.add_floating_ip(fip['floating_ip_address'])
-            gateway = nclient.servers.get(gateway.id)
-        # else gateway already has an fip
-        logger.info("[nova]: Reusing %s as gateway" % gateway)
-    return gateway
+            gateway_ip = set_free_floating_ip(env, gateway.id)
+        else:
+            gateway_ip = gw_floating_ips[0]['addr']
+
+        logger.info("[nova]: Reusing %s as gateway with ip %s",
+                    gateway,
+                    gateway_ip)
+    return gateway_ip, gateway
 
 
 def is_in_current_deployment(server, extra_prefix=""):
@@ -413,7 +435,7 @@ def check_environment(provider_conf):
     }
 
 
-def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
+def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     def build_roles(resources, env, servers, keyfnc):
         result = {}
         pools = mk_pools(servers, keyfnc)
@@ -435,15 +457,10 @@ def finalize(env, provider_conf, gateway, servers, keyfnc, extra_ips=None):
     extra = {}
     network_name = provider_conf['network']['name']
     if provider_conf['gateway']:
-        gw_floating_ip = [
-            n for n in gateway.addresses[network_name]
-                if n['OS-EXT-IPS:type'] == 'floating'
-        ]
-        gw_floating_ip = gw_floating_ip[0]['addr']
         user = provider_conf.get('user')
         gw_user = provider_conf.get('gateway_user', user)
         extra.update({
-            'gateway': gw_floating_ip,
+            'gateway': gateway_ip,
             'gateway_user': gw_user,
             'forward_agent': True
             })
@@ -500,7 +517,7 @@ class Openstack(Provider):
 
         deployed = sorted(deployed, key=lambda s: s.name)
 
-        gateway = check_gateway(
+        gateway_ip, _ = check_gateway(
             env,
             self.provider_conf.get('gateway', False),
             deployed)
@@ -514,7 +531,7 @@ class Openstack(Provider):
         # this is delegated to a global ansible playbook
         return finalize(env,
                         self.provider_conf,
-                        gateway,
+                        gateway_ip,
                         servers,
                         lambda s: env['id_to_flavor'][s.flavor['id']])
 
