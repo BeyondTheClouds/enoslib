@@ -1,6 +1,6 @@
-# 1.9.0 (unreleased)
+# 1.8.1
 
-* TODO
+* relax openstack client constraints
 
 # 1.8.0
 
