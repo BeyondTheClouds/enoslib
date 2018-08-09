@@ -27,6 +27,14 @@ Grid5000 Provider Class
     :undoc-members:
     :show-inheritance:
 
+Grid5000 API
+^^^^^^^^^^^^
+
+.. automodule:: enoslib.infra.enos_g5k.api
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Openstack Provider Class
 ------------------------
 
