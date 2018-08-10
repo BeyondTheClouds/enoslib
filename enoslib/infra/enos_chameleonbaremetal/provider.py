@@ -64,6 +64,10 @@ def get_reservation(bclient, provider_conf):
         return None
 
 
+def by_flavor(x):
+    return x['flavor']
+
+
 def create_reservation(bclient, provider_config):
     # NOTE(msimonin): This implies that
     #  * UTC is used
@@ -85,18 +89,19 @@ def create_reservation(bclient, provider_config):
                  end_date)
 
     reservations = []
-    for machine in resources["machines"]:
-        host_type = machine["flavor"]
-        total = machine["number"]
-        resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % host_type
+    for flavor, descs in groupby(resources['machines'], key=by_flavor):
+        # NOTE(msimonin): We create one reservation per flavor
+        total = sum([desc['number'] for desc in descs])
+        resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % flavor
 
         reservations.append({
-            "min": total,
-            "max": total,
-            "resource_properties": resource_properties,
-            "resource_type": "physical:host",
-            "hypervisor_properties": ""
+            'min': total,
+            'max': total,
+            'resource_properties': resource_properties,
+            'hypervisor_properties': '',
+            'resource_type': 'physical:host'
             })
+
 
     lease = bclient.lease.create(
         provider_config['lease_name'],
@@ -155,8 +160,6 @@ def check_extra_ports(session, network, total):
 class Chameleonbaremetal(cc.Chameleonkvm):
 
     def init(self, force_deploy=False):
-        def by_flavor(x):
-            return x["flavor"]
 
         conf = self.provider_conf
         env = openstack.check_environment(conf)
@@ -170,37 +173,42 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         servers = []
         for flavor, descs in groupby(machines, key=by_flavor):
             machines = list(descs)
-            reservation = list(filter(
-                lambda r: flavor in r['resource_properties'],
-                reservations))[0]
+            # NOTE(msimonin): There should be only one reservation per flavor
+            hints = [{'reservation': r['id']} for r in reservations
+                             if flavor in r['resource_properties']]
             os_servers = openstack.check_servers(
                 env['session'],
                 {"machines": machines},
-                extra_prefix="{}-{}".format(conf['prefix'], flavor),
+                extra_prefix="{}__{}__".format(conf['prefix'], flavor),
                 force_deploy=force_deploy,
                 key_name=conf.get('key_name'),
                 image_id=env['image_id'],
                 flavors="baremetal",
                 network=env['network'],
                 ext_net=env['ext_net'],
-                scheduler_hints={'reservation': reservation['id']})
+                scheduler_hints=hints)
             servers.extend(os_servers)
 
         deployed, _ = openstack.wait_for_servers(
             env['session'],
             servers)
 
-        gateway = openstack.check_gateway(
+        gateway_ip, _ = openstack.check_gateway(
             env,
             conf.get('gateway', False),
             deployed)
 
+        # NOTE(msimonin) build the roles and networks This is a bit tricky here
+        # since flavor (e.g compute_haswell) doesn't correspond to a flavor
+        # attribute of the nova server object. We have to encode the flavor
+        # name (e.g compute_haswell) in the server name. Decoding the flavor
+        # name from the server name helps then to form the roles.
         return openstack.finalize(
             env,
             conf,
-            gateway,
+            gateway_ip,
             deployed,
-            lambda s: s.name.split('-')[1],
+            lambda s: s.name.split('__')[1],
             extra_ips=extra_ips)
 
     def destroy(self):
@@ -230,8 +238,6 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             'subnet': {'name': 'sharednet1-subnet'},
             # DNS server to use when creating network
             'dns_nameservers': ['130.202.101.6', '130.202.101.37'],
-            # Name of the network interface available on the nodes
-            'network_interface': 'eno1',
             # Experiment duration
             "walltime": "02:00:00",
             # extra ips to reserve

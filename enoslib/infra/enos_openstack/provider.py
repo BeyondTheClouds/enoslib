@@ -308,7 +308,7 @@ def check_servers(session, resources, extra_prefix="",
     If needed, it creates new servers and add a floating ip to one of them.
     This server can be used as a gateway to the others.
     """
-    scheduler_hints = scheduler_hints or {}
+    scheduler_hints = scheduler_hints or []
     nclient = nova.Client(NOVA_VERSION, session=session,
                           region_name=os.environ['OS_REGION_NAME'])
     servers = nclient.servers.list(
@@ -340,6 +340,12 @@ def check_servers(session, resources, extra_prefix="",
             else:
                 flavor_to_id, _ = flavors
                 flavor = flavor_to_id[flavor]
+
+            if scheduler_hints:
+                _scheduler_hints = scheduler_hints[total % len(scheduler_hints)]
+            else:
+                _scheduler_hints = []
+
             server = nclient.servers.create(
                 name='-'.join([PREFIX, extra_prefix, str(total)]),
                 image=image_id,
@@ -347,7 +353,7 @@ def check_servers(session, resources, extra_prefix="",
                 nics=[{'net-id': network['id']}],
                 key_name=key_name,
                 security_groups=[SECGROUP_NAME],
-                scheduler_hints=scheduler_hints)
+                scheduler_hints=_scheduler_hints)
             servers.append(server)
             total = total + 1
     return servers
