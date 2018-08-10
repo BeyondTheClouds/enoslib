@@ -37,7 +37,6 @@ provider = Enos_vagrant(provider_conf)
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 #result = run_command("control*", "ping -c 1 {{hostvars['enos-1']['ansible_' + n1].ipv4.address}}", inventory)
-import ipdb; ipdb.set_trace()
 result = run_command("control*", "date", inventory)
 with open("result", "w") as f:
     json.dump(result, f, indent=2)
