@@ -102,7 +102,6 @@ def create_reservation(bclient, provider_config):
             'resource_type': 'physical:host'
             })
 
-
     lease = bclient.lease.create(
         provider_config['lease_name'],
         start_date,

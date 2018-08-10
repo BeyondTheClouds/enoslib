@@ -228,8 +228,8 @@ def check_network(session, configure_network, network, subnet,
     routers = nclient.list_routers()
     router_name = ROUTER_NAME
     logger.debug(routers)
-    if (router_name not in list(map(itemgetter('name'), routers['routers'])) and
-            configure_network):
+    router_present = router_name not in [r['name'] for r in routers['routers']]
+    if (router_present and configure_network):
         router = {
             'name': router_name,
             'external_gateway_info': {
@@ -342,7 +342,8 @@ def check_servers(session, resources, extra_prefix="",
                 flavor = flavor_to_id[flavor]
 
             if scheduler_hints:
-                _scheduler_hints = scheduler_hints[total % len(scheduler_hints)]
+                _scheduler_hints = \
+                    scheduler_hints[total % len(scheduler_hints)]
             else:
                 _scheduler_hints = []
 
