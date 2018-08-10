@@ -1,6 +1,8 @@
-# 1.9.0 (unreleased)
+# 1.8.2
 
-* TODO
+* Chameleon: fix flavor encoding
+* Chameleon: Create one reservation per flavor
+* Openstack: fix python3 compatibility
 
 # 1.8.1
 
