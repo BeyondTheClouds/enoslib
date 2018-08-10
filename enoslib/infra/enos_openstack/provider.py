@@ -124,7 +124,7 @@ def check_glance(session, image_name):
                             region_name=os.environ['OS_REGION_NAME'])
     images = gclient.images.list()
     name_ids = [{'name': i['name'], 'id': i['id']} for i in images]
-    if image_name not in map(itemgetter('name'), name_ids):
+    if image_name not in list(map(itemgetter('name'), name_ids)):
         logger.error("[glance]: Image %s is missing" % image_name)
         raise Exception("Image %s is missing" % image_name)
     else:
@@ -142,8 +142,8 @@ def check_flavors(session, resources):
     nclient = nova.Client(NOVA_VERSION, session=session,
                           region_name=os.environ['OS_REGION_NAME'])
     flavors = nclient.flavors.list()
-    to_id = dict(map(lambda n: [n.name, n.id], flavors))
-    to_flavor = dict(map(lambda n: [n.id, n.name], flavors))
+    to_id = dict(list(map(lambda n: [n.name, n.id], flavors)))
+    to_flavor = dict(list(map(lambda n: [n.id, n.name], flavors)))
     return to_id, to_flavor
 
 
@@ -161,7 +161,7 @@ def check_network(session, configure_network, network, subnet,
     # Check the security groups
     secgroups = nclient.list_security_groups()['security_groups']
     secgroup_name = SECGROUP_NAME
-    if secgroup_name not in map(itemgetter('name'), secgroups):
+    if secgroup_name not in list(map(itemgetter('name'), secgroups)):
         secgroup = {'name': secgroup_name,
                     'description': 'Enos Security Group'}
         res = nclient.create_security_group({'security_group': secgroup})
@@ -185,7 +185,7 @@ def check_network(session, configure_network, network, subnet,
 
     networks = nclient.list_networks()['networks']
     network_name = network['name']
-    if network_name not in map(itemgetter('name'), networks):
+    if network_name not in list(map(itemgetter('name'), networks)):
         network = {'name': network_name}
         res = nclient.create_network({'network': network})
         network = res['network']
@@ -202,7 +202,7 @@ def check_network(session, configure_network, network, subnet,
 
     subnets = nclient.list_subnets()['subnets']
     subnet_name = subnet['name']
-    if (subnet_name not in map(itemgetter('name'), subnets) and
+    if (subnet_name not in list(map(itemgetter('name'), subnets)) and
             configure_network):
         subnet = {'name': subnet['name'],
         'network_id': network['id'],
@@ -228,7 +228,7 @@ def check_network(session, configure_network, network, subnet,
     routers = nclient.list_routers()
     router_name = ROUTER_NAME
     logger.debug(routers)
-    if (router_name not in map(itemgetter('name'), routers['routers']) and
+    if (router_name not in list(map(itemgetter('name'), routers['routers'])) and
             configure_network):
         router = {
             'name': router_name,
@@ -394,7 +394,7 @@ def allow_address_pairs(session, network, subnet):
         lambda p: p['network_id'] == network['id'],
         ports['ports'])
     logger.info('[nova]: Allowing address pairs for ports %s' %
-            map(lambda p: p['fixed_ips'], ports_to_update))
+            list(map(lambda p: p['fixed_ips'], ports_to_update)))
     for port in ports_to_update:
         try:
             nclient.update_port(port['id'], {
