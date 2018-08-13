@@ -148,6 +148,10 @@ def _mount_secondary_nics(desc, networks):
         idx = idx + 1
 
 
+def get_cluster_site(cluster):
+    return ex5.get_cluster_site(cluster)
+
+
 def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     site = ex5.get_cluster_site(cluster)
     nics = ex5.get_resource_attributes(
