@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import enoslib.infra.enos_g5k.api as api
+from enoslib.infra.enos_g5k.constants import (JOB_NAME, WALLTIME, ENV_NAME,
+                                              JOB_TYPE_DEPLOY)
 from enoslib.infra.enos_g5k.schema import SCHEMA, KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
@@ -12,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 #: The default configuration of the Grid5000 provider
 DEFAULT_CONFIG = {
-    'name': 'Enoslib',
-    'walltime': '02:00:00',
-    'env_name': 'debian9-x64-nfs',
+    'job_name': JOB_NAME,
+    'walltime': WALLTIME,
+    'env_name': ENV_NAME,
     'reservation': False,
-    'job_type': 'deploy'
+    'job_type': JOB_TYPE_DEPLOY
 }
 
 
@@ -160,6 +162,10 @@ class G5k(Provider):
     claim extra ips and corresponding macs. In this case the returned network
     attributes `start` and `end` corresponds to the first and last mapping of
     (ip, mac).
+
+    If a key ``oargrid_jobid`` is found. The resources will be reloaded from
+    the corresponding oargrid job. In this case what is described under the
+    ``resources`` key mut be compatible with the job content.
     """
 
     def init(self, force_deploy=False):
@@ -176,11 +182,11 @@ class G5k(Provider):
             NotEnoughNodesError: If the `min` constraints can't be met.
 
            """
-        resources = self.provider_conf["resources"]
-        r = api.Resources(resources)
-        # insert force_deploy
+
         self.provider_conf.setdefault("force_deploy", force_deploy)
-        r.launch(**self.provider_conf)
+        r = api.Resources(self.provider_conf)
+        # insert force_deploy
+        r.launch()
         roles = r.get_roles()
         networks = r.get_networks()
 
@@ -189,8 +195,9 @@ class G5k(Provider):
 
     def destroy(self):
         """Destroys the jobs."""
-        api.Resources.destroy(**self.provider_conf)
-        pass
+        r = api.Resources(self.provider_conf)
+        # insert force_deploy
+        r.destroy()
 
     def default_config(self):
         """Default config."""

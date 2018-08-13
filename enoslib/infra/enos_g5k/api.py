@@ -7,12 +7,8 @@ from operator import itemgetter
 
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k import utils
-
-
-ENV_NAME = "debian9-x64-nfs"
-JOB_NAME = "deploy5k"
-WALLTIME = "02:00:00"
-JOB_TYPE = "deploy"
+from enoslib.infra.enos_g5k.driver import get_driver
+from enoslib.infra.enos_g5k.constants import ENV_NAME, JOB_TYPE_DEPLOY
 
 
 def get_clusters_sites(clusters):
@@ -88,55 +84,46 @@ class Resources:
     Examples:
         .. code-block:: python
 
-            resources = { ... }
-            r = Resources(resources)
+            configuration = { ... }
+            r = Resources(configuration)
             r.reserve()
             r.deploy()
             r.configure_network()
 
         Or more concisely :
 
-            resources = { ... }
-            r = Resources(resources)
+            configuration = { ... }
+            r = Resources(configuration)
             r.launch()
 
-    Note that ``resources`` dict is not validated here, but can be through
-    the :py:func:`enoslib.infra.enos_g5k.schema.validate_schema` function
+    Note that ``configuration`` dict is not validated here, but can be through
+    the :py:func:`enoslib.infra.enos_g5k.schema.validate_schema` function and
+    thus follow the same syntax as the g5k provider.
     """
 
-    def __init__(self, resources):
-        self.resources = resources
+    def __init__(self, configuration):
+        self.configuration = configuration
         # This one will be modified
-        self.c_resources = copy.deepcopy(resources)
+        self.c_resources = copy.deepcopy(self.configuration["resources"])
+        # Load the driver that will interact with G5K
+        self.driver = get_driver(configuration)
 
-    def launch(self, **kwargs):
-        self.reserve(**kwargs)
-        if kwargs.get("job_type") == JOB_TYPE:
-            self.deploy(**kwargs)
-            self.configure_network(**kwargs)
+    def launch(self):
+        self.reserve()
+        if self.configuration.get("job_type") == JOB_TYPE_DEPLOY:
+            self.deploy()
+            self.configure_network()
         else:
             # make sure we can connect as root on non-deploy nodes
-            self.grant_root_access(**kwargs)
+            self.grant_root_access()
 
-    def reserve(self, **kwargs):
-        job_name = kwargs.get("job_name", JOB_NAME)
-        walltime = kwargs.get("walltime", WALLTIME)
-        job_type = kwargs.get("job_type", JOB_TYPE)
-        reservation_date = kwargs.get("reservation", False)
-        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
-        # the queues and it was quiet convenient
-        # see https://github.com/BeyondTheClouds/enos/pull/62
-        queue = kwargs.get("queue", None)
-        gridjob = utils.get_or_create_job(
-            self.c_resources,
-            job_name,
-            walltime,
-            reservation_date,
-            queue,
-            job_type)
-        utils.concretize_resources(self.c_resources, gridjob)
+    def reserve(self):
+        nodes, vlans, subnets = self.driver.reserve()
 
-    def deploy(self, **kwargs):
+        # The following as side-effect on self.c_resources
+        self._concretize_resources(nodes, vlans, subnets)
+
+    def deploy(self):
         def translate_vlan(primary_network, networks, nodes):
 
             def translate(node, vlan_id):
@@ -150,8 +137,8 @@ class Resources:
             vlan_id = net["_c_network"]["vlan_id"]
             return [translate(node, vlan_id) for node in nodes]
 
-        env_name = kwargs.get("env_name", ENV_NAME)
-        force_deploy = kwargs.get("force_deploy", False)
+        env_name = self.configuration.get("env_name", ENV_NAME)
+        force_deploy = self.configuration.get("force_deploy", False)
 
         machines = self.c_resources["machines"]
         networks = self.c_resources["networks"]
@@ -179,15 +166,14 @@ class Resources:
                     networks,
                     desc["_c_deployed"])
 
-    def configure_network(self, **kwargs):
-        dhcp = kwargs.get("dhcp", False)
+    def configure_network(self):
+        dhcp = self.configuration.get("dhcp", False)
         utils.mount_nics(self.c_resources)
-        # TODO(msimonin): run dhcp if asked
         if dhcp:
             utils.dhcp_interfaces(self.c_resources)
         return self.c_resources
 
-    def grant_root_access(self, **kwargs):
+    def grant_root_access(self):
         utils.grant_root_access(self.c_resources)
 
     def get_networks(self):
@@ -224,14 +210,22 @@ class Resources:
                 result[role].extend(hosts)
         return result
 
-    @staticmethod
-    def destroy(**kwargs):
+    def destroy(self):
         """Destroy the associated job."""
-        job_name = kwargs.get("job_name", JOB_NAME)
-        utils.destroy(job_name)
+        self.driver.destroy()
 
     def _denormalize(self, desc):
         hosts = desc.get("_c_ssh_nodes", desc.get("_c_nodes", []))
         nics = desc.get("_c_nics", [])
         hosts = [{"host": h, "nics": nics} for h in hosts]
         return hosts
+
+    def _concretize_resources(self, nodes, vlans, subnets):
+        self._concretize_nodes(nodes)
+        self._concretize_networks(vlans, subnets)
+
+    def _concretize_nodes(self, nodes):
+        utils.concretize_nodes(self.c_resources, nodes)
+
+    def _concretize_networks(self, vlans, subnets):
+        utils.concretize_networks(self.c_resources, vlans, subnets)

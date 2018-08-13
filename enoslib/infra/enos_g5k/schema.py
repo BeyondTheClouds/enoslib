@@ -23,7 +23,6 @@ SCHEMA = {
     },
     "additionalProperties": True,
     "required": ["resources"],
-
     "resources": {
         "title": "Resource",
 

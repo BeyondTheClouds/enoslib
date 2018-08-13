@@ -56,20 +56,21 @@ def to_subnet_type(ip_prefix):
     return "slash_%s" % ip_prefix[-2:]
 
 
-def get_or_create_job(resources, job_name, walltime, reservation_date,
-                      queue, job_type):
+def grid_get_or_create_job(job_name, walltime, reservation_date,
+                      queue, job_type, machines, networks):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
-        gridjob = make_reservation(resources, job_name, walltime,
-                                   reservation_date, queue, job_type)
+        gridjob = grid_make_reservation(job_name, walltime, reservation_date,
+                                        queue, job_type, machines, networks)
     logger.info("Waiting for oargridjob %s to start" % gridjob)
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
 
 
-def concretize_resources(resources, gridjob):
+def grid_reload_from_id(gridjob):
+    logger.info("Reloading the resources from oargrid job %s", gridjob)
+    gridjob = int(gridjob)
     nodes = ex5.get_oargrid_job_nodes(gridjob)
-    concretize_nodes(resources, nodes)
 
     job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
     vlans = []
@@ -94,7 +95,7 @@ def concretize_resources(resources, gridjob):
         # Mandatory key when it comes to concretize resources
         subnet.update({"network": info["ip_prefix"]})
         subnets.append(subnet)
-    concretize_networks(resources, vlans, subnets)
+    return nodes, vlans, subnets
 
 
 def _deploy(nodes, force_deploy, options):
@@ -203,6 +204,7 @@ def concretize_nodes(resources, nodes):
         c_nodes = pick_things(pools, cluster, nb)
         #  put concrete hostnames here
         desc["_c_nodes"].extend([c_node.address for c_node in c_nodes])
+    return resources
 
 
 def concretize_networks(resources, vlans, subnets):
@@ -237,12 +239,11 @@ def concretize_networks(resources, vlans, subnets):
                 raise MissingNetworkError(site, n_type)
             desc["_c_network"] = networks[0]
 
+    return resources
 
-def make_reservation(resources, job_name, walltime,
-                     reservation_date, queue, job_type):
-    machines = resources["machines"]
-    networks = resources["networks"]
 
+def grid_make_reservation(job_name, walltime,
+                     reservation_date, queue, job_type, machines, networks):
     criteria = {}
     # machines reservations
     for desc in machines:
@@ -286,9 +287,17 @@ def make_reservation(resources, job_name, walltime,
     return gridjob
 
 
-def destroy(job_name):
+def grid_destroy_from_name(job_name):
     """Destroy the job."""
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
+    if gridjob is not None:
+        ex5.oargriddel([gridjob])
+        logger.info("Killing the job %s" % gridjob)
+
+
+def grid_destroy_from_id(gridjob):
+    """Destroy the job."""
+    gridjob = int(gridjob)
     if gridjob is not None:
         ex5.oargriddel([gridjob])
         logger.info("Killing the job %s" % gridjob)
