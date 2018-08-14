@@ -1,6 +1,6 @@
 # 1.9.0 (unreleased)
 
-* TODO
+* G5K api: expose get_clusters_sites
 
 # 1.8.2
 
