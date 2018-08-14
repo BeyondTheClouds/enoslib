@@ -15,6 +15,25 @@ WALLTIME = "02:00:00"
 JOB_TYPE = "deploy"
 
 
+def get_clusters_sites(clusters):
+    """ Returns the name of the site for each cluster.
+
+    Args:
+        clusters (str): list of clusters
+
+    Returns:
+        dict of cluster with its associated site
+
+    """
+
+    sites = {}
+    for cluster in clusters:
+        site = utils.get_cluster_site(cluster)
+        sites.setdefault(cluster, site)
+
+    return sites
+
+
 def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
     """ Returns for each cluster the available cluster interfaces
 

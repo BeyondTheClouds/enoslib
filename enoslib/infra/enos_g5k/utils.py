@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
+
+from execo import Host
+import execo_g5k as ex5
+import execo_g5k.api_utils as api
 
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
@@ -6,10 +11,7 @@ from enoslib.infra.enos_g5k.error import (MissingNetworkError,
 from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
                                            KAVLAN, KAVLAN_TYPE, SUBNET_TYPE)
 from enoslib.infra.utils import pick_things, mk_pools
-from execo import Host
-import execo_g5k as ex5
-import execo_g5k.api_utils as api
-import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +25,7 @@ def dhcp_interfaces(c_resources):
         ifconfig = ["ip link set %s up" % nic for nic in nics_list]
         cmd = "%s ; dhclient %s" % (";".join(ifconfig), " ".join(nics_list))
         remote.exec_command_on_nodes(desc["_c_ssh_nodes"],
-                                     cmd,
-                                     cmd)
+                                     cmd, cmd)
 
 
 def grant_root_access(c_resources):
@@ -34,9 +35,7 @@ def grant_root_access(c_resources):
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         cmd = "|".join(cmd)
         remote.exec_command_on_nodes(desc["_c_nodes"],
-                                     cmd,
-                                     cmd,
-                                     conn_params={})
+                                     cmd, cmd, conn_params={})
 
 
 def is_prod(network, networks):
@@ -61,7 +60,7 @@ def get_or_create_job(resources, job_name, walltime, reservation_date,
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
         gridjob = make_reservation(resources, job_name, walltime,
-            reservation_date, queue, job_type)
+                                   reservation_date, queue, job_type)
     logger.info("Waiting for oargridjob %s to start" % gridjob)
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
@@ -89,7 +88,7 @@ def concretize_resources(resources, gridjob):
         subnet = {
             "site": site,
             "ipmac": ipmac,
-         }
+        }
         subnet.update(info)
         # Mandatory key when it comes to concretize resources
         subnet.update({"network": info["ip_prefix"]})
@@ -138,10 +137,8 @@ def _mount_secondary_nics(desc, networks):
         nic_device, nic_name = nics[idx]
         nodes_to_set = [Host(n) for n in desc["_c_nodes"]]
         vlan_id = net["_c_network"]["vlan_id"]
-        logger.info("Put %s, %s in vlan id %s for nodes %s" % (nic_device,
-                                                            nic_name,
-                                                            vlan_id,
-                                                            nodes_to_set))
+        logger.info("Put %s, %s in vlan id %s for nodes %s" %
+                    (nic_device, nic_name, vlan_id, nodes_to_set))
         api.set_nodes_vlan(net["site"],
                            nodes_to_set,
                            nic_device,
@@ -149,6 +146,10 @@ def _mount_secondary_nics(desc, networks):
         # recording the mapping, just in case
         desc["_c_nics"].append((nic_name, get_roles_as_list(net)))
         idx = idx + 1
+
+
+def get_cluster_site(cluster):
+    return ex5.get_cluster_site(cluster)
 
 
 def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
@@ -237,7 +238,7 @@ def concretize_networks(resources, vlans, subnets):
 
 
 def make_reservation(resources, job_name, walltime,
-    reservation_date, queue, job_type):
+                     reservation_date, queue, job_type):
     machines = resources["machines"]
     networks = resources["networks"]
 
@@ -252,7 +253,7 @@ def make_reservation(resources, job_name, walltime,
 
     # network reservations
     vlans = [network for network in networks
-            if network["type"] in KAVLAN_TYPE]
+             if network["type"] in KAVLAN_TYPE]
     for desc in vlans:
         site = desc["site"]
         n_type = desc["type"]
@@ -268,8 +269,8 @@ def make_reservation(resources, job_name, walltime,
         criteria.setdefault(site, []).append(criterion)
 
     jobs_specs = [(ex5.OarSubmission(resources='+'.join(c),
-                                 name=job_name), s)
-                    for s, c in criteria.items()]
+                                     name=job_name), s)
+                  for s, c in criteria.items()]
 
     # Make the reservation
     gridjob, _ = ex5.oargridsub(
