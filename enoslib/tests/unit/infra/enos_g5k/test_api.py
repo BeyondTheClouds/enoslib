@@ -11,7 +11,7 @@ class TestGetNetwork(EnosTest):
     def test_no_concrete_network_yet(self):
         expected_networks = [{"type": PROD, "id": "network1"}]
         schema.validate = mock.Mock()
-        r = Resources({"networks": expected_networks})
+        r = Resources({"resources": {"networks": expected_networks, "machines": []}})
         networks = r.get_networks()
         self.assertCountEqual(expected_networks, networks)
 
@@ -19,7 +19,7 @@ class TestGetNetwork(EnosTest):
         networks = [{"type": KAVLAN, "id": "network1", "_c_network": {"site": "nancy", "vlan_id": 1}}]
         expected_networks = [{"type": KAVLAN, "id": "network1", "site": "nancy", "vlan_id": 1}]
         schema.validate = mock.Mock()
-        r = Resources({"networks": networks})
+        r = Resources({"resources": {"networks": networks, "machines": []}})
         networks = r.get_networks()
         self.assertCountEqual(expected_networks, networks)
 
@@ -30,11 +30,13 @@ class TestDeploy(EnosTest):
         nodes = ["foocluster-1", "foocluster-2"]
         schema.validate = mock.Mock()
         r = Resources({
-            "machines": [{
-                "_c_nodes": nodes,
-                "primary_network": "network1"
-            }],
-            "networks": [{"type": PROD, "id": "network1"}]
+            "resources":{
+                "machines": [{
+                    "_c_nodes": nodes,
+                    "primary_network": "network1"
+                }],
+                "networks": [{"type": PROD, "id": "network1"}]
+            }
         })
         deployed = set(["foocluster-1", "foocluster-2"])
         undeployed = set()
@@ -48,11 +50,13 @@ class TestDeploy(EnosTest):
         nodes = ["foocluster-1", "foocluster-2"]
         schema.validate = mock.Mock()
         r = Resources({
-            "machines": [{
-                "_c_nodes": nodes,
-                "primary_network": "network1"
-            }],
-            "networks": [{"type": KAVLAN, "id": "network1", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+            "resources": {
+                "machines": [{
+                    "_c_nodes": nodes,
+                    "primary_network": "network1"
+                }],
+                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+            }
         })
         deployed = set(["foocluster-1", "foocluster-2"])
         undeployed = set()
@@ -67,17 +71,19 @@ class TestDeploy(EnosTest):
         nodes_bar = ["barcluster-1", "barcluster-2"]
         schema.validate = mock.Mock()
         r = Resources({
-            "machines": [{
-                "_c_nodes": nodes_foo,
-                "primary_network": "network1"
-            },{
-                "_c_nodes" : nodes_bar,
-                "primary_network": "network2"
-                }
-            ],
-            "networks": [
-                {"type": PROD, "id": "network1"},
-                {"type": KAVLAN, "id": "network2", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+            "resources": {
+                "machines": [{
+                    "_c_nodes": nodes_foo,
+                    "primary_network": "network1"
+                },{
+                    "_c_nodes" : nodes_bar,
+                    "primary_network": "network2"
+                    }
+                ],
+                "networks": [
+                    {"type": PROD, "id": "network1"},
+                    {"type": KAVLAN, "id": "network2", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+            }
         })
         d_foo = set(["foocluster-1"])
         u_foo = set(nodes_foo) - d_foo
