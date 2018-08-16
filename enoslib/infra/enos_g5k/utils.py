@@ -66,6 +66,27 @@ def grid_get_or_create_job(job_name, walltime, reservation_date,
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
 
+def get_network_info_from_job_id (job_id, site, vlans, subnets):
+    vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
+    vlans.extend([{
+        "site": site,
+        "vlan_id": vlan_id} for vlan_id in vlan_ids])
+    # NOTE(msimonin): this currently returned only one subnet
+    # even if several are reserved
+    # We'll need to patch execo the same way it has been patched for vlans
+    ipmac, info = ex5.get_oar_job_subnets(job_id, site)
+    if not ipmac:
+        logger.debug("No subnet information found for this job")
+        return vlans, subnets
+    subnet = {
+        "site": site,
+        "ipmac": ipmac,
+    }
+    subnet.update(info)
+    # Mandatory key when it comes to concretize resources
+    subnet.update({"network": info["ip_prefix"]})
+    subnets.append(subnet)
+    return vlans, subnets
 
 def grid_reload_from_id(gridjob):
     logger.info("Reloading the resources from oargrid job %s", gridjob)
@@ -76,27 +97,25 @@ def grid_reload_from_id(gridjob):
     vlans = []
     subnets = []
     for (job_id, site) in job_sites:
-        vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
-        vlans.extend([{
-            "site": site,
-            "vlan_id": vlan_id} for vlan_id in vlan_ids])
-        # NOTE(msimonin): this currently returned only one subnet
-        # even if several are reserved
-        # We'll need to patch execo the same way it has been patched for vlans
-        ipmac, info = ex5.get_oar_job_subnets(job_id, site)
-        if not ipmac:
-            logger.debug("No subnet information found for this job")
-            continue
-        subnet = {
-            "site": site,
-            "ipmac": ipmac,
-        }
-        subnet.update(info)
-        # Mandatory key when it comes to concretize resources
-        subnet.update({"network": info["ip_prefix"]})
-        subnets.append(subnet)
+        vlans, subnets = get_network_info_from_job_id(job_id,
+                                                      site,
+                                                      vlans,
+                                                      subnets)
     return nodes, vlans, subnets
 
+
+def oar_reload_from_id(oarjob, site):
+    logger.info("Reloading the resources from oar job %s", oarjob)
+    job_id = int(oarjob)
+    nodes = ex5.get_oar_job_nodes(job_id)
+
+    vlans = []
+    subnets = []
+    vlans, subnets = get_network_info_from_job_id(job_id,
+                                                  site,
+                                                  vlans,
+                                                  subnets)
+    return nodes, vlans, subnets
 
 def _deploy(nodes, force_deploy, options):
     # For testing purpose
@@ -301,3 +320,10 @@ def grid_destroy_from_id(gridjob):
     if gridjob is not None:
         ex5.oargriddel([gridjob])
         logger.info("Killing the job %s" % gridjob)
+
+def oar_destroy_from_id(oarjob, site):
+    """Destroy the job."""
+    oarjob = int(oarjob)
+    if oarjob is not None and site is not None:
+        ex5.oardel([[oarjob, site]])
+        logger.info("Killing the job %s" % oarjob)
