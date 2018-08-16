@@ -66,7 +66,8 @@ def grid_get_or_create_job(job_name, walltime, reservation_date,
     ex5.wait_oargrid_job_start(gridjob)
     return gridjob
 
-def get_network_info_from_job_id (job_id, site, vlans, subnets):
+
+def get_network_info_from_job_id(job_id, site, vlans, subnets):
     vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
     vlans.extend([{
         "site": site,
@@ -87,6 +88,7 @@ def get_network_info_from_job_id (job_id, site, vlans, subnets):
     subnet.update({"network": info["ip_prefix"]})
     subnets.append(subnet)
     return vlans, subnets
+
 
 def grid_reload_from_id(gridjob):
     logger.info("Reloading the resources from oargrid job %s", gridjob)
@@ -116,6 +118,7 @@ def oar_reload_from_id(oarjob, site):
                                                   vlans,
                                                   subnets)
     return nodes, vlans, subnets
+
 
 def _deploy(nodes, force_deploy, options):
     # For testing purpose
@@ -320,6 +323,7 @@ def grid_destroy_from_id(gridjob):
     if gridjob is not None:
         ex5.oargriddel([gridjob])
         logger.info("Killing the job %s" % gridjob)
+
 
 def oar_destroy_from_id(oarjob, site):
     """Destroy the job."""
