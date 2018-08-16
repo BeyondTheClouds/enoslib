@@ -1,6 +1,8 @@
-# 1.9.0 (unreleased)
+# 1.9.0
 
 * G5K api: expose get_clusters_sites
+* G5K: dhcp is blocking
+* G5k: introduce drivers to interact with the platform
 
 # 1.8.2
 
