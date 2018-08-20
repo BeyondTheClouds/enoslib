@@ -1,7 +1,9 @@
 Tutorial 2 - Working with Grid'5000
 ===================================
 
-Let's adapt the vagrant tutorial to Grid'5000.
+This tutorial illustrate the use of EnOSlib to interact with Grid'5000. For a
+full description of the API and the available options, please refer to the API
+documentation of the Grid'5000 provider.
 
 Installation
 ------------
@@ -16,10 +18,11 @@ On Grid'5000, you can go with a virtualenv :
 
     $ pip install enoslib
 
-Using the API
+Basic example
 -------------
 
-The following ``tuto_grid5000.py`` implements the desired workflow.
+The following ``tuto_grid5000.py`` implements a basic workflow where 2 nodes are
+reserved and 2 roles are described. Nodes are here put in a dedicated vlan.
 
 .. literalinclude:: grid5000/tuto_grid5000.py
    :language: python
@@ -67,5 +70,12 @@ deployment does't require more than one network interface.
     :language: python
     :linenos:
 
+More complete example
+---------------------
+
+You can found it `here
+<https://github.com/BeyondTheClouds/enoslib/tree/master/docs/tutorials/grid5000/virt>`_.
+It starts reserve non-deploy nodes and a subnet and start virtual machines on
+them.
 
 

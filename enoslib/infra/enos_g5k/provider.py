@@ -95,10 +95,15 @@ def _to_enos_networks(networks):
                 "end": str(IPAddress(ips.last))
             })
         elif network["type"] in SUBNET_TYPE:
+            start_ip, start_mac = network["ipmac"][0]
+            end_ip, end_mac = network["ipmac"][-1]
             net.update({
-                "start": network["ipmac"][0],
-                "end": network["ipmac"][-1]
+                "start": start_ip,
+                "end": end_ip,
+                "mac_start": start_mac,
+                "mac_end": end_mac
             })
+
         net.update({"roles": get_roles_as_list(network)})
         nets.append(net)
     logger.debug(nets)
