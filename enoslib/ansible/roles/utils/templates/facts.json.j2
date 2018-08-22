@@ -1,0 +1,7 @@
+{
+{% for host in groups['all'] %}
+"{{ host | indent(width=0) }}": 
+{{ hostvars[host] | to_nice_json(2) | indent(width=2, indentfirst=true) }}
+{% if not loop.last %},{% endif %}
+{% endfor %}
+}

@@ -23,6 +23,7 @@ import logging
 import os
 import re
 import time
+import json
 import yaml
 
 
@@ -872,7 +873,7 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
     fake_networks = fake_networks or []
 
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
-    facts_file = os.path.join(tmpdir, 'facts.yml')
+    facts_file = os.path.join(tmpdir, 'facts.json')
     options = {
         'enos_action': 'check_network',
         'facts_file': facts_file,
@@ -885,7 +886,7 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
     # Read the file
     # Match provider networks to interface names for each host
     with open(facts_file) as f:
-        facts = yaml.safe_load(f)
+        facts = json.load(f)
         for _, host_facts in facts.items():
             host_nets = _map_device_on_host_networks(networks,
                                                     get_devices(host_facts))
