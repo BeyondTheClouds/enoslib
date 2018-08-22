@@ -1,6 +1,8 @@
-# 1.9.1 (unreleased)
+# 1.10.0
 
-TODO
+* G5K: align the subnet description with the other network
+* API: validate_network now filters devices without ip address
+* API: check_network now uses JSON serialisation to perform better
 
 # 1.9.0
 
