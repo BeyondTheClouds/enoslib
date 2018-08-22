@@ -10,16 +10,14 @@
         name: "{{ item.name }}"
         state: destroyed
       ignore_errors: yes
-      with_items: "{{ vms }}"
-      when: item.host == inventory_hostname
+      with_items: "{{ vms[inventory_hostname] }}"
 
     - name: vm -0 / 1
       virt:
         name: "{{ item.name }}"
         command: undefine
       ignore_errors: yes
-      with_items: "{{ vms }}"
-      when: item.host == inventory_hostname
+      with_items: "{{ vms[inventory_hostname] }}"
 
 
     - name: Removing previous cloud init data
@@ -43,22 +41,18 @@
 
     - name: Copy base image
       shell: "qemu-img create -f qcow2 -o backing_file=/grid5000/virt-images/debian9-x64-base.qcow2 {{ item.backing_file }}"
-      with_items: "{{ vms }}"
-      when: item.host == inventory_hostname
-
+      with_items: "{{ vms[inventory_hostname] }}"
 
     - name: vm 0 / 1
       virt:
         name: "{{ item.name }}"
         command: define
         xml: "{{ lookup('template', 'domain.xml.j2') }}"
-      with_items: "{{ vms }}"
-      when: item.host == inventory_hostname
+      with_items: "{{ vms[inventory_hostname] }}"
 
 
     - name: vm 1 / 1
       virt:
         name: "{{ item.name }}"
         state: running
-      with_items: "{{ vms }}"
-      when: item.host == inventory_hostname
+      with_items: "{{ vms[inventory_hostname] }}"

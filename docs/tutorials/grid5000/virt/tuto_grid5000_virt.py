@@ -6,7 +6,7 @@ import os
 
 logging.basicConfig(level=logging.DEBUG)
 
-VMS = 5
+VMS = 10
 PMS = 2
 
 
@@ -22,11 +22,11 @@ def range_mac(mac_start, mac_end, step=1):
 provider_conf = {
     "job_type": "allow_classic_ssh",
     "job_name": "test-non-deploy",
-    "walltime": "3:00:00",
+    "walltime": "1:00:00",
     "resources": {
         "machines": [{
             "role": "compute",
-            "cluster": "parapluie",
+            "cluster": "parasilo",
             "nodes": PMS,
             "primary_network": "n1",
             "secondary_networks": []
@@ -68,7 +68,7 @@ for idx, (mac, ip) in enumerate(range_mac(mac_start, mac_end)):
     name = "vm-%s" % idx
     vms.append({
         "name": name,
-        "cores": 2,
+        "cores": 1,
         "mem": 2048000,
         "mac": mac,
         "backing_file": "/tmp/%s.qcow2" % name,
@@ -78,13 +78,18 @@ for idx, (mac, ip) in enumerate(range_mac(mac_start, mac_end)):
 
 # Distribute vms to pms
 machines = roles["compute"]
+# the vms indexed by the pm hosting them
+all_vms = {}
 for index, vm in enumerate(vms):
     # host is set to the inventory hostname
-    vm["host"] = machines[index % len(machines)].alias
+    machine = machines[index % len(machines)].alias
+    vm["host"] = machine
+    all_vms.setdefault(machine, [])
+    all_vms[machine].append(vm)
 
 logging.info(vms)
 
-run_ansible(["site.yml"], inventory, extra_vars={"vms": vms})
+run_ansible(["site.yml"], inventory, extra_vars={"vms": all_vms})
 
 print("If everything went fine you can access one of those")
 print("+{:->16}+{:->16}+".format('', ''))
