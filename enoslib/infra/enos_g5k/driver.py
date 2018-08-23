@@ -3,7 +3,9 @@ from abc import ABCMeta, abstractmethod
 from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
                                           grid_reload_from_id,
                                           grid_destroy_from_name,
-                                          grid_destroy_from_id)
+                                          grid_destroy_from_id,
+                                          oar_reload_from_id,
+                                          oar_destroy_from_id)
 from enoslib.infra.enos_g5k.constants import (JOB_NAME, WALLTIME,
                                               JOB_TYPE_DEPLOY)
 import logging
@@ -18,9 +20,14 @@ def get_driver(configuration):
     machines = resources["machines"]
     networks = resources["networks"]
     oargrid_jobid = configuration.get("oargrid_jobid")
+    oar_jobid = configuration.get("oar_jobid")
+    oar_site = configuration.get("oar_site")
     if oargrid_jobid:
         logger.debug("Loading the OargridStaticDriver")
         return OargridStaticDriver(oargrid_jobid)
+    elif oar_jobid and oar_site:
+        logger.debug("Loading the OarStaticDriver")
+        return OarStaticDriver(oar_jobid, oar_site)
     else:
         job_name = configuration.get("job_name", JOB_NAME)
         walltime = configuration.get("walltime", WALLTIME)
@@ -116,3 +123,24 @@ class OargridDynamicDriver(Driver):
 
     def destroy(self):
         grid_destroy_from_name(self.job_name)
+
+
+class OarStaticDriver(Driver):
+    """
+    Use this driver when a oar job id is given.
+
+    - reserve will reload the job resources from the job id
+    - destroy will destroy the oargrid job given its id
+    """
+    def __init__(self, oar_jobid, oar_site):
+        self.oar_jobid = int(oar_jobid)
+        self.oar_site = oar_site
+
+    def reserve(self):
+        nodes, vlans, subnets = oar_reload_from_id(self.oar_jobid,
+                                                   self.oar_site)
+        return nodes, vlans, subnets
+
+    def destroy(self):
+        oar_destroy_from_id(self.oar_jobid,
+                            self.oar_site)
