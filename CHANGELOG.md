@@ -1,6 +1,6 @@
-# 1.10.1 (unreleased)
+# 1.11.0
 
-* TODO
+* G5K: add static oar job support
 
 # 1.10.0
 
