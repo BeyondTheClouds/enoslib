@@ -168,9 +168,13 @@ class G5k(Provider):
     attributes `start` and `end` corresponds to the first and last mapping of
     (ip, mac).
 
-    If a key ``oargrid_jobid`` is found. The resources will be reloaded from
+    If a key ``oargrid_jobid`` is found, the resources will be reloaded from
     the corresponding oargrid job. In this case what is described under the
     ``resources`` key mut be compatible with the job content.
+
+    If the keys ``oar_jobid`` and ``oar_site`` are found, the resources will be
+    reloaded from the corresponding oar job. In this case what is described
+    under the ``resources`` key mut be compatible with the job content.
     """
 
     def init(self, force_deploy=False):
