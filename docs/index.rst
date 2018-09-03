@@ -32,3 +32,4 @@ like Grid'5000, or Chameleon. Is saves time and energy.
 
    tutorials/index.rst
    apidoc/index.rst
+   theyuseit.rst
