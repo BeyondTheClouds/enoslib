@@ -93,11 +93,12 @@ def _make_env(resultdir=None):
                 env.update(yaml.load(f))
                 logger.debug("Loaded environment %s", env_path)
 
-        # Resets the configuration of the environment
-        if os.path.isfile(env["config_file"]):
-            with open(env["config_file"], "r") as f:
-                env["config"].update(yaml.load(f))
-                logger.debug("Reloaded config %s", env["config"])
+        if "config_file" in env and env["config_file"] is not None:
+            # Resets the configuration of the environment
+            if os.path.isfile(env["config_file"]):
+                with open(env["config_file"], "r") as f:
+                    env["config"].update(yaml.load(f))
+                    logger.debug("Reloaded config %s", env["config"])
 
     return env
 
