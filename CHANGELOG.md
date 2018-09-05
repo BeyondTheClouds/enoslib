@@ -1,3 +1,7 @@
+# 1.11.1
+
+* Fix empty `config_file` case in enostask
+
 # 1.11.0
 
 * G5K: add static oar job support
