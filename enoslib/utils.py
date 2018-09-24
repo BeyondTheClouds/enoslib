@@ -6,10 +6,17 @@ import os
 
 
 def get_roles_as_list(desc):
-    roles = desc.get("role", [])
+    # NOTE(msimonin): role and roles are mutually exclusive in theory We'll fix
+    # the schemas later in the mean time to not break user code let's remove
+    # duplicates here
+    roles = desc.get("roles", [])
     if roles:
-        roles = [roles]
-    roles.extend(desc.get("roles", []))
+        return roles
+
+    role = desc.get("role", [])
+    if role:
+        roles = [role]
+
     return roles
 
 
