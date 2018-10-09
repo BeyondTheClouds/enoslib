@@ -8,11 +8,11 @@ import time
 import json
 import yaml
 
+
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
-from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
@@ -22,11 +22,11 @@ from ansible.vars.manager import VariableManager
 from netaddr import IPAddress, IPSet
 
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
+from enoslib.enos_inventory import EnosInventory
 from enoslib.utils import _check_tmpdir, get_roles_as_list
 from enoslib.errors import (EnosFailedHostsError,
                             EnosUnreachableHostsError,
                             EnosSSHNotReady)
-
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,8 @@ AnsibleExecutionRecord = namedtuple(
     'AnsibleExecutionRecord', ['host', 'status', 'task', 'payload'])
 
 
-def _load_defaults(inventory_path, extra_vars=None, tags=None, basedir=False):
+def _load_defaults(inventory_path=None, roles=None, extra_vars=None, tags=None,
+                   basedir=False):
     """Load common defaults data structures.
 
     For factorization purpose."""
@@ -52,8 +53,8 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None, basedir=False):
     if basedir:
         loader.set_basedir(basedir)
 
-    inventory = Inventory(loader=loader,
-                          sources=inventory_path)
+    inventory = EnosInventory(loader=loader,
+                              sources=inventory_path, roles=roles)
 
     variable_manager = VariableManager(loader=loader,
                                        inventory=inventory)
@@ -127,8 +128,8 @@ class _MyCallback(CallbackModule):
         self._store(result, STATUS_UNREACHABLE)
 
 
-def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
-             on_error_continue=False):
+def run_play(pattern_hosts, play_source, inventory_path=None, roles=None,
+             extra_vars=None, on_error_continue=False):
     """Run a play.
 
     Args:
@@ -152,7 +153,8 @@ def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
     # NOTE(msimonin): inventory could be infered from a host list (maybe)
     results = []
     inventory, variable_manager, loader, options = _load_defaults(
-        inventory_path,
+        inventory_path=inventory_path,
+        roles=roles,
         extra_vars=extra_vars)
     callback = _MyCallback(results)
     passwords = {}
@@ -196,8 +198,9 @@ def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
     return results
 
 
-def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
-                on_error_continue=False):
+def run_command(pattern_hosts, command, inventory_path=None, roles=None,
+                extra_vars=None,
+    on_error_continue=False):
     """Run a shell command on some remote hosts.
 
     Args:
@@ -273,14 +276,17 @@ def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
             "shell": command,
         }]
     }
-    results = run_play(pattern_hosts, play_source, inventory_path, extra_vars)
+    results = run_play(pattern_hosts, play_source,
+                       inventory_path=inventory_path,
+                       roles=roles,
+                       extra_vars=extra_vars)
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def run_ansible(playbooks, inventory_path, extra_vars=None,
-                tags=None, on_error_continue=False, basedir='.'):
+def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
+        tags=None, on_error_continue=False, basedir='.'):
     """Run Ansible.
 
     Args:
@@ -299,7 +305,8 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
     """
 
     inventory, variable_manager, loader, options = _load_defaults(
-        inventory_path,
+        inventory_path=inventory_path,
+        roles=roles,
         extra_vars=extra_vars,
         tags=tags,
         basedir=basedir
@@ -344,6 +351,70 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
+def discover_networks(roles, networks, fake_interfaces=None,
+                    fake_networks=None):
+    """Checks the network interfaces on the nodes. This enables to
+            auto-discover the mapping interface name <-> network role.
+
+
+    Beware, this has a side effect on each Host in roles.
+
+    Args:
+        roles (dict): role->hosts mapping as returned by
+            :py:meth:`enoslib.infra.provider.Provider.init`
+        networks (list): network list as returned by
+            :py:meth:`enoslib.infra.provider.Provider.init`
+        fake_interfaces (list): names of optionnal dummy interfaces to create
+        fake_networks (list): names of the roles to associate with the fake
+            interfaces. Like reguilar network interfaces, the mapping will be
+            added to the host vars. Internally this will be zipped with the
+            fake_interfaces to produce the mapping.
+    """
+
+    def get_devices(facts):
+        """Extract the network devices information from the facts."""
+        devices = []
+        for interface in facts['ansible_interfaces']:
+            ansible_interface = 'ansible_' + interface
+            # filter here (active/ name...)
+            if 'ansible_' + interface in facts:
+                interface = facts[ansible_interface]
+                devices.append(interface)
+        return devices
+
+    wait_ssh(roles)
+    tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
+    _check_tmpdir(tmpdir)
+    fake_interfaces = fake_interfaces or []
+    fake_networks = fake_networks or []
+
+    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
+    facts_file = os.path.join(tmpdir, 'facts.json')
+    options = {
+        'enos_action': 'check_network',
+        'facts_file': facts_file,
+        'fake_interfaces': fake_interfaces
+    }
+    run_ansible([utils_playbook], roles=roles,
+        extra_vars=options,
+        on_error_continue=False)
+
+    # Read the file
+    # Match provider networks to interface names for each host
+    with open(facts_file) as f:
+        facts = json.load(f)
+        for _, host_facts in facts.items():
+            host_nets = _map_device_on_host_networks(networks,
+                                                    get_devices(host_facts))
+            # Add the mapping : networks <-> nic name
+            host_facts['networks'] = host_nets
+
+    # Finally update the env with this information
+    # generate the extra_mapping for the fake interfaces
+    extra_mapping = dict(zip(fake_networks, fake_interfaces))
+    _update_hosts(roles, facts, extra_mapping=extra_mapping)
+
+
 def generate_inventory(roles, networks, inventory_path, check_networks=False,
                        fake_interfaces=None, fake_networks=None):
     """Generate an inventory file in the ini format.
@@ -373,10 +444,9 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
         f.write(_generate_inventory(roles))
 
     if check_networks:
-        _check_networks(
+        discover_networks(
             roles,
             networks,
-            inventory_path,
             fake_interfaces=fake_interfaces,
             fake_networks=fake_networks
         )
@@ -384,7 +454,10 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
             f.write(_generate_inventory(roles))
 
 
-def emulate_network(roles, inventory, network_constraints, extra_vars=None):
+def emulate_network(network_constraints,
+                    roles=None,
+                    inventory_path=None,
+                    extra_vars=None):
     """Emulate network links.
 
     Read ``network_constraints`` and apply ``tc`` rules on all the nodes.
@@ -394,10 +467,10 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
     ``loss``.
 
     Args:
+        network_constraints (dict): network constraints to apply
         roles (dict): role->hosts mapping as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
-        inventory (str): path to the inventory
-        network_constraints (dict): network constraints to apply
+        inventory_path(string): path to an inventory
         extra_vars (dict): extra_vars to pass to ansible
 
     Examples:
@@ -422,7 +495,7 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
                 "default_delay": "20ms",
                 "default_rate": "1gbit",
             }
-            emulate_network(roles, inventory, tc)
+            emulate_network(roles, tc)
 
         If you want to control more precisely which groups need to be taken
         into account, you can use ``except`` or ``groups`` key
@@ -435,7 +508,7 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
                 "default_rate": "1gbit",
                 "except": "grp3"
             }
-            emulate_network(roles, inventory, tc)
+            emulate_network(roles, tc)
 
         is equivalent to
 
@@ -475,24 +548,24 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
     #    {source:src, target: ip_dest, device: if, rate:x,  delay:y}
     # 3) Enforce those constraints (Ansible)
 
-    # TODO(msimonin)
-    #    - allow finer grained filtering based on network roles and/or nic name
-
     if not network_constraints:
         return
+
+    if roles is None and inventory is None:
+        raise ValueError("roles and inventory can't be None")
 
     if not extra_vars:
         extra_vars = {}
 
     # 1. getting  ips/devices information
     logger.debug('Getting the ips of all nodes')
-    tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+    tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     ips_file = os.path.join(tmpdir, 'ips.txt')
     options = {'enos_action': 'tc_ips',
                'ips_file': ips_file}
-    run_ansible([utils_playbook], inventory, extra_vars=options)
+    run_ansible([utils_playbook], roles=roles, extra_vars=options)
 
     # 2.a building the group constraints
     logger.debug('Building all the constraints')
@@ -521,10 +594,16 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
         'tc_enable': enable,
     }
     options.update(extra_vars)
-    run_ansible([utils_playbook], inventory, extra_vars=options)
+    run_ansible([utils_playbook],
+                roles=roles,
+                inventory_path=inventory_path,
+                extra_vars=options)
 
 
-def validate_network(roles, inventory, output_dir=None, extra_vars=None):
+def validate_network(roles=None,
+                     inventory_path=None,
+                     output_dir=None,
+                     extra_vars=None):
     """Validate the network parameters (latency, bandwidth ...)
 
     Performs flent, ping tests to validate the constraints set by
@@ -534,13 +613,13 @@ def validate_network(roles, inventory, output_dir=None, extra_vars=None):
     Args:
         roles (dict): role->hosts mapping as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
-        inventory (str): path to the inventory
+        inventory_path (str): path to an inventory
         output_dir (str): directory where validation files will be stored.
             Default to :py:const:`enoslib.constants.TMP_DIRNAME`.
     """
     logger.debug('Checking the constraints')
     if not output_dir:
-        output_dir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+        output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
 
     if not extra_vars:
         extra_vars = {}
@@ -550,11 +629,15 @@ def validate_network(roles, inventory, output_dir=None, extra_vars=None):
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     options = {'enos_action': 'tc_validate',
                'tc_output_dir': output_dir}
+
     options.update(extra_vars)
-    run_ansible([utils_playbook], inventory, extra_vars=options)
+    run_ansible([utils_playbook],
+                roles=roles,
+                inventory_path=inventory_path,
+                extra_vars=options)
 
 
-def reset_network(roles, inventory, extra_vars=None):
+def reset_network(roles, extra_vars=None):
     """Reset the network constraints (latency, bandwidth ...)
 
     Remove any filter that have been applied to shape the traffic.
@@ -569,16 +652,17 @@ def reset_network(roles, inventory, extra_vars=None):
     if not extra_vars:
         extra_vars = {}
 
-    tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+    tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
+
     _check_tmpdir(tmpdir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     options = {'enos_action': 'tc_reset',
                'tc_output_dir': tmpdir}
     options.update(extra_vars)
-    run_ansible([utils_playbook], inventory, extra_vars=options)
+    run_ansible([utils_playbook], roles=roles, extra_vars=options)
 
 
-def wait_ssh(inventory, retries=100, interval=30):
+def wait_ssh(roles, retries=100, interval=30):
     """Wait for all the machines to be ssh-reachable
 
     Let ansible initiates a communication and retries if needed.
@@ -594,7 +678,7 @@ def wait_ssh(inventory, retries=100, interval=30):
     for i in range(0, retries):
         try:
             run_ansible([utils_playbook],
-                        inventory,
+                        roles=roles,
                         extra_vars=options,
                         on_error_continue=False)
             break
@@ -637,60 +721,8 @@ def _generate_inventory(roles):
 
     :param roles: dict of roles (roles -> list of Host)
     """
-    inventory = []
-    for role, desc in roles.items():
-        inventory.append("[%s]" % role)
-        inventory.extend([_generate_inventory_string(d) for d in desc])
-    return "\n".join(inventory)
-
-
-def _generate_inventory_string(host):
-    def to_inventory_string(v):
-        """Handle the cas of List[String]."""
-        if isinstance(v, list):
-            # [a, b, c] -> "['a','b','c']"
-            s = map(lambda x: "'%s'" % x, v)
-            s = "\"[%s]\"" % ','.join(s)
-            return s
-        return v
-
-    i = [host.alias, "ansible_host=%s" % host.address]
-    if host.user is not None:
-        i.append("ansible_ssh_user=%s" % host.user)
-    if host.port is not None:
-        i.append("ansible_port=%s" % host.port)
-    if host.keyfile is not None:
-        i.append("ansible_ssh_private_key_file=%s" % host.keyfile)
-    # Disabling hostkey ckecking
-    common_args = []
-    common_args.append("-o StrictHostKeyChecking=no")
-    common_args.append("-o UserKnownHostsFile=/dev/null")
-    forward_agent = host.extra.get('forward_agent', False)
-    if forward_agent:
-        common_args.append("-o ForwardAgent=yes")
-
-    gateway = host.extra.get('gateway', None)
-    if gateway is not None:
-        proxy_cmd = ["ssh -W %h:%p"]
-        # Disabling also hostkey checking for the gateway
-        proxy_cmd.append("-o StrictHostKeyChecking=no")
-        proxy_cmd.append("-o UserKnownHostsFile=/dev/null")
-        gateway_user = host.extra.get('gateway_user', host.user)
-        if gateway_user is not None:
-            proxy_cmd.append("-l %s" % gateway_user)
-
-        proxy_cmd.append(gateway)
-        proxy_cmd = " ".join(proxy_cmd)
-        common_args.append("-o ProxyCommand=\"%s\"" % proxy_cmd)
-
-    common_args = " ".join(common_args)
-    i.append("ansible_ssh_common_args='%s'" % common_args)
-
-    # Add custom variables
-    for k, v in host.extra.items():
-        if k not in ["gateway", "gateway_user", "forward_agent"]:
-            i.append("%s=%s" % (k, to_inventory_string(v)))
-    return " ".join(i)
+    inventory = EnosInventory(roles=roles)
+    return inventory.to_ini_string()
 
 
 def _update_hosts(roles, facts, extra_mapping=None):
@@ -865,57 +897,6 @@ def _build_ip_constraints(roles, ips, constraints):
                             'loss': gloss
                         })
     return local_ips
-
-
-def _check_networks(roles, networks, inventory, fake_interfaces=None,
-                    fake_networks=None):
-    """Checks the network interfaces on the nodes
-
-    Beware, this has a side effect on each Host in env['rsc'].
-    """
-    def get_devices(facts):
-        """Extract the network devices information from the facts."""
-        devices = []
-        for interface in facts['ansible_interfaces']:
-            ansible_interface = 'ansible_' + interface
-            # filter here (active/ name...)
-            if 'ansible_' + interface in facts:
-                interface = facts[ansible_interface]
-                devices.append(interface)
-        return devices
-
-    wait_ssh(inventory)
-    tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
-    _check_tmpdir(tmpdir)
-    fake_interfaces = fake_interfaces or []
-    fake_networks = fake_networks or []
-
-    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
-    facts_file = os.path.join(tmpdir, 'facts.json')
-    options = {
-        'enos_action': 'check_network',
-        'facts_file': facts_file,
-        'fake_interfaces': fake_interfaces
-    }
-    run_ansible([utils_playbook],
-                inventory,
-                extra_vars=options,
-                on_error_continue=False)
-
-    # Read the file
-    # Match provider networks to interface names for each host
-    with open(facts_file) as f:
-        facts = json.load(f)
-        for _, host_facts in facts.items():
-            host_nets = _map_device_on_host_networks(networks,
-                                                     get_devices(host_facts))
-            # Add the mapping : networks <-> nic name
-            host_facts['networks'] = host_nets
-
-    # Finally update the env with this information
-    # generate the extra_mapping for the fake interfaces
-    extra_mapping = dict(zip(fake_networks, fake_interfaces))
-    _update_hosts(roles, facts, extra_mapping=extra_mapping)
 
 
 def _map_device_on_host_networks(provider_nets, devices):

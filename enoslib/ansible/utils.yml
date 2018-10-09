@@ -1,5 +1,6 @@
 ---
-- name: Gather facts
+# Making sure everything will be up-to-date
+- name: Gather facts for all hosts
   hosts: all
   tasks:
     - setup:

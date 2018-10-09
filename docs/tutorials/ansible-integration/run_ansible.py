@@ -1,10 +1,8 @@
-from enoslib.api import generate_inventory, run_ansible
+from enoslib.api import run_ansible
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
-import os
 import logging
-
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,9 +21,8 @@ provider_conf = {
     }
 }
 
-inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
-run_ansible(["site.yml"], inventory)
+
+run_ansible(["site.yml"], roles=roles)

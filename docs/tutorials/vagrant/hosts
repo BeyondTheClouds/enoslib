@@ -1,5 +1,9 @@
-[compute]
-enos-1 ansible_host=192.168.121.181 ansible_ssh_user=root ansible_port=22 ansible_ssh_private_key_file=/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/libvirt/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' mynetwork=eth1 enos_devices="['eth1']"
 [control]
-enos-0 ansible_host=192.168.121.234 ansible_ssh_user=root ansible_port=22 ansible_ssh_private_key_file=/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-0/libvirt/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' mynetwork=eth1 enos_devices="['eth1']"
-enos-1 ansible_host=192.168.121.181 ansible_ssh_user=root ansible_port=22 ansible_ssh_private_key_file=/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/libvirt/private_key ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' mynetwork=eth1 enos_devices="['eth1']"
+enos-0 ansible_host=192.168.121.71 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_private_key_file='/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-0/libvirt/private_key' ansible_ssh_user='root' enos_devices="['eth1']" mynetwork='eth1'
+enos-1 ansible_host=192.168.121.19 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_private_key_file='/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/libvirt/private_key' ansible_ssh_user='root' enos_devices="['eth1']" mynetwork='eth1'
+[ungrouped]
+[compute]
+enos-1 ansible_host=192.168.121.19 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_private_key_file='/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/libvirt/private_key' ansible_ssh_user='root' enos_devices="['eth1']" mynetwork='eth1'
+[all]
+enos-0 ansible_host=192.168.121.71 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_private_key_file='/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-0/libvirt/private_key' ansible_ssh_user='root' enos_devices="['eth1']" mynetwork='eth1'
+enos-1 ansible_host=192.168.121.19 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_private_key_file='/home/msimonin/workspace/repos/enoslib/docs/tutorials/vagrant/.vagrant/machines/enos-1/libvirt/private_key' ansible_ssh_user='root' enos_devices="['eth1']" mynetwork='eth1'

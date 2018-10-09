@@ -143,15 +143,15 @@ def _index_by_host(roles):
     return dict(vms_by_host)
 
 
-def start_virtualmachines(provider_conf, g5k_init, vmong5k_roles):
+def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
     vms_by_host = _index_by_host(vmong5k_roles)
 
     extra_vars = {'vms': vms_by_host,
                   'base_image': provider_conf.image}
-    pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
-    generate_inventory(*g5k_init, pm_inventory_path)
+    #pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
+    #generate_inventory(*g5k_init, pm_inventory_path)
     # deploy virtual machines with ansible playbook
-    run_ansible([PLAYBOOK_PATH], pm_inventory_path, extra_vars)
+    run_ansible([PLAYBOOK_PATH], roles=g5k_roles, extra_vars=extra_vars)
 
 
 class VirtualMachine(Host):
@@ -191,7 +191,7 @@ class VMonG5k(Provider):
                                     g5k_subnet)
 
         start_virtualmachines(self.provider_conf,
-                              (g5k_roles, g5k_networks),
+                              g5k_roles,
                               vmong5k_roles)
 
         return vmong5k_roles, [g5k_subnet]

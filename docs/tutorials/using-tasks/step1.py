@@ -1,14 +1,15 @@
-from enoslib.api import generate_inventory, emulate_network,\
-    validate_network, reset_network
+from enoslib.api import emulate_network,\
+    validate_network, reset_network, check_networks, generate_inventory
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import logging
-import os
 
 logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
+    "backend": "libvirt",
+    "box": "generic/debian9",
     "resources": {
         "machines": [{
             "roles": ["control"],
@@ -30,24 +31,25 @@ tc = {
     "default_rate": "1gbit",
 }
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 conf = Configuration.from_dictionnary(provider_conf)
 
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
+
+generate_inventory(roles, networks, "hosts.ini")
+check_networks(roles, networks)
+generate_inventory(roles, networks, "hosts.ini")
 
 # apply network constraints
-emulate_network(roles, inventory, tc)
+emulate_network(roles, tc)
 
 # validate network constraints
-validate_network(roles, inventory)
+validate_network(roles)
 
 # reset network constraints
-reset_network(roles, inventory)
+reset_network(roles)
 
 # validate network constraints and saving in an alternative
-validate_network(roles, inventory, output_dir="after_reset")
+validate_network(roles, output_dir="after_reset")

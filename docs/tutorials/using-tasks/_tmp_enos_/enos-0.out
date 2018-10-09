@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 192.168.142.244 : 40.48 40.40 40.42 40.43 40.35 40.36 40.36 40.44 40.27 40.34
 192.168.142.245 : 0.02 0.02 0.03 0.02 0.03 0.03 0.03 0.02 0.03 0.02
+=======
+192.168.142.245 : 0.03 0.10 0.05 0.04 0.04 0.04 0.09 0.04 0.03 0.03
+192.168.142.244 : 40.83 41.34 40.49 40.54 40.46 40.55 41.12 40.99 40.49 40.30
+>>>>>>> WiP: in memory inventory
 
        2 targets
        2 alive
@@ -11,8 +16,15 @@
       20 ICMP Echo Replies received
        0 other ICMP received
 
+<<<<<<< HEAD
  0.02 ms (min round trip time)
  20.2 ms (avg round trip time)
  40.4 ms (max round trip time)
         9.042 sec (elapsed real time)
+=======
+ 0.03 ms (min round trip time)
+ 20.3 ms (avg round trip time)
+ 41.3 ms (max round trip time)
+        9.075 sec (elapsed real time)
+>>>>>>> WiP: in memory inventory
 
