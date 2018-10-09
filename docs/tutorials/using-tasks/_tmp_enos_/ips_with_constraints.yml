@@ -1,0 +1,42 @@
+enos-0:
+  all_ipv4_addresses: [192.168.142.245, 192.168.142.239, 192.168.121.70]
+  devices:
+  - active: true
+    device: eth1
+    ipv4: {address: 192.168.142.245, broadcast: 192.168.142.255, netmask: 255.255.255.0,
+      network: 192.168.142.0}
+    ipv4_secondaries:
+    - {address: 192.168.142.239, broadcast: 192.168.142.255, netmask: 255.255.255.0,
+      network: 192.168.142.0}
+    macaddress: 52:54:00:c1:a9:30
+    module: virtio_net
+    mtu: 1500
+    pciid: virtio2
+    promisc: false
+    speed: -1
+    type: ether
+  tc:
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-0, target: 192.168.121.170}
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-0, target: 192.168.142.244}
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-0, target: 192.168.142.5}
+enos-1:
+  all_ipv4_addresses: [192.168.121.170, 192.168.142.244, 192.168.142.5]
+  devices:
+  - active: true
+    device: eth1
+    ipv4: {address: 192.168.142.244, broadcast: 192.168.142.255, netmask: 255.255.255.0,
+      network: 192.168.142.0}
+    ipv4_secondaries:
+    - {address: 192.168.142.5, broadcast: 192.168.142.255, netmask: 255.255.255.0,
+      network: 192.168.142.0}
+    macaddress: 52:54:00:28:aa:5e
+    module: virtio_net
+    mtu: 1500
+    pciid: virtio2
+    promisc: false
+    speed: -1
+    type: ether
+  tc:
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-1, target: 192.168.142.245}
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-1, target: 192.168.142.239}
+  - {delay: 20ms, device: eth1, loss: 0, rate: 1gbit, source: enos-1, target: 192.168.121.70}

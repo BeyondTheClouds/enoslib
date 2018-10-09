@@ -1,0 +1,18 @@
+192.168.142.244 : 0.04 0.03 0.03 0.05 0.03 0.03 0.03 0.03 0.03 0.03
+192.168.142.245 : 40.32 40.38 40.48 40.41 40.36 40.45 40.45 40.36 40.32 40.39
+
+       2 targets
+       2 alive
+       0 unreachable
+       0 unknown addresses
+
+       0 timeouts (waiting for response)
+      20 ICMP Echos sent
+      20 ICMP Echo Replies received
+       0 other ICMP received
+
+ 0.03 ms (min round trip time)
+ 20.2 ms (avg round trip time)
+ 40.4 ms (max round trip time)
+        9.074 sec (elapsed real time)
+

@@ -1,0 +1,1810 @@
+{
+"enos-1": 
+  {
+    "ansible_all_ipv4_addresses": [
+      "192.168.121.170",
+      "192.168.142.244",
+      "192.168.142.5"
+    ],
+    "ansible_all_ipv6_addresses": [],
+    "ansible_apparmor": {
+      "status": "disabled"
+    },
+    "ansible_architecture": "x86_64",
+    "ansible_bios_date": "04/01/2014",
+    "ansible_bios_version": "1.10.2-1ubuntu1",
+    "ansible_cmdline": {
+      "BOOT_IMAGE": "/vmlinuz-4.9.0-7-amd64",
+      "net.ifnames": "0",
+      "quiet": true,
+      "ro": true,
+      "root": "UUID=b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+    },
+    "ansible_date_time": {
+      "date": "2018-12-05",
+      "day": "05",
+      "epoch": "1544042565",
+      "hour": "12",
+      "iso8601": "2018-12-05T20:42:45Z",
+      "iso8601_basic": "20181205T124245605594",
+      "iso8601_basic_short": "20181205T124245",
+      "iso8601_micro": "2018-12-05T20:42:45.605649Z",
+      "minute": "42",
+      "month": "12",
+      "second": "45",
+      "time": "12:42:45",
+      "tz": "PST",
+      "tz_offset": "-0800",
+      "weekday": "Wednesday",
+      "weekday_number": "3",
+      "weeknumber": "49",
+      "year": "2018"
+    },
+    "ansible_default_ipv4": {
+      "address": "192.168.121.170",
+      "alias": "eth0",
+      "broadcast": "192.168.121.255",
+      "gateway": "192.168.121.1",
+      "interface": "eth0",
+      "macaddress": "52:54:00:27:8e:04",
+      "mtu": 1500,
+      "netmask": "255.255.255.0",
+      "network": "192.168.121.0",
+      "type": "ether"
+    },
+    "ansible_default_ipv6": {},
+    "ansible_device_links": {
+      "ids": {
+        "sda": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+        ],
+        "sda1": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+        ],
+        "sda2": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+        ],
+        "sda3": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+        ]
+      },
+      "labels": {},
+      "masters": {},
+      "uuids": {
+        "sda1": [
+          "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+        ],
+        "sda2": [
+          "ae21d691-919b-42d2-9fb9-0c90329925a2"
+        ],
+        "sda3": [
+          "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+        ]
+      }
+    },
+    "ansible_devices": {
+      "sda": {
+        "holders": [],
+        "host": "SCSI storage controller: LSI Logic / Symbios Logic 53c895a",
+        "links": {
+          "ids": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+          ],
+          "labels": [],
+          "masters": [],
+          "uuids": []
+        },
+        "model": "QEMU HARDDISK",
+        "partitions": {
+          "sda1": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+              ]
+            },
+            "sectors": "997376",
+            "sectorsize": 512,
+            "size": "487.00 MB",
+            "start": "2048",
+            "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+          },
+          "sda2": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "ae21d691-919b-42d2-9fb9-0c90329925a2"
+              ]
+            },
+            "sectors": "8382464",
+            "sectorsize": 512,
+            "size": "4.00 GB",
+            "start": "999424",
+            "uuid": "ae21d691-919b-42d2-9fb9-0c90329925a2"
+          },
+          "sda3": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+              ]
+            },
+            "sectors": "57724928",
+            "sectorsize": 512,
+            "size": "27.53 GB",
+            "start": "9381888",
+            "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+          }
+        },
+        "removable": "0",
+        "rotational": "1",
+        "sas_address": null,
+        "sas_device_handle": null,
+        "scheduler_mode": "cfq",
+        "sectors": "67108864",
+        "sectorsize": "512",
+        "size": "32.00 GB",
+        "support_discard": "4096",
+        "vendor": "QEMU",
+        "virtual": 1
+      }
+    },
+    "ansible_distribution": "Debian",
+    "ansible_distribution_file_parsed": true,
+    "ansible_distribution_file_path": "/etc/os-release",
+    "ansible_distribution_file_variety": "Debian",
+    "ansible_distribution_major_version": "9",
+    "ansible_distribution_release": "stretch",
+    "ansible_distribution_version": "9.5",
+    "ansible_dns": {
+      "nameservers": [
+        "192.168.142.1"
+      ]
+    },
+    "ansible_domain": "",
+    "ansible_effective_group_id": 0,
+    "ansible_effective_user_id": 0,
+    "ansible_env": {
+      "HOME": "/root",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "LC_CTYPE": "fr_FR.UTF-8",
+      "LC_MESSAGES": "C",
+      "LOGNAME": "root",
+      "MAIL": "/var/mail/root",
+      "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "PWD": "/root",
+      "SHELL": "/bin/bash",
+      "SHLVL": "1",
+      "SSH_CLIENT": "192.168.121.1 49888 22",
+      "SSH_CONNECTION": "192.168.121.1 49888 192.168.121.170 22",
+      "SSH_TTY": "/dev/pts/0",
+      "TERM": "xterm-256color",
+      "USER": "root",
+      "XDG_RUNTIME_DIR": "/run/user/0",
+      "XDG_SESSION_ID": "13",
+      "_": "/bin/sh"
+    },
+    "ansible_eth0": {
+      "active": true,
+      "device": "eth0",
+      "ipv4": {
+        "address": "192.168.121.170",
+        "broadcast": "192.168.121.255",
+        "netmask": "255.255.255.0",
+        "network": "192.168.121.0"
+      },
+      "macaddress": "52:54:00:27:8e:04",
+      "module": "virtio_net",
+      "mtu": 1500,
+      "pciid": "virtio1",
+      "promisc": false,
+      "speed": -1,
+      "type": "ether"
+    },
+    "ansible_eth1": {
+      "active": true,
+      "device": "eth1",
+      "ipv4": {
+        "address": "192.168.142.244",
+        "broadcast": "192.168.142.255",
+        "netmask": "255.255.255.0",
+        "network": "192.168.142.0"
+      },
+      "ipv4_secondaries": [
+        {
+          "address": "192.168.142.5",
+          "broadcast": "192.168.142.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.142.0"
+        }
+      ],
+      "macaddress": "52:54:00:28:aa:5e",
+      "module": "virtio_net",
+      "mtu": 1500,
+      "pciid": "virtio2",
+      "promisc": false,
+      "speed": -1,
+      "type": "ether"
+    },
+    "ansible_facts": {
+      "all_ipv4_addresses": [
+        "192.168.121.170",
+        "192.168.142.244",
+        "192.168.142.5"
+      ],
+      "all_ipv6_addresses": [],
+      "ansible_local": {},
+      "apparmor": {
+        "status": "disabled"
+      },
+      "architecture": "x86_64",
+      "bios_date": "04/01/2014",
+      "bios_version": "1.10.2-1ubuntu1",
+      "cmdline": {
+        "BOOT_IMAGE": "/vmlinuz-4.9.0-7-amd64",
+        "net.ifnames": "0",
+        "quiet": true,
+        "ro": true,
+        "root": "UUID=b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+      },
+      "date_time": {
+        "date": "2018-12-05",
+        "day": "05",
+        "epoch": "1544042565",
+        "hour": "12",
+        "iso8601": "2018-12-05T20:42:45Z",
+        "iso8601_basic": "20181205T124245605594",
+        "iso8601_basic_short": "20181205T124245",
+        "iso8601_micro": "2018-12-05T20:42:45.605649Z",
+        "minute": "42",
+        "month": "12",
+        "second": "45",
+        "time": "12:42:45",
+        "tz": "PST",
+        "tz_offset": "-0800",
+        "weekday": "Wednesday",
+        "weekday_number": "3",
+        "weeknumber": "49",
+        "year": "2018"
+      },
+      "default_ipv4": {
+        "address": "192.168.121.170",
+        "alias": "eth0",
+        "broadcast": "192.168.121.255",
+        "gateway": "192.168.121.1",
+        "interface": "eth0",
+        "macaddress": "52:54:00:27:8e:04",
+        "mtu": 1500,
+        "netmask": "255.255.255.0",
+        "network": "192.168.121.0",
+        "type": "ether"
+      },
+      "default_ipv6": {},
+      "device_links": {
+        "ids": {
+          "sda": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+          ],
+          "sda1": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+          ],
+          "sda2": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+          ],
+          "sda3": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+          ]
+        },
+        "labels": {},
+        "masters": {},
+        "uuids": {
+          "sda1": [
+            "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+          ],
+          "sda2": [
+            "ae21d691-919b-42d2-9fb9-0c90329925a2"
+          ],
+          "sda3": [
+            "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+          ]
+        }
+      },
+      "devices": {
+        "sda": {
+          "holders": [],
+          "host": "SCSI storage controller: LSI Logic / Symbios Logic 53c895a",
+          "links": {
+            "ids": [
+              "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+            ],
+            "labels": [],
+            "masters": [],
+            "uuids": []
+          },
+          "model": "QEMU HARDDISK",
+          "partitions": {
+            "sda1": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+                ]
+              },
+              "sectors": "997376",
+              "sectorsize": 512,
+              "size": "487.00 MB",
+              "start": "2048",
+              "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+            },
+            "sda2": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "ae21d691-919b-42d2-9fb9-0c90329925a2"
+                ]
+              },
+              "sectors": "8382464",
+              "sectorsize": 512,
+              "size": "4.00 GB",
+              "start": "999424",
+              "uuid": "ae21d691-919b-42d2-9fb9-0c90329925a2"
+            },
+            "sda3": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+                ]
+              },
+              "sectors": "57724928",
+              "sectorsize": 512,
+              "size": "27.53 GB",
+              "start": "9381888",
+              "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+            }
+          },
+          "removable": "0",
+          "rotational": "1",
+          "sas_address": null,
+          "sas_device_handle": null,
+          "scheduler_mode": "cfq",
+          "sectors": "67108864",
+          "sectorsize": "512",
+          "size": "32.00 GB",
+          "support_discard": "4096",
+          "vendor": "QEMU",
+          "virtual": 1
+        }
+      },
+      "distribution": "Debian",
+      "distribution_file_parsed": true,
+      "distribution_file_path": "/etc/os-release",
+      "distribution_file_variety": "Debian",
+      "distribution_major_version": "9",
+      "distribution_release": "stretch",
+      "distribution_version": "9.5",
+      "dns": {
+        "nameservers": [
+          "192.168.142.1"
+        ]
+      },
+      "domain": "",
+      "effective_group_id": 0,
+      "effective_user_id": 0,
+      "env": {
+        "HOME": "/root",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "LC_CTYPE": "fr_FR.UTF-8",
+        "LC_MESSAGES": "C",
+        "LOGNAME": "root",
+        "MAIL": "/var/mail/root",
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PWD": "/root",
+        "SHELL": "/bin/bash",
+        "SHLVL": "1",
+        "SSH_CLIENT": "192.168.121.1 49888 22",
+        "SSH_CONNECTION": "192.168.121.1 49888 192.168.121.170 22",
+        "SSH_TTY": "/dev/pts/0",
+        "TERM": "xterm-256color",
+        "USER": "root",
+        "XDG_RUNTIME_DIR": "/run/user/0",
+        "XDG_SESSION_ID": "13",
+        "_": "/bin/sh"
+      },
+      "eth0": {
+        "active": true,
+        "device": "eth0",
+        "ipv4": {
+          "address": "192.168.121.170",
+          "broadcast": "192.168.121.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.121.0"
+        },
+        "macaddress": "52:54:00:27:8e:04",
+        "module": "virtio_net",
+        "mtu": 1500,
+        "pciid": "virtio1",
+        "promisc": false,
+        "speed": -1,
+        "type": "ether"
+      },
+      "eth1": {
+        "active": true,
+        "device": "eth1",
+        "ipv4": {
+          "address": "192.168.142.244",
+          "broadcast": "192.168.142.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.142.0"
+        },
+        "ipv4_secondaries": [
+          {
+            "address": "192.168.142.5",
+            "broadcast": "192.168.142.255",
+            "netmask": "255.255.255.0",
+            "network": "192.168.142.0"
+          }
+        ],
+        "macaddress": "52:54:00:28:aa:5e",
+        "module": "virtio_net",
+        "mtu": 1500,
+        "pciid": "virtio2",
+        "promisc": false,
+        "speed": -1,
+        "type": "ether"
+      },
+      "fips": false,
+      "form_factor": "Other",
+      "fqdn": "enos-1",
+      "gather_subset": [
+        "all"
+      ],
+      "hostname": "enos-1",
+      "interfaces": [
+        "lo",
+        "eth1",
+        "eth0"
+      ],
+      "is_chroot": false,
+      "kernel": "4.9.0-7-amd64",
+      "lo": {
+        "active": true,
+        "device": "lo",
+        "ipv4": {
+          "address": "127.0.0.1",
+          "broadcast": "host",
+          "netmask": "255.0.0.0",
+          "network": "127.0.0.0"
+        },
+        "mtu": 65536,
+        "promisc": false,
+        "type": "loopback"
+      },
+      "lsb": {
+        "codename": "stretch",
+        "description": "Debian GNU/Linux 9.5 (stretch)",
+        "id": "Debian",
+        "major_release": "9",
+        "release": "9.5"
+      },
+      "machine": "x86_64",
+      "machine_id": "efa0e38837014328940d8a609edbe720",
+      "memfree_mb": 156,
+      "memory_mb": {
+        "nocache": {
+          "free": 411,
+          "used": 81
+        },
+        "real": {
+          "free": 156,
+          "total": 492,
+          "used": 336
+        },
+        "swap": {
+          "cached": 0,
+          "free": 4092,
+          "total": 4092,
+          "used": 0
+        }
+      },
+      "memtotal_mb": 492,
+      "module_setup": true,
+      "mounts": [
+        {
+          "block_available": 6294816,
+          "block_size": 4096,
+          "block_total": 7069420,
+          "block_used": 774604,
+          "device": "/dev/sda3",
+          "fstype": "ext4",
+          "inode_available": 1761788,
+          "inode_total": 1806896,
+          "inode_used": 45108,
+          "mount": "/",
+          "options": "rw,relatime,errors=remount-ro,data=ordered",
+          "size_available": 25783566336,
+          "size_total": 28956344320,
+          "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+        },
+        {
+          "block_available": 409577,
+          "block_size": 1024,
+          "block_total": 474712,
+          "block_used": 65135,
+          "device": "/dev/sda1",
+          "fstype": "ext4",
+          "inode_available": 124591,
+          "inode_total": 124928,
+          "inode_used": 337,
+          "mount": "/boot",
+          "options": "rw,relatime,data=ordered",
+          "size_available": 419406848,
+          "size_total": 486105088,
+          "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+        }
+      ],
+      "nodename": "enos-1",
+      "os_family": "Debian",
+      "pkg_mgr": "apt",
+      "processor": [
+        "0",
+        "GenuineIntel",
+        "Intel Core Processor (Skylake, IBRS)"
+      ],
+      "processor_cores": 1,
+      "processor_count": 1,
+      "processor_threads_per_core": 1,
+      "processor_vcpus": 1,
+      "product_name": "Standard PC (i440FX + PIIX, 1996)",
+      "product_serial": "NA",
+      "product_uuid": "E47F2580-FEFE-4D02-AC09-C3450FE0C9E4",
+      "product_version": "pc-i440fx-bionic",
+      "python": {
+        "executable": "/usr/bin/python",
+        "has_sslcontext": true,
+        "type": "CPython",
+        "version": {
+          "major": 2,
+          "micro": 13,
+          "minor": 7,
+          "releaselevel": "final",
+          "serial": 0
+        },
+        "version_info": [
+          2,
+          7,
+          13,
+          "final",
+          0
+        ]
+      },
+      "python_version": "2.7.13",
+      "real_group_id": 0,
+      "real_user_id": 0,
+      "selinux": {
+        "status": "Missing selinux Python library"
+      },
+      "selinux_python_present": false,
+      "service_mgr": "systemd",
+      "ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE/mgKteLKRmJIIibgMVQ2exkmEV0t1byYUX6R6NWxQfw0858lm3BJVThR/DjbfDeINR2MIbYQhlHtSSRfEIhBU=",
+      "ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIAbVyFhNfN5w4Hq+AL6PlBB13z82SC6r1DApLmR70OIh",
+      "ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABAQCsgnUOTQHTDRLjWLC2jvE2o7xRiFoZzNgyneyh5Ox8B3EVo0TKqhQKGTNmUtHCs9CFRZ9JaWVF8jFMUXNLRNTqoL1iL4r5hrkJ9sjggqGh7+4jhq9ZjHTWemfceskkmbrogjKvSy1HIJxna1qh5DfuRWQjbf08MMwFv4O15viYhqptDnIPmmnsqU4DqMbjsjlrzlrwfRtoknZcBT2lId/7gr2075jNwYBuafGhRh3BTXxDrtVB2DSrv38O7OgyvEQX16Jd9uMesY3ztwByUc6sNm/KsPEh5AUGg3IzVYg7glDu9vNU9djybwrSqlTPGP4A9MvIM4pvgZcYvHjOi4nz",
+      "swapfree_mb": 4092,
+      "swaptotal_mb": 4092,
+      "system": "Linux",
+      "system_capabilities": [
+        "cap_chown",
+        "cap_dac_override",
+        "cap_dac_read_search",
+        "cap_fowner",
+        "cap_fsetid",
+        "cap_kill",
+        "cap_setgid",
+        "cap_setuid",
+        "cap_setpcap",
+        "cap_linux_immutable",
+        "cap_net_bind_service",
+        "cap_net_broadcast",
+        "cap_net_admin",
+        "cap_net_raw",
+        "cap_ipc_lock",
+        "cap_ipc_owner",
+        "cap_sys_module",
+        "cap_sys_rawio",
+        "cap_sys_chroot",
+        "cap_sys_ptrace",
+        "cap_sys_pacct",
+        "cap_sys_admin",
+        "cap_sys_boot",
+        "cap_sys_nice",
+        "cap_sys_resource",
+        "cap_sys_time",
+        "cap_sys_tty_config",
+        "cap_mknod",
+        "cap_lease",
+        "cap_audit_write",
+        "cap_audit_control",
+        "cap_setfcap",
+        "cap_mac_override",
+        "cap_mac_admin",
+        "cap_syslog",
+        "cap_wake_alarm",
+        "cap_block_suspend",
+        "cap_audit_read+ep"
+      ],
+      "system_capabilities_enforced": "True",
+      "system_vendor": "QEMU",
+      "uptime_seconds": 817,
+      "user_dir": "/root",
+      "user_gecos": "root",
+      "user_gid": 0,
+      "user_id": "root",
+      "user_shell": "/bin/bash",
+      "user_uid": 0,
+      "userspace_architecture": "x86_64",
+      "userspace_bits": "64",
+      "virtualization_role": "guest",
+      "virtualization_type": "kvm"
+    },
+    "ansible_fips": false,
+    "ansible_form_factor": "Other",
+    "ansible_fqdn": "enos-1",
+    "ansible_host": "192.168.121.170",
+    "ansible_hostname": "enos-1",
+    "ansible_interfaces": [
+      "lo",
+      "eth1",
+      "eth0"
+    ],
+    "ansible_is_chroot": false,
+    "ansible_kernel": "4.9.0-7-amd64",
+    "ansible_lo": {
+      "active": true,
+      "device": "lo",
+      "ipv4": {
+        "address": "127.0.0.1",
+        "broadcast": "host",
+        "netmask": "255.0.0.0",
+        "network": "127.0.0.0"
+      },
+      "mtu": 65536,
+      "promisc": false,
+      "type": "loopback"
+    },
+    "ansible_local": {},
+    "ansible_lsb": {
+      "codename": "stretch",
+      "description": "Debian GNU/Linux 9.5 (stretch)",
+      "id": "Debian",
+      "major_release": "9",
+      "release": "9.5"
+    },
+    "ansible_machine": "x86_64",
+    "ansible_machine_id": "efa0e38837014328940d8a609edbe720",
+    "ansible_memfree_mb": 156,
+    "ansible_memory_mb": {
+      "nocache": {
+        "free": 411,
+        "used": 81
+      },
+      "real": {
+        "free": 156,
+        "total": 492,
+        "used": 336
+      },
+      "swap": {
+        "cached": 0,
+        "free": 4092,
+        "total": 4092,
+        "used": 0
+      }
+    },
+    "ansible_memtotal_mb": 492,
+    "ansible_mounts": [
+      {
+        "block_available": 6294816,
+        "block_size": 4096,
+        "block_total": 7069420,
+        "block_used": 774604,
+        "device": "/dev/sda3",
+        "fstype": "ext4",
+        "inode_available": 1761788,
+        "inode_total": 1806896,
+        "inode_used": 45108,
+        "mount": "/",
+        "options": "rw,relatime,errors=remount-ro,data=ordered",
+        "size_available": 25783566336,
+        "size_total": 28956344320,
+        "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+      },
+      {
+        "block_available": 409577,
+        "block_size": 1024,
+        "block_total": 474712,
+        "block_used": 65135,
+        "device": "/dev/sda1",
+        "fstype": "ext4",
+        "inode_available": 124591,
+        "inode_total": 124928,
+        "inode_used": 337,
+        "mount": "/boot",
+        "options": "rw,relatime,data=ordered",
+        "size_available": 419406848,
+        "size_total": 486105088,
+        "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+      }
+    ],
+    "ansible_nodename": "enos-1",
+    "ansible_os_family": "Debian",
+    "ansible_pkg_mgr": "apt",
+    "ansible_playbook_python": "/home/msimonin/.pyenv/versions/enoslib/bin/python",
+    "ansible_port": 22,
+    "ansible_processor": [
+      "0",
+      "GenuineIntel",
+      "Intel Core Processor (Skylake, IBRS)"
+    ],
+    "ansible_processor_cores": 1,
+    "ansible_processor_count": 1,
+    "ansible_processor_threads_per_core": 1,
+    "ansible_processor_vcpus": 1,
+    "ansible_product_name": "Standard PC (i440FX + PIIX, 1996)",
+    "ansible_product_serial": "NA",
+    "ansible_product_uuid": "E47F2580-FEFE-4D02-AC09-C3450FE0C9E4",
+    "ansible_product_version": "pc-i440fx-bionic",
+    "ansible_python": {
+      "executable": "/usr/bin/python",
+      "has_sslcontext": true,
+      "type": "CPython",
+      "version": {
+        "major": 2,
+        "micro": 13,
+        "minor": 7,
+        "releaselevel": "final",
+        "serial": 0
+      },
+      "version_info": [
+        2,
+        7,
+        13,
+        "final",
+        0
+      ]
+    },
+    "ansible_python_version": "2.7.13",
+    "ansible_real_group_id": 0,
+    "ansible_real_user_id": 0,
+    "ansible_selinux": {
+      "status": "Missing selinux Python library"
+    },
+    "ansible_selinux_python_present": false,
+    "ansible_service_mgr": "systemd",
+    "ansible_ssh_common_args": "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+    "ansible_ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE/mgKteLKRmJIIibgMVQ2exkmEV0t1byYUX6R6NWxQfw0858lm3BJVThR/DjbfDeINR2MIbYQhlHtSSRfEIhBU=",
+    "ansible_ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIAbVyFhNfN5w4Hq+AL6PlBB13z82SC6r1DApLmR70OIh",
+    "ansible_ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABAQCsgnUOTQHTDRLjWLC2jvE2o7xRiFoZzNgyneyh5Ox8B3EVo0TKqhQKGTNmUtHCs9CFRZ9JaWVF8jFMUXNLRNTqoL1iL4r5hrkJ9sjggqGh7+4jhq9ZjHTWemfceskkmbrogjKvSy1HIJxna1qh5DfuRWQjbf08MMwFv4O15viYhqptDnIPmmnsqU4DqMbjsjlrzlrwfRtoknZcBT2lId/7gr2075jNwYBuafGhRh3BTXxDrtVB2DSrv38O7OgyvEQX16Jd9uMesY3ztwByUc6sNm/KsPEh5AUGg3IzVYg7glDu9vNU9djybwrSqlTPGP4A9MvIM4pvgZcYvHjOi4nz",
+    "ansible_ssh_private_key_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/.vagrant/machines/enos-1/libvirt/private_key",
+    "ansible_ssh_user": "root",
+    "ansible_swapfree_mb": 4092,
+    "ansible_swaptotal_mb": 4092,
+    "ansible_system": "Linux",
+    "ansible_system_capabilities": [
+      "cap_chown",
+      "cap_dac_override",
+      "cap_dac_read_search",
+      "cap_fowner",
+      "cap_fsetid",
+      "cap_kill",
+      "cap_setgid",
+      "cap_setuid",
+      "cap_setpcap",
+      "cap_linux_immutable",
+      "cap_net_bind_service",
+      "cap_net_broadcast",
+      "cap_net_admin",
+      "cap_net_raw",
+      "cap_ipc_lock",
+      "cap_ipc_owner",
+      "cap_sys_module",
+      "cap_sys_rawio",
+      "cap_sys_chroot",
+      "cap_sys_ptrace",
+      "cap_sys_pacct",
+      "cap_sys_admin",
+      "cap_sys_boot",
+      "cap_sys_nice",
+      "cap_sys_resource",
+      "cap_sys_time",
+      "cap_sys_tty_config",
+      "cap_mknod",
+      "cap_lease",
+      "cap_audit_write",
+      "cap_audit_control",
+      "cap_setfcap",
+      "cap_mac_override",
+      "cap_mac_admin",
+      "cap_syslog",
+      "cap_wake_alarm",
+      "cap_block_suspend",
+      "cap_audit_read+ep"
+    ],
+    "ansible_system_capabilities_enforced": "True",
+    "ansible_system_vendor": "QEMU",
+    "ansible_uptime_seconds": 817,
+    "ansible_user_dir": "/root",
+    "ansible_user_gecos": "root",
+    "ansible_user_gid": 0,
+    "ansible_user_id": "root",
+    "ansible_user_shell": "/bin/bash",
+    "ansible_user_uid": 0,
+    "ansible_userspace_architecture": "x86_64",
+    "ansible_userspace_bits": "64",
+    "ansible_virtualization_role": "guest",
+    "ansible_virtualization_type": "kvm",
+    "enos_action": "check_network",
+    "facts_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/_tmp_enos_/facts.json",
+    "fake_interfaces": [],
+    "gather_subset": [
+      "all"
+    ],
+    "group_names": [
+      "compute"
+    ],
+    "groups": {
+      "all": [
+        "enos-1",
+        "enos-0"
+      ],
+      "compute": [
+        "enos-1"
+      ],
+      "control": [
+        "enos-0"
+      ],
+      "ungrouped": []
+    },
+    "inventory_dir": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks",
+    "inventory_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/hosts",
+    "inventory_hostname": "enos-1",
+    "inventory_hostname_short": "enos-1",
+    "module_setup": true,
+    "omit": "__omit_place_holder__aa3be837069a3b6ab16133696f872bd419ee1594",
+    "playbook_dir": "/home/msimonin/workspace/repos/enoslib/enoslib/ansible"
+  }
+,"enos-0": 
+  {
+    "ansible_all_ipv4_addresses": [
+      "192.168.142.245",
+      "192.168.142.239",
+      "192.168.121.70"
+    ],
+    "ansible_all_ipv6_addresses": [],
+    "ansible_apparmor": {
+      "status": "disabled"
+    },
+    "ansible_architecture": "x86_64",
+    "ansible_bios_date": "04/01/2014",
+    "ansible_bios_version": "1.10.2-1ubuntu1",
+    "ansible_cmdline": {
+      "BOOT_IMAGE": "/vmlinuz-4.9.0-7-amd64",
+      "net.ifnames": "0",
+      "quiet": true,
+      "ro": true,
+      "root": "UUID=b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+    },
+    "ansible_date_time": {
+      "date": "2018-12-05",
+      "day": "05",
+      "epoch": "1544042565",
+      "hour": "12",
+      "iso8601": "2018-12-05T20:42:45Z",
+      "iso8601_basic": "20181205T124245627606",
+      "iso8601_basic_short": "20181205T124245",
+      "iso8601_micro": "2018-12-05T20:42:45.627655Z",
+      "minute": "42",
+      "month": "12",
+      "second": "45",
+      "time": "12:42:45",
+      "tz": "PST",
+      "tz_offset": "-0800",
+      "weekday": "Wednesday",
+      "weekday_number": "3",
+      "weeknumber": "49",
+      "year": "2018"
+    },
+    "ansible_default_ipv4": {
+      "address": "192.168.121.70",
+      "alias": "eth0",
+      "broadcast": "192.168.121.255",
+      "gateway": "192.168.121.1",
+      "interface": "eth0",
+      "macaddress": "52:54:00:25:1a:70",
+      "mtu": 1500,
+      "netmask": "255.255.255.0",
+      "network": "192.168.121.0",
+      "type": "ether"
+    },
+    "ansible_default_ipv6": {},
+    "ansible_device_links": {
+      "ids": {
+        "sda": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+        ],
+        "sda1": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+        ],
+        "sda2": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+        ],
+        "sda3": [
+          "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+        ]
+      },
+      "labels": {},
+      "masters": {},
+      "uuids": {
+        "sda1": [
+          "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+        ],
+        "sda2": [
+          "ae21d691-919b-42d2-9fb9-0c90329925a2"
+        ],
+        "sda3": [
+          "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+        ]
+      }
+    },
+    "ansible_devices": {
+      "sda": {
+        "holders": [],
+        "host": "SCSI storage controller: LSI Logic / Symbios Logic 53c895a",
+        "links": {
+          "ids": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+          ],
+          "labels": [],
+          "masters": [],
+          "uuids": []
+        },
+        "model": "QEMU HARDDISK",
+        "partitions": {
+          "sda1": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+              ]
+            },
+            "sectors": "997376",
+            "sectorsize": 512,
+            "size": "487.00 MB",
+            "start": "2048",
+            "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+          },
+          "sda2": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "ae21d691-919b-42d2-9fb9-0c90329925a2"
+              ]
+            },
+            "sectors": "8382464",
+            "sectorsize": 512,
+            "size": "4.00 GB",
+            "start": "999424",
+            "uuid": "ae21d691-919b-42d2-9fb9-0c90329925a2"
+          },
+          "sda3": {
+            "holders": [],
+            "links": {
+              "ids": [
+                "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+              ],
+              "labels": [],
+              "masters": [],
+              "uuids": [
+                "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+              ]
+            },
+            "sectors": "57724928",
+            "sectorsize": 512,
+            "size": "27.53 GB",
+            "start": "9381888",
+            "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+          }
+        },
+        "removable": "0",
+        "rotational": "1",
+        "sas_address": null,
+        "sas_device_handle": null,
+        "scheduler_mode": "cfq",
+        "sectors": "67108864",
+        "sectorsize": "512",
+        "size": "32.00 GB",
+        "support_discard": "4096",
+        "vendor": "QEMU",
+        "virtual": 1
+      }
+    },
+    "ansible_distribution": "Debian",
+    "ansible_distribution_file_parsed": true,
+    "ansible_distribution_file_path": "/etc/os-release",
+    "ansible_distribution_file_variety": "Debian",
+    "ansible_distribution_major_version": "9",
+    "ansible_distribution_release": "stretch",
+    "ansible_distribution_version": "9.5",
+    "ansible_dns": {
+      "nameservers": [
+        "192.168.142.1"
+      ]
+    },
+    "ansible_domain": "",
+    "ansible_effective_group_id": 0,
+    "ansible_effective_user_id": 0,
+    "ansible_env": {
+      "HOME": "/root",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "LC_CTYPE": "fr_FR.UTF-8",
+      "LC_MESSAGES": "C",
+      "LOGNAME": "root",
+      "MAIL": "/var/mail/root",
+      "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "PWD": "/root",
+      "SHELL": "/bin/bash",
+      "SHLVL": "1",
+      "SSH_CLIENT": "192.168.121.1 34072 22",
+      "SSH_CONNECTION": "192.168.121.1 34072 192.168.121.70 22",
+      "SSH_TTY": "/dev/pts/0",
+      "TERM": "xterm-256color",
+      "USER": "root",
+      "XDG_RUNTIME_DIR": "/run/user/0",
+      "XDG_SESSION_ID": "13",
+      "_": "/bin/sh"
+    },
+    "ansible_eth0": {
+      "active": true,
+      "device": "eth0",
+      "ipv4": {
+        "address": "192.168.121.70",
+        "broadcast": "192.168.121.255",
+        "netmask": "255.255.255.0",
+        "network": "192.168.121.0"
+      },
+      "macaddress": "52:54:00:25:1a:70",
+      "module": "virtio_net",
+      "mtu": 1500,
+      "pciid": "virtio1",
+      "promisc": false,
+      "speed": -1,
+      "type": "ether"
+    },
+    "ansible_eth1": {
+      "active": true,
+      "device": "eth1",
+      "ipv4": {
+        "address": "192.168.142.245",
+        "broadcast": "192.168.142.255",
+        "netmask": "255.255.255.0",
+        "network": "192.168.142.0"
+      },
+      "ipv4_secondaries": [
+        {
+          "address": "192.168.142.239",
+          "broadcast": "192.168.142.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.142.0"
+        }
+      ],
+      "macaddress": "52:54:00:c1:a9:30",
+      "module": "virtio_net",
+      "mtu": 1500,
+      "pciid": "virtio2",
+      "promisc": false,
+      "speed": -1,
+      "type": "ether"
+    },
+    "ansible_facts": {
+      "all_ipv4_addresses": [
+        "192.168.142.245",
+        "192.168.142.239",
+        "192.168.121.70"
+      ],
+      "all_ipv6_addresses": [],
+      "ansible_local": {},
+      "apparmor": {
+        "status": "disabled"
+      },
+      "architecture": "x86_64",
+      "bios_date": "04/01/2014",
+      "bios_version": "1.10.2-1ubuntu1",
+      "cmdline": {
+        "BOOT_IMAGE": "/vmlinuz-4.9.0-7-amd64",
+        "net.ifnames": "0",
+        "quiet": true,
+        "ro": true,
+        "root": "UUID=b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+      },
+      "date_time": {
+        "date": "2018-12-05",
+        "day": "05",
+        "epoch": "1544042565",
+        "hour": "12",
+        "iso8601": "2018-12-05T20:42:45Z",
+        "iso8601_basic": "20181205T124245627606",
+        "iso8601_basic_short": "20181205T124245",
+        "iso8601_micro": "2018-12-05T20:42:45.627655Z",
+        "minute": "42",
+        "month": "12",
+        "second": "45",
+        "time": "12:42:45",
+        "tz": "PST",
+        "tz_offset": "-0800",
+        "weekday": "Wednesday",
+        "weekday_number": "3",
+        "weeknumber": "49",
+        "year": "2018"
+      },
+      "default_ipv4": {
+        "address": "192.168.121.70",
+        "alias": "eth0",
+        "broadcast": "192.168.121.255",
+        "gateway": "192.168.121.1",
+        "interface": "eth0",
+        "macaddress": "52:54:00:25:1a:70",
+        "mtu": 1500,
+        "netmask": "255.255.255.0",
+        "network": "192.168.121.0",
+        "type": "ether"
+      },
+      "default_ipv6": {},
+      "device_links": {
+        "ids": {
+          "sda": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+          ],
+          "sda1": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+          ],
+          "sda2": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+          ],
+          "sda3": [
+            "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+          ]
+        },
+        "labels": {},
+        "masters": {},
+        "uuids": {
+          "sda1": [
+            "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+          ],
+          "sda2": [
+            "ae21d691-919b-42d2-9fb9-0c90329925a2"
+          ],
+          "sda3": [
+            "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+          ]
+        }
+      },
+      "devices": {
+        "sda": {
+          "holders": [],
+          "host": "SCSI storage controller: LSI Logic / Symbios Logic 53c895a",
+          "links": {
+            "ids": [
+              "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0"
+            ],
+            "labels": [],
+            "masters": [],
+            "uuids": []
+          },
+          "model": "QEMU HARDDISK",
+          "partitions": {
+            "sda1": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part1"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+                ]
+              },
+              "sectors": "997376",
+              "sectorsize": 512,
+              "size": "487.00 MB",
+              "start": "2048",
+              "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+            },
+            "sda2": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part2"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "ae21d691-919b-42d2-9fb9-0c90329925a2"
+                ]
+              },
+              "sectors": "8382464",
+              "sectorsize": 512,
+              "size": "4.00 GB",
+              "start": "999424",
+              "uuid": "ae21d691-919b-42d2-9fb9-0c90329925a2"
+            },
+            "sda3": {
+              "holders": [],
+              "links": {
+                "ids": [
+                  "scsi-0QEMU_QEMU_HARDDISK_drive-scsi0-0-0-part3"
+                ],
+                "labels": [],
+                "masters": [],
+                "uuids": [
+                  "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+                ]
+              },
+              "sectors": "57724928",
+              "sectorsize": 512,
+              "size": "27.53 GB",
+              "start": "9381888",
+              "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+            }
+          },
+          "removable": "0",
+          "rotational": "1",
+          "sas_address": null,
+          "sas_device_handle": null,
+          "scheduler_mode": "cfq",
+          "sectors": "67108864",
+          "sectorsize": "512",
+          "size": "32.00 GB",
+          "support_discard": "4096",
+          "vendor": "QEMU",
+          "virtual": 1
+        }
+      },
+      "distribution": "Debian",
+      "distribution_file_parsed": true,
+      "distribution_file_path": "/etc/os-release",
+      "distribution_file_variety": "Debian",
+      "distribution_major_version": "9",
+      "distribution_release": "stretch",
+      "distribution_version": "9.5",
+      "dns": {
+        "nameservers": [
+          "192.168.142.1"
+        ]
+      },
+      "domain": "",
+      "effective_group_id": 0,
+      "effective_user_id": 0,
+      "env": {
+        "HOME": "/root",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "LC_CTYPE": "fr_FR.UTF-8",
+        "LC_MESSAGES": "C",
+        "LOGNAME": "root",
+        "MAIL": "/var/mail/root",
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "PWD": "/root",
+        "SHELL": "/bin/bash",
+        "SHLVL": "1",
+        "SSH_CLIENT": "192.168.121.1 34072 22",
+        "SSH_CONNECTION": "192.168.121.1 34072 192.168.121.70 22",
+        "SSH_TTY": "/dev/pts/0",
+        "TERM": "xterm-256color",
+        "USER": "root",
+        "XDG_RUNTIME_DIR": "/run/user/0",
+        "XDG_SESSION_ID": "13",
+        "_": "/bin/sh"
+      },
+      "eth0": {
+        "active": true,
+        "device": "eth0",
+        "ipv4": {
+          "address": "192.168.121.70",
+          "broadcast": "192.168.121.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.121.0"
+        },
+        "macaddress": "52:54:00:25:1a:70",
+        "module": "virtio_net",
+        "mtu": 1500,
+        "pciid": "virtio1",
+        "promisc": false,
+        "speed": -1,
+        "type": "ether"
+      },
+      "eth1": {
+        "active": true,
+        "device": "eth1",
+        "ipv4": {
+          "address": "192.168.142.245",
+          "broadcast": "192.168.142.255",
+          "netmask": "255.255.255.0",
+          "network": "192.168.142.0"
+        },
+        "ipv4_secondaries": [
+          {
+            "address": "192.168.142.239",
+            "broadcast": "192.168.142.255",
+            "netmask": "255.255.255.0",
+            "network": "192.168.142.0"
+          }
+        ],
+        "macaddress": "52:54:00:c1:a9:30",
+        "module": "virtio_net",
+        "mtu": 1500,
+        "pciid": "virtio2",
+        "promisc": false,
+        "speed": -1,
+        "type": "ether"
+      },
+      "fips": false,
+      "form_factor": "Other",
+      "fqdn": "enos-0",
+      "gather_subset": [
+        "all"
+      ],
+      "hostname": "enos-0",
+      "interfaces": [
+        "lo",
+        "eth1",
+        "eth0"
+      ],
+      "is_chroot": false,
+      "kernel": "4.9.0-7-amd64",
+      "lo": {
+        "active": true,
+        "device": "lo",
+        "ipv4": {
+          "address": "127.0.0.1",
+          "broadcast": "host",
+          "netmask": "255.0.0.0",
+          "network": "127.0.0.0"
+        },
+        "mtu": 65536,
+        "promisc": false,
+        "type": "loopback"
+      },
+      "lsb": {
+        "codename": "stretch",
+        "description": "Debian GNU/Linux 9.5 (stretch)",
+        "id": "Debian",
+        "major_release": "9",
+        "release": "9.5"
+      },
+      "machine": "x86_64",
+      "machine_id": "efa0e38837014328940d8a609edbe720",
+      "memfree_mb": 155,
+      "memory_mb": {
+        "nocache": {
+          "free": 410,
+          "used": 82
+        },
+        "real": {
+          "free": 155,
+          "total": 492,
+          "used": 337
+        },
+        "swap": {
+          "cached": 0,
+          "free": 4092,
+          "total": 4092,
+          "used": 0
+        }
+      },
+      "memtotal_mb": 492,
+      "module_setup": true,
+      "mounts": [
+        {
+          "block_available": 6294816,
+          "block_size": 4096,
+          "block_total": 7069420,
+          "block_used": 774604,
+          "device": "/dev/sda3",
+          "fstype": "ext4",
+          "inode_available": 1761788,
+          "inode_total": 1806896,
+          "inode_used": 45108,
+          "mount": "/",
+          "options": "rw,relatime,errors=remount-ro,data=ordered",
+          "size_available": 25783566336,
+          "size_total": 28956344320,
+          "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+        },
+        {
+          "block_available": 409577,
+          "block_size": 1024,
+          "block_total": 474712,
+          "block_used": 65135,
+          "device": "/dev/sda1",
+          "fstype": "ext4",
+          "inode_available": 124591,
+          "inode_total": 124928,
+          "inode_used": 337,
+          "mount": "/boot",
+          "options": "rw,relatime,data=ordered",
+          "size_available": 419406848,
+          "size_total": 486105088,
+          "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+        }
+      ],
+      "nodename": "enos-0",
+      "os_family": "Debian",
+      "pkg_mgr": "apt",
+      "processor": [
+        "0",
+        "GenuineIntel",
+        "Intel Core Processor (Skylake, IBRS)"
+      ],
+      "processor_cores": 1,
+      "processor_count": 1,
+      "processor_threads_per_core": 1,
+      "processor_vcpus": 1,
+      "product_name": "Standard PC (i440FX + PIIX, 1996)",
+      "product_serial": "NA",
+      "product_uuid": "01F13181-2257-49F9-8405-875A0AE9DBA3",
+      "product_version": "pc-i440fx-bionic",
+      "python": {
+        "executable": "/usr/bin/python",
+        "has_sslcontext": true,
+        "type": "CPython",
+        "version": {
+          "major": 2,
+          "micro": 13,
+          "minor": 7,
+          "releaselevel": "final",
+          "serial": 0
+        },
+        "version_info": [
+          2,
+          7,
+          13,
+          "final",
+          0
+        ]
+      },
+      "python_version": "2.7.13",
+      "real_group_id": 0,
+      "real_user_id": 0,
+      "selinux": {
+        "status": "Missing selinux Python library"
+      },
+      "selinux_python_present": false,
+      "service_mgr": "systemd",
+      "ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE/mgKteLKRmJIIibgMVQ2exkmEV0t1byYUX6R6NWxQfw0858lm3BJVThR/DjbfDeINR2MIbYQhlHtSSRfEIhBU=",
+      "ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIAbVyFhNfN5w4Hq+AL6PlBB13z82SC6r1DApLmR70OIh",
+      "ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABAQCsgnUOTQHTDRLjWLC2jvE2o7xRiFoZzNgyneyh5Ox8B3EVo0TKqhQKGTNmUtHCs9CFRZ9JaWVF8jFMUXNLRNTqoL1iL4r5hrkJ9sjggqGh7+4jhq9ZjHTWemfceskkmbrogjKvSy1HIJxna1qh5DfuRWQjbf08MMwFv4O15viYhqptDnIPmmnsqU4DqMbjsjlrzlrwfRtoknZcBT2lId/7gr2075jNwYBuafGhRh3BTXxDrtVB2DSrv38O7OgyvEQX16Jd9uMesY3ztwByUc6sNm/KsPEh5AUGg3IzVYg7glDu9vNU9djybwrSqlTPGP4A9MvIM4pvgZcYvHjOi4nz",
+      "swapfree_mb": 4092,
+      "swaptotal_mb": 4092,
+      "system": "Linux",
+      "system_capabilities": [
+        "cap_chown",
+        "cap_dac_override",
+        "cap_dac_read_search",
+        "cap_fowner",
+        "cap_fsetid",
+        "cap_kill",
+        "cap_setgid",
+        "cap_setuid",
+        "cap_setpcap",
+        "cap_linux_immutable",
+        "cap_net_bind_service",
+        "cap_net_broadcast",
+        "cap_net_admin",
+        "cap_net_raw",
+        "cap_ipc_lock",
+        "cap_ipc_owner",
+        "cap_sys_module",
+        "cap_sys_rawio",
+        "cap_sys_chroot",
+        "cap_sys_ptrace",
+        "cap_sys_pacct",
+        "cap_sys_admin",
+        "cap_sys_boot",
+        "cap_sys_nice",
+        "cap_sys_resource",
+        "cap_sys_time",
+        "cap_sys_tty_config",
+        "cap_mknod",
+        "cap_lease",
+        "cap_audit_write",
+        "cap_audit_control",
+        "cap_setfcap",
+        "cap_mac_override",
+        "cap_mac_admin",
+        "cap_syslog",
+        "cap_wake_alarm",
+        "cap_block_suspend",
+        "cap_audit_read+ep"
+      ],
+      "system_capabilities_enforced": "True",
+      "system_vendor": "QEMU",
+      "uptime_seconds": 815,
+      "user_dir": "/root",
+      "user_gecos": "root",
+      "user_gid": 0,
+      "user_id": "root",
+      "user_shell": "/bin/bash",
+      "user_uid": 0,
+      "userspace_architecture": "x86_64",
+      "userspace_bits": "64",
+      "virtualization_role": "guest",
+      "virtualization_type": "kvm"
+    },
+    "ansible_fips": false,
+    "ansible_form_factor": "Other",
+    "ansible_fqdn": "enos-0",
+    "ansible_host": "192.168.121.70",
+    "ansible_hostname": "enos-0",
+    "ansible_interfaces": [
+      "lo",
+      "eth1",
+      "eth0"
+    ],
+    "ansible_is_chroot": false,
+    "ansible_kernel": "4.9.0-7-amd64",
+    "ansible_lo": {
+      "active": true,
+      "device": "lo",
+      "ipv4": {
+        "address": "127.0.0.1",
+        "broadcast": "host",
+        "netmask": "255.0.0.0",
+        "network": "127.0.0.0"
+      },
+      "mtu": 65536,
+      "promisc": false,
+      "type": "loopback"
+    },
+    "ansible_local": {},
+    "ansible_lsb": {
+      "codename": "stretch",
+      "description": "Debian GNU/Linux 9.5 (stretch)",
+      "id": "Debian",
+      "major_release": "9",
+      "release": "9.5"
+    },
+    "ansible_machine": "x86_64",
+    "ansible_machine_id": "efa0e38837014328940d8a609edbe720",
+    "ansible_memfree_mb": 155,
+    "ansible_memory_mb": {
+      "nocache": {
+        "free": 410,
+        "used": 82
+      },
+      "real": {
+        "free": 155,
+        "total": 492,
+        "used": 337
+      },
+      "swap": {
+        "cached": 0,
+        "free": 4092,
+        "total": 4092,
+        "used": 0
+      }
+    },
+    "ansible_memtotal_mb": 492,
+    "ansible_mounts": [
+      {
+        "block_available": 6294816,
+        "block_size": 4096,
+        "block_total": 7069420,
+        "block_used": 774604,
+        "device": "/dev/sda3",
+        "fstype": "ext4",
+        "inode_available": 1761788,
+        "inode_total": 1806896,
+        "inode_used": 45108,
+        "mount": "/",
+        "options": "rw,relatime,errors=remount-ro,data=ordered",
+        "size_available": 25783566336,
+        "size_total": 28956344320,
+        "uuid": "b30b1bc3-81e9-442e-bd94-21a0efb1a585"
+      },
+      {
+        "block_available": 409577,
+        "block_size": 1024,
+        "block_total": 474712,
+        "block_used": 65135,
+        "device": "/dev/sda1",
+        "fstype": "ext4",
+        "inode_available": 124591,
+        "inode_total": 124928,
+        "inode_used": 337,
+        "mount": "/boot",
+        "options": "rw,relatime,data=ordered",
+        "size_available": 419406848,
+        "size_total": 486105088,
+        "uuid": "7297ddf3-48f7-4a77-a8ff-883ad2eec1b7"
+      }
+    ],
+    "ansible_nodename": "enos-0",
+    "ansible_os_family": "Debian",
+    "ansible_pkg_mgr": "apt",
+    "ansible_playbook_python": "/home/msimonin/.pyenv/versions/enoslib/bin/python",
+    "ansible_port": 22,
+    "ansible_processor": [
+      "0",
+      "GenuineIntel",
+      "Intel Core Processor (Skylake, IBRS)"
+    ],
+    "ansible_processor_cores": 1,
+    "ansible_processor_count": 1,
+    "ansible_processor_threads_per_core": 1,
+    "ansible_processor_vcpus": 1,
+    "ansible_product_name": "Standard PC (i440FX + PIIX, 1996)",
+    "ansible_product_serial": "NA",
+    "ansible_product_uuid": "01F13181-2257-49F9-8405-875A0AE9DBA3",
+    "ansible_product_version": "pc-i440fx-bionic",
+    "ansible_python": {
+      "executable": "/usr/bin/python",
+      "has_sslcontext": true,
+      "type": "CPython",
+      "version": {
+        "major": 2,
+        "micro": 13,
+        "minor": 7,
+        "releaselevel": "final",
+        "serial": 0
+      },
+      "version_info": [
+        2,
+        7,
+        13,
+        "final",
+        0
+      ]
+    },
+    "ansible_python_version": "2.7.13",
+    "ansible_real_group_id": 0,
+    "ansible_real_user_id": 0,
+    "ansible_selinux": {
+      "status": "Missing selinux Python library"
+    },
+    "ansible_selinux_python_present": false,
+    "ansible_service_mgr": "systemd",
+    "ansible_ssh_common_args": "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+    "ansible_ssh_host_key_ecdsa_public": "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBE/mgKteLKRmJIIibgMVQ2exkmEV0t1byYUX6R6NWxQfw0858lm3BJVThR/DjbfDeINR2MIbYQhlHtSSRfEIhBU=",
+    "ansible_ssh_host_key_ed25519_public": "AAAAC3NzaC1lZDI1NTE5AAAAIAbVyFhNfN5w4Hq+AL6PlBB13z82SC6r1DApLmR70OIh",
+    "ansible_ssh_host_key_rsa_public": "AAAAB3NzaC1yc2EAAAADAQABAAABAQCsgnUOTQHTDRLjWLC2jvE2o7xRiFoZzNgyneyh5Ox8B3EVo0TKqhQKGTNmUtHCs9CFRZ9JaWVF8jFMUXNLRNTqoL1iL4r5hrkJ9sjggqGh7+4jhq9ZjHTWemfceskkmbrogjKvSy1HIJxna1qh5DfuRWQjbf08MMwFv4O15viYhqptDnIPmmnsqU4DqMbjsjlrzlrwfRtoknZcBT2lId/7gr2075jNwYBuafGhRh3BTXxDrtVB2DSrv38O7OgyvEQX16Jd9uMesY3ztwByUc6sNm/KsPEh5AUGg3IzVYg7glDu9vNU9djybwrSqlTPGP4A9MvIM4pvgZcYvHjOi4nz",
+    "ansible_ssh_private_key_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/.vagrant/machines/enos-0/libvirt/private_key",
+    "ansible_ssh_user": "root",
+    "ansible_swapfree_mb": 4092,
+    "ansible_swaptotal_mb": 4092,
+    "ansible_system": "Linux",
+    "ansible_system_capabilities": [
+      "cap_chown",
+      "cap_dac_override",
+      "cap_dac_read_search",
+      "cap_fowner",
+      "cap_fsetid",
+      "cap_kill",
+      "cap_setgid",
+      "cap_setuid",
+      "cap_setpcap",
+      "cap_linux_immutable",
+      "cap_net_bind_service",
+      "cap_net_broadcast",
+      "cap_net_admin",
+      "cap_net_raw",
+      "cap_ipc_lock",
+      "cap_ipc_owner",
+      "cap_sys_module",
+      "cap_sys_rawio",
+      "cap_sys_chroot",
+      "cap_sys_ptrace",
+      "cap_sys_pacct",
+      "cap_sys_admin",
+      "cap_sys_boot",
+      "cap_sys_nice",
+      "cap_sys_resource",
+      "cap_sys_time",
+      "cap_sys_tty_config",
+      "cap_mknod",
+      "cap_lease",
+      "cap_audit_write",
+      "cap_audit_control",
+      "cap_setfcap",
+      "cap_mac_override",
+      "cap_mac_admin",
+      "cap_syslog",
+      "cap_wake_alarm",
+      "cap_block_suspend",
+      "cap_audit_read+ep"
+    ],
+    "ansible_system_capabilities_enforced": "True",
+    "ansible_system_vendor": "QEMU",
+    "ansible_uptime_seconds": 815,
+    "ansible_user_dir": "/root",
+    "ansible_user_gecos": "root",
+    "ansible_user_gid": 0,
+    "ansible_user_id": "root",
+    "ansible_user_shell": "/bin/bash",
+    "ansible_user_uid": 0,
+    "ansible_userspace_architecture": "x86_64",
+    "ansible_userspace_bits": "64",
+    "ansible_virtualization_role": "guest",
+    "ansible_virtualization_type": "kvm",
+    "enos_action": "check_network",
+    "facts_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/_tmp_enos_/facts.json",
+    "fake_interfaces": [],
+    "gather_subset": [
+      "all"
+    ],
+    "group_names": [
+      "control"
+    ],
+    "groups": {
+      "all": [
+        "enos-1",
+        "enos-0"
+      ],
+      "compute": [
+        "enos-1"
+      ],
+      "control": [
+        "enos-0"
+      ],
+      "ungrouped": []
+    },
+    "inventory_dir": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks",
+    "inventory_file": "/home/msimonin/workspace/repos/enoslib/docs/tutorials/using-tasks/hosts",
+    "inventory_hostname": "enos-0",
+    "inventory_hostname_short": "enos-0",
+    "module_setup": true,
+    "omit": "__omit_place_holder__aa3be837069a3b6ab16133696f872bd419ee1594",
+    "playbook_dir": "/home/msimonin/workspace/repos/enoslib/enoslib/ansible"
+  }
+}

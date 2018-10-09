@@ -1,9 +1,8 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
+from enoslib.api import discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import logging
-import os
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,16 +21,15 @@ provider_conf = {
     }
 }
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
-
 # claim the resources
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 
-# generate an inventory compatible with ansible
-generate_inventory(roles, networks, inventory, check_networks=True)
+# decorate hosts with network information
+discover_networks(roles, networks)
+
+print(roles)
 
 # destroy the boxes
-# provider.destroy()
+provider.destroy()

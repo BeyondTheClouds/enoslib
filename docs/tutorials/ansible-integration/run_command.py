@@ -1,15 +1,16 @@
-from enoslib.api import generate_inventory, run_command
+from enoslib.api import discover_networks, run_command
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import json
-import os
 import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
+    "backend": "libvirt",
+    "box": "generic/debian9",
     "resources": {
         "machines": [{
             "roles":  ["control1"],
@@ -24,12 +25,11 @@ provider_conf = {
     }
 }
 
-inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
-result = run_command("control*", "date", inventory)
+discover_networks(roles, networks)
+result = run_command("control*", "date", roles=roles)
 with open("result_ok", "w") as f:
     json.dump(result["ok"], f, indent=2)
 with open("result_failed", "w") as f:

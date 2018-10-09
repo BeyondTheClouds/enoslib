@@ -1,32 +1,54 @@
 from enoslib.errors import *
 from enoslib.host import Host
-from enoslib.api import _generate_inventory_string, _update_hosts, _map_device_on_host_networks
+from enoslib.api import _update_hosts, _map_device_on_host_networks
+from enoslib.enos_inventory import EnosInventory
 from enoslib.utils import gen_rsc
-
 from enoslib.tests.unit import EnosTest
 
 
+def _find_host_line(ini, role):
+    ini = ini.split("\n")
+    idx =  ini.index("[r1]")
+    return ini[idx + 1]
+
+
 class TestGenerateInventoryString(EnosTest):
+
     def test_address(self):
         h = Host("1.2.3.4")
-        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", _generate_inventory_string(h))
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", line)
 
     def test_address_alias(self):
         h = Host("1.2.3.4", alias="alias")
-        self.assertEqual("alias ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", _generate_inventory_string(h))
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("alias ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", line)
 
 
     def test_address_user(self):
         h = Host("1.2.3.4", user="foo")
-        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_user=foo ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", _generate_inventory_string(h))
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='foo'", line)
 
     def test_address_gateway(self):
         h = Host("1.2.3.4", extra={'gateway': '4.3.2.1'})
-        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 4.3.2.1\"'", _generate_inventory_string(h))
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 4.3.2.1\"'", line)
 
     def test_address_gateway_same_user(self):
         h = Host("1.2.3.4", user="foo", extra={'gateway': '4.3.2.1'})
-        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_user=foo ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l foo 4.3.2.1\"'", _generate_inventory_string(h))
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l foo 4.3.2.1\"' ansible_ssh_user='foo'", line)
 
 
 
