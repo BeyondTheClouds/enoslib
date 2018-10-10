@@ -272,8 +272,9 @@ def grid_make_reservation(job_name, walltime, reservation_date,
         cluster = desc["cluster"]
         nodes = desc["nodes"]
         site = api.get_cluster_site(cluster)
-        criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
-        criteria.setdefault(site, []).append(criterion)
+        if not nodes:
+            criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
+            criteria.setdefault(site, []).append(criterion)
 
     # network reservations
     vlans = [network for network in networks
