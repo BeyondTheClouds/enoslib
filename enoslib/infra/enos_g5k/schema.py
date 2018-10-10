@@ -58,7 +58,8 @@ SCHEMA = {
         "required": [
             "nodes",
             "cluster",
-            "primary_network"
+            "primary_network",
+            "secondary_networks"
         ]
     },
     "network": {
