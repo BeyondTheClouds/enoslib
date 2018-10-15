@@ -1,3 +1,13 @@
+# 1.12.0
+
+* API: `emulate|reset|validate` now accept an extra_vars dict
+* G5K: `secondary_networks` are now a mandatory key
+* G5K: support for zero nodes roles
+
+# 1.11.2
+
+* Make sure role and roles are mutually exclusive
+
 # 1.11.1
 
 * Fix empty `config_file` case in enostask
