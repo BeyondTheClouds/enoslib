@@ -47,7 +47,7 @@ def is_prod(network, networks):
 def to_vlan_type(vlan_id):
     if vlan_id < 4:
         return KAVLAN_LOCAL
-    if vlan_id < 10:
+    elif vlan_id < 10:
         return KAVLAN
     return KAVLAN_GLOBAL
 
@@ -57,7 +57,7 @@ def to_subnet_type(ip_prefix):
 
 
 def grid_get_or_create_job(job_name, walltime, reservation_date,
-                           queue, job_type, machines, networks):
+                      queue, job_type, machines, networks):
     gridjob, _ = ex5.planning.get_job_by_name(job_name)
     if gridjob is None:
         gridjob = grid_make_reservation(job_name, walltime, reservation_date,
@@ -188,9 +188,9 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
     # When its fixed we should be able to only use the new predictable name.
     nics = [(nic['device'], nic['name']) for nic in nics
-            if nic['mountable'] and
-            nic['interface'] == 'Ethernet' and
-            not nic['management'] and extra_cond(nic)]
+           if nic['mountable'] and
+           nic['interface'] == 'Ethernet' and
+           not nic['management'] and extra_cond(nic)]
     nics = sorted(nics)
     return nics
 
@@ -264,16 +264,15 @@ def concretize_networks(resources, vlans, subnets):
     return resources
 
 
-def grid_make_reservation(job_name, walltime, reservation_date,
-                          queue, job_type, machines, networks):
+def grid_make_reservation(job_name, walltime,
+                     reservation_date, queue, job_type, machines, networks):
     criteria = {}
     # machines reservations
     for desc in machines:
         cluster = desc["cluster"]
         nodes = desc["nodes"]
         site = api.get_cluster_site(cluster)
-        if not nodes:
-            criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
+        criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
         criteria.setdefault(site, []).append(criterion)
 
     # network reservations
