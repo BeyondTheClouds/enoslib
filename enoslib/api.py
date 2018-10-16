@@ -383,7 +383,7 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
             f.write(_generate_inventory(roles))
 
 
-def emulate_network(roles, inventory, network_constraints):
+def emulate_network(roles, inventory, network_constraints, extra_vars=None):
     """Emulate network links.
 
     Read ``network_constraints`` and apply ``tc`` rules on all the nodes.
@@ -397,6 +397,7 @@ def emulate_network(roles, inventory, network_constraints):
             :py:meth:`enoslib.infra.provider.Provider.init`
         inventory (str): path to the inventory
         network_constraints (dict): network constraints to apply
+        extra_vars (dict): extra_vars to pass to ansible
 
     Examples:
 
@@ -476,6 +477,12 @@ def emulate_network(roles, inventory, network_constraints):
     # TODO(msimonin)
     #    - allow finer grained filtering based on network roles and/or nic name
 
+    if not network_constraints:
+        return
+
+    if not extra_vars:
+        extra_vars = {}
+
     # 1. getting  ips/devices information
     logger.debug('Getting the ips of all nodes')
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
@@ -512,10 +519,11 @@ def emulate_network(roles, inventory, network_constraints):
         'ips_with_constraints': ips_with_constraints,
         'tc_enable': enable,
     }
+    options.update(extra_vars)
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
-def validate_network(roles, inventory, output_dir=None):
+def validate_network(roles, inventory, output_dir=None, extra_vars=None):
     """Validate the network parameters (latency, bandwidth ...)
 
     Performs flent, ping tests to validate the constraints set by
@@ -532,15 +540,20 @@ def validate_network(roles, inventory, output_dir=None):
     logger.debug('Checking the constraints')
     if not output_dir:
         output_dir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
+
+    if not extra_vars:
+        extra_vars = {}
+
     output_dir = os.path.abspath(output_dir)
     _check_tmpdir(output_dir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     options = {'enos_action': 'tc_validate',
                'tc_output_dir': output_dir}
+    options.update(extra_vars)
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
-def reset_network(roles, inventory):
+def reset_network(roles, inventory, extra_vars=None):
     """Reset the network constraints (latency, bandwidth ...)
 
     Remove any filter that have been applied to shape the traffic.
@@ -551,11 +564,16 @@ def reset_network(roles, inventory):
         inventory (str): path to the inventory
     """
     logger.debug('Reset the constraints')
+
+    if not extra_vars:
+        extra_vars = {}
+
     tmpdir = os.path.join(os.path.dirname(inventory), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
     utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
     options = {'enos_action': 'tc_reset',
                'tc_output_dir': tmpdir}
+    options.update(extra_vars)
     run_ansible([utils_playbook], inventory, extra_vars=options)
 
 
