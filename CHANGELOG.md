@@ -1,3 +1,7 @@
+# 1.12.1
+
+* G5K: fix an issue when number of nodes is zero
+
 # 1.12.0
 
 * API: `emulate|reset|validate` now accept an extra_vars dict
