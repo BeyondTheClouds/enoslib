@@ -28,4 +28,5 @@ doc:
     script:
     - tox -e docs
     artifacts:
-    - docs/_build/html
+        paths:
+        - docs/_build/html
