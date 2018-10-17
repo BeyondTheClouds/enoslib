@@ -1,0 +1,8 @@
+before_script:
+  - python -V               # Print out python version for debugging
+
+python3.6:
+  image: python:3.6
+  script:
+  - pip install tox
+  - tox -e py36 pep8
