@@ -1,5 +1,5 @@
 before_script:
-    - python -V               # Print out python version for debugging
+    - python -V
 
 python3.5:
     image: python:3.5
@@ -22,3 +22,10 @@ python3.6:
     - pip install tox
     - tox -e py36 pep8
 
+doc:
+    image: python:3.6
+    stage: deploy
+    script:
+    - tox -e docs
+    artifacts:
+    - docs/_build/html
