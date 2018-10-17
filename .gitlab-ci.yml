@@ -36,6 +36,9 @@ pages:
     stage: deploy
     dependencies:
     - doc
+    script:
+    - mkdir public
+    - echo "hello" > pubic/index.htm
     artifacts:
       paths:
       - docs/_build/html
