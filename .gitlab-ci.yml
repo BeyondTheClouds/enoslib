@@ -24,9 +24,18 @@ python3.6:
 
 doc:
     image: python:3.6
-    stage: deploy
+    stage: test
     script:
+    - pip install tox
     - tox -e docs
     artifacts:
         paths:
         - docs/_build/html
+
+pages:
+    stage: deploy
+    dependencies:
+    - doc
+    artifacts:
+      paths:
+      - docs/_build/html
