@@ -1,4 +1,7 @@
 import copy
+from ddt import ddt, data
+import mock
+
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                          NotEnoughNodesError)
@@ -7,7 +10,6 @@ from enoslib.tests.unit import EnosTest
 from execo import Host
 import execo_g5k as ex5
 from execo_g5k import api_utils as api
-import mock
 
 
 # TODO(msimonin): use patch
@@ -240,3 +242,79 @@ class TestConcretizeNodesMin(EnosTest):
         with self.assertRaises(NotEnoughNodesError):
             utils.concretize_nodes(self.resources, nodes)
 
+
+@ddt
+class TestBuildReservationCriteria(EnosTest):
+
+    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    def test_only_machines_one_site(self, mock_get_cluster_site):
+        resources = {
+            "machines": [{
+                "role": "role1",
+                "nodes": 1,
+                "cluster": "foocluster",
+            }],
+        }
+
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
+
+
+    @mock.patch("execo_g5k.api_utils.get_cluster_site", side_effect=["site1", "site2"])
+    def test_only_machines_two_sites(self, mock_get_cluster_site):
+        resources = {
+            "machines": [{
+                "role": "role1",
+                "nodes": 1,
+                "cluster": "foocluster",
+            }, {
+                "role": "role2",
+                "nodes": 2,
+                "cluster": "barcluster"
+            }],
+        }
+
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({
+            "site1": ["{cluster='foocluster'}/nodes=1"],
+            "site2": ["{cluster='barcluster'}/nodes=2"]
+        }, criteria)
+
+    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    def test_only_no_machines(self, mock_get_cluster_site):
+        resources = {
+            "machines": [{
+                "role": "role1",
+                "nodes": 0,
+                "cluster": "foocluster",
+            }],
+        }
+
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({}, criteria)
+
+
+    @data("kavlan", "kavlan-local", "kavlan-global")
+    def test_network_kavlan(self, value):
+        resources = {
+            "networks": [{
+                "type": value,
+                "site": "site1"
+            }]
+        }
+
+        criteria = utils._build_reservation_criteria([], resources["networks"])
+        self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
+
+
+    @data("slash_18", "slash_22")
+    def test_network_subnet(self, value):
+        resources = {
+            "networks": [{
+                "type": value,
+                "site": "site1"
+            }]
+        }
+
+        criteria = utils._build_reservation_criteria([], resources["networks"])
+        self.assertDictEqual({"site1": ["%s=1" % value ] }, criteria)

@@ -264,15 +264,14 @@ def concretize_networks(resources, vlans, subnets):
     return resources
 
 
-def grid_make_reservation(job_name, walltime, reservation_date,
-                          queue, job_type, machines, networks):
+def _build_reservation_criteria(machines, networks):
     criteria = {}
     # machines reservations
     for desc in machines:
         cluster = desc["cluster"]
         nodes = desc["nodes"]
-        site = api.get_cluster_site(cluster)
-        if not nodes:
+        if nodes:
+            site = api.get_cluster_site(cluster)
             criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
             criteria.setdefault(site, []).append(criterion)
 
@@ -293,20 +292,32 @@ def grid_make_reservation(job_name, walltime, reservation_date,
         criterion = "%s=1" % n_type
         criteria.setdefault(site, []).append(criterion)
 
+    return criteria
+
+
+def _do_grid_make_reservation(criteria, job_name, walltime, reservation_date,
+                              queue, job_type):
     jobs_specs = [(ex5.OarSubmission(resources='+'.join(c),
                                      name=job_name), s)
                   for s, c in criteria.items()]
-
-    # Make the reservation
     gridjob, _ = ex5.oargridsub(
         jobs_specs,
         walltime=walltime,
         reservation_date=reservation_date,
         job_type=job_type,
         queue=queue)
-
     if gridjob is None:
         raise Exception('No oar job was created')
+
+    return gridjob
+
+
+def grid_make_reservation(job_name, walltime, reservation_date,
+                          queue, job_type, machines, networks):
+    criteria = _build_reservation_criteria(machines, networks)
+    gridjob = _do_grid_make_reservation(criteria, job_name, walltime,
+                                        reservation_date, queue, job_type)
+
     return gridjob
 
 
