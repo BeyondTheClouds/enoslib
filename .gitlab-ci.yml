@@ -1,6 +1,3 @@
-before_script:
-    - python -V
-
 python3.5:
     image: python:3.5
     stage: test
@@ -33,6 +30,7 @@ doc:
         - docs/_build/html
 
 pages:
+    
     stage: deploy
     dependencies:
     - doc
