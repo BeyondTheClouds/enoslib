@@ -35,9 +35,10 @@ doc:
         paths:
         - docs/_build/html
 
-pypi-build:
+package:
     stage: package
-    only: tags
+    only: 
+        - tags
     image: python3.6
     script:
     - python setup.py bdist_wheel --universal
@@ -47,7 +48,8 @@ pypi-build:
 
 pages:
     stage: publish
-    only: tags
+    only: 
+        - tags
     dependencies:
     - doc
     script:
