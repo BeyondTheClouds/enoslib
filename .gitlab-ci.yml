@@ -1,3 +1,9 @@
+stages:
+ - test
+ - package
+ - deploy
+ - publish
+
 python3.5:
     image: python:3.5
     stage: test
@@ -29,14 +35,25 @@ doc:
         paths:
         - docs/_build/html
 
+package:
+    stage: package
+    only: tags
+    image: python3.6
+    script:
+    - python setup.py bdist_wheel --universal
+    artifacts:
+        paths:
+        - dist/
+
 pages:
-    
-    stage: deploy
+    stage: publish
+    only: tags
     dependencies:
     - doc
     script:
-    - mkdir public
+    - mkdir -p public/
     - cp -r docs/_build/html/* public/
     artifacts:
       paths:
       - public
+    
