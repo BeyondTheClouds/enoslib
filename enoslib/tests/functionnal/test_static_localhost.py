@@ -1,7 +1,7 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+from enoslib.api import generate_inventory, run_command
 from enoslib.infra.enos_static.provider import Static
 
+import json
 import os
 
 provider_conf = {
@@ -28,3 +28,5 @@ inventory = os.path.join(os.getcwd(), "hosts")
 provider = Static(provider_conf)
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
+result = run_command("control*", "date", inventory)
+print(json.dump(result))
