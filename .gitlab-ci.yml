@@ -1,9 +1,19 @@
-python3.6:
+run_command:
     image: python:3.5
     stage: test
     script:
     - ip a
     - pip install -e .
     - cd enoslib/tests/functionnal
-    - python test_static_localhost.py
+    - python test_static_run_command.py
+    - cat hosts
+
+run_ansible:
+    image: python:3.5
+    stage: test
+    script:
+    - ip a
+    - pip install -e .
+    - cd enoslib/tests/functionnal
+    - python test_static_run_ansible.py
     - cat hosts
