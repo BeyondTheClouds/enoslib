@@ -48,7 +48,7 @@ run_command:
 
 run_ansible:
     image: python:3.5
-    stage: functionna
+    stage: functionnal
     script:
     - ip a
     - pip install -e .
