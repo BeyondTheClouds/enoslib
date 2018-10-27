@@ -6,8 +6,6 @@ stages:
 #### Entering th release zone
 package:
     stage: package
-    only: 
-        - tags
     image: python
     script:
     - python setup.py bdist_wheel --universal
