@@ -2,7 +2,6 @@ stages:
  - test
  - functionnal
  - package
- - deploy
  - publish
 
 python3.5:
@@ -58,6 +57,17 @@ run_ansible:
 
 
 #### Entering th release zone
+package:
+    image: python3.6
+    stage: package
+    only:
+    - tags
+    script:
+    - python setup.py bdist_wheel --universal
+    artifacts:
+        paths:
+        - dist/
+
 pages:
     stage: publish
     only: 
@@ -72,20 +82,9 @@ pages:
       - public
 
 
-package:
-    image: python3.6
-    stage: package
-    only:
-    - tags
-    script:
-    - python setup.py bdist_wheel --universal
-    artifacts:
-        paths:
-        - dist/
-
-publish:
+pypi:
     image: python:3.6
-    stage: deploy
+    stage: publish
     only:
     - tags
     dependencies:
