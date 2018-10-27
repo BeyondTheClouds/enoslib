@@ -21,4 +21,4 @@ publish:
     script:
         - pip install twine
         # credentials are set in the env by gitlab
-        - twine upload dist/* --repository-url https://test.pypi.org 
+        - twine upload dist/* --repository-url https://test.pypi.org/legacy/
