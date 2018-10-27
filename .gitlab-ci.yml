@@ -8,7 +8,7 @@ package:
     stage: package
     only: 
         - tags
-    image: python3.6
+    image: python
     script:
     - python setup.py bdist_wheel --universal
     artifacts:
@@ -17,7 +17,7 @@ package:
 
 publish:
     stage: deploy
-    image: python3.6
+    image: python
     dependencies:
     - package
     script:
