@@ -1,12 +1,82 @@
 stages:
-- package
-- deploy
+ - test
+ - functionnal
+ - package
+ - deploy
+ - publish
+
+python3.5:
+    image: python:3.5
+    stage: test
+    script:
+    - pip install tox
+    - tox -e py35 pep8
+
+python2.7:
+    image: python:2.7
+    stage: test
+    script:
+    - pip install tox
+    - tox -e py27 pep8
+
+python3.6:
+    image: python:3.6
+    stage: test
+    script:
+    - pip install tox
+    - tox -e py36 pep8
+
+doc:
+    image: python:3.6
+    stage: test
+    script:
+    - pip install tox
+    - tox -e docs
+    artifacts:
+        paths:
+        - docs/_build/html
+
+run_command:
+    image: python:3.5
+    stage: functionnal
+    script:
+    - ip a
+    - pip install -e .
+    - cd enoslib/tests/functionnal
+    - python test_static_run_command.py
+    - cat hosts
+
+run_ansible:
+    image: python:3.5
+    stage: functionnal
+    script:
+    - ip a
+    - pip install -e .
+    - cd enoslib/tests/functionnal
+    - python test_static_run_ansible.py
+    - cat hosts
 
 
 #### Entering th release zone
+pages:
+    stage: publish
+    only: 
+        - tags
+    dependencies:
+    - doc
+    script:
+    - mkdir -p public/
+    - cp -r docs/_build/html/* public/
+    artifacts:
+      paths:
+      - public
+
+
 package:
+    image: python3.6
     stage: package
-    image: python
+    only:
+    - tags
     script:
     - python setup.py bdist_wheel --universal
     artifacts:
@@ -14,8 +84,10 @@ package:
         - dist/
 
 publish:
+    image: python:3.6
     stage: deploy
-    image: python
+    only:
+    - tags
     dependencies:
     - package
     script:
