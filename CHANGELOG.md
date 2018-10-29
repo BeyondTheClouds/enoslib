@@ -1,3 +1,8 @@
+# 1.12.3
+
+* API: `utils.yml` playbook now forces fact gahering.
+* Misc: initial gitlab-ci supports
+
 # 1.12.2
 
 * G5K: Refix an issue when number of nodes is zero
