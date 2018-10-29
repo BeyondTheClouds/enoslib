@@ -1,4 +1,9 @@
 ---
+- name: Gather facts
+  hosts: all
+  tasks:
+    - setup:
+
 - name: Utils functions
   hosts: all
   roles:
