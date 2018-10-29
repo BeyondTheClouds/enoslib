@@ -1,0 +1,7 @@
+---
+- name: This is a play
+  hosts: control*
+  tasks:
+    - name: One task
+      debug:
+        msg: "I'm running on {{ inventory_hostname }}"
