@@ -1,5 +1,8 @@
 from enoslib.api import generate_inventory, run_ansible
 from enoslib.infra.enos_g5k.provider import G5k
+from enoslib.infra.enos_g5k.configuration import (Configuration,
+                                                  NetworkConfiguration)
+
 import logging
 from netaddr import EUI
 import os
@@ -19,38 +22,30 @@ def range_mac(mac_start, mac_end, step=1):
         ip = ['10'] + [str(int(i, 2)) for i in mac.bits().split('-')[-3:]]
         yield str(mac).replace('-', ':'), '.'.join(ip)
 
-provider_conf = {
-    "job_type": "allow_classic_ssh",
-    "job_name": "test-non-deploy",
-    "walltime": "1:00:00",
-    "resources": {
-        "machines": [{
-            "role": "compute",
-            "cluster": "parasilo",
-            "nodes": PMS,
-            "primary_network": "n1",
-            "secondary_networks": []
-        }],
-        "networks": [{
-            "id": "n1",
-            "type": "prod",
-            "role": "my_network",
-            "site": "rennes",
-         }, {
-            "id": "not_linked_to_any_machine",
-            "type": "slash_22",
-            "role": "my_subnet",
-            "site": "rennes",
-         }]
-    }
-}
+# claim the resources
+prod = NetworkConfiguration(id="n1",
+                            type="prod",
+                            roles=["my_network"],
+                            site="rennes")
+conf = Configuration.from_settings(job_type="allow_classic_ssh",
+                                   job_name="enoslib-virt",
+                                   walltime="01:00:00")\
+                    .add_network_conf(prod)\
+                    .add_network(id="_subnet_network",
+                                 type="slash_22",
+                                 roles=["my_subnet"],
+                                 site="rennes")\
+                    .add_machine(roles=["compute"],
+                                 cluster="parasilo",
+                                 nodes=PMS,
+                                 primary_network=prod)\
+                    .finalize()
+
+provider = G5k(conf)
+roles, networks = provider.init()
 
 # path to the inventory
 inventory = os.path.join(os.getcwd(), "hosts")
-
-# claim the resources
-provider = G5k(provider_conf)
-roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
 generate_inventory(roles, networks, inventory, check_networks=True)

@@ -1,5 +1,5 @@
 [control]
-paravance-9-kavlan-4.rennes.grid5000.fr ansible_host=paravance-9-kavlan-4.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eth0']" my_network=eth0
-parasilo-7-kavlan-4.rennes.grid5000.fr ansible_host=parasilo-7-kavlan-4.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eth0']" my_network=eth0
+paravance-49-kavlan-8.rennes.grid5000.fr ansible_host=paravance-49-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1
+paravance-51-kavlan-8.rennes.grid5000.fr ansible_host=paravance-51-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1
 [compute]
-parasilo-7-kavlan-4.rennes.grid5000.fr ansible_host=parasilo-7-kavlan-4.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eth0']" my_network=eth0%
+paravance-51-kavlan-8.rennes.grid5000.fr ansible_host=paravance-51-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1

@@ -20,6 +20,9 @@ Installation
 Using the API
 -------------
 
+From a dictionnary
+******************
+
 The following ``tuto_vagrant.py`` implements the desired workflow.
 
 .. literalinclude:: vagrant/tuto_vagrant.py
@@ -53,5 +56,13 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
 
         Note the extra variables concerning the network. They can be use in
         your ansible playbooks to refer to a specific network.
+
+Programmatic way
+****************
+
+
+.. literalinclude:: vagrant/tuto_vagrant_p.py
+   :language: python
+   :linenos:
 
 .. _pyenv: https://github.com/pyenv/pyenv

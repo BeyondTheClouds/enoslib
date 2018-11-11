@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
-import jsonschema
 
 
 class Provider:
@@ -8,21 +7,14 @@ class Provider:
     __metaclass__ = ABCMeta
 
     def __init__(self, provider_conf):
-        """
-        The constructor takes care of loading the configuration and applying
-        the default parameters given by
-        :py:meth:`~enoslib.infra.provider.Provider.default_config`.
-        The resulting configuration is then validated using the
-        :py:meth:`~enoslib.infra.provider.validate` method.
+        """The constructor takes care of loading the configuration.
 
         Args:
-            provider_conf (dict): config of the provider. Specific to the
-                underlying provider.
+            provider_conf (BaseConfiguration): configuration of the provider.
+        The configuration object is specific to each provider and must follow
+        the provider's schema
         """
         self.provider_conf = provider_conf
-        self.provider_conf = self.default_config()
-        self.provider_conf.update(provider_conf)
-        self.validate()
 
     @abstractmethod
     def init(self, force_deploy=False):
@@ -46,24 +38,3 @@ class Provider:
     def destroy(self):
         "Abstract. Destroy the resources used for the deployment."
         pass
-
-    @abstractmethod
-    def default_config(self):
-        """Abstract. Default config for the provider config.
-
-        Returns a dict with all keys used to initialize the provider
-        (section `provider` of reservation.yaml file). Keys should be
-        provided with a default value.
-        """
-        pass
-
-    @abstractmethod
-    def schema(self):
-        """Abstract. Returns the schema of the provider config"""
-
-    def validate(self):
-        """Validates the configuration.
-
-        By default validate the jsonschema.
-        """
-        jsonschema.validate(self.provider_conf, self.schema())

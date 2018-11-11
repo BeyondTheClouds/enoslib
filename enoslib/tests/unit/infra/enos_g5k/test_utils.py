@@ -101,8 +101,8 @@ class TestConcretizeNetwork(EnosTest):
         ]
         subnets = []
         utils.concretize_networks(self.resources, networks, subnets)
-        self.assertEquals(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEquals(networks[1], self.resources["networks"][1]["_c_network"])
+        self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
+        self.assertEqual(networks[1], self.resources["networks"][1]["_c_network"])
 
 
     def test_act_subnets(self):
@@ -112,8 +112,8 @@ class TestConcretizeNetwork(EnosTest):
             { "site": "rennes", "ip_prefix": "10.156.0.0/22" },
         ]
         utils.concretize_networks(self.resources_subnet, networks, subnets)
-        self.assertEquals(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
-        self.assertEquals(subnets[0], self.resources_subnet["networks"][1]["_c_network"])
+        self.assertEqual(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
+        self.assertEqual(subnets[0], self.resources_subnet["networks"][1]["_c_network"])
 
 
     def test_prod(self):
@@ -123,9 +123,9 @@ class TestConcretizeNetwork(EnosTest):
         ]
         subnets = []
         utils.concretize_networks(self.resources, networks, subnets)
-        # self.assertEquals(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEquals(None, self.resources["networks"][0]["_c_network"]["vlan_id"])
-        self.assertEquals(networks[0], self.resources["networks"][1]["_c_network"])
+        # self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
+        self.assertEqual(None, self.resources["networks"][0]["_c_network"]["vlan_id"])
+        self.assertEqual(networks[0], self.resources["networks"][1]["_c_network"])
 
     def test_one_missing(self):
         networks = [

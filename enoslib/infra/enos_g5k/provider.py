@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import enoslib.infra.enos_g5k.api as api
-from enoslib.infra.enos_g5k.constants import (JOB_NAME, WALLTIME, ENV_NAME,
-                                              JOB_TYPE_DEPLOY)
-from enoslib.infra.enos_g5k.schema import SCHEMA, KAVLAN_TYPE, SUBNET_TYPE
+from enoslib.infra.enos_g5k.schema import KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
@@ -11,15 +9,6 @@ from netaddr import IPAddress, IPNetwork, IPSet
 
 import logging
 logger = logging.getLogger(__name__)
-
-#: The default configuration of the Grid5000 provider
-DEFAULT_CONFIG = {
-    'job_name': JOB_NAME,
-    'walltime': WALLTIME,
-    'env_name': ENV_NAME,
-    'reservation': False,
-    'job_type': JOB_TYPE_DEPLOY
-}
 
 
 def _to_enos_roles(roles):
@@ -111,71 +100,7 @@ def _to_enos_networks(networks):
 
 
 class G5k(Provider):
-    """The provider to use when deploying on Grid'5000
-
-        Examples:
-
-        .. code-block:: yaml
-
-            # provider_conf in yaml
-            ---
-            job_name: enoslib
-            walltime: 01:00:00
-            # will give all configured interfaces an IP
-            dhcp: True
-            # force_deploy: True
-            resources:
-                machines:
-                - roles: [telegraf]
-                    cluster: griffon
-                    nodes: 1
-                    primary_network: n1
-                    secondary_networks: [n2]
-                - roles:
-                    - control
-                        registry
-                        prometheus
-                        grafana
-                        telegraf
-                    cluster: griffon
-                    nodes: 1
-                    min: 1
-                    primary_network: n1
-                    secondary_networks: [n2]
-                networks:
-                - id: n1
-                    roles: [control_network]
-                    type: prod
-                    site: nancy
-                - id: n2
-                    roles: [internal_network]
-                    type: kavlan-local
-                    site: nancy
-
-
-        Supported network types are
-
-            - kavlan
-            - kavlan-local
-            - kavlan-global
-            - prod
-            - slash_22 (subnet reservation)
-            - slash_18 (subnet reservation)
-
-    Machines must use at least one network of type prod or kavlan*. Subnets are
-    optional and must not be linked to any interfaces as they are a way to
-    claim extra ips and corresponding macs. In this case the returned network
-    attributes `start` and `end` corresponds to the first and last mapping of
-    (ip, mac).
-
-    If a key ``oargrid_jobid`` is found, the resources will be reloaded from
-    the corresponding oargrid job. In this case what is described under the
-    ``resources`` key mut be compatible with the job content.
-
-    If the keys ``oar_jobid`` and ``oar_site`` are found, the resources will be
-    reloaded from the corresponding oar job. In this case what is described
-    under the ``resources`` key mut be compatible with the job content.
-    """
+    """The provider to use when deploying on Grid'5000."""
 
     def init(self, force_deploy=False):
         """Reserve and deploys the nodes according to the resources section
@@ -191,10 +116,11 @@ class G5k(Provider):
             NotEnoughNodesError: If the `min` constraints can't be met.
 
            """
+        self.provider_conf.force_deploy = force_deploy
 
-        self.provider_conf.setdefault("force_deploy", force_deploy)
-        r = api.Resources(self.provider_conf)
-        # insert force_deploy
+        # TODO remove the use of dict
+        self._provider_conf = self.provider_conf.to_dict()
+        r = api.Resources(self._provider_conf)
         r.launch()
         roles = r.get_roles()
         networks = r.get_networks()
@@ -204,17 +130,9 @@ class G5k(Provider):
 
     def destroy(self):
         """Destroys the jobs."""
-        r = api.Resources(self.provider_conf)
+        r = api.Resources(self._provider_conf)
         # insert force_deploy
         r.destroy()
-
-    def default_config(self):
-        """Default config."""
-        return DEFAULT_CONFIG
-
-    def schema(self):
-        """Returns the schema of the provider config"""
-        return SCHEMA
 
     def __str__(self):
         return 'G5k'

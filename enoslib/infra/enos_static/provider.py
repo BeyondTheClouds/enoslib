@@ -2,100 +2,31 @@
 
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
-from enoslib.utils import get_roles_as_list
-
-SCHEMA = {
-    "type": "object",
-    "properties": {
-        "resources": {"$ref": "#/resources"},
-        # Mandatory keys
-        "key_name": {"type": "string"},
-        "image": {"type": "string"},
-        "user": {"type": "string"}
-    },
-    "additionalProperties": True,
-    "required": ["resources"],
-
-    "resources": {
-        "title": "Resource",
-
-        "type": "object",
-        "properties": {
-            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
-            "networks": {
-                "type": "array",
-                "items": {"$ref": "#/network"},
-                "uniqueItems": True},
-            },
-        "additionalProperties": False,
-        "required": ["machines", "networks"]
-    },
-
-    "machine": {
-        "title": "Compute",
-        "type": "object",
-        "properties": {
-            "anyOf": [
-                {"roles": {"type": "array", "items": {"type": "string"}}},
-                {"role": {"type": "string"}}
-            ],
-            "address": {"type": "string"},
-            "alias": {"type": "string"},
-            "user": {"type":  "string"},
-            "keyfile": {"type": "string"},
-            "port": {"type": "number"},
-            "extra": {"type": "object"}
-            # This may contain the network mapping
-            # network role -> interfaces
-            # if auto-discovery network feature isn't used
-        },
-        "required": [
-            "address"
-        ]
-    },
-
-    "network": {
-        "type": "object",
-        "properties": {
-            "anyOf": [
-                {"roles": {"type": "array", "items": {"type": "string"}}},
-                {"role": {"type": "string"}}
-            ],
-            # TODO(msimonin): validate the ip schema
-            "start": {"type": "string"},
-            "end": {"type": "string"},
-            "cidr": {"type": "string"},
-            "gateway": {"type": "string"},
-            "dns": {"type": "string"}
-        },
-        "required": ["cidr"]
-    }
-}
 
 
 class Static(Provider):
+    """The Static provider class.
+
+    This class is used when one has already machines and network configured.
+    This is usefull when there si no provider class corresponding the user
+    testbed. To use it the user must build a configuration object that reflects
+    the exact settings of his machines and networks.
+    """
 
     def init(self, force_deploy=False):
-        resources = self.provider_conf["resources"]
-        machines = resources["machines"]
+        machines = self.provider_conf.machines
         roles = {}
         for machine in machines:
-            rs = get_roles_as_list(machine)
-            for r in rs:
+            for r in machine.roles:
                 roles.setdefault(r, []).append(
-                    Host(machine["address"],
-                         alias=machine.get("alias"),
-                         user=machine.get("user"),
-                         keyfile=machine.get("keyfile"),
-                         port=machine.get("port"),
-                         extra=machine.get("extra")))
-        return roles, resources["networks"]
+                    Host(machine.address,
+                         alias=machine.alias,
+                         user=machine.user,
+                         keyfile=machine.keyfile,
+                         port=machine.port,
+                         extra=machine.extra))
+        return roles, [n.to_dict() for n in
+                       self.provider_conf.networks]
 
     def destroy(self):
         pass
-
-    def default_config(self):
-        return {}
-
-    def schema(self):
-        return SCHEMA

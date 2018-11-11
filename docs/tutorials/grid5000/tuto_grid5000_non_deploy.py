@@ -1,5 +1,6 @@
 from enoslib.api import generate_inventory
 from enoslib.infra.enos_g5k.provider import G5k
+from enoslib.infra.enos_g5k.configuration import Configuration
 
 import logging
 import os
@@ -11,7 +12,7 @@ provider_conf = {
     "job_name": "test-non-deploy",
     "resources": {
         "machines": [{
-            "role": "control",
+            "roles": ["control"],
             "cluster": "parapluie",
             "nodes": 1,
             "primary_network": "n1",
@@ -27,7 +28,7 @@ provider_conf = {
         "networks": [{
             "id": "n1",
             "type": "prod",
-            "role": "my_network",
+            "roles": ["my_network"],
             "site": "rennes",
          }]
     }
@@ -37,7 +38,9 @@ provider_conf = {
 inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
-provider = G5k(provider_conf)
+conf = Configuration.from_dictionnary(provider_conf)
+provider = G5k(conf)
+
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible

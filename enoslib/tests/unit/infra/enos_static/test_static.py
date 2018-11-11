@@ -1,4 +1,5 @@
 from enoslib.infra.enos_static.provider import Static
+from enoslib.infra.enos_static.configuration import Configuration
 from enoslib.tests.unit import EnosTest
 
 class TestBuildResources(EnosTest):
@@ -11,19 +12,30 @@ class TestBuildResources(EnosTest):
                 "roles": ["role1", "role2"]
             },{
                 "address": "ip2",
-                "role": "role1"
+                "roles": ["role1"]
             }],
             "networks": [{
-                "cidr": "cidr1",
-                "roles": ["net1", "net2"]
+                "cidr": "",
+                "roles": ["net2"],
+                "start": "2.2.3.100",
+                "end": "2.2.3.252",
+                "gateway": "2.2.3.254",
+                "dns": "2.2.3.253"
             },{
-                "cidr": "cidr2",
-                "role": "net1"
+                "cidr": "1.2.3.4/24",
+                "roles": ["net1"],
+                "start": "1.2.3.100",
+                "end": "1.2.3.252",
+                "gateway": "1.2.3.254",
+                "dns": "1.2.3.253"
             }]
         }
-
-        s = Static({"resources": resources})
-        roles, _ = s.init()
+        conf = Configuration.from_dictionnary({"resources": resources})
+        s = Static(conf)
+        roles, networks = s.init()
         self.assertCountEqual(["role1", "role2"], roles.keys())
-        self.assertEquals(2, len(roles["role1"]))
-        self.assertEquals(1, len(roles["role2"]))
+        self.assertEqual(2, len(roles["role1"]))
+        self.assertEqual(1, len(roles["role2"]))
+        self.assertEqual(2, len(networks))
+        self.assertTrue(networks[0]["cidr"] in ["1.2.3.4/24", ""])
+

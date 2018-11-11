@@ -1,0 +1,6 @@
+DEFAULT_IMAGE = "CC-Ubuntu16.04"
+DEFAULT_USER = "cc"
+DEFAULT_CONFIGURE_NETWORK = False
+DEFAULT_NETWORK = {"name": "sharednet1"}
+DEFAULT_SUBNET = {"name": "sharednet1-subnet"}
+DEFAULT_NAMESERVERS = ['130.202.101.6', '130.202.101.37']

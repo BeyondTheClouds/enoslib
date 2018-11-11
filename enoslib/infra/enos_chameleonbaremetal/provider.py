@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from blazarclient import client as blazar_client
-from neutronclient.neutron import client as neutron
-from itertools import groupby
-
-import enoslib.infra.enos_chameleonkvm.provider as cc
 import enoslib.infra.enos_openstack.provider as openstack
+import enoslib.infra.enos_chameleonkvm.provider as cc
+
+from blazarclient import client as blazar_client
 import datetime
+from itertools import groupby
 import logging
+from neutronclient.neutron import client as neutron
 import os
 import time
 
@@ -18,25 +18,27 @@ PORT_NAME = "enos-port"
 
 
 def lease_is_reusable(lease):
-    return lease['action'] == 'START' or lease['action'] == 'CREATE'
+    statuses = ["CREATING", "STARTING, UPDATING", "ACTIVE", "PENDING"]
+    return lease["status"] in statuses
 
 
 def lease_is_running(lease):
-    return lease['action'] == 'START' and lease['status'] == 'COMPLETE'
+    statuses = ["ACTIVE"]
+    return lease["status"] in statuses
 
 
 def lease_is_terminated(lease):
-    return lease['action'] == 'STOP'
+    statuses = ["TERMINATED"]
+    return lease["status"] in statuses
 
 
 def lease_to_s(lease):
-    return "[id=%s, name=%s, start=%s, end=%s, action=%s, status=%s]" % (
-        lease['id'],
-        lease['name'],
-        lease['start_date'],
-        lease['end_date'],
-        lease['action'],
-        lease['status'])
+    return "[id=%s, name=%s, start=%s, end=%s, status=%s]" % (
+        lease["id"],
+        lease["name"],
+        lease["start_date"],
+        lease["end_date"],
+        lease["status"])
 
 
 def create_blazar_client(config, session):
@@ -48,7 +50,7 @@ def create_blazar_client(config, session):
 
 def get_reservation(bclient, provider_conf):
     leases = bclient.lease.list()
-    leases = [l for l in leases if l["name"] == provider_conf['lease_name']]
+    leases = [l for l in leases if l["name"] == provider_conf.lease_name]
     if len(leases) >= 1:
         lease = leases[0]
         if lease_is_reusable(lease):
@@ -64,46 +66,45 @@ def get_reservation(bclient, provider_conf):
         return None
 
 
-def by_flavor(x):
-    return x['flavor']
+def by_flavor(machine):
+    return machine.flavour
 
 
 def create_reservation(bclient, provider_config):
     # NOTE(msimonin): This implies that
     #  * UTC is used
-    #  * we don't support yet in advance reservation
-    resources = provider_config['resources']
+    #  * we don"t support yet in advance reservation
     start_datetime = datetime.datetime.utcnow()
-    w = provider_config['walltime'].split(':')
+    w = provider_config.walltime.split(":")
     delta = datetime.timedelta(hours=int(w[0]),
                                minutes=int(w[1]),
                                seconds=int(w[2]))
-    # Make sure we're not reserving in the past by adding 1 minute
+    # Make sure we"re not reserving in the past by adding 1 minute
     # This should be rare
     start_datetime = start_datetime + datetime.timedelta(minutes=1)
     end_datetime = start_datetime + delta
-    start_date = start_datetime.strftime('%Y-%m-%d %H:%M')
-    end_date = end_datetime.strftime('%Y-%m-%d %H:%M')
+    start_date = start_datetime.strftime("%Y-%m-%d %H:%M")
+    end_date = end_datetime.strftime("%Y-%m-%d %H:%M")
     logger.info("[blazar]: Claiming a lease start_date=%s, end_date=%s",
                  start_date,
                  end_date)
 
     reservations = []
-    for flavor, descs in groupby(resources['machines'], key=by_flavor):
+    for flavor, machines in groupby(provider_config.machines, key=by_flavor):
         # NOTE(msimonin): We create one reservation per flavor
-        total = sum([desc['number'] for desc in descs])
+        total = sum([machine.number for machine in machines])
         resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % flavor
 
         reservations.append({
-            'min': total,
-            'max': total,
-            'resource_properties': resource_properties,
-            'hypervisor_properties': '',
-            'resource_type': 'physical:host'
+            "min": total,
+            "max": total,
+            "resource_properties": resource_properties,
+            "hypervisor_properties": "",
+            "resource_type": "physical:host"
             })
 
     lease = bclient.lease.create(
-        provider_config['lease_name'],
+        provider_config.lease_name,
         start_date,
         end_date,
         reservations,
@@ -113,10 +114,10 @@ def create_reservation(bclient, provider_config):
 
 def wait_reservation(bclient, lease):
     logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
-    lease = bclient.lease.get(lease['id'])
+    lease = bclient.lease.get(lease["id"])
     while(not lease_is_running(lease)):
         time.sleep(10)
-        lease = bclient.lease.get(lease['id'])
+        lease = bclient.lease.get(lease["id"])
         logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
     return lease
 
@@ -133,25 +134,25 @@ def check_reservation(config, session):
 
 
 def check_extra_ports(session, network, total):
-    nclient = neutron.Client('2', session=session,
-                             region_name=os.environ['OS_REGION_NAME'])
-    ports = nclient.list_ports()['ports']
+    nclient = neutron.Client("2", session=session,
+                             region_name=os.environ["OS_REGION_NAME"])
+    ports = nclient.list_ports()["ports"]
     logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
-    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
+    ports_with_name = list(filter(lambda p: p["name"] == port_name, ports))
     logger.info("[neutron]: Reusing %s ports" % len(ports_with_name))
     # create missing ports
     for _ in range(0, total - len(ports_with_name)):
-        port = {'admin_state_up': True,
-                'name': PORT_NAME,
-                'network_id': network['id']}
+        port = {"admin_state_up": True,
+                "name": PORT_NAME,
+                "network_id": network["id"]}
         # Checking port with PORT_NAME
-        nclient.create_port({'port': port})
-    ports = nclient.list_ports()['ports']
-    ports_with_name = list(filter(lambda p: p['name'] == port_name, ports))
+        nclient.create_port({"port": port})
+    ports = nclient.list_ports()["ports"]
+    ports_with_name = list(filter(lambda p: p["name"] == port_name, ports))
     ip_addresses = []
     for port in ports_with_name:
-        ip_addresses.append(port['fixed_ips'][0]['ip_address'])
+        ip_addresses.append(port["fixed_ips"][0]["ip_address"])
     logger.info("[neutron]: Returning %s free ip addresses" % ip_addresses)
     return ip_addresses
 
@@ -162,43 +163,46 @@ class Chameleonbaremetal(cc.Chameleonkvm):
 
         conf = self.provider_conf
         env = openstack.check_environment(conf)
-        lease = check_reservation(conf, env['session'])
-        extra_ips = check_extra_ports(env['session'],
-                                      env['network'],
-                                      conf['extra_ips'])
-        reservations = lease['reservations']
-        machines = self.provider_conf["resources"]["machines"]
+        lease = check_reservation(conf, env["session"])
+        extra_ips = check_extra_ports(env["session"],
+                                      env["network"],
+                                      conf.extra_ips)
+        reservations = lease["reservations"]
+        machines = self.provider_conf.machines
         machines = sorted(machines, key=by_flavor)
         servers = []
         for flavor, descs in groupby(machines, key=by_flavor):
-            machines = list(descs)
+            _machines = list(descs)
             # NOTE(msimonin): There should be only one reservation per flavor
-            hints = [{'reservation': r['id']} for r in reservations
-                             if flavor in r['resource_properties']]
+            hints = [{"reservation": r["id"]} for r in reservations
+                             if flavor in r["resource_properties"]]
+            # It's still a bit tricky here
             os_servers = openstack.check_servers(
-                env['session'],
-                {"machines": machines},
-                extra_prefix="{}__{}__".format(conf['prefix'], flavor),
+                env["session"],
+                _machines,
+                # NOTE(msimonin): we should be able to deduce the flavour from
+                # the name
+                extra_prefix="-o-{}-o-".format(flavor),
                 force_deploy=force_deploy,
-                key_name=conf.get('key_name'),
-                image_id=env['image_id'],
+                key_name=conf.key_name,
+                image_id=env["image_id"],
                 flavors="baremetal",
-                network=env['network'],
-                ext_net=env['ext_net'],
+                network=env["network"],
+                ext_net=env["ext_net"],
                 scheduler_hints=hints)
             servers.extend(os_servers)
 
         deployed, _ = openstack.wait_for_servers(
-            env['session'],
+            env["session"],
             servers)
 
         gateway_ip, _ = openstack.check_gateway(
             env,
-            conf.get('gateway', False),
+            conf.gateway,
             deployed)
 
         # NOTE(msimonin) build the roles and networks This is a bit tricky here
-        # since flavor (e.g compute_haswell) doesn't correspond to a flavor
+        # since flavor (e.g compute_haswell) doesn"t correspond to a flavor
         # attribute of the nova server object. We have to encode the flavor
         # name (e.g compute_haswell) in the server name. Decoding the flavor
         # name from the server name helps then to form the roles.
@@ -207,7 +211,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             conf,
             gateway_ip,
             deployed,
-            lambda s: s.name.split('__')[1],
+            lambda s: s.name.split("-o-")[1],
             extra_ips=extra_ips)
 
     def destroy(self):
@@ -215,32 +219,8 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         session = openstack.get_session()
         bclient = create_blazar_client(self.provider_conf, session)
         lease = get_reservation(bclient, self.provider_conf)
-        bclient.lease.delete(lease['id'])
+        if lease is None:
+            logger.info("No lease to destroy")
+            return
+        bclient.lease.delete(lease["id"])
         logger.info("Destroyed %s" % lease_to_s(lease))
-
-    def default_config(self):
-        default_config = super(Chameleonbaremetal, self).default_config()
-        default_config.update({
-            'type': 'chameleonbaremetal',
-            # Name os the lease to use
-            'lease_name': 'enos-lease',
-            # Glance image to use
-            'image_name': 'CC-Ubuntu16.04',
-            # User to use to connect to the machines
-            # (sudo will be used to configure them)
-            'user': 'cc',
-            # True iff Enos must configure a network stack for you
-            'configure_network': False,
-            # Name of the network to use or to create
-            'network': {'name': 'sharednet1'},
-            # Name of the subnet to use or to create
-            'subnet': {'name': 'sharednet1-subnet'},
-            # DNS server to use when creating network
-            'dns_nameservers': ['130.202.101.6', '130.202.101.37'],
-            # Experiment duration
-            "walltime": "02:00:00",
-            # extra ips to reserve
-            "extra_ips": 0
-        })
-
-        return default_config
