@@ -1,0 +1,41 @@
+<domain type='kvm'>
+ <cpu mode='host-passthrough'></cpu>
+ <name>{{ item.alias }}</name>
+ <memory>{{ item.mem }}</memory>
+ <vcpu>{{ item.core }}</vcpu>
+ <features>
+   <acpi/>
+ </features>
+ <os>
+   <type arch="x86_64">hvm</type>
+ </os>
+ <clock offset="localtime"/>
+ <on_poweroff>destroy</on_poweroff>
+ <on_reboot>restart</on_reboot>
+ <on_crash>destroy</on_crash>
+ <devices>
+   <emulator>/usr/bin/kvm</emulator>
+   <disk type='file' device='disk'>
+     <driver name='qemu' type='qcow2'/>
+     <source file='/tmp/disks/{{ item.alias}}'/>
+     <target dev='vda' bus='virtio'/>
+   </disk>
+   <disk type='file' device='cdrom'>
+     <source file='/tmp/cloud-init-data-{{ item.alias }}.iso'/>
+     <target dev='vdb' bus='virtio'/>
+     <readonly/>
+   </disk>
+   <interface type='bridge'>
+     <source bridge='br0'/>
+     <mac address='{{ item.eui }}'/>
+   </interface>
+   <serial type='pty'>
+     <source path='/dev/ttyS0'/>
+     <target port='0'/>
+   </serial>
+   <console type='pty'>
+     <source path='/dev/ttyS0'/>
+     <target port='0'/>
+   </console>
+ </devices>
+</domain>

@@ -1,0 +1,4 @@
+#instance-id: iid-local01
+#local-hostname: example-vm
+public-keys:
+  - "{{ pubkey }}" 

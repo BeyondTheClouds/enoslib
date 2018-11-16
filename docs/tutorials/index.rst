@@ -16,3 +16,4 @@ Tutorials
     using-tasks
     ansible-integration
     chameleon
+    vmong5k

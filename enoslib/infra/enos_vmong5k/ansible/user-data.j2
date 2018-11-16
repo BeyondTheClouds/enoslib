@@ -1,0 +1,15 @@
+#cloud-config
+hostname: {{ item.alias }}
+fqdn: {{ item.alias }}.grid5000.fr
+
+disable_root: false
+bootcmd:
+  - mkdir -p /root/.ssh
+  - echo "{{ pubkey }}" > /root/.ssh/authorized_keys
+  - sed -i "/127.0.0.1/d" /etc/hosts
+  - echo "127.0.0.1 localhost" >> /etc/hosts
+{% for _vms in vms.values() %}
+{% for vm in _vms %}
+  - echo "{{ vm.address }}   {{ vm.alias }}  {{ vm.alias }}.grid5000.fr" >> /etc/hosts
+{% endfor %}
+{% endfor %}
