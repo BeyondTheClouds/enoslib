@@ -1,0 +1,119 @@
+---
+- name: This is a play for virtual machines on Grid'5000
+  hosts: all
+  vars:
+    pubkey: "{{lookup('file', '~/.ssh/id_rsa.pub')}}"
+  tasks:
+
+    - name: Destroy running virtual machines (vm -1 / 1)
+      virt:
+        name: "{{ item.alias }}"
+        state: destroyed
+      ignore_errors: yes
+      with_items: "{{ vms[inventory_hostname] }}"
+
+    - name: Unregister existing virtual machines (vm -0 / 1)
+      virt:
+        name: "{{ item.alias }}"
+        command: undefine
+      ignore_errors: yes
+      with_items: "{{ vms[inventory_hostname] }}"
+
+    - name: Enable nested virtualization
+      shell: |
+        modprobe -r kvm_intel
+        modprobe kvm_intel nested=1
+
+    - name: Unmount the tmpfs
+      mount:
+        path: /tmp/disks
+        state: unmounted
+      when:
+        - tmpfs is defined
+        - tmpfs
+
+    - name: Remove a tmpfs for the vms
+      file:
+        path: /tmp/disks
+        state: absent
+      when:
+        - tmpfs is defined
+        - tmpfs
+
+    - name: Create a directory for hosting the virtual disks
+      file:
+        path: /tmp/disks
+        state: directory
+        mode: 777
+
+    - name: Mount the tmpfs
+      shell: "mount -t tmpfs -o size={{ tmpfs }} tmpfs /tmp/disks"
+      when:
+        - tmpfs is defined
+        - tmpfs
+
+    - name: Removing previous cloud init data
+      file:
+        path: "/tmp/cloud-init-data-{{ item.alias }}"
+        state: absent
+      loop: "{{ vms[inventory_hostname] }}"
+
+    - name: Removing previous cloud init data iso
+      file:
+        path: "/tmp/cloud-init-data-{{ item.alias }}.iso"
+        state: absent
+      loop: "{{ vms[inventory_hostname] }}"
+
+    - name: Creating cloud init data directory
+      file:
+        path: "/tmp/cloud-init-data-{{ item.alias }}"
+        state: directory
+      loop: "{{ vms[inventory_hostname] }}"
+
+    - name: Generate meta-data for cloud-init
+      template:
+        src: meta-data.j2
+        dest: "/tmp/cloud-init-data-{{ item.alias }}/meta-data"
+      loop: "{{ vms[inventory_hostname] }}"
+
+    - name: Generate user data for cloud-init
+      template:
+        src: user-data.j2
+        dest: "/tmp/cloud-init-data-{{ item.alias }}/user-data"
+      loop: "{{ vms[inventory_hostname] }}"
+
+    #  Create one iso per vm
+    - name: Create the iso for cloud-init
+      shell: "cd /tmp &&  genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data"
+      loop: "{{ vms[inventory_hostname] }}"
+
+    - name: Check base image
+      stat:
+        path: "{{ base_image }}"
+      register: p
+
+    - name: Verify base image accessibility
+      fail:
+        msg: "Base image does not exist. Verify this path is valid: {{ base_image }}"
+      when: p.stat.exists == False
+
+      # NOTE(msimonin): We don't copy in the ramfs in a first iteration
+    - name: Copy base image
+      shell: "cp {{ base_image }} /tmp/kenan-base-image.qcow2"
+
+    - name: Link virtual image to base image
+      shell: "qemu-img create -f qcow2 -o backing_file=/tmp/kenan-base-image.qcow2 /tmp/disks/{{ item.alias }}"
+      with_items: "{{ vms[inventory_hostname] }}"
+
+    - name: Define virtual machines (vm 0 / 1)
+      virt:
+        name: "{{ item.alias }}"
+        command: define
+        xml: "{{ lookup('template', 'domain.xml.j2') }}"
+      with_items: "{{ vms[inventory_hostname] }}"
+
+    - name: Launch virtual machines (vm 1 / 1)
+      virt:
+        name: "{{ item.alias }}"
+        state: running
+      with_items: "{{ vms[inventory_hostname] }}"

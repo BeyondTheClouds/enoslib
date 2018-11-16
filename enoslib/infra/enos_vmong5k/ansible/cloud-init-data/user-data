@@ -1,0 +1,10 @@
+#cloud-config
+disable_root: false
+bootcmd:
+  - sed -i "/127.0.0.1/d" /etc/hosts
+  - echo "127.0.0.1 localhost" >> /etc/hosts
+  - echo "10.158.0.2   vm_control-0  vm_control-0.grid5000.fr" >> /etc/hosts
+  - echo "10.158.0.3   vm_control-1  vm_control-1.grid5000.fr" >> /etc/hosts
+  - echo "10.158.0.4   vm_control-2  vm_control-2.grid5000.fr" >> /etc/hosts
+  - echo "10.158.0.5   vm_network-0  vm_network-0.grid5000.fr" >> /etc/hosts
+  - echo "10.158.0.6   vm_compute-0  vm_compute-0.grid5000.fr" >> /etc/hosts

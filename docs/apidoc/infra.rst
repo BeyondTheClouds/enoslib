@@ -51,6 +51,22 @@ G5k API
     :undoc-members:
     :show-inheritance:
 
+Virtual Machines on Grid5000 (VMonG5k)
+--------------------------------------
+
+VMonG5k Provider Class
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: enoslib.infra.enos_vmong5k.provider
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+VMonG5k Schema
+^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../enoslib/infra/enos_vmong5k/schema.py
+
 Static
 ------
 

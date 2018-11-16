@@ -117,4 +117,5 @@ You can found it `here
 It starts reserve non-deploy nodes and a subnet and start virtual machines on
 them.
 
-
+.. hint::
+  Note that it is now possible to use the ``VMonG5k`` provider directly.

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import copy
 
 
 class Host(object):
 
     def __init__(
             self,
-            address,
+            address, *,
             alias=None,
             user=None,
             keyfile=None,
@@ -19,6 +20,9 @@ class Host(object):
         self.keyfile = keyfile
         self.port = port
         self.extra = extra or {}
+
+    def to_dict(self):
+        return copy.deepcopy(self.__dict__)
 
     def __repr__(self):
         args = [self.alias, "address=%s" % self.address]
