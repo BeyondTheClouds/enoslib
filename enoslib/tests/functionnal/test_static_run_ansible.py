@@ -1,5 +1,6 @@
 from enoslib.api import generate_inventory, run_command
 from enoslib.infra.enos_static.provider import Static
+from enoslib.infra.enos_static.configuration import Configuration
 
 import json
 import os
@@ -9,14 +10,14 @@ import os
 provider_conf = {
     "resources": {
         "machines": [{
-            "role": "control",
+            "roles": ["control"],
             "address": "localhost",
             "extra": {
                 "ansible_connection": "local"
             }
         }],
         "networks": [{
-            "role": "local",
+            "roles": ["local"],
             "start": "172.17.0.0",
             "end": "172.17.255.255",
             "cidr": "172.17.0.0/16",
@@ -27,7 +28,7 @@ provider_conf = {
 }
 
 inventory = os.path.join(os.getcwd(), "hosts")
-provider = Static(provider_conf)
+provider = Static(Configuration.from_dictionnary(provider_conf))
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 result = run_command("control", "date", inventory)

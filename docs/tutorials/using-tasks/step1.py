@@ -1,6 +1,7 @@
 from enoslib.api import generate_inventory, emulate_network,\
     validate_network, reset_network
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import logging
 import os
@@ -10,12 +11,12 @@ logging.basicConfig(level=logging.INFO)
 provider_conf = {
     "resources": {
         "machines": [{
-            "role": "control",
+            "roles": ["control"],
             "flavor": "tiny",
             "number": 1,
             "networks": ["n1"]
         },{
-            "role": "compute",
+            "roles": ["compute"],
             "flavor": "tiny",
             "number": 1,
             "networks": ["n1"]
@@ -33,7 +34,9 @@ tc = {
 inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
-provider = Enos_vagrant(provider_conf)
+conf = Configuration.from_dictionnary(provider_conf)
+
+provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 

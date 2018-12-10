@@ -18,13 +18,6 @@ python3.5:
     - pip install tox
     - tox -e py35 pep8
 
-python2.7:
-    image: python:2.7
-    stage: test
-    script:
-    - pip install tox
-    - tox -e py27 pep8
-
 python3.6:
     image: python:3.6
     stage: test

@@ -15,10 +15,29 @@ Installation
 
   It's a good practice to use a virtualenv or a python version manager like `pyenv`.
 
-Alternatively you can also install from sources: 
+
+
+Basic example
+-------------
+
+The following reserve 2 nodes on the chameleon baremetal infrastructure.
+Prior to the execution you must source your openrc file:
 
 .. code-block:: bash
 
-    $ pip install -U git+https://github.com/BeyondTheClouds/enoslib/enoslib#egg=enoslib[chameleon]
-    
-..
+   $ source CH-XXXXX.sh
+
+
+You must also configure an access key in you project and replace with its name
+in the following.
+
+
+.. literalinclude:: chameleon/tuto_chameleonbaremetal.py
+   :language: python
+   :linenos:
+
+
+.. note::
+
+   Similarly to other provider the configuration can be generated
+   programmatically instead of using a dict.

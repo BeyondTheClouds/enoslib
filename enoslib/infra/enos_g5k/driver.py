@@ -6,7 +6,8 @@ from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
                                           grid_destroy_from_id,
                                           oar_reload_from_id,
                                           oar_destroy_from_id)
-from enoslib.infra.enos_g5k.constants import (JOB_NAME, WALLTIME,
+from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
+                                              DEFAULT_WALLTIME,
                                               JOB_TYPE_DEPLOY)
 import logging
 
@@ -29,8 +30,8 @@ def get_driver(configuration):
         logger.debug("Loading the OarStaticDriver")
         return OarStaticDriver(oar_jobid, oar_site)
     else:
-        job_name = configuration.get("job_name", JOB_NAME)
-        walltime = configuration.get("walltime", WALLTIME)
+        job_name = configuration.get("job_name", DEFAULT_JOB_NAME)
+        walltime = configuration.get("walltime", DEFAULT_WALLTIME)
         job_type = configuration.get("job_type", JOB_TYPE_DEPLOY)
         reservation_date = configuration.get("reservation", False)
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect

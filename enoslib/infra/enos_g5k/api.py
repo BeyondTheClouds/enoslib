@@ -8,7 +8,7 @@ from operator import itemgetter
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.driver import get_driver
-from enoslib.infra.enos_g5k.constants import ENV_NAME, JOB_TYPE_DEPLOY
+from enoslib.infra.enos_g5k.constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
 
 
 def get_clusters_sites(clusters):
@@ -137,7 +137,7 @@ class Resources:
             vlan_id = net["_c_network"]["vlan_id"]
             return [translate(node, vlan_id) for node in nodes]
 
-        env_name = self.configuration.get("env_name", ENV_NAME)
+        env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
         force_deploy = self.configuration.get("force_deploy", False)
 
         machines = self.c_resources["machines"]

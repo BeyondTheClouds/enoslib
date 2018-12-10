@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from jsonschema import validate
-
 KAVLAN = "kavlan"
 KAVLAN_LOCAL = "kavlan-local"
 KAVLAN_GLOBAL = "kavlan-global"
@@ -14,25 +12,39 @@ SUBNET_TYPE = [SLASH_18, SLASH_22]
 PROD = "prod"
 
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPE
+JOB_TYPES = ["deploy", "allow_classic_ssh"]
+QUEUE_TYPES = ["default", "production", "testing"]
 
-# This is the schema for the abstract description of the resources
 SCHEMA = {
     "type": "object",
     "properties": {
+        "dhcp": {"type": "boolean"},
+        "force_deploy": {"type": "boolean"},
+        "env_name": {"type": "string"},
+        "job_name": {"type": "string"},
+        "job_type": {"type": "string", "enum": JOB_TYPES},
+        "oargrid_jobid": {"type": "string"},
+        "oar_jobid": {"type": "string"},
+        "queue": {"type": "string", "enum": QUEUE_TYPES},
+        "walltime": {"type": "string"},
         "resources": {"$ref": "#/resources"}
     },
-    "additionalProperties": True,
+    "additionalProperties": False,
     "required": ["resources"],
     "resources": {
         "title": "Resource",
 
         "type": "object",
         "properties": {
-            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "machines": {
+                "type": "array",
+                "items": {"$ref": "#/machine"}
+            },
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
-                "uniqueItems": True},
+                "uniqueItems": True
+            },
         },
         "additionalProperties": False,
         "required": ["machines", "networks"],
@@ -42,10 +54,7 @@ SCHEMA = {
         "title": "Compute",
         "type": "object",
         "properties": {
-            "anyOf": [
-                {"roles": {"type": "array", "items": {"type": "string"}}},
-                {"role": {"type": "string"}}
-            ],
+            "roles": {"type": "array", "items": {"type": "string"}},
             "cluster": {"type": "string"},
             "nodes": {"type": "number"},
             "min": {"type": "number"},
@@ -56,10 +65,9 @@ SCHEMA = {
                 "uniqueItems": True}
         },
         "required": [
-            "nodes",
+            "roles",
             "cluster",
-            "primary_network",
-            "secondary_networks"
+            "primary_network"
         ]
     },
     "network": {
@@ -67,37 +75,36 @@ SCHEMA = {
         "properties": {
             "id": {"type": "string"},
             "type": {"enum": NETWORK_TYPES},
-            "anyOf": [
-                {"roles": {"type": "array", "items": {"type": "string"}}},
-                {"role": {"type": "string"}}
-            ],
+            "roles": {"type": "array", "items": {"type": "string"}},
             "site": {"type": "string"}
         },
-        "required": ["id", "type", "site"]
+        "required": ["id", "type", "roles", "site"]
     }
 }
+"""
+Additionnal notes
 
+Supported network types are
 
-def validate_schema(provider_conf):
-    """Validate the schema of the configuration.
+    - kavlan
+    - kavlan-local
+    - kavlan-global
+    - prod
+    - slash_22 (subnet reservation)
+    - slash_18 (subnet reservation)
 
-    Args:
-        provider_conf (dict): The provider configuration
-    """
-    # First, validate the syntax
-    validate(provider_conf, SCHEMA)
-    # Second, validate the network names
-    # _validate_network_names(d)
-    # Third validate the network number on each nodes
+Machines must use at least one network of type prod or kavlan*. Subnets are
+optional and must not be linked to any interfaces as they are a way to
+claim extra ips and corresponding macs. In this case the returned network
+attributes `start` and `end` corresponds to the first and last mapping of
+(ip, mac).
 
+If a key ``oargrid_jobid`` is found, the resources will be reloaded from
+the corresponding oargrid job. In this case what is described under the
+``resources`` key mut be compatible with the job content.
 
-def _validate_network_names(resources):
-    # every network role used in the machine descriptions should fit with one
-    # in network
-    pass
+If the keys ``oar_jobid`` and ``oar_site`` are found, the resources will be
+reloaded from the corresponding oar job. In this case what is described
+under the ``resources`` key mut be compatible with the job content.
 
-
-def _validate_network_number(resources):
-    # The number of network wanted for each node should fit the number of NIC
-    # available on g5k
-    pass
+"""

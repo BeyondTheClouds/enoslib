@@ -1,5 +1,5 @@
-192.168.142.245 : 0.03 0.04 0.04 0.04 0.04
-192.168.142.244 : 41.50 41.55 41.63 42.50 41.43
+192.168.142.244 : 40.48 40.40 40.42 40.43 40.35 40.36 40.36 40.44 40.27 40.34
+192.168.142.245 : 0.02 0.02 0.03 0.02 0.03 0.03 0.03 0.02 0.03 0.02
 
        2 targets
        2 alive
@@ -7,12 +7,12 @@
        0 unknown addresses
 
        0 timeouts (waiting for response)
-      10 ICMP Echos sent
-      10 ICMP Echo Replies received
+      20 ICMP Echos sent
+      20 ICMP Echo Replies received
        0 other ICMP received
 
- 0.03 ms (min round trip time)
- 20.8 ms (avg round trip time)
- 42.5 ms (max round trip time)
-        4.075 sec (elapsed real time)
+ 0.02 ms (min round trip time)
+ 20.2 ms (avg round trip time)
+ 40.4 ms (max round trip time)
+        9.042 sec (elapsed real time)
 

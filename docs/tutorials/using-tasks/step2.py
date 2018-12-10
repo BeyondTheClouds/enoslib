@@ -1,21 +1,19 @@
 from enoslib.api import generate_inventory, emulate_network, validate_network
 from enoslib.task import enostask
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+from enoslib.infra.enos_vagrant.configuration import Configuration
 
-import click
 import os
 
 provider_conf = {
-    "backend": "virtualbox",
-    "user": "root",
     "resources": {
         "machines": [{
-            "role": "control",
+            "roles": ["control"],
             "flavor": "tiny",
             "number": 1,
             "networks": ["n1"]
         },{
-            "role": "compute",
+            "roles": ["compute"],
             "flavor": "tiny",
             "number": 1,
             "networks": ["n1"]
@@ -34,7 +32,8 @@ tc = {
 def up(force=True, env=None, **kwargs):
     "Starts a new experiment"
     inventory = os.path.join(os.getcwd(), "hosts")
-    provider = Enos_vagrant(provider_conf)
+    conf = Configuration.from_dictionnary(provider_conf)
+    provider = Enos_vagrant(conf)
     roles, networks = provider.init()
     generate_inventory(roles, networks, inventory, check_networks=True)
     env["roles"] = roles

@@ -1,7 +1,7 @@
 Tutorial 2 - Working with Grid'5000
 ===================================
 
-This tutorial illustrate the use of EnOSlib to interact with Grid'5000. For a
+This tutorial illustrates the use of EnOSlib to interact with Grid'5000. For a
 full description of the API and the available options, please refer to the API
 documentation of the Grid'5000 provider.
 
@@ -21,8 +21,13 @@ On Grid'5000, you can go with a virtualenv :
 Basic example
 -------------
 
-The following ``tuto_grid5000.py`` implements a basic workflow where 2 nodes are
-reserved and 2 roles are described. Nodes are here put in a dedicated vlan.
+We'll implement a basic workflow where 2 nodes are reserved and 2 roles are
+described. Nodes are here put in a dedicated vlan.
+
+
+Build the configuration from a dictionnary
+******************************************
+
 
 .. literalinclude:: grid5000/tuto_grid5000.py
    :language: python
@@ -45,30 +50,64 @@ reserved and 2 roles are described. Nodes are here put in a dedicated vlan.
     Compared to the vagrant provider, Grid'5000 requires a more precise
     network description that should map what is available on the platform.
 
+Build the configuration programmatically
+****************************************
+
+The above script can be rewritten using the programmatc API.
+
+.. literalinclude:: grid5000/tuto_grid5000_p.py
+   :language: python
+   :linenos:
+
+.. note::
+
+   Here we first create a network and pass its reference to each group of
+   machine to configure the first interface of the Grid'5000 nodes.
+
 
 Subnet reservation
 ------------------
 
-The following ``tuto_grid5000_subnet.py`` shows how to deal with a subnet reservation.
+This shows how to deal with a subnet reservation
+
+Build the configuration from a dictionnary
+******************************************
 
 .. literalinclude:: grid5000/tuto_grid5000_subnet.py
     :language: python
     :linenos:
 
+Build the configuration programmatically
+****************************************
+
+.. literalinclude:: grid5000/tuto_grid5000_subnet_p.py
+    :language: python
+    :linenos:
 
 Non deploy reservation
 ----------------------
 
-The following ``tuto_grid5000_non_deploy.py`` shows how to deal with a non
-deploy reservation. Root ssh access will be granted to the nodes. For this
-purpose you must have a ``~/.ssh/id_rsa.pub`` file available. All the
-connections will be done as root user allowing to mimic the behaviour of deploy
-jobs (without the kadeploy3 step). This is particularly interesting if your
-deployment does't require more than one network interface.
+The following shows how to deal with a non deploy reservation. Root ssh access
+will be granted to the nodes. For this purpose you must have a
+``~/.ssh/id_rsa.pub`` file available. All the connections will be done as root
+user allowing to mimic the behaviour of deploy jobs (without the kadeploy3
+step). This is particularly interesting if your deployment does't require more
+than one network interface.
+
+Build the configuration from a dictionnary
+******************************************
 
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
     :language: python
     :linenos:
+
+Build the configuration programmatically
+****************************************
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p.py
+    :language: python
+    :linenos:
+
 
 More complete example
 ---------------------

@@ -18,7 +18,7 @@ class TestExpandDescription(EnosTest):
             'symetric': True
         }
         descs = _expand_description(desc)
-        self.assertEquals(1, len(descs))
+        self.assertEqual(1, len(descs))
         self.assertDictEqual(desc, descs[0])
 
     def test_src_expansion(self):
@@ -31,11 +31,11 @@ class TestExpandDescription(EnosTest):
         }
         # checking cardinality : the cartesian product
         descs = _expand_description(desc)
-        self.assertEquals(3, len(descs))
+        self.assertEqual(3, len(descs))
 
         # checking that expansion has been generated
         srcs = map(lambda d: d.pop('src'), descs)
-        self.assertEquals(set(srcs), {'grp1', 'grp2', 'grp3'})
+        self.assertEqual(set(srcs), {'grp1', 'grp2', 'grp3'})
 
         # checking that the remaining is untouched
         desc.pop('src')
@@ -53,11 +53,11 @@ class TestExpandDescription(EnosTest):
         }
         # checking cardinality : the cartesian product
         descs = _expand_description(desc)
-        self.assertEquals(3, len(descs))
+        self.assertEqual(3, len(descs))
 
         # checking that expansion has been generated
         dsts = map(lambda d: d.pop('dst'), descs)
-        self.assertEquals(set(dsts), {'grp1', 'grp2', 'grp3'})
+        self.assertEqual(set(dsts), {'grp1', 'grp2', 'grp3'})
 
         # checking that the remaining is untouched
         desc.pop('dst')
@@ -75,14 +75,14 @@ class TestExpandDescription(EnosTest):
         }
         # checking cardinality : the cartesian product
         descs = _expand_description(desc)
-        self.assertEquals(9, len(descs))
+        self.assertEqual(9, len(descs))
 
         # checking that expansion has been generated
         dsts = map(lambda d: d.pop('dst'), descs)
-        self.assertEquals(set(dsts), {'grp4', 'grp5', 'grp6'})
+        self.assertEqual(set(dsts), {'grp4', 'grp5', 'grp6'})
         # checking that expansion has been generated
         srcs = map(lambda d: d.pop('src'), descs)
-        self.assertEquals(set(srcs), {'grp1', 'grp2', 'grp3'})
+        self.assertEqual(set(srcs), {'grp1', 'grp2', 'grp3'})
 
         # checking that the remaining is untouched
         desc.pop('dst')
@@ -104,16 +104,16 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
         descs = _generate_default_grp_constraints(roles, network_constraints)
 
         # Cartesian product is applied
-        self.assertEquals(2, len(descs))
+        self.assertEqual(2, len(descs))
 
         # defaults are applied
         for d in descs:
-            self.assertEquals('10mbit', d['rate'])
-            self.assertEquals('10ms', d['delay'])
+            self.assertEqual('10mbit', d['rate'])
+            self.assertEqual('10ms', d['delay'])
 
         # descs are symetrics
-        self.assertEquals(descs[0]['src'], descs[1]['dst'])
-        self.assertEquals(descs[0]['dst'], descs[1]['src'])
+        self.assertEqual(descs[0]['src'], descs[1]['dst'])
+        self.assertEqual(descs[0]['dst'], descs[1]['src'])
 
 
     def test_except_one_group(self):
@@ -129,7 +129,7 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
         }
         descs = _generate_default_grp_constraints(roles, network_constraints)
         # Cartesian product is applied but grp1 isn't taken
-        self.assertEquals(2, len(descs))
+        self.assertEqual(2, len(descs))
 
         for d in descs:
             self.assertTrue('grp1' != d['src'])
@@ -150,7 +150,7 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
         descs = _generate_default_grp_constraints(roles, network_constraints)
 
         # Cartesian product is applied but grp1 isn't taken
-        self.assertEquals(2, len(descs))
+        self.assertEqual(2, len(descs))
 
         for d in descs:
             self.assertTrue('grp1' != d['src'])
@@ -172,7 +172,7 @@ class TestGenerateActualGrpConstraints(EnosTest):
         }
         descs = _generate_actual_grp_constraints(network_constraints)
 
-        self.assertEquals(1, len(descs))
+        self.assertEqual(1, len(descs))
         self.assertDictEqual(constraints[0], descs[0])
 
 
@@ -191,16 +191,16 @@ class TestGenerateActualGrpConstraints(EnosTest):
         }
         descs = _generate_actual_grp_constraints(network_constraints)
 
-        self.assertEquals(2, len(descs))
+        self.assertEqual(2, len(descs))
 
         # bw/rate are applied
         for d in descs:
-            self.assertEquals('20mbit', d['rate'])
-            self.assertEquals('20ms', d['delay'])
+            self.assertEqual('20mbit', d['rate'])
+            self.assertEqual('20ms', d['delay'])
 
         # descs are symetrics
-        self.assertEquals(descs[0]['src'], descs[1]['dst'])
-        self.assertEquals(descs[0]['dst'], descs[1]['src'])
+        self.assertEqual(descs[0]['src'], descs[1]['dst'])
+        self.assertEqual(descs[0]['dst'], descs[1]['src'])
 
     def test_expansion_symetric(self):
         constraints = [{
@@ -217,12 +217,12 @@ class TestGenerateActualGrpConstraints(EnosTest):
         }
         descs = _generate_actual_grp_constraints(network_constraints)
 
-        self.assertEquals(3*3*2, len(descs))
+        self.assertEqual(3*3*2, len(descs))
 
         # bw/rate are applied
         for d in descs:
-            self.assertEquals('20mbit', d['rate'])
-            self.assertEquals('20ms', d['delay'])
+            self.assertEqual('20mbit', d['rate'])
+            self.assertEqual('20ms', d['delay'])
 
     def test_expansion_no_symetric(self):
         constraints = [{
@@ -238,12 +238,12 @@ class TestGenerateActualGrpConstraints(EnosTest):
         }
         descs = _generate_actual_grp_constraints(network_constraints)
 
-        self.assertEquals(3*3, len(descs))
+        self.assertEqual(3*3, len(descs))
 
         # bw/rate are applied
         for d in descs:
-            self.assertEquals('20mbit', d['rate'])
-            self.assertEquals('20ms', d['delay'])
+            self.assertEqual('20mbit', d['rate'])
+            self.assertEqual('20ms', d['delay'])
 
     def test_same_src_and_dest_defaults_embedded(self):
         constraints = [{
@@ -259,7 +259,7 @@ class TestGenerateActualGrpConstraints(EnosTest):
         }
         descs = _generate_actual_grp_constraints(network_constraints)
 
-        self.assertEquals(1, len(descs))
+        self.assertEqual(1, len(descs))
         self.assertDictEqual(constraints[0], descs[0])
         for d in descs:
             self.assertTrue('grp1' == d['src'])
@@ -280,15 +280,15 @@ class TestGenerateActualGrpConstraints(EnosTest):
             'constraints': constraints
         }
         descs = _build_grp_constraints(roles, network_constraints)
-        self.assertEquals(3, len(descs))
+        self.assertEqual(3, len(descs))
         # bw/rate are applied
         count_src_equals_dst = 0
         for d in descs:
-            self.assertEquals('10mbit', d['rate'])
-            self.assertEquals('10ms', d['delay'])
+            self.assertEqual('10mbit', d['rate'])
+            self.assertEqual('10ms', d['delay'])
             if d['src'] == d['dst'] == 'grp1':
                 count_src_equals_dst += 1
-        self.assertEquals(1,count_src_equals_dst)
+        self.assertEqual(1,count_src_equals_dst)
 
 
 class TestMergeConstraints(EnosTest):
@@ -365,7 +365,7 @@ class TestBuildIpConstraints(EnosTest):
         self.assertTrue('tc' in ips_with_tc['node1'])
         tcs = ips_with_tc['node1']['tc']
         # one rule per dest ip and source device
-        self.assertEquals(2*2, len(tcs))
+        self.assertEqual(2*2, len(tcs))
 
 if __name__ == '__main__':
     unittest.main()
