@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import enoslib.infra.enos_g5k.api as api
+from .constants import NAMESERVER
 from enoslib.infra.enos_g5k.schema import KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
-from netaddr import IPAddress, IPNetwork, IPSet
 
+from netaddr import IPAddress, IPNetwork, IPSet
 import logging
+import socket
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +52,13 @@ def _to_enos_networks(networks):
         net = {
             "cidr": str(network["network"]),
             "gateway": str(network["gateway"]),
-            "dns": "131.254.203.235",
+            # NOTE(msimonin): This will point to the nameserver of the site
+            # where the deployment is launched regardless the actual site in
+            # the network description. Until now we used the global DNS IP
+            # here. Finally this information couldn't be found in the API (dec.
+            # 18) otherwise we'd move this logic in utils.concretize_networks
+            # (like network and gateway)
+            "dns": socket.gethostbyname(NAMESERVER),
             "roles": get_roles_as_list(network)
         }
         if network["type"] in KAVLAN_TYPE:
