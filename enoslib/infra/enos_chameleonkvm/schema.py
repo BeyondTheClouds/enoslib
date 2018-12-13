@@ -15,7 +15,7 @@ SCHEMA = {
         "subnet": {"$ref": "#/os_subnet"},
         "prefix": {"type": "string"}
     },
-    "additionalProperties": False,
+    "additionalProperties": True,
     "required": ["resources", "key_name"],
 
     "os_allocation_pool": {
@@ -46,7 +46,7 @@ SCHEMA = {
             "name": {"type": "string"},
             "cidr": {"type": "string"}
         },
-        "required": ["name", "cidr"],
+        "required": ["name"],
         "additionalProperties": False
     },
 
