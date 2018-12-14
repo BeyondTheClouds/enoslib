@@ -19,6 +19,7 @@ class Configuration(BaseConfiguration):
         self.oar_jobid = None
         self.oar_site = None
         self.queue = DEFAULT_QUEUE
+        self.reservation = None
         self.walltime = DEFAULT_WALLTIME
 
         self._machine_cls = MachineConfiguration
