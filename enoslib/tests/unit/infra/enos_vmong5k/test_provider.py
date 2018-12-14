@@ -1,6 +1,7 @@
 from enoslib.host import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
-from enoslib.infra.enos_vmong5k.provider import (_do_build_g5k_conf,
+from enoslib.infra.enos_vmong5k.provider import (_build_static_hash,
+                                                 _do_build_g5k_conf,
                                                  _distribute, _index_by_host,
                                                  VirtualMachine)
 from enoslib.tests.unit import EnosTest
@@ -139,3 +140,14 @@ class TestIndexByHost(EnosTest):
         vms_by_host = _index_by_host(roles)
         self.assertTrue(host.alias in vms_by_host)
         self.assertEqual(1, len(vms_by_host[host.alias]))
+
+
+class TestBuildStaticHash(EnosTest):
+
+    def test_build_static_hash(self):
+        import hashlib
+        md5 = hashlib.md5()
+        md5.update("1".encode())
+        md5.update("2".encode())
+        self.assertEqual(md5.hexdigest(), _build_static_hash(["1", "2", "3"], "3"))
+

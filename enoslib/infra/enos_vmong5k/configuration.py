@@ -37,8 +37,7 @@ class Configuration(BaseConfiguration):
         _resources = dictionnary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in
-                         _networks]
+        self.networks = _networks
         self.machines = [MachineConfiguration.from_dictionnary(m) for m in
                          _machines]
 
@@ -91,12 +90,9 @@ class MachineConfiguration:
         kwargs = {}
         roles = dictionnary["roles"]
         kwargs.update(roles=roles)
-        flavour = dictionnary.get("flavour")
+        flavour = dictionnary.get("flavour", dictionnary.get("flavour_desc"))
         if flavour is not None:
-            # The flavour name is used in the dictionnary
-            # This makes a diff with the constructor where
-            # A dict describing the flavour is given
-            kwargs.update(flavour=FLAVOURS[flavour])
+            kwargs.update(flavour=flavour)
         number = dictionnary.get("number")
         if number is not None:
             kwargs.update(number=number)

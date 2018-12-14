@@ -12,6 +12,7 @@ import enoslib.infra.enos_g5k.provider as g5kprovider
 
 from collections import defaultdict
 import execo_g5k.api_utils as utils
+import hashlib
 from ipaddress import IPv4Address
 import itertools
 import logging
@@ -97,14 +98,29 @@ def _build_g5k_conf(vmong5k_conf):
     return _do_build_g5k_conf(vmong5k_conf, site)
 
 
+def _build_static_hash(roles, cookie):
+    md5 = hashlib.md5()
+    _roles = [r for r in roles if r != cookie]
+    for r in _roles:
+        md5.update(r.encode())
+    return md5.hexdigest()
+
+
 def _distribute(machines, g5k_roles, g5k_subnet):
     vmong5k_roles = defaultdict(list)
     euis = mac_range(EUI(g5k_subnet["mac_start"]), EUI(g5k_subnet["mac_end"]))
+    static_hashes = {}
     for machine in machines:
         pms = g5k_roles[machine.cookie]
         pms_it = itertools.cycle(pms)
         for idx in range(machine.number):
-            name = "vm-{}".format(idx)
+            static_hash = _build_static_hash(machine.roles, machine.cookie)
+            static_hashes.setdefault(static_hash, 0)
+            static_hashes[static_hash] = static_hashes[static_hash] + 1
+            name = "vm-{}-{}-{}".format(
+                static_hash,
+                static_hashes[static_hash],
+                idx)
             pm = next(pms_it)
             vm = VirtualMachine(name, next(euis), machine.flavour, pm)
 
@@ -150,6 +166,7 @@ class VirtualMachine(Host):
         self.mem = int(flavour["mem"]) * 1024
         self.eui = eui
         self.pm = pm
+        self.user = "root"
 
     def to_dict(self):
         d = super().to_dict()

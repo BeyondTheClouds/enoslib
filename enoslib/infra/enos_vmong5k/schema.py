@@ -43,4 +43,15 @@ SCHEMA = {
         },
         "required": ["roles", "cluster"]
     },
+
+    "flavour_desc": {
+        "title": "Flavour",
+        "type": "object",
+        "properties": {
+            "core": {"type": "number"},
+            "mem": {"type": "number"}
+        },
+        "required": ["core", "mem"],
+        "additionalProperties": False
+    }
 }
