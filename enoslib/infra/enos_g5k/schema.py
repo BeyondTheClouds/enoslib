@@ -25,6 +25,7 @@ SCHEMA = {
         "job_type": {"type": "string", "enum": JOB_TYPES},
         "oargrid_jobid": {"type": "string"},
         "oar_jobid": {"type": "string"},
+        "oar_site": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "reservation": {"type": "string"},
         "walltime": {"type": "string"},
