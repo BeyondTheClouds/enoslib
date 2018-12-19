@@ -1,3 +1,5 @@
+.. _integration-with-ansible:
+
 Tutorial 4 - Integration with Ansible
 =====================================
 

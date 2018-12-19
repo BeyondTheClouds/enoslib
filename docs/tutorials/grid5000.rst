@@ -45,10 +45,12 @@ Build the configuration from a dictionnary
     .. literalinclude:: grid5000/hosts
      :language: python
 
-.. note::
+  .. note::
 
-    Compared to the vagrant provider, Grid'5000 requires a more precise
-    network description that should map what is available on the platform.
+       - Inventory can be used to feed an Ansible deployment (see the
+         :ref:`Ansible integration<integration-with-ansible>`)
+       - Compared to the vagrant provider, Grid'5000 requires a more precise
+         network description that should map what is available on the platform.
 
 Build the configuration programmatically
 ****************************************

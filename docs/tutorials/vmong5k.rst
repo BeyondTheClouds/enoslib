@@ -46,4 +46,4 @@ Notes
   ``slash_22`` subnet.
 
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
-  So these files should be present in your home directory.
+  So these files must be present in your home directory.
