@@ -1,3 +1,29 @@
+# 2.0.0 (dev)
+
+Warning breaking changes:
+
+* Provider: a provider must be given a configuration object. You can build it
+  from a dictionnary (this mimics EnOSlib 1.x) or build it programmaticaly. In
+  pseudo code, changes are needed in your code as follow:
+  ```
+  from enoslib.infra.enos_g5k.configuration import Configuration
+  from enoslib.infra.enos_g5k.provider import G5k
+  ...
+  conf = Configuration.from_dictionnary(provider_conf)
+  g5k = G5k(conf)
+  ...
+  ```
+
+* Provider: Configuration object
+  The configuration object aim at ease the process of building configuration for
+  providers. It can be validated against a jsonschema defined for each provider.
+  Validation is implicit using `from_dictionnary` or explicit using the
+  `finalize()` method of the configuration.
+
+* Doc: Update docs to reflect the above
+
+* VMonG5K: new provider that allows to start virtual machines on G5K.
+
 # 1.12.3
 
 * API: `utils.yml` playbook now forces fact gahering.
