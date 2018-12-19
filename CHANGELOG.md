@@ -2,6 +2,8 @@
 
 Warning breaking changes:
 
+* EnOSlib is python3.5+ compatible exclusively.
+
 * Provider: a provider must be given a configuration object. You can build it
   from a dictionnary (this mimics EnOSlib 1.x) or build it programmaticaly. In
   pseudo code, changes are needed in your code as follow:
