@@ -1,3 +1,7 @@
+# 2.0.1
+
+* VMonG5K: Package was missing site.yml file
+
 # 2.0.0
 
 Warning breaking changes:
