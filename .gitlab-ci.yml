@@ -62,7 +62,7 @@ package:
     only:
     - tags
     script:
-    - python setup.py bdist_wheel --universal
+    - python setup.py bdist_wheel
     artifacts:
         paths:
         - dist/
@@ -90,4 +90,4 @@ test-pypi:
     script:
         - pip install twine
         # credentials are set in the env by gitlab
-        - twine upload dist/* --repository-url https://test.pypi.org/legacy/ --verbose
+        - twine upload dist/* --verbose
