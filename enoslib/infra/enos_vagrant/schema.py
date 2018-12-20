@@ -40,6 +40,7 @@ SCHEMA = {
             ],
             "number": {"type": "number"}
         },
+        "additionalProperties": False,
         "required": [
             "roles",
 
@@ -52,6 +53,7 @@ SCHEMA = {
             "cidr": {"type": "string"},
             "roles": {"type": "array", "items": {"type": "string"}},
         },
+        "additionalProperties": False,
         "required": ["cidr", "roles"]
     },
 
