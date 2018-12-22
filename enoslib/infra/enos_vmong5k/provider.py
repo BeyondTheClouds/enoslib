@@ -56,7 +56,7 @@ def get_host_cores(cluster):
 
 def find_nodes_number(machine):
     cores = get_host_cores(machine.cluster)
-    return - ((-1 * machine.number * machine.flavour["core"]) // cores)
+    return - ((-1 * machine.number * machine.flavour_desc["core"]) // cores)
 
 
 def _do_build_g5k_conf(vmong5k_conf, site):
@@ -122,7 +122,7 @@ def _distribute(machines, g5k_roles, g5k_subnet):
                 static_hashes[static_hash],
                 idx)
             pm = next(pms_it)
-            vm = VirtualMachine(name, next(euis), machine.flavour, pm)
+            vm = VirtualMachine(name, next(euis), machine.flavour_desc, pm)
 
             for role in machine.roles:
                 vmong5k_roles[role].append(vm)
@@ -159,11 +159,11 @@ def start_virtualmachines(provider_conf, g5k_init, vmong5k_roles):
 
 class VirtualMachine(Host):
 
-    def __init__(self, name, eui, flavour, pm):
+    def __init__(self, name, eui, flavour_desc, pm):
         super().__init__(str(get_subnet_ip(eui)), alias=name)
-        self.core = flavour["core"]
+        self.core = flavour_desc["core"]
         # libvirt uses kiB by default
-        self.mem = int(flavour["mem"]) * 1024
+        self.mem = int(flavour_desc["mem"]) * 1024
         self.eui = eui
         self.pm = pm
         self.user = "root"

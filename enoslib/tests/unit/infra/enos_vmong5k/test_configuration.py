@@ -36,7 +36,7 @@ class TestConfiguration(EnosTest):
     def test_programmatic(self):
         conf = Configuration()
         conf.add_machine_conf(MachineConfiguration(roles=["r1"],
-                                                   flavour=constants.FLAVOURS["large"],
+                                                   flavour="large",
                                                    number=10,
                                                    cluster="test-cluster"
                                                    ))
@@ -60,7 +60,9 @@ class TestMachineConfiguration(EnosTest):
             "cluster": "test-cluster"
         }
         conf = MachineConfiguration.from_dictionnary(d)
-        self.assertEqual(constants.DEFAULT_FLAVOUR, conf.flavour)
+        flavour, flavour_desc = constants.DEFAULT_FLAVOUR
+        self.assertEqual(flavour, conf.flavour)
+        self.assertEqual(flavour_desc, conf.flavour_desc)
 
     def test_from_dictionnary(self):
         d = {
@@ -70,5 +72,17 @@ class TestMachineConfiguration(EnosTest):
             "cluster": "test-cluster"
         }
         conf = MachineConfiguration.from_dictionnary(d)
-        self.assertEqual(constants.FLAVOURS["large"], conf.flavour)
+        self.assertEqual(constants.FLAVOURS["large"], conf.flavour_desc)
+        self.assertEqual(2, conf.number)
+
+    def test_from_dictionnary_flavour_desc(self):
+        flavour_desc = {"core": 42, "mem": 42}
+        d = {
+            "roles": ["r1"],
+            "flavour_desc": flavour_desc,
+            "number": 2,
+            "cluster": "test-cluster"
+        }
+        conf = MachineConfiguration.from_dictionnary(d)
+        self.assertEqual(flavour_desc, conf.flavour_desc)
         self.assertEqual(2, conf.number)

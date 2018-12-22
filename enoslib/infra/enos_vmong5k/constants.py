@@ -36,7 +36,7 @@ FLAVOURS = {
     }
 }
 
-DEFAULT_FLAVOUR = FLAVOURS["tiny"]
+DEFAULT_FLAVOUR = "tiny", FLAVOURS["tiny"]
 
 DEFAULT_NETWORKS = ["enos_network"]
 

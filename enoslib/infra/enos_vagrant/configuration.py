@@ -57,18 +57,22 @@ class MachineConfiguration:
     def __init__(self, *,
                  roles=None,
                  flavour=None,
+                 flavour_desc=None,
                  number=1):
 
         self.roles = roles
 
-        if flavour is None:
-            self.flavour = DEFAULT_FLAVOUR
-        if isinstance(flavour, dict):
-            self.flavour = flavour
-        elif isinstance(flavour, str):
-            self.flavour = FLAVOURS[flavour]
-        else:
-            self.flavour = DEFAULT_FLAVOUR
+        # Internally we keep the flavour_desc as reference not a descriptor
+        self.flavour = flavour
+        self.flavour_desc = flavour_desc
+        if flavour is None and flavour_desc is None:
+           self.flavour, self.flavour_desc = DEFAULT_FLAVOUR
+        if self.flavour is None:
+            # assert(self.flavour_desc is not None)
+            self.flavour = "custom"
+        if self.flavour_desc is None:
+            # assert(self.flavour is not None)
+            self.flavour_desc = FLAVOURS[self.flavour]
 
         self.number = number
 
@@ -77,12 +81,13 @@ class MachineConfiguration:
         kwargs = {}
         roles = dictionnary["roles"]
         kwargs.update(roles=roles)
+
         flavour = dictionnary.get("flavour")
         if flavour is not None:
-            # The flavour name is used in the dictionnary
-            # This makes a diff with the constructor where
-            # A dict describing the flavour is given
-            kwargs.update(flavour=FLAVOURS[flavour])
+            kwargs.update(flavour=flavour)
+        flavour_desc = dictionnary.get("flavour_desc")
+        if flavour_desc is not None:
+            kwargs.update(flavour_desc=flavour_desc)
         number = dictionnary.get("number")
         if number is not None:
             kwargs.update(number=number)
@@ -91,7 +96,8 @@ class MachineConfiguration:
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles, flavour=self.flavour, number=self.number)
+        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
+                 number=self.number)
         return d
 
 

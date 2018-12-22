@@ -37,7 +37,7 @@ class TestConfiguration(EnosTest):
     def test_programmatic(self):
         conf = Configuration()
         conf.add_machine_conf(MachineConfiguration(roles=["r1"],
-                                                   flavour=FLAVOURS["large"],
+                                                   flavour_desc=FLAVOURS["large"],
                                                    number=10))\
             .add_network_conf(NetworkConfiguration(roles=["net1"], cidr="192.168.2.1/24"))
 
@@ -58,7 +58,7 @@ class TestMachineConfiguration(EnosTest):
             "roles": ["r1"]
         }
         conf = MachineConfiguration.from_dictionnary(d)
-        self.assertEqual(constants.DEFAULT_FLAVOUR, conf.flavour)
+        self.assertEqual(constants.DEFAULT_FLAVOUR[1], conf.flavour_desc)
         self.assertEqual(constants.DEFAULT_NUMBER, conf.number)
 
     def test_from_dictionnary(self):
@@ -66,8 +66,19 @@ class TestMachineConfiguration(EnosTest):
             "roles": ["r1"],
             "flavour": "large",
             "number": 2,
-            "networks": ["n1"]
         }
         conf = MachineConfiguration.from_dictionnary(d)
-        self.assertEqual(constants.FLAVOURS["large"], conf.flavour)
+        self.assertEqual(constants.FLAVOURS["large"], conf.flavour_desc)
+        self.assertEqual(2, conf.number)
+
+
+    def test_from_dictionnary_flavour_desc(self):
+        flavour_desc = {"core": 43, "mem": 42}
+        d = {
+            "roles": ["r1"],
+            "flavour_desc": flavour_desc,
+            "number": 2,
+        }
+        conf = MachineConfiguration.from_dictionnary(d)
+        self.assertEqual(flavour_desc, conf.flavour_desc)
         self.assertEqual(2, conf.number)

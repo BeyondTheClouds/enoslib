@@ -22,32 +22,32 @@ DEFAULT_CONFIG = {
 #: Sizes of the machines available for the configuration
 FLAVOURS = {
     "tiny": {
-        "cpu": 1,
+        "core": 1,
         "mem": 512
     },
     "small": {
-        "cpu": 1,
+        "core": 1,
         "mem": 1024
     },
     "medium": {
-        "cpu": 2,
+        "core": 2,
         "mem": 2048
     },
     "big": {
-        "cpu": 3,
+        "core": 3,
         "mem": 3072,
     },
     "large": {
-        "cpu": 4,
+        "core": 4,
         "mem": 4096
     },
     "extra-large": {
-        "cpu": 6,
+        "core": 6,
         "mem": 6144
     }
 }
 
-DEFAULT_FLAVOUR = FLAVOURS["tiny"]
+DEFAULT_FLAVOUR = "tiny", FLAVOURS["tiny"]
 
 
 DEFAULT_NETWORKS = ["enos_network"]

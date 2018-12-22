@@ -34,17 +34,14 @@ SCHEMA = {
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
-            "oneOf": [
-                {"flavour": {"type": "string", "enum": list(FLAVOURS.keys())}},
-                {"flavour_desc": {"$ref": "#/flavour_desc"}}
-            ],
-            "number": {"type": "number"}
+            "number": {"type": "number"},
+            "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
+            "flavour_desc": {"$ref": "#/flavour_desc"}
         },
-        "additionalProperties": False,
         "required": [
             "roles",
-
-        ]
+        ],
+        "additionalProperties": False,
     },
 
     "network": {

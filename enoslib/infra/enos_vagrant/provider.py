@@ -43,8 +43,8 @@ class Enos_vagrant(Provider):
             for _ in range(machine.number):
                 vagrant_machine = {
                     "name": "enos-%s" % j,
-                    "cpu": machine.flavour["cpu"],
-                    "mem": machine.flavour["mem"],
+                    "cpu": machine.flavour_desc["core"],
+                    "mem": machine.flavour_desc["mem"],
                     "ips": [n["netpool"].pop() for n in _networks],
                 }
                 vagrant_machines.append(vagrant_machine)
