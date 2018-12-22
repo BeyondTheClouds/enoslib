@@ -1,93 +1,112 @@
+---
 stages:
  - test
  - functionnal
  - package
  - publish
 
-variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
-cache:
-  paths:
-    - .cache/pip
-
 python3.5:
-    image: python:3.5
-    stage: test
-    script:
-    - pip install tox
-    - tox -e py35 pep8
+  image: python:3.5
+  stage: test
+  script:
+  - pip install tox
+  - tox -e py35 pep8
 
 python3.6:
-    image: python:3.6
-    stage: test
-    script:
-    - pip install tox
-    - tox -e py36 pep8
+  image: python:3.6
+  stage: test
+  script:
+  - pip install tox
+  - tox -e py36 pep8
+
+python3.6_sonar:
+  image: python:3.6-stretch
+  stage: test
+  tags:
+  - large
+  only:
+    refs:
+    - master
+  script:
+  - pip install tox
+  # allow failures to publish reports
+  - tox -e py36 pep8 || true
+  - apt update
+  - apt install -y wget unzip openjdk-8-jre
+  - pip install pylint
+  - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
+  - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
+  - wget --no-check-certificate https://sonarqube.bordeaux.inria.fr/static/digicertca.crt
+  - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar-scanner-3.2.0.1227-linux/jre/lib/security/cacerts -file digicertca.crt
+  - sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -Dsonar.login=$SONAR_LOGIN
+  artifacts:
+    paths:
+    - ./utest.xml
+    - ./coverage.xml
 
 doc:
-    image: python:3.6
-    stage: test
-    script:
-    - pip install tox
-    - tox -e docs
-    artifacts:
-        paths:
-        - docs/_build/html
+  image: python:3.6
+  stage: test
+  script:
+  - pip install tox
+  - tox -e docs
+  artifacts:
+    paths:
+    - docs/_build/html
 
 run_command:
-    image: python:3.5
-    stage: functionnal
-    script:
-    - ip a
-    - pip install -e .
-    - cd enoslib/tests/functionnal
-    - python test_static_run_command.py
-    - cat hosts
+  image: python:3.5
+  stage: functionnal
+  script:
+  - ip a
+  - pip install -e .
+  - cd enoslib/tests/functionnal
+  - python test_static_run_command.py
+  - cat hosts
 
 run_ansible:
-    image: python:3.5
-    stage: functionnal
-    script:
-    - ip a
-    - pip install -e .
-    - cd enoslib/tests/functionnal
-    - python test_static_run_ansible.py
-    - cat hosts
+  image: python:3.5
+  stage: functionnal
+  script:
+  - ip a
+  - pip install -e .
+  - cd enoslib/tests/functionnal
+  - python test_static_run_ansible.py
+  - cat hosts
 
 #### Entering th release zone
 package:
-    image: python:3.6
-    stage: package
-    only:
-    - tags
-    script:
-    - python setup.py bdist_wheel
-    artifacts:
-        paths:
-        - dist/
+  image: python:3.6
+  stage: package
+  only:
+  - tags
+  script:
+  - python setup.py bdist_wheel
+  artifacts:
+    paths:
+    - dist/
 
 pages:
-    stage: publish
-    only: 
-        - tags
-    dependencies:
-    - doc
-    script:
-    - mkdir -p public/
-    - cp -r docs/_build/html/* public/
-    artifacts:
-      paths:
-      - public
+  stage: publish
+  only:
+  - tags
+  dependencies:
+  - doc
+  script:
+  - mkdir -p public/
+  - cp -r docs/_build/html/* public/
+  artifacts:
+    paths:
+    - public
 
 test-pypi:
-    image: python:3.6
-    stage: publish
-    only:
-    - tags
-    dependencies:
-    - package
-    script:
-        - pip install twine
-        # credentials are set in the env by gitlab
-        - twine upload dist/* --verbose
+  image: python:3.6
+  stage: publish
+  only:
+  - tags
+  dependencies:
+  - package
+  script:
+  - pip install twine
+   # credentials are set in the env by gitlab
+  - twine upload dist/* --verbose
