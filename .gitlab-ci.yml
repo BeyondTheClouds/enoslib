@@ -22,6 +22,7 @@ python3.6:
 python3.6_sonar:
   image: python:3.6-stretch
   stage: test
+  allow_failure: true
   tags:
   - large
   only:
