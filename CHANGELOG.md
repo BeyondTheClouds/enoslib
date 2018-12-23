@@ -1,3 +1,8 @@
+# 2.0.2
+
+* (breaking) VMonG5K/Vagrant: Unify code. `flavour_desc` dict can be used after
+  building the MachineConfiguration.
+
 # 2.0.1
 
 * VMonG5K: Package was missing site.yml file
