@@ -100,7 +100,7 @@ pages:
     paths:
     - public
 
-test-pypi:
+pypi:
   image: python:3.6
   stage: publish
   only:
