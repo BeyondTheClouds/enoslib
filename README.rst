@@ -1,7 +1,7 @@
 EnosLib
 =======
 
-|Build Status| |Code style| |License| |Pypi|
+|Build Status| |License| |Pypi|
 
 Join us on gitter :  |Gitter|
 
@@ -22,9 +22,6 @@ Links
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines
-
-.. |Code style| image:: https://api.codacy.com/project/badge/Grade/c06e062f97f5473189ae527b8f1dfce4
-   :target: https://www.codacy.com/app/msimonin/enoslib?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=BeyondTheClouds/enoslib&amp;utm_campaign=Badge_Grade
 
 .. |License| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
    :target: https://www.gnu.org/licenses/gpl-3.0
