@@ -1,7 +1,7 @@
 EnosLib
 =======
 
-|Build Status| |License| |Pypi|
+|Build Status| |License| |Pypi| |Coverage|
 
 Join us on gitter :  |Gitter|
 
@@ -32,3 +32,6 @@ Links
 .. |Gitter| image:: https://badges.gitter.im/BeyondTheClouds/enoslib.svg
    :alt: Join the chat at https://gitter.im/BeyondTheClouds/enoslib
    :target: https://gitter.im/BeyondTheClouds/enoslib?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
+.. |Coverage| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/coverage.svg
+   :target: https://sonarqube.bordeaux.inria.fr/sonarqube/dashboard?id=discovery%3Aenoslib%3Adev
