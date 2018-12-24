@@ -18,6 +18,7 @@ python3.6:
   script:
   - pip install tox
   - tox -e py36 pep8
+  coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
 
 python3.6_sonar:
   image: python:3.6-stretch
