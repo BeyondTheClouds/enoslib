@@ -66,7 +66,7 @@ class MachineConfiguration:
         self.flavour = flavour
         self.flavour_desc = flavour_desc
         if flavour is None and flavour_desc is None:
-           self.flavour, self.flavour_desc = DEFAULT_FLAVOUR
+            self.flavour, self.flavour_desc = DEFAULT_FLAVOUR
         if self.flavour is None:
             # assert(self.flavour_desc is not None)
             self.flavour = "custom"

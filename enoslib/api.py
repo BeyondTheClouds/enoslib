@@ -1,4 +1,13 @@
 # -*- coding: utf-8 -*-
+from collections import namedtuple
+import copy
+import logging
+import os
+import re
+import time
+import json
+import yaml
+
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 # Note(msimonin): PRE 2.4 is
@@ -10,21 +19,13 @@ from ansible.plugins.callback.default import CallbackModule
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
-from collections import namedtuple
+from netaddr import IPAddress, IPSet
+
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.utils import _check_tmpdir, get_roles_as_list
 from enoslib.errors import (EnosFailedHostsError,
-                    EnosUnreachableHostsError,
-                    EnosSSHNotReady)
-from netaddr import IPAddress, IPSet
-
-import copy
-import logging
-import os
-import re
-import time
-import json
-import yaml
+                            EnosUnreachableHostsError,
+                            EnosSSHNotReady)
 
 
 logger = logging.getLogger(__name__)
@@ -52,10 +53,10 @@ def _load_defaults(inventory_path, extra_vars=None, tags=None, basedir=False):
         loader.set_basedir(basedir)
 
     inventory = Inventory(loader=loader,
-        sources=inventory_path)
+                          sources=inventory_path)
 
     variable_manager = VariableManager(loader=loader,
-        inventory=inventory)
+                                       inventory=inventory)
 
     # seems mandatory to load group_vars variable
     if basedir:
@@ -127,7 +128,7 @@ class _MyCallback(CallbackModule):
 
 
 def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
-    on_error_continue=False):
+             on_error_continue=False):
     """Run a play.
 
     Args:
@@ -165,8 +166,8 @@ def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
 
     # create play
     play_inst = play.Play().load(play_source,
-                         variable_manager=variable_manager,
-                         loader=loader)
+                                 variable_manager=variable_manager,
+                                 loader=loader)
 
     # actually run it
     try:
@@ -196,7 +197,7 @@ def run_play(pattern_hosts, play_source, inventory_path=None, extra_vars=None,
 
 
 def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
-    on_error_continue=False):
+                on_error_continue=False):
     """Run a shell command on some remote hosts.
 
     Args:
@@ -258,11 +259,11 @@ def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
     """
 
     def filter_results(results, status):
-        s = dict([[
-            r.host, {
-                "stdout": r.payload.get("stdout"),
-                "stderr": r.payload.get("stderr")}]
-            for r in results if r.status == status and r.task == COMMAND_NAME])
+        _r = [r for r in results
+              if r.status == status and r.task == COMMAND_NAME]
+        s = dict([[r.host, {"stdout": r.payload.get("stdout"),
+                            "stderr": r.payload.get("stderr")}]
+                  for r in _r])
         return s
 
     play_source = {
@@ -279,7 +280,7 @@ def run_command(pattern_hosts, command, inventory_path, extra_vars=None,
 
 
 def run_ansible(playbooks, inventory_path, extra_vars=None,
-        tags=None, on_error_continue=False, basedir='.'):
+                tags=None, on_error_continue=False, basedir='.'):
     """Run Ansible.
 
     Args:
@@ -344,7 +345,7 @@ def run_ansible(playbooks, inventory_path, extra_vars=None,
 
 
 def generate_inventory(roles, networks, inventory_path, check_networks=False,
-        fake_interfaces=None, fake_networks=None):
+                       fake_interfaces=None, fake_networks=None):
     """Generate an inventory file in the ini format.
 
     The inventory is generated using the ``roles`` in the ``ini`` format.  If
@@ -369,7 +370,7 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
             fake_interfaces to produce the mapping. """
 
     with open(inventory_path, "w") as f:
-            f.write(_generate_inventory(roles))
+        f.write(_generate_inventory(roles))
 
     if check_networks:
         _check_networks(
@@ -501,8 +502,8 @@ def emulate_network(roles, inventory, network_constraints, extra_vars=None):
         ips = yaml.safe_load(f)
         # will hold every single constraint
         ips_with_constraints = _build_ip_constraints(roles,
-                                                    ips,
-                                                    constraints)
+                                                     ips,
+                                                     constraints)
         # dumping it for debugging purpose
         ips_with_constraints_file = os.path.join(tmpdir,
                                                  'ips_with_constraints.yml')
@@ -763,16 +764,15 @@ def _generate_default_grp_constraints(roles, network_constraints):
     # flatten
     grps = [x for expanded_group in grps for x in expanded_group]
     # building the default group constraints
-    return [{
-            'src': grp1,
-            'dst': grp2,
-            'delay': default_delay,
-            'rate': default_rate,
-            'loss': default_loss
-        } for grp1 in grps for grp2 in grps
-        if (grp1 != grp2
-            or _src_equals_dst_in_constraints(network_constraints, grp1))
-            and grp1 not in except_groups and grp2 not in except_groups]
+    return [{'src': grp1,
+             'dst': grp2,
+             'delay': default_delay,
+             'rate': default_rate,
+             'loss': default_loss}
+            for grp1 in grps for grp2 in grps
+            if ((grp1 != grp2
+                 or _src_equals_dst_in_constraints(network_constraints, grp1))
+                and grp1 not in except_groups and grp2 not in except_groups)]
 
 
 def _generate_actual_grp_constraints(network_constraints):
@@ -815,7 +815,7 @@ def _build_grp_constraints(roles, network_constraints):
     """
     # generate defaults constraints
     constraints = _generate_default_grp_constraints(roles,
-                                                   network_constraints)
+                                                    network_constraints)
     # Updating the constraints if necessary
     if 'constraints' in network_constraints:
         actual = _generate_actual_grp_constraints(network_constraints)
@@ -897,9 +897,10 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
         'facts_file': facts_file,
         'fake_interfaces': fake_interfaces
     }
-    run_ansible([utils_playbook], inventory,
-        extra_vars=options,
-        on_error_continue=False)
+    run_ansible([utils_playbook],
+                inventory,
+                extra_vars=options,
+                on_error_continue=False)
 
     # Read the file
     # Match provider networks to interface names for each host
@@ -907,7 +908,7 @@ def _check_networks(roles, networks, inventory, fake_interfaces=None,
         facts = json.load(f)
         for _, host_facts in facts.items():
             host_nets = _map_device_on_host_networks(networks,
-                                                    get_devices(host_facts))
+                                                     get_devices(host_facts))
             # Add the mapping : networks <-> nic name
             host_facts['networks'] = host_nets
 
