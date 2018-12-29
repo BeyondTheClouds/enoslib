@@ -60,7 +60,7 @@ class Enos_vagrant(Provider):
         env = Environment(loader=loader, autoescape=True)
         template = env.get_template('Vagrantfile.j2')
         vagrantfile = template.render(machines=vagrant_machines,
-                provider_conf=self.provider_conf)
+                                      provider_conf=self.provider_conf)
         vagrantfile_path = os.path.join(os.getcwd(), "Vagrantfile")
         with open(vagrantfile_path, 'w') as f:
             f.write(vagrantfile)

@@ -42,8 +42,8 @@ class Configuration(BaseConfiguration):
         _networks = _resources["networks"]
         self.networks = [NetworkConfiguration.from_dictionnary(n) for n in
                          _networks]
-        self.machines = [MachineConfiguration.from_dictionnary(m,
-                         self.networks) for m in _machines]
+        self.machines = [MachineConfiguration.from_dictionnary(
+            m, self.networks) for m in _machines]
 
         self.finalize()
         return self
@@ -70,8 +70,7 @@ class MachineConfiguration:
                  cluster=None,
                  primary_network=None,
                  nodes=DEFAULT_NUMBER,
-                 secondary_networks=None
-    ):
+                 secondary_networks=None):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles

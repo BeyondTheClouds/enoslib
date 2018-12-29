@@ -62,11 +62,11 @@ class Configuration(BaseConfiguration):
 class MachineConfiguration:
 
     def __init__(self, *,
-               roles=None,
-               cluster=None,
-               flavour=None,
-               flavour_desc=None,
-               number=DEFAULT_NUMBER):
+                 roles=None,
+                 cluster=None,
+                 flavour=None,
+                 flavour_desc=None,
+                 number=DEFAULT_NUMBER):
         self.roles = roles
 
         # Internally we keep the flavour_desc as reference not a descriptor

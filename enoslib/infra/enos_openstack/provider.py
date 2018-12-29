@@ -83,7 +83,7 @@ def check_flavors(session):
 
 
 def check_network(session, configure_network, network, subnet,
-        dns_nameservers=None, allocation_pool=None):
+                  dns_nameservers=None, allocation_pool=None):
     """Check the network status for the deployment.
 
     If needed, it creates a dedicated :
@@ -138,14 +138,14 @@ def check_network(session, configure_network, network, subnet,
     subnets = nclient.list_subnets()['subnets']
     subnet_name = subnet['name']
     if (subnet_name not in list(map(itemgetter('name'), subnets))
-        and configure_network):
+            and configure_network):
         subnet = {'name': subnet['name'],
-        'network_id': network['id'],
-        # NOTE(msimonin): using the dns of chameleon
-        # for a generic openstack provider we should think to
-        # parameteried this or use public available dns
-        'cidr': subnet['cidr'],
-        'ip_version': 4}
+                  'network_id': network['id'],
+                  # NOTE(msimonin): using the dns of chameleon
+                  # for a generic openstack provider we should think to
+                  # parameteried this or use public available dns
+                  'cidr': subnet['cidr'],
+                  'ip_version': 4}
         if dns_nameservers is not None:
             subnet.update({'dns_nameservers': dns_nameservers})
         if allocation_pool is not None:
@@ -236,8 +236,9 @@ def _get_total_wanted_machines(machines):
 
 
 def check_servers(session, machines, extra_prefix="",
-        force_deploy=False, key_name=None, image_id=None,
-        flavors='m1.medium', network=None, ext_net=None, scheduler_hints=None):
+                  force_deploy=False, key_name=None, image_id=None,
+                  flavors='m1.medium', network=None, ext_net=None,
+                  scheduler_hints=None):
     """Checks the servers status for the deployment.
 
     If needed, it creates new servers and add a floating ip to one of them.
@@ -304,7 +305,7 @@ def check_gateway(env, with_gateway, servers):
         gateway = nclient.servers.get(gateway.id)
         gw_floating_ips = [
             n for n in gateway.addresses[env['network']['name']]
-                if n['OS-EXT-IPS:type'] == 'floating'
+            if n['OS-EXT-IPS:type'] == 'floating'
         ]
         if len(gw_floating_ips) == 0:
             gateway_ip = set_free_floating_ip(env, gateway.id)
@@ -322,7 +323,7 @@ def is_in_current_deployment(server, extra_prefix=""):
     the current deployment
     """
     return re.match(r"^%s" % '-'.join([DEFAULT_PREFIX, extra_prefix]),
-            server.name) is not None
+                    server.name) is not None
 
 
 def allow_address_pairs(session, network, subnet):
@@ -337,7 +338,7 @@ def allow_address_pairs(session, network, subnet):
         lambda p: p['network_id'] == network['id'],
         ports['ports'])
     logger.info('[nova]: Allowing address pairs for ports %s' %
-            list(map(lambda p: p['fixed_ips'], ports_to_update)))
+                list(map(lambda p: p['fixed_ips'], ports_to_update)))
     for port in ports_to_update:
         try:
             nclient.update_port(port['id'], {
@@ -465,8 +466,8 @@ class Openstack(Provider):
             deployed)
 
         allow_address_pairs(env['session'],
-            env['network'],
-            self.provider_conf.subnet['cidr'])
+                            env['network'],
+                            self.provider_conf.subnet['cidr'])
 
         # NOTE(msimonin): polling is missing
         # we aren't sure that machines are ssh-reachable

@@ -88,8 +88,8 @@ def create_reservation(bclient, provider_config):
     start_date = start_datetime.strftime("%Y-%m-%d %H:%M")
     end_date = end_datetime.strftime("%Y-%m-%d %H:%M")
     logger.info("[blazar]: Claiming a lease start_date=%s, end_date=%s",
-                 start_date,
-                 end_date)
+                start_date,
+                end_date)
 
     reservations = []
     for flavor, machines in groupby(provider_config.machines, key=by_flavor):
@@ -177,7 +177,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             _machines = list(descs)
             # NOTE(msimonin): There should be only one reservation per flavor
             hints = [{"reservation": r["id"]} for r in reservations
-                             if flavor in r["resource_properties"]]
+                     if flavor in r["resource_properties"]]
             # It's still a bit tricky here
             os_servers = openstack.check_servers(
                 env["session"],

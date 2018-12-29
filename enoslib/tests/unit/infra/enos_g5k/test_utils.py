@@ -8,7 +8,7 @@ import mock
 
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
-                                         NotEnoughNodesError)
+                                          NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import KAVLAN, PROD, SLASH_22, SLASH_18
 from enoslib.tests.unit import EnosTest
 
@@ -89,9 +89,7 @@ class TestConcretizeNetwork(EnosTest):
                 "type": SLASH_18,
                 "site": "rennes",
                 "id": "role1"
-            }
-
-            ]
+            }]
         }
         ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {},'4': {}, '5': {}}})
 

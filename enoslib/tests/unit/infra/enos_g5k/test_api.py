@@ -73,8 +73,7 @@ class TestDeploy(EnosTest):
                 },{
                     "_c_nodes" : nodes_bar,
                     "primary_network": "network2"
-                    }
-                ],
+                }],
                 "networks": [
                     {"type": PROD, "id": "network1"},
                     {"type": KAVLAN, "id": "network2", "_c_network": {"site": "rennes", "vlan_id": 4}}]

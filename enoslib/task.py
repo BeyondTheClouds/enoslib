@@ -178,6 +178,6 @@ def _set_resultdir(name=None):
         # An harmless error can occur due to a race condition when
         # multiple regions are simultaneously deployed
         logger.warning("Symlink %s to %s failed" %
-                        (resultdir_path, link_path))
+                       (resultdir_path, link_path))
 
     return resultdir_path

@@ -1,9 +1,9 @@
 from enoslib.api import (_build_ip_constraints,
-                                   _expand_description,
-                                   _generate_default_grp_constraints,
-                                   _generate_actual_grp_constraints,
-                                   _build_grp_constraints,
-                                   _merge_constraints)
+                         _expand_description,
+                         _generate_default_grp_constraints,
+                         _generate_actual_grp_constraints,
+                         _build_grp_constraints,
+                         _merge_constraints)
 from enoslib.host import Host
 from enoslib.tests.unit import EnosTest
 
@@ -93,10 +93,8 @@ class TestExpandDescription(EnosTest):
 class TestGenerateDefaultGrpConstraints(EnosTest):
 
     def test_no_expansion(self):
-        roles = {
-                'grp1': [],
-                'grp2': []
-         }
+        roles = {'grp1': [],
+                 'grp2': []}
         network_constraints = {
             'default_rate': '10mbit',
             'default_delay': '10ms'
@@ -117,11 +115,9 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
 
 
     def test_except_one_group(self):
-        roles = {
-                'grp1': [],
-                'grp2': [],
-                'grp3': [],
-         }
+        roles = {'grp1': [],
+                 'grp2': [],
+                 'grp3': []}
         network_constraints = {
             'default_rate': '10mbit',
             'default_delay': '10ms',
@@ -137,11 +133,9 @@ class TestGenerateDefaultGrpConstraints(EnosTest):
 
 
     def test_include_two_groups(self):
-        roles = {
-                'grp1': [],
-                'grp2': [],
-                'grp3': [],
-         }
+        roles = {'grp1': [],
+                 'grp2': [],
+                 'grp3': []}
         network_constraints = {
             'default_rate': '10mbit',
             'default_delay': '10ms',
@@ -344,11 +338,11 @@ class TestBuildIpConstraints(EnosTest):
             'node1': {
                 'all_ipv4_addresses': ['ip11', 'ip12'],
                 'devices': [{'device': 'eth0', 'active': True},{'device': 'eth1', 'active': True}]
-             },
+            },
             'node2': {
                 'all_ipv4_addresses': ['ip21', 'ip21'],
                 'devices': [{'device': 'eth0', 'active': True},{'device': 'eth1', 'active': True}]
-             }
+            }
         }
         # the constraints
         constraint = {

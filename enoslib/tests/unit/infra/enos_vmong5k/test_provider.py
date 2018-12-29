@@ -43,9 +43,9 @@ class TestDistribute(EnosTest):
 
     def test_distribute_minimal(self):
         machine = MachineConfiguration(roles=["r1"],
-                                         flavour="tiny",
-                                         cluster="paravance",
-                                         number=1)
+                                       flavour="tiny",
+                                       cluster="paravance",
+                                       number=1)
         machines = [machine]
         host = Host("paravance-1")
 
@@ -69,9 +69,9 @@ class TestDistribute(EnosTest):
 
     def test_distribute_2_vms_1_host(self):
         machine = MachineConfiguration(roles=["r1"],
-                                         flavour="tiny",
-                                         cluster="paravance",
-                                         number=2)
+                                       flavour="tiny",
+                                       cluster="paravance",
+                                       number=2)
         machines = [machine]
         host = Host("paravance-1")
 
@@ -98,9 +98,9 @@ class TestDistribute(EnosTest):
 
     def test_distribute_2_vms_2_hosts(self):
         machine = MachineConfiguration(roles=["r1"],
-                                         flavour="tiny",
-                                         cluster="paravance",
-                                         number=2)
+                                       flavour="tiny",
+                                       cluster="paravance",
+                                       number=2)
         machines = [machine]
         host0 = Host("paravance-1")
         host1 = Host("paravance-2")

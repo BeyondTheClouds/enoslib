@@ -63,8 +63,7 @@ class MachineConfiguration:
                    user=dictionnary.get("user"),
                    keyfile=dictionnary.get("keyfile"),
                    port=dictionnary.get("port"),
-                   extra=dictionnary.get("extra")
-        )
+                   extra=dictionnary.get("extra"))
 
     def to_dict(self):
         d = {}

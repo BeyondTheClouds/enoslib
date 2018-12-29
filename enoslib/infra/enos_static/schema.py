@@ -32,9 +32,6 @@ SCHEMA = {
             "keyfile": {"type": "string"},
             "port": {"type": "number"},
             "extra": {"type": "object"}
-            # This may contain the network mapping
-            # network role -> interfaces
-            # if auto-discovery network feature isn't used
         },
         "required": ["roles", "address"]
     },

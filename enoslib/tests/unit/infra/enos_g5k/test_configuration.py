@@ -206,12 +206,12 @@ class TestConfiguration(EnosTest):
 
         conf.add_network_conf(network)\
             .add_machine_conf(MachineConfiguration(roles=["r1"],
-                                              cluster="paravance",
-                                              primary_network=network))\
+                                                   cluster="paravance",
+                                                   primary_network=network))\
             .add_machine_conf(MachineConfiguration(roles=["r2"],
-                                              cluster="parapluie",
-                                              primary_network=network,
-                                              nodes=10))
+                                                   cluster="parapluie",
+                                                   primary_network=network,
+                                                   nodes=10))
 
         conf.finalize()
 
