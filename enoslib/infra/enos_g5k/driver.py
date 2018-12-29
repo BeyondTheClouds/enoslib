@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
+import logging
+
 from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
                                           grid_reload_from_id,
                                           grid_destroy_from_name,
@@ -9,7 +11,6 @@ from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
 from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
                                               DEFAULT_WALLTIME,
                                               JOB_TYPE_DEPLOY)
-import logging
 
 logger = logging.getLogger(__name__)
 

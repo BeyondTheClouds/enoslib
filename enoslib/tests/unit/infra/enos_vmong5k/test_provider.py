@@ -1,3 +1,6 @@
+import mock
+from netaddr import EUI
+
 from enoslib.host import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 from enoslib.infra.enos_vmong5k.provider import (_build_static_hash,
@@ -5,10 +8,6 @@ from enoslib.infra.enos_vmong5k.provider import (_build_static_hash,
                                                  _distribute, _index_by_host,
                                                  VirtualMachine)
 from enoslib.tests.unit import EnosTest
-
-from netaddr import EUI
-
-import mock
 
 
 class TestBuildG5kConf(EnosTest):

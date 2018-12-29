@@ -1,12 +1,12 @@
+import jsonschema
+
 from enoslib.infra.enos_vagrant.configuration import (Configuration,
                                                       MachineConfiguration,
                                                       NetworkConfiguration)
 from enoslib.infra.enos_vagrant.constants import FLAVOURS
 import enoslib.infra.enos_vagrant.constants as constants
-
 from ... import EnosTest
 
-import jsonschema
 
 
 class TestConfiguration(EnosTest):

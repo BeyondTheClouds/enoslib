@@ -1,10 +1,10 @@
+import uuid
+
 from ..configuration import BaseConfiguration
 from .constants import (DEFAULT_FLAVOUR, DEFAULT_IMAGE, DEFAULT_JOB_NAME,
                         DEFAULT_NETWORKS, DEFAULT_NUMBER, DEFAULT_QUEUE,
                         DEFAULT_WALLTIME, FLAVOURS)
 from .schema import SCHEMA
-
-import uuid
 
 
 class Configuration(BaseConfiguration):

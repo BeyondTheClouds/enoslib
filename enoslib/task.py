@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from enoslib.constants import SYMLINK_NAME
-from enoslib.errors import EnosFilePathError
 from functools import wraps
 import os
-import yaml
 import logging
+import yaml
+
+from enoslib.constants import SYMLINK_NAME
+from enoslib.errors import EnosFilePathError
 
 logger = logging.getLogger(__name__)
 

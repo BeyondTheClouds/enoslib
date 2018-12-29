@@ -1,9 +1,9 @@
+import jsonschema
+
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 import enoslib.infra.enos_vmong5k.constants as constants
-
 from ... import EnosTest
 
-import jsonschema
 
 
 class TestConfiguration(EnosTest):

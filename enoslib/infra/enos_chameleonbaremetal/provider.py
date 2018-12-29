@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import enoslib.infra.enos_openstack.provider as openstack
-import enoslib.infra.enos_chameleonkvm.provider as cc
-
-from blazarclient import client as blazar_client
 import datetime
 from itertools import groupby
 import logging
-from neutronclient.neutron import client as neutron
 import os
 import time
+
+from blazarclient import client as blazar_client
+from neutronclient.neutron import client as neutron
+
+import enoslib.infra.enos_openstack.provider as openstack
+import enoslib.infra.enos_chameleonkvm.provider as cc
+
 
 logger = logging.getLogger(__name__)
 

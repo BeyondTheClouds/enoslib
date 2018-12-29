@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import logging
+import socket
+
+from netaddr import IPAddress, IPNetwork, IPSet
 
 import enoslib.infra.enos_g5k.api as api
-from .constants import NAMESERVER
 from enoslib.infra.enos_g5k.schema import KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
 from enoslib.utils import get_roles_as_list
-
-from netaddr import IPAddress, IPNetwork, IPSet
-import logging
-import socket
+from .constants import NAMESERVER
 
 
 logger = logging.getLogger(__name__)

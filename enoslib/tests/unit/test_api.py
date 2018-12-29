@@ -1,7 +1,9 @@
 import unittest
+
+import mock
+
 from enoslib.api import *
 from enoslib.host import Host
-import mock
 
 class TestSSH(unittest.TestCase):
     longMessage = True

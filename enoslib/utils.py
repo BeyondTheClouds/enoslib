@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
+import os
 
 from enoslib.errors import EnosFilePathError
-
-import os
 
 
 def get_roles_as_list(desc):

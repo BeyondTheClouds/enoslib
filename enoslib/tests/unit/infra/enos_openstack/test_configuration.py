@@ -1,9 +1,9 @@
+import jsonschema
+
 from enoslib.infra.enos_openstack.configuration import Configuration
 import enoslib.infra.enos_openstack.constants as constants
-
 from ... import EnosTest
 
-import jsonschema
 
 class TestConfiguration(EnosTest):
 

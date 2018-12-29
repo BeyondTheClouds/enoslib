@@ -1,11 +1,12 @@
-from enoslib.host import Host
-from netaddr import IPNetwork
-from jinja2 import Environment, FileSystemLoader
-from enoslib.infra.provider import Provider
-
 import logging
 import os
+
+from jinja2 import Environment, FileSystemLoader
+from netaddr import IPNetwork
 import vagrant
+
+from enoslib.host import Host
+from enoslib.infra.provider import Provider
 
 
 logger = logging.getLogger(__name__)

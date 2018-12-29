@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
-
-from .constants import (NOVA_VERSION, GLANCE_VERSION, DEFAULT_PREFIX,
-                        SECGROUP_NAME, ROUTER_NAME)
-from enoslib.host import Host
-from enoslib.infra.utils import pick_things, mk_pools
-from enoslib.infra.provider import Provider
+import ipaddress
+import logging
+from operator import itemgetter
+import os
+import re
+import time
 
 from glanceclient import client as glance
 from keystoneauth1.identity import v2, v3
 from keystoneauth1 import session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
-from operator import itemgetter
 
-import ipaddress
-import logging
-import os
-import re
-import time
+from enoslib.host import Host
+from enoslib.infra.utils import pick_things, mk_pools
+from enoslib.infra.provider import Provider
+from .constants import (NOVA_VERSION, GLANCE_VERSION, DEFAULT_PREFIX,
+                        SECGROUP_NAME, ROUTER_NAME)
 
 
 logger = logging.getLogger(__name__)

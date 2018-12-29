@@ -1,9 +1,10 @@
+import mock
+
 from enoslib.infra.enos_g5k.api import Resources, DEFAULT_ENV_NAME
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.schema import PROD, KAVLAN
-import mock
-
 from enoslib.tests.unit import EnosTest
+
 
 class TestGetNetwork(EnosTest):
 

@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
-from .constants import PLAYBOOK_PATH
-from ..provider import Provider
+from collections import defaultdict
+from ipaddress import IPv4Address
+import hashlib
+import itertools
+import logging
+import os
 
+import execo_g5k.api_utils as utils
+from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import generate_inventory, run_ansible
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.api as enoslib
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
-
-
-from collections import defaultdict
-import execo_g5k.api_utils as utils
-import hashlib
-from ipaddress import IPv4Address
-import itertools
-import logging
-from netaddr import EUI, mac_unix_expanded
-import os
-
+from .constants import PLAYBOOK_PATH
+from ..provider import Provider
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,9 @@
 import copy
+
 from ddt import ddt, data
+from execo import Host
+import execo_g5k as ex5
+from execo_g5k import api_utils as api
 import mock
 
 from enoslib.infra.enos_g5k import utils
@@ -7,9 +11,6 @@ from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                          NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import KAVLAN, PROD, SLASH_22, SLASH_18
 from enoslib.tests.unit import EnosTest
-from execo import Host
-import execo_g5k as ex5
-from execo_g5k import api_utils as api
 
 
 # TODO(msimonin): use patch

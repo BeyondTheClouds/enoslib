@@ -1,7 +1,8 @@
+import jsonschema
+
 from enoslib.infra.enos_static.configuration import Configuration, NetworkConfiguration, MachineConfiguration
 from ... import EnosTest
 
-import jsonschema
 
 
 class TestConfiguration(EnosTest):
