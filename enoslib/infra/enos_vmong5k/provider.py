@@ -63,9 +63,9 @@ def _do_build_g5k_conf(vmong5k_conf, site):
         queue=vmong5k_conf.queue,
         job_type="allow_classic_ssh")
     prod_network = g5kconf.NetworkConfiguration(roles=["prod"],
-                                           id="prod",
-                                           type="prod",
-                                           site=site)
+                                                id="prod",
+                                                type="prod",
+                                                site=site)
     subnet_roles = vmong5k_conf.networks
     subnet_roles.append("__subnet__")
     subnet = g5kconf.NetworkConfiguration(roles=subnet_roles,
@@ -81,9 +81,9 @@ def _do_build_g5k_conf(vmong5k_conf, site):
         roles = machine.roles
         roles.append(machine.cookie)
         g5k_conf.add_machine(roles=roles,
-                            cluster=machine.cluster,
-                            nodes=find_nodes_number(machine),
-                            primary_network=prod_network)
+                             cluster=machine.cluster,
+                             nodes=find_nodes_number(machine),
+                             primary_network=prod_network)
     return g5k_conf
 
 
