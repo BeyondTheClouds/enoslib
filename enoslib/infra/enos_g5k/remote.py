@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
 
 import execo as ex
 
@@ -9,10 +8,7 @@ import execo as ex
 logger = logging.getLogger(__name__)
 
 
-if sys.version_info.major == 3:
-    BASESTRING = str
-else:
-    BASESTRING = basestring
+BASESTRING = str
 
 
 DEFAULT_CONN_PARAMS = {'user': 'root'}

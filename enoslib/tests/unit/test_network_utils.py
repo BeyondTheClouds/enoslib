@@ -362,6 +362,3 @@ class TestBuildIpConstraints(EnosTest):
         tcs = ips_with_tc['node1']['tc']
         # one rule per dest ip and source device
         self.assertEqual(2*2, len(tcs))
-
-if __name__ == '__main__':
-    unittest.main()
