@@ -70,7 +70,7 @@ class TestDeploy(EnosTest):
                 "machines": [{
                     "_c_nodes": nodes_foo,
                     "primary_network": "network1"
-                },{
+                }, {
                     "_c_nodes" : nodes_bar,
                     "primary_network": "network2"
                 }],

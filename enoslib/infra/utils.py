@@ -12,7 +12,7 @@ def mk_pools(things, keyfnc=lambda x: x):
     return pools
 
 
-def pick_things(pools, key,  n):
+def pick_things(pools, key, n):
     "Picks a maximum of n things in a dict of indexed pool of things."
     pool = pools.get(key)
     if not pool:

@@ -282,7 +282,7 @@ class TestGenerateActualGrpConstraints(EnosTest):
             self.assertEqual('10ms', d['delay'])
             if d['src'] == d['dst'] == 'grp1':
                 count_src_equals_dst += 1
-        self.assertEqual(1,count_src_equals_dst)
+        self.assertEqual(1, count_src_equals_dst)
 
 
 class TestMergeConstraints(EnosTest):
@@ -337,11 +337,13 @@ class TestBuildIpConstraints(EnosTest):
         ips = {
             'node1': {
                 'all_ipv4_addresses': ['ip11', 'ip12'],
-                'devices': [{'device': 'eth0', 'active': True},{'device': 'eth1', 'active': True}]
+                'devices': [{'device': 'eth0', 'active': True},
+                            {'device': 'eth1', 'active': True}]
             },
             'node2': {
                 'all_ipv4_addresses': ['ip21', 'ip21'],
-                'devices': [{'device': 'eth0', 'active': True},{'device': 'eth1', 'active': True}]
+                'devices': [{'device': 'eth0', 'active': True},
+                            {'device': 'eth1', 'active': True}]
             }
         }
         # the constraints

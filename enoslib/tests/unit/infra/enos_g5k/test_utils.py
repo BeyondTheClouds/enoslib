@@ -91,12 +91,12 @@ class TestConcretizeNetwork(EnosTest):
                 "id": "role1"
             }]
         }
-        ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {},'4': {}, '5': {}}})
+        ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {}, '4': {}, '5': {}}})
 
     def test_act(self):
         networks = [
-            { "site": "rennes", "vlan_id": 4},
-            { "site": "rennes", "vlan_id": 5}
+            {"site": "rennes", "vlan_id": 4},
+            {"site": "rennes", "vlan_id": 5}
         ]
         subnets = []
         utils.concretize_networks(self.resources, networks, subnets)
@@ -107,8 +107,8 @@ class TestConcretizeNetwork(EnosTest):
     def test_act_subnets(self):
         networks = []
         subnets = [
-            { "site": "rennes", "ip_prefix": "10.156.1.0/18" },
-            { "site": "rennes", "ip_prefix": "10.156.0.0/22" },
+            {"site": "rennes", "ip_prefix": "10.156.1.0/18"},
+            {"site": "rennes", "ip_prefix": "10.156.0.0/22"},
         ]
         utils.concretize_networks(self.resources_subnet, networks, subnets)
         self.assertEqual(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
@@ -118,7 +118,7 @@ class TestConcretizeNetwork(EnosTest):
     def test_prod(self):
         self.resources["networks"][0]["type"] = PROD
         networks = [
-            { "site": "rennes", "vlan_id": 5}
+            {"site": "rennes", "vlan_id": 5}
         ]
         subnets = []
         utils.concretize_networks(self.resources, networks, subnets)
@@ -128,7 +128,7 @@ class TestConcretizeNetwork(EnosTest):
 
     def test_one_missing(self):
         networks = [
-            { "site": "rennes", "vlan_id": 4},
+            {"site": "rennes", "vlan_id": 4},
         ]
         subnets = []
         with self.assertRaises(MissingNetworkError):
@@ -136,12 +136,12 @@ class TestConcretizeNetwork(EnosTest):
 
     def test_not_order_dependent(self):
         networks_1 = [
-            { "site": "rennes", "vlan_id": 4},
-            { "site": "rennes", "vlan_id": 5}
+            {"site": "rennes", "vlan_id": 4},
+            {"site": "rennes", "vlan_id": 5}
         ]
         networks_2 = [
-            { "site": "rennes", "vlan_id": 5},
-            { "site": "rennes", "vlan_id": 4}
+            {"site": "rennes", "vlan_id": 5},
+            {"site": "rennes", "vlan_id": 4}
         ]
         subnets = []
         resources_1 = copy.deepcopy(self.resources)
@@ -316,4 +316,4 @@ class TestBuildReservationCriteria(EnosTest):
         }
 
         criteria = utils._build_reservation_criteria([], resources["networks"])
-        self.assertDictEqual({"site1": ["%s=1" % value ] }, criteria)
+        self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)

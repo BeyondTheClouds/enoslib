@@ -10,7 +10,7 @@ class TestBuildResources(EnosTest):
             "machines":[{
                 "address": "ip1",
                 "roles": ["role1", "role2"]
-            },{
+            }, {
                 "address": "ip2",
                 "roles": ["role1"]
             }],
@@ -21,7 +21,7 @@ class TestBuildResources(EnosTest):
                 "end": "2.2.3.252",
                 "gateway": "2.2.3.254",
                 "dns": "2.2.3.253"
-            },{
+            }, {
                 "cidr": "1.2.3.4/24",
                 "roles": ["net1"],
                 "start": "1.2.3.100",
