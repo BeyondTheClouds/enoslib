@@ -63,6 +63,7 @@ doc:
 run_command:
   image: python:3.5
   stage: functionnal
+  tags: [qlf-ci.inria.fr]
   script:
   - ip a
   - pip install -e .
@@ -73,6 +74,7 @@ run_command:
 run_ansible:
   image: python:3.5
   stage: functionnal
+  tags: [qlf-ci.inria.fr]
   script:
   - ip a
   - pip install -e .
@@ -84,6 +86,7 @@ run_ansible:
 package:
   image: python:3.6
   stage: package
+  tags: [qlf-ci.inria.fr]
   only:
   - tags
   script:
