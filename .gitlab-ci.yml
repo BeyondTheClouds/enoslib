@@ -8,6 +8,7 @@ stages:
 python3.5:
   image: python:3.5
   stage: test
+  tags: [qlf-ci.inria.fr]
   script:
   - pip install tox
   - tox -e py35 pep8
@@ -15,6 +16,7 @@ python3.5:
 python3.6:
   image: python:3.6
   stage: test
+  tags: [qlf-ci.inria.fr]
   script:
   - pip install tox
   - tox -e py36 pep8
@@ -26,6 +28,7 @@ python3.6_sonar:
   allow_failure: true
   tags:
   - large
+  - qlf-ci.inria.fr
   only:
     refs:
     - master
@@ -90,6 +93,7 @@ package:
 
 pages:
   stage: publish
+  tags: [qlf-ci.inria.fr]
   only:
   - tags
   dependencies:
@@ -104,6 +108,7 @@ pages:
 pypi:
   image: python:3.6
   stage: publish
+  tags: [qlf-ci.inria.fr]
   only:
   - tags
   dependencies:
