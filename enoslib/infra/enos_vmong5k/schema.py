@@ -39,8 +39,8 @@ SCHEMA = {
                 {"flavour": {"type": "string", "enum": list(FLAVOURS.keys())}},
                 {"flavour_desc": {"$ref": "#/flavour_desc"}}
             ],
-
         },
+        "additionalProperties": False,
         "required": ["roles", "cluster"]
     },
 
