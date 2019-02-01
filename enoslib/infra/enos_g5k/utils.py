@@ -16,43 +16,6 @@ from enoslib.infra.utils import pick_things, mk_pools
 logger = logging.getLogger(__name__)
 
 
-# Note(msimonin): Monkey patching execo
-# This is a pending patch we need to support python3
-# Let's remove this when this will be merged on
-# execo side
-def __set_nodes_vlan(site, hosts, interface, vlan_id):
-    """Set the interface of a list of hosts in a given vlan
-
-    :param site: Site name
-
-    :param hosts: List of hosts
-
-    :param interface: The interface to put in the vlan
-
-    :param vlan_id: Id of the vlan to use
-    """
-
-    def _to_network_address(host):
-        """Translate a host to a network address
-
-        e.g:
-        paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
-        """
-        splitted = host.address.split('.')
-        splitted[0] = splitted[0] + "-" + interface
-        return ".".join(splitted)
-
-    network_addresses = [_to_network_address(h) for h in hosts]
-    logger.info("Setting %s in vlan %s of site %s" % (network_addresses,
-                                                      vlan_id, site))
-    return api._get_g5k_api().post('/sites/%s/vlans/%s' % (site, str(vlan_id)),
-                                   {"nodes": network_addresses})
-
-
-api.set_nodes_vlan = __set_nodes_vlan
-# End of execo monkey patching
-
-
 def dhcp_interfaces(c_resources):
     # TODO(msimonin) add a filter
     machines = c_resources["machines"]
