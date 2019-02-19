@@ -1,3 +1,10 @@
+# 2.1.0
+
+* API: In memory inventory. Generating a inventory file is not mandatory anymore.
+       On can pass the provider roles in most of the API calls.
+* VMonG5K: allow to specify a working directory
+* Dependencies: Upgrade Ansible to latest stable (2.7.x)
+
 # 2.0.2
 
 * (breaking) VMonG5K/Vagrant: Unify code. `flavour_desc` dict can be used after
