@@ -9,7 +9,8 @@ SCHEMA = {
         "job_name": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
-        "image": {"type": "string"}
+        "image": {"type": "string"},
+        "working_dir": {"type": "string"}
     },
     "additionalProperties": False,
     "required": ["resources"],

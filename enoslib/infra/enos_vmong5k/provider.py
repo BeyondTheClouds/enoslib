@@ -147,7 +147,11 @@ def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
     vms_by_host = _index_by_host(vmong5k_roles)
 
     extra_vars = {'vms': vms_by_host,
-                  'base_image': provider_conf.image}
+                  'base_image': provider_conf.image,
+                  # push the g5k user in the env 
+                  'g5k_user': os.environ.get('USER'),
+                  'working_dir': provider_conf.working_dir
+                  }
     #pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
     #generate_inventory(*g5k_init, pm_inventory_path)
     # deploy virtual machines with ansible playbook
