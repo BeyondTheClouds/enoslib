@@ -41,3 +41,5 @@ DEFAULT_FLAVOUR = "tiny", FLAVOURS["tiny"]
 DEFAULT_NETWORKS = ["enos_network"]
 
 DEFAULT_NUMBER = 1
+
+DEFAULT_WORKING_DIR = "/tmp/enos_vmong5k"

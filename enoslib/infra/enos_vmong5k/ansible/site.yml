@@ -4,6 +4,16 @@
   vars:
     pubkey: "{{lookup('file', '~/.ssh/id_rsa.pub')}}"
   tasks:
+    - name: Enable nested virtualization
+      shell: |
+        modprobe -r kvm_intel
+        modprobe kvm_intel nested=1
+
+    - name: Add g5k_user to libvirt group
+      user:
+        name: msimonin
+        groups: libvirt
+        append: yes
 
     - name: Destroy running virtual machines (vm -1 / 1)
       virt:
@@ -11,6 +21,8 @@
         state: destroyed
       ignore_errors: yes
       with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Unregister existing virtual machines (vm -0 / 1)
       virt:
@@ -18,74 +30,67 @@
         command: undefine
       ignore_errors: yes
       with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
-    - name: Enable nested virtualization
-      shell: |
-        modprobe -r kvm_intel
-        modprobe kvm_intel nested=1
-
-    - name: Unmount the tmpfs
-      mount:
-        path: /tmp/disks
-        state: unmounted
-      when:
-        - tmpfs is defined
-        - tmpfs
-
-    - name: Remove a tmpfs for the vms
+    - name: Create the working directory
       file:
-        path: /tmp/disks
-        state: absent
-      when:
-        - tmpfs is defined
-        - tmpfs
-
-    - name: Create a directory for hosting the virtual disks
-      file:
-        path: /tmp/disks
+        path: "{{ working_dir }}"
         state: directory
-        mode: 777
-
-    - name: Mount the tmpfs
-      shell: "mount -t tmpfs -o size={{ tmpfs }} tmpfs /tmp/disks"
-      when:
-        - tmpfs is defined
-        - tmpfs
+        mode: 0711
+        recurse: true
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Removing previous cloud init data
       file:
-        path: "/tmp/cloud-init-data-{{ item.alias }}"
+        path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
         state: absent
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Removing previous cloud init data iso
       file:
-        path: "/tmp/cloud-init-data-{{ item.alias }}.iso"
+        path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}.iso"
         state: absent
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Creating cloud init data directory
       file:
-        path: "/tmp/cloud-init-data-{{ item.alias }}"
+        path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
         state: directory
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Generate meta-data for cloud-init
       template:
         src: meta-data.j2
-        dest: "/tmp/cloud-init-data-{{ item.alias }}/meta-data"
+        dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/meta-data"
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
-    - name: Generate user data for cloud-init
+    - name: Generate g5k_user data for cloud-init
       template:
         src: user-data.j2
-        dest: "/tmp/cloud-init-data-{{ item.alias }}/user-data"
+        dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/user-data"
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     #  Create one iso per vm
     - name: Create the iso for cloud-init
-      shell: "cd /tmp &&  genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data"
+      shell: > 
+        cd {{ working_dir }} 
+        && 
+        genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data
       loop: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Check base image
       stat:
@@ -97,13 +102,30 @@
         msg: "Base image does not exist. Verify this path is valid: {{ base_image }}"
       when: p.stat.exists == False
 
-      # NOTE(msimonin): We don't copy in the ramfs in a first iteration
     - name: Copy base image
-      shell: "cp {{ base_image }} /tmp/kenan-base-image.qcow2"
+      shell: > 
+        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+        || 
+        cp {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
+      become: yes
+      become_user: "{{ g5k_user }}"
+
+    - name: Removing previous disk
+      file:
+        path: "{{ working_dir }}/{{ item.alias }}"
+        state: absent
+      with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Link virtual image to base image
-      shell: "qemu-img create -f qcow2 -o backing_file=/tmp/kenan-base-image.qcow2 /tmp/disks/{{ item.alias }}"
+      shell: |
+        qemu-img create -f qcow2 -o backing_file={{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
+        # I know ...
+        chmod 777 {{ working_dir }}/{{ item.alias }}
       with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Define virtual machines (vm 0 / 1)
       virt:
@@ -111,9 +133,13 @@
         command: define
         xml: "{{ lookup('template', 'domain.xml.j2') }}"
       with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"
 
     - name: Launch virtual machines (vm 1 / 1)
       virt:
         name: "{{ item.alias }}"
         state: running
       with_items: "{{ vms[inventory_hostname] }}"
+      become: yes
+      become_user: "{{ g5k_user }}"

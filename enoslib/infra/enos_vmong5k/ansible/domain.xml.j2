@@ -17,11 +17,11 @@
    <emulator>/usr/bin/kvm</emulator>
    <disk type='file' device='disk'>
      <driver name='qemu' type='qcow2'/>
-     <source file='/tmp/disks/{{ item.alias}}'/>
+     <source file='{{working_dir}}/{{ item.alias}}'/>
      <target dev='vda' bus='virtio'/>
    </disk>
    <disk type='file' device='cdrom'>
-     <source file='/tmp/cloud-init-data-{{ item.alias }}.iso'/>
+     <source file='{{ working_dir }}/cloud-init-data-{{ item.alias }}.iso'/>
      <target dev='vdb' bus='virtio'/>
      <readonly/>
    </disk>
