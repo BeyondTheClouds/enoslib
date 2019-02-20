@@ -3,7 +3,8 @@ import uuid
 from ..configuration import BaseConfiguration
 from .constants import (DEFAULT_FLAVOUR, DEFAULT_IMAGE, DEFAULT_JOB_NAME,
                         DEFAULT_NETWORKS, DEFAULT_NUMBER, DEFAULT_QUEUE,
-                        DEFAULT_WALLTIME, DEFAULT_WORKING_DIR, FLAVOURS)
+                        DEFAULT_STRATEGY, DEFAULT_WALLTIME,
+                        DEFAULT_WORKING_DIR, FLAVOURS)
 from .schema import SCHEMA
 
 
@@ -17,6 +18,7 @@ class Configuration(BaseConfiguration):
         self.queue = DEFAULT_QUEUE
         self.walltime = DEFAULT_WALLTIME
         self.image = DEFAULT_IMAGE
+        self.strategy = DEFAULT_STRATEGY
         self.working_dir = DEFAULT_WORKING_DIR
 
         self._machine_cls = MachineConfiguration
