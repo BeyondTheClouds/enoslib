@@ -11,7 +11,7 @@
 
     - name: Add g5k_user to libvirt group
       user:
-        name: msimonin
+        name: "{{ g5k_user }}"
         groups: libvirt
         append: yes
 
