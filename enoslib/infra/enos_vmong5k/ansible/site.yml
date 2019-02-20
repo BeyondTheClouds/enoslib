@@ -33,6 +33,14 @@
       become: yes
       become_user: "{{ g5k_user }}"
 
+    - name: Remove the working directory
+      file:
+        path: "{{ working_dir }}"
+        state: absent
+        mode: 0711
+      become: yes
+      become_user: "{{ g5k_user }}"
+
     - name: Create the working directory
       file:
         path: "{{ working_dir }}"
@@ -118,12 +126,23 @@
       become: yes
       become_user: "{{ g5k_user }}"
 
-    - name: Link virtual image to base image
+    - name: Applying COW strategy for the image
       shell: |
         qemu-img create -f qcow2 -o backing_file={{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
         # I know ...
         chmod 777 {{ working_dir }}/{{ item.alias }}
       with_items: "{{ vms[inventory_hostname] }}"
+      when: strategy == "cow"
+      become: yes
+      become_user: "{{ g5k_user }}"
+
+    - name: Applying COPY strategy for the image
+      shell: |
+        cp {{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
+        # I know ...
+        chmod 777 {{ working_dir }}/{{ item.alias }}
+      with_items: "{{ vms[inventory_hostname] }}"
+      when: strategy == "copy"
       become: yes
       become_user: "{{ g5k_user }}"
 

@@ -150,7 +150,8 @@ def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
                   'base_image': provider_conf.image,
                   # push the g5k user in the env 
                   'g5k_user': os.environ.get('USER'),
-                  'working_dir': provider_conf.working_dir
+                  'working_dir': provider_conf.working_dir,
+                  'strategy': provider_conf.strategy
                   }
     #pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
     #generate_inventory(*g5k_init, pm_inventory_path)

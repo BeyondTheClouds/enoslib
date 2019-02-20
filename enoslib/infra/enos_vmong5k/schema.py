@@ -2,6 +2,8 @@ from .constants import FLAVOURS
 
 QUEUE_TYPES = ["default", "testing", "production"]
 
+STRATEGY = ["copy", "cow"]
+
 SCHEMA = {
     "type": "object",
     "properties": {
@@ -10,6 +12,7 @@ SCHEMA = {
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
         "image": {"type": "string"},
+        "strategy": {"type": "string", "enum": STRATEGY},
         "working_dir": {"type": "string"}
     },
     "additionalProperties": False,
