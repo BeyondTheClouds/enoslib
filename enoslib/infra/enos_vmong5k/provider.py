@@ -9,7 +9,7 @@ import os
 import execo_g5k.api_utils as utils
 from netaddr import EUI, mac_unix_expanded
 
-from enoslib.api import generate_inventory, run_ansible
+from enoslib.api import run_ansible
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.api as enoslib
 import enoslib.infra.enos_g5k.configuration as g5kconf
@@ -148,13 +148,13 @@ def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
 
     extra_vars = {'vms': vms_by_host,
                   'base_image': provider_conf.image,
-                  # push the g5k user in the env 
+                  # push the g5k user in the env
                   'g5k_user': os.environ.get('USER'),
                   'working_dir': provider_conf.working_dir,
                   'strategy': provider_conf.strategy
                   }
-    #pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
-    #generate_inventory(*g5k_init, pm_inventory_path)
+    # pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
+    # generate_inventory(*g5k_init, pm_inventory_path)
     # deploy virtual machines with ansible playbook
     run_ansible([PLAYBOOK_PATH], roles=g5k_roles, extra_vars=extra_vars)
 

@@ -36,6 +36,14 @@ class TestGenerateInventoryString(EnosTest):
         line = _find_host_line(ini, "r1")
         self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='foo'", line)
 
+
+    def test_port(self):
+        h = Host("1.2.3.4", port=2222)
+        enos_inventory = EnosInventory(roles={"r1": [h]})
+        ini = enos_inventory.to_ini_string()
+        line = _find_host_line(ini, "r1")
+        self.assertEqual("1.2.3.4 ansible_host=1.2.3.4 ansible_port='2222' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'", line)
+
     def test_address_gateway(self):
         h = Host("1.2.3.4", extra={'gateway': '4.3.2.1'})
         enos_inventory = EnosInventory(roles={"r1": [h]})
