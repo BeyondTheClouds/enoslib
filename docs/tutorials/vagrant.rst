@@ -5,6 +5,10 @@ This tutorial will let you get started using |enoslib| and vagrant. This will
 present you the bare minimum to start some machines and distribute them into
 the desired roles.
 
+.. hint::
+
+   For a complete schema reference see :ref:`vagrant-schema`
+
 Installation
 ------------
 

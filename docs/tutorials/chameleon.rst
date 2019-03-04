@@ -4,6 +4,10 @@ Tutorial 5 - Working with Chameleon
 This tutorial will let you get started using |enoslib| and Chameleon. This will
 present you the bare minimum to install the library with the required dependencies.
 
+.. hint::
+
+   For a complete schema reference see :ref:`openstack-schema`
+
 Installation
 ------------
 

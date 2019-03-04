@@ -5,6 +5,10 @@ This tutorial illustrates the use of EnOSlib to interact with Grid'5000. For a
 full description of the API and the available options, please refer to the API
 documentation of the Grid'5000 provider.
 
+.. hint::
+
+   For a complete schema reference see :ref:`grid5000-schema`
+
 Installation
 ------------
 

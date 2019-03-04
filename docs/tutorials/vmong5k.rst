@@ -4,6 +4,11 @@ Tutorial 6 - Working with virtual machines on Grid'5000
 This tutorial leverages the ``VmonG5k`` provider: a provider that provisions
 virtual machines for you on Grid'5000. 
 
+
+.. hint::
+
+   For a complete schema reference see :ref:`vmong5k-schema`
+
 Installation
 ------------
 

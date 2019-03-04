@@ -21,6 +21,8 @@ Vagrant Provider Class
     :undoc-members:
     :show-inheritance:
 
+.. _vagrant-schema:
+
 Vagrant Schema
 ^^^^^^^^^^^^^^
 
@@ -37,6 +39,8 @@ G5k Provider Class
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. _grid5000-schema:
 
 G5k Schema
 ^^^^^^^^^^
@@ -61,6 +65,8 @@ VMonG5k Provider Class
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. _vmong5k-schema:
 
 VMonG5k Schema
 ^^^^^^^^^^^^^^^
@@ -93,6 +99,8 @@ Openstack Provider Class
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. _openstack-schema:
 
 Openstack Schema
 ^^^^^^^^^^^^^^^^
