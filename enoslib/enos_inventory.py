@@ -31,9 +31,10 @@ class EnosInventory(Inventory):
                 if machine.user is not None:
                     host.set_variable("ansible_ssh_user", machine.user)
                 if machine.port is not None:
+                    host.set_variable("ansible_port", machine.port)
+                if machine.keyfile is not None:
                     host.set_variable("ansible_ssh_private_key_file",
-                                    machine.keyfile)
-
+                                      machine.keyfile)
                 common_args = []
                 common_args.append("-o StrictHostKeyChecking=no")
                 common_args.append("-o UserKnownHostsFile=/dev/null")
