@@ -4,6 +4,7 @@ import copy
 import logging
 import os
 import re
+import tempfile
 import time
 import json
 import yaml
@@ -104,6 +105,9 @@ class _MyCallback(CallbackModule):
     def __init__(self, storage):
         super(_MyCallback, self).__init__()
         self.storage = storage
+        self.display_ok_hosts = True
+        self.display_skipped_hosts = True
+        self.display_failed_stderr = True
 
     def _store(self, result, status):
         record = AnsibleExecutionRecord(
@@ -128,7 +132,7 @@ class _MyCallback(CallbackModule):
         self._store(result, STATUS_UNREACHABLE)
 
 
-def run_play(pattern_hosts, play_source, inventory_path=None, roles=None,
+def run_play(play_source, inventory_path=None, roles=None,
              extra_vars=None, on_error_continue=False):
     """Run a play.
 
@@ -198,9 +202,91 @@ def run_play(pattern_hosts, play_source, inventory_path=None, roles=None,
     return results
 
 
+class play_on(object):
+    def __init__(self, pattern_hosts,
+                 inventory_path=None,
+                 roles=None,
+                 extra_vars=None,
+                 on_error_continue=False,
+                 gather_facts=True):
+
+        self.pattern_hosts = pattern_hosts
+        self.inventory_path = inventory_path
+        self.roles = roles
+        self.extra_vars = extra_vars
+        self.on_error_continue = on_error_continue
+
+        # Will hold the tasks of the play corresponding to the sequence
+        # of module call in this context
+        self._tasks = []
+
+        # Handle gather_facts
+        # if True we generate a first play to gather the facts
+        self.prior = None
+        if gather_facts:
+            self.prior = {
+                "hosts": "all",
+                "tasks": [{
+                    "name": "Gathering Facts",
+                    "setup": {"gather_subset": "all"}
+                }]
+            }
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        play_source = {
+            # we force the fact gathering on all hosts
+            # There'll be some performance impact if caching isn't enable.
+            "hosts": self.pattern_hosts,
+            "tasks": self._tasks
+        }
+        logger.debug(play_source)
+
+        # Generate a playbook and run it
+        with tempfile.NamedTemporaryFile('w',
+                                         buffering=1,
+                                         dir=os.getcwd()) as _pb:
+            _pb.write(yaml.dump([self.prior, play_source]))
+            run_ansible([_pb.name],
+                        roles=self.roles,
+                        extra_vars=self.extra_vars,
+                        on_error_continue=self.on_error_continue)
+
+    def __getattr__(self, module_name):
+        """Providers an handy way to use ansible module from python.
+
+        Example:
+
+        .. code-block: python
+
+            with actions_on("all", roles=roles) as t:
+                t.docker_container(name="plop", state="running")
+        """
+        def _f(**kwargs):
+            task = {}
+            task.update(**kwargs)
+            self._tasks.append({
+                "name": "__calling__ %s" % module_name,
+                module_name: task,
+            })
+
+        def _shell_like(command, **kwargs):
+            self._tasks.append({
+                "name": "__calling__ %s" % module_name,
+                module_name: command,
+                "args": dict(**kwargs),
+            })
+
+        if module_name in ["command", "shell"]:
+            return _shell_like
+        return _f
+
+
 def run_command(pattern_hosts, command, inventory_path=None, roles=None,
                 extra_vars=None,
-    on_error_continue=False):
+                on_error_continue=False):
     """Run a shell command on some remote hosts.
 
     Args:
@@ -276,7 +362,7 @@ def run_command(pattern_hosts, command, inventory_path=None, roles=None,
             "shell": command,
         }]
     }
-    results = run_play(pattern_hosts, play_source,
+    results = run_play(play_source,
                        inventory_path=inventory_path,
                        roles=roles,
                        extra_vars=extra_vars)
@@ -349,6 +435,7 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
             logger.error("Unreachable hosts: %s" % unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
+
 
 
 def discover_networks(roles, networks, fake_interfaces=None,
