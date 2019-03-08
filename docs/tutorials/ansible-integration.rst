@@ -11,6 +11,11 @@ User can thus :
 * or run a set of actions ( ansible playbook) programmatically
 
 
+.. hint::
+
+   The presented methods are provider agnostic.
+
+
 Run a single command on nodes and gather results
 ------------------------------------------------
 
@@ -19,7 +24,7 @@ Let's consider the following script :
 .. literalinclude:: ansible-integration/run_command.py
    :language: python
    :linenos:
-   :emphasize-lines: 34
+   :emphasize-lines: 32
 
 - :py:func:`~enoslib.api.run_command` takes at least 3 parameters :
 
@@ -55,15 +60,19 @@ Using python exclusively
 
 Let's consider the following script:
 
-.. literalinclude:: ansible-integration/play_on.py
+.. literalinclude:: ansible-integration/flent_on.py
    :language: python
    :linenos:
-   :emphasize-lines: 40-49
+   :emphasize-lines: 24-40
 
-It allows to run a sequence of tasks on the hosts
-(see https://docs.ansible.com/ansible/latest/intro_patterns.html).
-Behind the scene this code will generate a playbook and run it.
-Any ansible module can be called here, the exact keyword arguments to pass depend on each module and you'll need to refer to the ansible module documentation (e.g https://docs.ansible.com/ansible/latest/modules/apt_module.html).
+In this example each ``play_on`` block run a playbook generated from the ansible
+module calls made.
+Any ansible module can be called here, the exact keyword arguments to pass
+depend on each module and you'll need to refer to the ansible modules
+documentation (e.g
+https://docs.ansible.com/ansible/latest/modules/apt_module.html).
+Currently, top-level keywords (e.g register, loop aren't supported).
+
 
 Using a yaml playbook
 ~~~~~~~~~~~~~~~~~~~~~

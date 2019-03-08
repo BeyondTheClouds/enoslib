@@ -13,7 +13,7 @@ Tutorials
     quickstart
     vagrant
     grid5000
+    vmong5k
+    chameleon
     using-tasks
     ansible-integration
-    chameleon
-    vmong5k
