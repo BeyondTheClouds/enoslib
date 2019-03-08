@@ -1,3 +1,7 @@
+# 2.2.0
+
+* API: Introduce `play_on` context_manager to describe a playbook directly from python
+
 # 2.1.0
 
 * API: In memory inventory. Generating a inventory file is not mandatory anymore.
