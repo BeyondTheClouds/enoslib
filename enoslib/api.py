@@ -437,7 +437,6 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-
 def discover_networks(roles, networks, fake_interfaces=None,
                     fake_networks=None):
     """Checks the network interfaces on the nodes. This enables to
@@ -824,10 +823,29 @@ def _update_hosts(roles, facts, extra_mapping=None):
             enos_devices = []
             host.extra.update(extra_mapping)
             for network in networks:
-                device = network["device"]
+                device = network['device']
                 if device:
                     for role in get_roles_as_list(network):
+                        # backward compatibility:
+                        # network_role=eth_name
                         host.extra.update({role: device})
+                        # we introduce some shortcuts (avoid infinite ansible
+                        # templates) in other words, we sort of precompute them
+                        # network_role_dev=eth_name
+                        # network_role_ip=ip
+                        #
+                        # Use case:
+                        # - node1 has eth1 for role: r1,
+                        # - node2 has eth2 for role: r2
+                        # the conf in node2 must point to the ip of eth1 in
+                        # node1 node2 can use hostvars[node1].r1_ip as a
+                        # template Note this can happen often in g5k between
+                        # nodes of different clusters
+                        host.extra.update({'%s_dev' % role: device})
+                        key = 'ansible_%s' % device
+                        ip = facts[host.alias][key]['ipv4']['address']
+                        host.extra.update({'%s_ip' % role: ip})
+
                     enos_devices.append(device)
 
             # Add the list of devices in used by Enos

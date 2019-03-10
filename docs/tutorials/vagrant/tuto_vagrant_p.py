@@ -1,4 +1,4 @@
-from enoslib.api import generate_inventory
+from enoslib.api import generate_inventory, discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
@@ -27,7 +27,8 @@ roles, networks = provider.init()
 inventory = os.path.join(os.getcwd(), "hosts")
 
 # generate an inventory compatible with ansible
+discover_networks(roles, networks)
 generate_inventory(roles, networks, inventory, check_networks=True)
 
 # destroy the boxes
-provider.destroy()
+# provider.destroy()
