@@ -33,7 +33,7 @@ with play_on("server", roles=roles) as p:
 with play_on("client", roles=roles) as p:
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]]['mynetwork_ip'] }} "
+            + "-H {{ hostvars[groups['server'][0]].inventory_hostname }} "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",

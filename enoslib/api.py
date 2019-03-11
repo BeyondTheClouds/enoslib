@@ -203,13 +203,38 @@ def run_play(play_source, inventory_path=None, roles=None,
 
 
 class play_on(object):
+    """A context manager to manage a sequence of Ansible module calls."""
     def __init__(self, pattern_hosts,
                  inventory_path=None,
                  roles=None,
                  extra_vars=None,
                  on_error_continue=False,
                  gather_facts=True):
+        """Constructor.
 
+        Args:
+            pattern_hosts (str): pattern to describe ansible hosts to target.
+                see https://docs.ansible.com/ansible/latest/intro_patterns.html
+            inventory_path (str): inventory to use
+            roles (dict): equivalent to the inventory, but in memory
+            extra_vars (dict): extra_vars to use
+            on_error_continue(bool): Don't throw any exception in case a host
+                is unreachable or the playbooks run with errors
+            gather_facts (bool): Whether the facts of all hosts in roles (or
+                the inventory file) must be collected.
+
+        Example:
+
+        .. code-block:: python
+
+            with actions_on("all", roles=roles) as t:
+                t.apt(name=["curl", "git"], state="present")
+                t.shell("which docker || (curl get.docker.com | sh)")
+                t.docker_container(name="nginx", state="started")
+
+        Any ansible module can be called using the above way. You'll need to
+        refer to the module reference documentation to find the corresponding
+        kwargs to use. """
         self.pattern_hosts = pattern_hosts
         self.inventory_path = inventory_path
         self.roles = roles
@@ -257,12 +282,6 @@ class play_on(object):
     def __getattr__(self, module_name):
         """Providers an handy way to use ansible module from python.
 
-        Example:
-
-        .. code-block: python
-
-            with actions_on("all", roles=roles) as t:
-                t.docker_container(name="plop", state="running")
         """
         def _f(**kwargs):
             task = {}
@@ -439,10 +458,9 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
 
 def discover_networks(roles, networks, fake_interfaces=None,
                     fake_networks=None):
-    """Checks the network interfaces on the nodes. This enables to
-            auto-discover the mapping interface name <-> network role.
+    """Checks the network interfaces on the nodes.
 
-
+    This enables to auto-discover the mapping interface name <-> network role.
     Beware, this has a side effect on each Host in roles.
 
     Args:
@@ -455,6 +473,19 @@ def discover_networks(roles, networks, fake_interfaces=None,
             interfaces. Like reguilar network interfaces, the mapping will be
             added to the host vars. Internally this will be zipped with the
             fake_interfaces to produce the mapping.
+
+    If the command is successful each host will be added some variables.
+    Assuming that one network whose role is `mynetwork` has been declared, the
+    following variables will be available through the ansible hostvars:
+
+    - ``mynetwork=eth1``, `eth1` has been discovered has the interface in the
+      network `mynetwork`.
+    - ``mynetwork_dev=eth1``, same as above with a different accessor names
+    - ``mynetwork_ip=192.168.42.42``, this indicates the ip in the network
+      `mynetwork` for this node
+
+    All of this variable can then be accessed by the other nodes through the
+    hostvars: ``hostvars[remote_node]["mynetwork_ip"]``
     """
 
     def get_devices(facts):
