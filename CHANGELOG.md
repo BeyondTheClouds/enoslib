@@ -1,3 +1,8 @@
+# 2.2.1
+
+* Doc: add EnOSlib primer
+* API: discover_network now add `<network>_ip` and `<network>_dev` in the hosvars
+
 # 2.2.0
 
 * API: Introduce `play_on` context_manager to describe a playbook directly from python
