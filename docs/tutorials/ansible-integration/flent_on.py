@@ -7,6 +7,8 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
+# The conf let us define the resources wanted.
+# This is provider specific
 conf = Configuration.from_settings(backend="libvirt",
                                    box="generic/debian9")\
                     .add_machine(roles=["server"],
@@ -17,10 +19,18 @@ conf = Configuration.from_settings(backend="libvirt",
                                  number=1)\
                     .add_network(roles=["mynetwork"],
                                  cidr="192.168.42.0/24")
-
 provider = Enos_vagrant(conf)
+
+# The code below is intended to be provider agnostic
+
+# Start the resources
 roles, networks = provider.init()
+
+# Add some specific knowledge to the returned roles (e.g on the server the ip
+# for mynetwork is 192.168.42.254)
 discover_networks(roles, networks)
+
+# Eperimentation logic starts here
 with play_on("all", roles=roles) as p:
     p.apt_repository(repo="deb http://deb.debian.org/debian stretch main contrib non-free",
                      state="present")

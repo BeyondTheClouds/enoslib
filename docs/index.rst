@@ -26,6 +26,29 @@ like Grid'5000, or Chameleon. It saves time and energy.
    Cookiecutter template is available at
    https://github.com/msimonin/cookiecutter-enoslib.git
 
+EnOSlib primer
+==============
+
+Alice would like to start a network benchmark between the nodes of the
+infrastructure she got access to.
+She chooses to go with `flent <https://flent.org/>`_ and she writes the following:
+
+
+.. literalinclude:: tutorials/ansible-integration/flent_on.py
+   :language: python
+   :linenos:
+
+
+This starts Alice's experiment on her local machine using Vagrant. Looking at
+the result directory created at the end of the execution, Alice finds:
+
+.. image:: ./result.png
+
+
+Since the experimentation code seems ok, Alice now would like to go in a `real`
+testbed (e.g Grid'5000). She only have to adapt the configuration phase and the
+provider used in her script. The experimentation logic can remain the same.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
@@ -34,6 +57,5 @@ like Grid'5000, or Chameleon. It saves time and energy.
    apidoc/index.rst
    theyuseit.rst
 
-EnOSlib primer
-==============
 
+ 
