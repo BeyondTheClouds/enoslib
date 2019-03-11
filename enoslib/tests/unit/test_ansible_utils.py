@@ -135,6 +135,12 @@ class TestUpdateHosts(EnosTest):
         rsc = {"control": [Host("1.2.3.4", alias="foo"), Host("1.2.3.5", alias="bar")]}
         facts = {
             "foo": {
+                "ansible_eth0": {
+                    "ipv4": {"address": "1.2.3.1"}
+                },
+                "ansible_eth1": {
+                    "ipv4": {"address": "2.2.3.1"}
+                },
                 "networks": [{
                     "cidr": "1.2.3.0/24",
                     "device": "eth0",
@@ -146,6 +152,12 @@ class TestUpdateHosts(EnosTest):
                         "roles": ["network2"]
                     }]},
             "bar": {
+                "ansible_eth0": {
+                    "ipv4": {"address": "1.2.3.1"}
+                },
+                "ansible_eth1": {
+                    "ipv4": {"address": "2.2.3.1"}
+                },
                 "networks": [{
                     "cidr": "1.2.3.0/24",
                     "device": "eth0",
@@ -160,12 +172,21 @@ class TestUpdateHosts(EnosTest):
         _update_hosts(rsc, facts)
         for host in gen_rsc(rsc):
             self.assertEqual("eth0", host.extra["network1"])
+            self.assertEqual("eth0", host.extra["network1_dev"])
             self.assertEqual("eth1", host.extra["network2"])
+            self.assertEqual("eth1", host.extra["network2_dev"])
 
     def test__update_hosts_inverted(self):
         rsc = {"control": [Host("1.2.3.4", alias="foo"), Host("1.2.3.5", alias="bar")]}
         facts = {
             "foo": {
+                # since 2.2.1 we need extra facts to be present
+                "ansible_eth0": {
+                    "ipv4": {"address": "1.2.3.1"}
+                },
+                "ansible_eth1": {
+                    "ipv4": {"address": "2.2.3.1"}
+                },
                 "networks": [{
                     "cidr": "1.2.3.0/24",
                     "device": "eth0",
@@ -176,6 +197,13 @@ class TestUpdateHosts(EnosTest):
                     "roles": ["network2"]
                 }]},
             "bar": {
+                # since 2.2.1 we need extra facts to be present
+                "ansible_eth0": {
+                    "ipv4": {"address": "2.2.3.2"}
+                },
+                "ansible_eth1": {
+                    "ipv4": {"address": "1.2.3.2"}
+                },
                 "networks": [{
                     "cidr": "1.2.3.0/24",
                     "device": "eth1",
@@ -191,15 +219,29 @@ class TestUpdateHosts(EnosTest):
         for host in gen_rsc(rsc):
             if host.alias == "foo":
                 self.assertEqual("eth0", host.extra["network1"])
+                self.assertEqual("eth0", host.extra["network1_dev"])
+                self.assertEqual("1.2.3.1", host.extra["network1_ip"])
                 self.assertEqual("eth1", host.extra["network2"])
+                self.assertEqual("eth1", host.extra["network2_dev"])
+                self.assertEqual("2.2.3.1", host.extra["network2_ip"])
             elif host.alias == "bar":
                 self.assertEqual("eth1", host.extra["network1"])
+                self.assertEqual("eth1", host.extra["network1_dev"])
+                self.assertEqual("1.2.3.2", host.extra["network1_ip"])
                 self.assertEqual("eth0", host.extra["network2"])
+                self.assertEqual("eth0", host.extra["network2_dev"])
+                self.assertEqual("2.2.3.2", host.extra["network2_ip"])
 
     def test__update_hosts_unmatch(self):
         rsc = {"control": [Host("1.2.3.4", alias="foo")]}
         facts = {
             "foo": {
+                "ansible_eth0": {
+                    "ipv4": {"address": "1.2.3.1"}
+                },
+                "ansible_eth1": {
+                    "ipv4": {"address": "2.2.3.2"}
+                },
                 "networks": [{
                     "cidr": "1.2.3.0/24",
                     "device": "eth0",
@@ -213,5 +255,9 @@ class TestUpdateHosts(EnosTest):
         _update_hosts(rsc, facts)
         for host in gen_rsc(rsc):
             self.assertEqual("eth0", host.extra["network1"])
+            self.assertEqual("eth0", host.extra["network1_dev"])
+            self.assertEqual("1.2.3.1", host.extra["network1_ip"])
             self.assertTrue("network2" not in host.extra)
+            self.assertTrue("network2_dev" not in host.extra)
+            self.assertTrue("network2_ip" not in host.extra)
 
