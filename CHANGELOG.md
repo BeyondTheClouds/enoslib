@@ -1,3 +1,7 @@
+# 2.2.2
+
+* Doc: put project boostrap at the end (formerly quickstart)
+
 # 2.2.1
 
 * Doc: add EnOSlib primer

@@ -10,10 +10,10 @@ Tutorials
     :maxdepth: 2
     :caption: Contents:
 
-    quickstart
     vagrant
     grid5000
     vmong5k
     chameleon
     using-tasks
     ansible-integration
+    quickstart

@@ -1,8 +1,9 @@
-Tutorial 0 - Quickstart
-=======================
+Tutorial 7 - Project bootstrap
+==============================
 
-This tutorial will let you get started very quickly using |enoslib|. It will
-show you how to bootstrap a new project and start working.
+EnOSlib project can be a single python file but sometimes it's better to
+structure a bit more your experimental framework. In this direction, we're doing
+our best to maintain a project template that you can use.
 
 This includes:
 
@@ -10,6 +11,7 @@ This includes:
 * a command line interface
 * a set of `enostask` to orchestrate a minimal experience
 * a minimal ansible code with the action `deploy`, `backup`, `destroy` actions
+  (Ansible is located in dedicated files by default).
 * third party tools like `sphinx` (documentation), `pytest` (unit tests), `tox`
   and a `travis` integration.
 
