@@ -32,3 +32,41 @@ class TestSSH(unittest.TestCase):
             m.side_effect = EnosUnreachableHostsError(self.hosts)
             wait_ssh(self.env, interval=0)
 
+
+class TestPlayOn(unittest.TestCase):
+
+    def test_no_gather(self):
+        p = play_on("pattern", gather_facts=False)
+        p.__exit__ = mock.MagicMock()
+        a = p.__enter__()
+        self.assertEqual({}, p.prior)
+        self.assertEqual([], p._tasks)
+
+    def test_gather(self):
+        p = play_on("pattern")
+        p.__exit__ = mock.MagicMock()
+        a = p.__enter__()
+        g = {
+            "hosts": "all",
+            "tasks": [{
+                "name": "Gathering Facts",
+                "setup": {"gather_subset": "all"}
+            }]
+        }
+        self.assertDictEqual(g, p.prior)
+
+    def test_modules(self):
+        p = play_on("pattern")
+        p.__exit__ = mock.MagicMock()
+        a = p.__enter__()
+        a.test_module(name="test", state="present")
+        self.assertEquals(1, len(a._tasks))
+        task = a._tasks[0]
+        self.assertEquals({"name": "test", "state": "present"},
+                          task["test_module"])
+
+    def test_call_ansible(self):
+        with mock.patch('enoslib.api.run_ansible') as m:
+            with play_on("pattern") as p:
+                p.a()
+            m.assert_called_once()

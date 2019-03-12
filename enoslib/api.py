@@ -247,7 +247,7 @@ class play_on(object):
 
         # Handle gather_facts
         # if True we generate a first play to gather the facts
-        self.prior = None
+        self.prior = {}
         if gather_facts:
             self.prior = {
                 "hosts": "all",
