@@ -1,3 +1,7 @@
+# 2.2.3
+
+* API: fix `gather_facts=False` in `play_on`
+
 # 2.2.2
 
 * Doc: put project boostrap at the end (formerly quickstart)
