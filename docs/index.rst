@@ -56,6 +56,7 @@ provider used in her script. The experimentation logic can remain the same.
    tutorials/index.rst
    apidoc/index.rst
    theyuseit.rst
+   contributing.rst
 
 
  
