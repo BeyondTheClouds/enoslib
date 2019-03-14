@@ -1,36 +1,33 @@
 from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
+from enoslib.infra.enos_g5k.provider import G5k
+from enoslib.infra.enos_g5k.configuration import (Configuration,
+                                                  NetworkConfiguration)
 
 import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
 
-# The conf let us define the resources wanted.
-# This is provider specific
-conf = Configuration.from_settings(backend="libvirt",
-                                   box="generic/debian9")\
+network = NetworkConfiguration(id="n1",
+                               type="kavlan",
+                               roles=["mynetwork"],
+                               site="rennes")
+conf = Configuration.from_settings(job_name="flent_on",
+                                  env_name="debian9-x64-nfs")\
+                    .add_network_conf(network)\
                     .add_machine(roles=["server"],
-                                 flavour="tiny",
-                                 number=1)\
+                                 cluster="parapluie",
+                                 nodes=1,
+                                 primary_network=network)\
                     .add_machine(roles=["client"],
-                                 flavour="tiny",
-                                 number=1)\
-                    .add_network(roles=["mynetwork"],
-                                 cidr="192.168.42.0/24")
-provider = Enos_vagrant(conf)
+                                 cluster="parapluie",
+                                 nodes=1,
+                                 primary_network=network)\
+                    .finalize()
 
-# The code below is intended to be provider agnostic
-
-# Start the resources
+provider = G5k(conf)
 roles, networks = provider.init()
-
-# Add some specific knowledge to the returned roles (e.g on the server the ip
-# for mynetwork is 192.168.42.254)
 discover_networks(roles, networks)
-
-# Experimentation logic starts here
 with play_on("all", roles=roles) as p:
     # flent requires python3, so we default python to python3
     p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")

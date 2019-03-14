@@ -1,3 +1,5 @@
+.. _vmong5k:
+
 Tutorial 3 - Provider::VMonG5K
 ==============================
 

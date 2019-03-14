@@ -1,3 +1,5 @@
+.. _tasks:
+
 Tutorial 5 - Using the Tasks API
 ================================
 
