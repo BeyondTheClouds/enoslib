@@ -42,4 +42,10 @@ Projects
 
   Link: https://gitlab.inria.fr/msimonin/enos-kubernetes
 
+- **ombt-orchestrator**: Benchmark communication bus in various network topologies
 
+  Link: https://github.com/msimonin/ombt-orchestrator
+
+- **kenan**: Benchmark OpenStack communication bus in various network topologies
+
+  Link: https://gitlab.inria.fr/discovery/kenan
