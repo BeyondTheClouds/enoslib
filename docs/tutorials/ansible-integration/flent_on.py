@@ -18,7 +18,9 @@ conf = Configuration.from_settings(backend="libvirt",
                                  flavour="tiny",
                                  number=1)\
                     .add_network(roles=["mynetwork"],
-                                 cidr="192.168.42.0/24")
+                                 cidr="192.168.42.0/24")\
+                    .finalize()
+
 provider = Enos_vagrant(conf)
 
 # The code below is intended to be provider agnostic
