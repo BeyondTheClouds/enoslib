@@ -36,4 +36,4 @@ with play_on("all", roles=roles) as p:
     p.shell("date > /tmp/date")
 
 with open("/tmp/date") as f:
-    print(f.readlines(f))
+    print(f.readlines())
