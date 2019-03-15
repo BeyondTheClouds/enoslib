@@ -1,3 +1,16 @@
+# 2.2.6
+
+* Doc: static provider
+* Doc: various fixes
+
+# 2.2.5
+
+* CI: add `play_on` functional test
+
+# 2.2.4
+
+* Doc: Update Primer (add g5k example)
+
 # 2.2.3
 
 * API: fix `gather_facts=False` in `play_on`
