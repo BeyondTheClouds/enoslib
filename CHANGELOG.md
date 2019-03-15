@@ -1,3 +1,7 @@
+# 2.2.7
+
+* Doc: Gender equality fix
+
 # 2.2.6
 
 * Doc: static provider
