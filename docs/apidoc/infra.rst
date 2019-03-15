@@ -84,6 +84,8 @@ Static Provider Class
     :undoc-members:
     :show-inheritance:
 
+.. _static-schema:
+
 Static Schema
 ^^^^^^^^^^^^^
 

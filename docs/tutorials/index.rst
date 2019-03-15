@@ -14,6 +14,7 @@ Tutorials
     grid5000
     vmong5k
     chameleon
+    static
     using-tasks
     ansible-integration
     quickstart

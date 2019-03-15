@@ -1,7 +1,7 @@
 .. _integration-with-ansible:
 
-Tutorial 6 - Executing commands on nodes
-========================================
+Executing commands on nodes
+===========================
 
 |enoslib| uses internally Ansible to perform some predefined tasks (e.g network
 emulation). The APIs allowing this are exposed so that anyone can use them.

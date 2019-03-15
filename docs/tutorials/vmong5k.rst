@@ -1,7 +1,7 @@
 .. _vmong5k:
 
-Tutorial 3 - Provider::VMonG5K
-==============================
+Provider::VMonG5K
+=================
 
 This tutorial leverages the ``VmonG5k`` provider: a provider that provisions
 virtual machines for you on Grid'5000. 

@@ -71,7 +71,7 @@ Now where Alice can go from here depends on her needs:
 
 - Refactoring her code, providing a command line interface could be also nice.
   After all its just python code -- see :ref:`[2] <tasks>`.
-  Or moving her deployment code (because it become too big) into separated
+  Or moving her deployment code (because it becomes large) into separated
   Ansible files -- see :ref:`[3] <integration-with-ansible>`.
 
 - Applying specific network constraints between the nodes of her reservation is

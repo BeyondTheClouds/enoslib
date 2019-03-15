@@ -1,5 +1,5 @@
-Tutorial 7 - Project bootstrap
-==============================
+Project bootstrap
+=================
 
 EnOSlib project can be a single python file but sometimes it's better to
 structure a bit more your experimental framework. In this direction, we're doing

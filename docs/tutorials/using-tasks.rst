@@ -1,7 +1,7 @@
 .. _tasks:
 
-Tutorial 5 - Using the Tasks API
-================================
+Using the Tasks API
+===================
 
 In this tutorial, you will learn how to organize your code into tasks and
 integrate it with a command line interface.
