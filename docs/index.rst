@@ -29,9 +29,12 @@ like Grid'5000, or Chameleon. It saves time and energy.
 EnOSlib primer
 ==============
 
-Alice would like to start a network benchmark between the nodes of the
-infrastructure she got access to.
-She chooses to go with `flent <https://flent.org/>`_ and she writes the following:
+Let's consider a user called Alice or Bob.
+
+
+{{ user }} would like to start a network benchmark between the nodes of an
+infrastructure. {{ user }} chooses to go with `flent <https://flent.org/>`_ and
+thus writes the following:
 
 
 .. literalinclude:: tutorials/ansible-integration/flent_on.py
@@ -39,21 +42,21 @@ She chooses to go with `flent <https://flent.org/>`_ and she writes the followin
    :linenos:
 
 
-This starts Alice's experiment on her local machine using Vagrant (with
-libvirt). Note that Alice's friend, Bob will be able to run the same using
-``backend="virtualbox"`` on his machine because he prefers VirtualBox. Now
-looking at the result directory created at the end of the execution, Alice
+This starts {{ user }}'s experiment on the local machine using Vagrant (with
+libvirt). Note that a {{ user }}'s friend will be able to run the same using
+``backend="virtualbox"`` if VirtualBox is installed. Now
+looking at the result directory created at the end of the execution, {{ user }}
 finds:
 
 .. image:: ./result.png
 
-Alice launches several times her script, getting new results. Subsequent runs
-are faster because the machine are already up and everything is `idempotent
-<https://en.wikipedia.org/wiki/Idempotence>`_.
+{{ user }} launches several times the script, getting new results. Subsequent
+runs are faster because the machines are already up and everything is
+`idempotent <https://en.wikipedia.org/wiki/Idempotence>`_.
 
-Alice now would like to go in a `real` testbed (e.g Grid'5000). Good news ! She
-only have to adapt the configuration phase and the provider used in her script.
-The experimentation logic can remain the same. Thus, she writes the following:
+{{ user }} now would like to go in a `real` testbed (e.g Grid'5000). Good news ! {{ user }}
+only have to adapt the configuration phase and the provider used in the script.
+The experimentation logic can remain the same. Thus, one can write the following:
 
 
 .. literalinclude:: tutorials/ansible-integration/flent_on_grid5000.py
@@ -64,21 +67,21 @@ The experimentation logic can remain the same. Thus, she writes the following:
 .. image:: ./result_g5k.png
 
 
-Now where Alice can go from here depends on her needs:
+Now where {{ user }} can go from here depends on the needs:
 
-- Moving to another provider is possible. She only needs to learn about the specific object for
+- Moving to another provider is possible. {{ user }} only needs to learn about the specific object for
   this configuration -- e.g see :ref:`[1] <vmong5k>`.
 
-- Refactoring her code, providing a command line interface could be also nice.
+- Refactoring the code, providing a command line interface could be also nice.
   After all its just python code -- see :ref:`[2] <tasks>`.
-  Or moving her deployment code (because it becomes large) into separated
+  Or moving the deployment code (because it becomes large) into separated
   Ansible files -- see :ref:`[3] <integration-with-ansible>`.
 
-- Applying specific network constraints between the nodes of her reservation is
-  also possible. She'll need to learn more about how enforcing the constraints
+- Applying specific network constraints between the nodes of the reservation is
+  also possible. {{ user }}'ll need to learn more about how enforcing the constraints
   -- see :ref:`[4] <api>`.
 
-- Contributing to this project would be wonderful. She doesn't need to do much,
+- Contributing to this project would be wonderful. {{ user }} doesn't need to do much,
   improving the documentation would be very helpful -- see :ref:`[5] <contributing>`.
 
 
