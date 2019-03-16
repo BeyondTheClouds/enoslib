@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import copy
-
 from itertools import groupby
 from operator import itemgetter
+import os
+
+from grid5000 import Grid5000
 
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k import utils
@@ -75,6 +77,11 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
 
 
+def _get_grid5000_client():
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    return Grid5000.from_yaml(conf_file)
+
+
 class Resources:
     """Class to manipulate g5k resource.
 
@@ -106,7 +113,7 @@ class Resources:
         # This one will be modified
         self.c_resources = copy.deepcopy(self.configuration["resources"])
         # Load the driver that will interact with G5K
-        self.driver = get_driver(configuration)
+        self.driver = get_driver(configuration, _get_grid5000_client())
 
     def launch(self):
         self.reserve()

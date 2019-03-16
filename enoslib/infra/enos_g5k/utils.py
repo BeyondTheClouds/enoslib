@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
+import copy
 import logging
+import time
 
 from execo import Host
 import execo_g5k as ex5
 import execo_g5k.api_utils as api
 
+from enoslib.errors import EnosError
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
@@ -14,6 +18,17 @@ from enoslib.infra.utils import pick_things, mk_pools
 
 
 logger = logging.getLogger(__name__)
+
+
+SYNCHRONISATION_OFFSET = 60
+
+
+class EnosG5kDuplicateJobs(EnosError):
+    def __init__(self, site, job_name):
+        super(EnosG5kDuplicateJobs, self).__init__(
+            "Duplicate jobs on %s with the same name %s"
+            % (site, job_name)
+        )
 
 
 def dhcp_interfaces(c_resources):
@@ -56,15 +71,70 @@ def to_subnet_type(ip_prefix):
     return "slash_%s" % ip_prefix[-2:]
 
 
-def grid_get_or_create_job(job_name, walltime, reservation_date,
+def _grid_reload_from_name(gk, job_name):
+    sites = gk.sites.list()
+    jobs = []
+    for site in sites:
+        logger.info("Reloading %s from %s" % (job_name, site.uid))
+        _jobs = site.jobs.list(name=job_name,
+                               state="waiting,launching,running")
+        if len(_jobs) == 1:
+            logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
+            jobs.append(_jobs[0])
+        elif len(_jobs) > 1:
+            raise EnosG5kDuplicateJobs(site, job_name)
+    return jobs
+
+
+def _date2h(timestamp):
+    t = time.strftime("%Y-%m-%d %H:%M:%S",
+                      time.localtime(timestamp))
+    return t
+
+
+def wait_for_jobs(jobs):
+    """Waits for all the jobs to be runnning."""
+
+    all_running = False
+    while not all_running:
+        all_running = True
+        time.sleep(5)
+        for job in jobs:
+            job.refresh()
+            scheduled = getattr(job, "scheduled_at", None)
+            if scheduled is not None:
+                logger.info("Waiting for %s on %s [%s]" % (job.uid,
+                                                           job.site,
+                                                           _date2h(scheduled)))
+            all_running = all_running and job.state == "running"
+            if job.state == "error":
+                raise Exception("The job %s is in error state" % job)
+    logger.info("All jobs are Running !")
+
+
+def grid_get_or_create_job(gk, job_name, walltime, reservation_date,
                            queue, job_type, machines, networks):
-    gridjob, _ = ex5.planning.get_job_by_name(job_name)
-    if gridjob is None:
-        gridjob = grid_make_reservation(job_name, walltime, reservation_date,
+    jobs = _grid_reload_from_name(gk, job_name)
+    if len(jobs) == 0:
+        jobs = grid_make_reservation(gk, job_name, walltime, reservation_date,
                                         queue, job_type, machines, networks)
-    logger.info("Waiting for oargridjob %s to start" % gridjob)
-    ex5.wait_oargrid_job_start(gridjob)
-    return gridjob
+    wait_for_jobs(jobs)
+
+    vlans = []
+    subnets = []
+    nodes = []
+    for job in jobs:
+        _subnets = job.resources_by_type.get("subnets", [])
+        _vlans = job.resources_by_type.get("vlans", [])
+        nodes = nodes + job.assigned_nodes
+        # TODO FIXME networks
+        subnets = subnets + [{"site": job.site,
+                              "ipmac": "fillme"} for s in _subnets]
+        vlans = vlans + [{"site": job.site,
+                          "vlan_id": vlan_id} for vlan_id in _vlans]
+    logger.debug("nodes=%s, subnets=%s, vlans=%s" % (nodes, subnets, vlans))
+
+    return nodes, vlans, subnets
 
 
 def get_network_info_from_job_id(job_id, site, vlans, subnets):
@@ -88,22 +158,6 @@ def get_network_info_from_job_id(job_id, site, vlans, subnets):
     subnet.update({"network": info["ip_prefix"]})
     subnets.append(subnet)
     return vlans, subnets
-
-
-def grid_reload_from_id(gridjob):
-    logger.info("Reloading the resources from oargrid job %s", gridjob)
-    gridjob = int(gridjob)
-    nodes = ex5.get_oargrid_job_nodes(gridjob)
-
-    job_sites = ex5.get_oargrid_job_oar_jobs(gridjob)
-    vlans = []
-    subnets = []
-    for (job_id, site) in job_sites:
-        vlans, subnets = get_network_info_from_job_id(job_id,
-                                                      site,
-                                                      vlans,
-                                                      subnets)
-    return nodes, vlans, subnets
 
 
 def oar_reload_from_id(oarjob, site):
@@ -204,8 +258,8 @@ def lookup_networks(network_id, networks):
 
 def concretize_nodes(resources, nodes):
     # force order to be a *function*
-    snodes = sorted(nodes, key=lambda n: n.address)
-    pools = mk_pools(snodes, lambda n: n.address.split('-')[0])
+    snodes = sorted(nodes, key=lambda n: n)
+    pools = mk_pools(snodes, lambda n: n.split('-')[0])
 
     # We first try to fulfill min requirements
     # Just considering machines with min value specified
@@ -217,7 +271,7 @@ def concretize_nodes(resources, nodes):
         c_nodes = pick_things(pools, cluster, nb)
         if len(c_nodes) < nb:
             raise NotEnoughNodesError("min requirement failed for %s " % desc)
-        desc["_c_nodes"] = [c_node.address for c_node in c_nodes]
+        desc["_c_nodes"] = [c_node for c_node in c_nodes]
 
     # We then fill the remaining without
     # If no enough nodes are there we silently continue
@@ -226,7 +280,7 @@ def concretize_nodes(resources, nodes):
         nb = desc["nodes"] - len(desc["_c_nodes"])
         c_nodes = pick_things(pools, cluster, nb)
         #  put concrete hostnames here
-        desc["_c_nodes"].extend([c_node.address for c_node in c_nodes])
+        desc["_c_nodes"].extend([c_node for c_node in c_nodes])
     return resources
 
 
@@ -296,38 +350,129 @@ def _build_reservation_criteria(machines, networks):
     return criteria
 
 
-def _do_grid_make_reservation(criteria, job_name, walltime, reservation_date,
-                              queue, job_type):
-    jobs_specs = [(ex5.OarSubmission(resources='+'.join(c),
-                                     name=job_name), s)
-                  for s, c in criteria.items()]
-    gridjob, _ = ex5.oargridsub(
-        jobs_specs,
-        walltime=walltime,
-        reservation_date=reservation_date,
-        job_type=job_type,
-        queue=queue)
-    if gridjob is None:
-        raise Exception('No oar job was created')
+def _do_submit_jobs(gk, job_specs):
+    jobs = []
+    try:
+        for site, job_spec in job_specs:
+            logging.info("Submitting %s on %s" % (job_spec, site))
+            jobs.append(gk.sites[site].jobs.create(job_spec))
+    except Error as e:
+        logger.error("An error occured during the job submissions")
+        logger.error("Cleaning the jobs created")
+        for job in jobs:
+            job.delete()
+        raise(e)
 
-    return gridjob
+    return jobs
 
 
-def grid_make_reservation(job_name, walltime, reservation_date,
+def _do_grid_make_reservation(gk, criterias, job_name, walltime,
+                              reservation_date, queue, job_type):
+
+    job_specs = []
+    for site, criteria in criterias.items():
+        resources = "+".join(criteria)
+        resources = "%s,walltime=%s" % (resources, walltime)
+        job_spec = {"name": job_name,
+                     "types": [job_type],
+                     "resources": resources,
+                     "command": "sleep 31536000",
+                     "queue": queue}
+        if reservation_date:
+            job_spec.update(reservation=reservation_date)
+        job_specs.append((site, job_spec))
+
+    jobs = _do_submit_jobs(gk, job_specs)
+    return jobs
+
+
+def _do_synchronise_jobs(gk, walltime, machines):
+    """ This returns a common reservation date for all the jobs.
+
+    This reservation date is really only a hint and will be supplied to each
+    oar server. Without this *common* reservation_date, one oar server can
+    decide to postpone the start of the job while the other are already
+    running. But this doens't prevent the start of a job on one site to drift
+    (e.g because the machines need to be restarted.) But this shouldn't exceed
+    few minutes.
+    """
+
+    def _clusters_sites(gk, clusters):
+        _clusters = copy.deepcopy(clusters)
+        sites = gk.sites.list()
+        matches = {}
+        for site in sites:
+            candidates = site.clusters.list()
+            matching = [c.uid for c in candidates if c.uid in _clusters]
+            if len(matching) == 1:
+                matches[matching[0]] = site
+                _clusters.remove(matching[0])
+        return matches
+
+    offset = SYNCHRONISATION_OFFSET
+    start = time.time() + offset
+    _t = time.strptime(walltime, "%H:%M:%S")
+    _walltime = _t.tm_hour * 3600 + _t.tm_min * 60 + _t.tm_sec
+
+    # Compute the demand for each cluster
+    demands = defaultdict(int)
+    for machine in machines:
+        cluster = machine["cluster"]
+        demands[cluster] += machine["nodes"]
+
+    # Early leave if only one cluster is there
+    if len(list(demands.keys())) <= 1:
+        logger.debug("Only one cluster detected: no synchronisation needed")
+        return None
+
+    clusters = _clusters_sites(gk, list(demands.keys()))
+
+    # Early leave if only one site is concerned
+    sites = set(list(clusters.values()))
+    if len(sites) <= 1:
+        logger.debug("Only one site detected: no synchronisation needed")
+        return None
+
+    # Test the proposed reservation_date
+    ok = True
+    for cluster, nodes in demands.items():
+        cluster_status = clusters[cluster].status.list()
+        ok = ok and can_start_on_cluster(cluster_status.nodes,
+                                         nodes,
+                                         start,
+                                         _walltime)
+        if not ok:
+            break
+    if ok:
+        # The proposed reservation_date fits
+        logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
+        return start
+
+    return None
+
+
+def grid_make_reservation(gk, job_name, walltime, reservation_date,
                           queue, job_type, machines, networks):
+    if not reservation_date:
+        # First check if synchronisation is required
+        reservation_date = _do_synchronise_jobs(gk, walltime, machines)
+
+    # Build the OAR criteria
     criteria = _build_reservation_criteria(machines, networks)
-    gridjob = _do_grid_make_reservation(criteria, job_name, walltime,
+
+    # Submit them
+    jobs = _do_grid_make_reservation(gk, criteria, job_name, walltime,
                                         reservation_date, queue, job_type)
 
-    return gridjob
+    return jobs
 
 
-def grid_destroy_from_name(job_name):
+def grid_destroy_from_name(gk, job_name):
     """Destroy the job."""
-    gridjob, _ = ex5.planning.get_job_by_name(job_name)
-    if gridjob is not None:
-        ex5.oargriddel([gridjob])
-        logger.info("Killing the job %s" % gridjob)
+    jobs = _grid_reload_from_name(gk, job_name)
+    for job in jobs:
+        job.delete()
+        logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
 
 
 def grid_destroy_from_id(gridjob):
@@ -344,3 +489,41 @@ def oar_destroy_from_id(oarjob, site):
     if oarjob is not None and site is not None:
         ex5.oardel([[oarjob, site]])
         logger.info("Killing the job %s" % oarjob)
+
+
+def can_start_on_cluster(nodes_status,
+                         nodes,
+                         start,
+                         walltime):
+    """Check if #nodes can be started on a given cluster.
+
+    This is intended to give a good enough approximation.
+    This can be use to prefiltered possible reservation dates before submitting
+    them on oar.
+    """
+    candidates = []
+    for node, status in nodes_status.items():
+        reservations = status.get("reservations", [])
+        # we search for the overlapping reservations
+        overlapping_reservations = []
+        for reservation in reservations:
+            queue = reservation.get("queue")
+            if queue == "besteffort":
+                # ignoring any besteffort reservation
+                continue
+            r_start = reservation.get("started_at",
+                                      reservation.get("scheduled_at"))
+            if r_start is None:
+                break
+            r_start = int(r_start)
+            r_end = r_start + int(reservation["walltime"])
+            # compute segment intersection
+            _intersect = min(r_end, start + walltime) - max(r_start, start)
+            if _intersect > 0:
+                overlapping_reservations.append(reservation)
+        if len(overlapping_reservations) == 0:
+            # this node can be accounted for a potential reservation
+            candidates.append(node)
+    if len(candidates) >= nodes:
+        return True
+    return False
