@@ -3,7 +3,6 @@ from abc import ABCMeta, abstractmethod
 import logging
 
 from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
-                                          grid_reload_from_id,
                                           grid_destroy_from_name,
                                           grid_destroy_from_id,
                                           oar_reload_from_id,
@@ -15,7 +14,7 @@ from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
 logger = logging.getLogger(__name__)
 
 
-def get_driver(configuration):
+def get_driver(configuration, gk):
     """Build an instance of the driver to interact with G5K
     """
     resources = configuration["resources"]
@@ -40,7 +39,9 @@ def get_driver(configuration):
         # see https://github.com/BeyondTheClouds/enos/pull/62
         queue = configuration.get("queue", None)
         logger.debug("Loading the OargridDynamicDriver")
+
         return OargridDynamicDriver(
+            gk,
             job_name,
             walltime,
             job_type,
@@ -96,7 +97,9 @@ class OargridDynamicDriver(Driver):
     - reserve will create or reload the job resources from the job name
     - destroy will destroy the oargrid job given its name
     """
-    def __init__(self, job_name,
+    def __init__(self,
+                 gk,
+                 job_name,
                  walltime,
                  job_type,
                  reservation_date,
@@ -110,21 +113,22 @@ class OargridDynamicDriver(Driver):
         self.queue = queue
         self.machines = machines
         self.networks = networks
+        self.gk = gk
 
     def reserve(self):
-        gridjob = grid_get_or_create_job(self.job_name,
-                                         self.walltime,
-                                         self.reservation_date,
-                                         self.queue,
-                                         self.job_type,
-                                         self.machines,
-                                         self.networks)
+        nodes, vlans, subnets = grid_get_or_create_job(self.gk,
+                                                       self.job_name,
+                                                       self.walltime,
+                                                       self.reservation_date,
+                                                       self.queue,
+                                                       self.job_type,
+                                                       self.machines,
+                                                       self.networks)
 
-        nodes, vlans, subnets = grid_reload_from_id(gridjob)
         return nodes, vlans, subnets
 
     def destroy(self):
-        grid_destroy_from_name(self.job_name)
+        grid_destroy_from_name(self.gk, self.job_name)
 
 
 class OarStaticDriver(Driver):

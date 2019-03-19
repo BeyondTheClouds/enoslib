@@ -1,7 +1,6 @@
 import copy
 
 from ddt import ddt, data
-from execo import Host
 import execo_g5k as ex5
 from execo_g5k import api_utils as api
 import mock
@@ -167,7 +166,7 @@ class TestConcretizeNodes(EnosTest):
         }
 
     def test_exact(self):
-        nodes = [Host("foocluster-1"), Host("barcluster-2")]
+        nodes = ["foocluster-1", "barcluster-2"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-1"])
@@ -175,7 +174,7 @@ class TestConcretizeNodes(EnosTest):
                               ["barcluster-2"])
 
     def test_one_missing(self):
-        nodes = [Host("foocluster-1")]
+        nodes = ["foocluster-1"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-1"])
@@ -183,7 +182,7 @@ class TestConcretizeNodes(EnosTest):
 
 
     def test_same_cluster(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2")]
+        nodes = ["foocluster-1", "foocluster-2"]
         self.resources["machines"][1]["cluster"] = "foocluster"
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
@@ -191,11 +190,11 @@ class TestConcretizeNodes(EnosTest):
         self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], ["foocluster-2"])
 
     def test_not_order_dependent(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2"), Host("foocluster-3")]
+        nodes = ["foocluster-1", "foocluster-2", "foocluster-3"]
         self.resources["machines"][0]["nodes"] = 2
         resources_1 = copy.deepcopy(self.resources)
         utils.concretize_nodes(resources_1, nodes)
-        nodes = [Host("foocluster-2"), Host("foocluster-3"), Host("foocluster-1")]
+        nodes = ["foocluster-2", "foocluster-3", "foocluster-1"]
         resources_2 = copy.deepcopy(self.resources)
         resources_2["machines"][0]["nodes"] = 2
         utils.concretize_nodes(resources_2, nodes)
@@ -222,7 +221,7 @@ class TestConcretizeNodesMin(EnosTest):
         }
 
     def test_exact(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2")]
+        nodes = ["foocluster-1", "foocluster-2"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-2"])
@@ -231,7 +230,7 @@ class TestConcretizeNodesMin(EnosTest):
                               ["foocluster-1"])
 
     def test_one_missing(self):
-        nodes = [Host("foocluster-1")]
+        nodes = ["foocluster-1"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"], [])
         self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], ["foocluster-1"])
@@ -317,3 +316,185 @@ class TestBuildReservationCriteria(EnosTest):
 
         criteria = utils._build_reservation_criteria([], resources["networks"])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
+
+class TestGridStuffs(EnosTest):
+
+    def test_can_start_on_cluster_1_1(self):
+        """
+        status:
+            ----****----
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            }
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_1(self):
+        """
+        status:
+            ----****----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_2(self):
+        """
+        status:
+            ----****----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_2(self):
+        """
+        status:
+            ----bbbb----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "queue": "besteffort",
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        self.assertTrue(ok)
