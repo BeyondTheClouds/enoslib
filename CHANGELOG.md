@@ -1,3 +1,8 @@
+# 2.2.8
+
+* Dependencies: add pyyaml and be a bit strict
+* tasks: add the knowledge of host datastructure when deserializing
+
 # 2.2.7
 
 * Doc: Gender equality fix
