@@ -1,3 +1,8 @@
+# 2.0.3
+
+* Dependencies: add pyyaml and be a bit strict (backported f915867)
+* tasks: add the knowledge of host datastructure when deserializing (backported f915867)
+
 # 2.0.2
 
 * (breaking) VMonG5K/Vagrant: Unify code. `flavour_desc` dict can be used after
