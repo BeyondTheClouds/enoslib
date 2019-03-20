@@ -95,7 +95,7 @@ class Enos_vagrant(Provider):
             'start': str(n["netpool"][0]),
             'end': str(n["netpool"][-1]),
             'dns': '8.8.8.8',
-            'gateway': n["gateway"],
+            'gateway': str(n["gateway"]),
             'roles': n["roles"]
             } for n in _networks]
         logger.debug(roles)

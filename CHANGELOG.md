@@ -2,6 +2,7 @@
 
 * Dependencies: add pyyaml and be a bit strict (backported f915867)
 * tasks: add the knowledge of host datastructure when deserializing (backported f915867)
+* Vagrant: force gateway ip to string (backported 8134068)
 
 # 2.0.2
 
