@@ -92,6 +92,15 @@ play_on:
   - cd enoslib/tests/functionnal
   - python test_static_play_on.py
 
+tasks:
+  image: python:3.5
+  stage: functionnal
+  tags: [qlf-ci.inria.fr]
+  script:
+  - ip a
+  - pip install -e .
+  - cd enoslib/tests/functionnal
+  - python test_static_tasks.py
 #### Entering th release zone
 package:
   image: python:3.6
