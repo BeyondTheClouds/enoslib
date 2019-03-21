@@ -11,6 +11,7 @@ provider_conf = {
     "resources": {
         "machines": [{
             "roles": ["control"],
+            "alias": "test_machine",
             "address": "localhost",
             "extra": {
                 "ansible_connection": "local"
