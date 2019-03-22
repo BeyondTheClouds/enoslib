@@ -15,17 +15,23 @@ network = NetworkConfiguration(id="n1",
                                type="kavlan",
                                roles=["my_network"],
                                site="rennes")
-
+second = NetworkConfiguration(id="n2",
+                              type="kavlan",
+                              roles=["my_network_2"],
+                              site="rennes")
 conf = Configuration.from_settings(job_name="test-enoslib")\
     .add_network_conf(network)\
+    .add_network_conf(second)\
     .add_machine(roles=["control"],
                  cluster="paravance",
                  nodes=1,
-                 primary_network=network)\
+                 primary_network=network,
+                 secondary_networks=[second])\
     .add_machine(roles=["control", "compute"],
                  cluster="paravance",
                  nodes=1,
-                 primary_network=network)\
+                 primary_network=network,
+                 secondary_networks=[second])\
     .finalize()
 
 provider = G5k(conf)

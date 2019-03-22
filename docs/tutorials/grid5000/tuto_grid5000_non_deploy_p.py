@@ -28,12 +28,15 @@ conf.add_network_conf(network)\
                  nodes=1,
                  primary_network=network)\
     .finalize()
-provider = G5k(conf)
 
-roles, networks = provider.init()
 
-# generate an inventory compatible with ansible
-generate_inventory(roles, networks, inventory, check_networks=True)
+try:
+    provider = G5k(conf)
 
-# destroy the reservation
-provider.destroy()
+    roles, networks = provider.init()
+
+    # generate an inventory compatible with ansible
+    generate_inventory(roles, networks, inventory, check_networks=True)
+finally:
+    # destroy the reservation
+    provider.destroy()

@@ -48,14 +48,14 @@ class TestMountSecondaryNics(EnosTest):
                 "id": "network_1",
                 "role": "net_role_1",
                 "site": "rennes",
-                "_c_network": {"vlan_id": 4, "site": "rennes"}
+                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="4")
             },
             {
                 "type": KAVLAN,
                 "id": "network_2",
                 "roles": ["net_role_2", "net_role_3"],
                 "site": "rennes",
-                "_c_network": {"vlan_id": 5, "site": "rennes"}},
+                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="5")}
         ]
         utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
         ex5.get_cluster_site = mock.MagicMock(return_value="rennes")
@@ -90,63 +90,65 @@ class TestConcretizeNetwork(EnosTest):
                 "id": "role1"
             }]
         }
-        ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {}, '4': {}, '5': {}}})
 
     def test_act(self):
-        networks = [
-            {"site": "rennes", "vlan_id": 4},
-            {"site": "rennes", "vlan_id": 5}
+        _networks = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
+            {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        subnets = []
-        utils.concretize_networks(self.resources, networks, subnets)
+        networks = [utils.ConcreteVlan(**n) for n in _networks]
+        utils.concretize_networks(self.resources, networks)
         self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
         self.assertEqual(networks[1], self.resources["networks"][1]["_c_network"])
 
 
     def test_act_subnets(self):
-        networks = []
-        subnets = [
-            {"site": "rennes", "ip_prefix": "10.156.1.0/18"},
-            {"site": "rennes", "ip_prefix": "10.156.0.0/22"},
+        _networks = [
+            {"site": "rennes", "network": "10.156.1.0/18", "nature": "slash_18"},
+            {"site": "rennes", "network": "10.156.0.0/22", "nature": "slash_22"},
         ]
-        utils.concretize_networks(self.resources_subnet, networks, subnets)
-        self.assertEqual(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
-        self.assertEqual(subnets[0], self.resources_subnet["networks"][1]["_c_network"])
+        networks = [utils.ConcreteSubnet(**n) for n in _networks]
+        utils.concretize_networks(self.resources_subnet, networks)
+        self.assertEqual(networks[1], self.resources_subnet["networks"][0]["_c_network"])
+        self.assertEqual(networks[0], self.resources_subnet["networks"][1]["_c_network"])
 
 
     def test_prod(self):
         self.resources["networks"][0]["type"] = PROD
+        self.resources["networks"][0]["nature"] = PROD
         networks = [
-            {"site": "rennes", "vlan_id": 5}
+            utils.ConcreteVlan(**{"site": "rennes", "vlan_id": 5, "nature": "kavlan","network": "1.2.3.4/24"}),
+            utils.ConcreteProd(**{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"})
         ]
-        subnets = []
-        utils.concretize_networks(self.resources, networks, subnets)
+
+        utils.concretize_networks(self.resources, networks)
         # self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEqual(None, self.resources["networks"][0]["_c_network"]["vlan_id"])
+        self.assertEqual(None, self.resources["networks"][0]["_c_network"].vlan_id)
         self.assertEqual(networks[0], self.resources["networks"][1]["_c_network"])
 
     def test_one_missing(self):
-        networks = [
-            {"site": "rennes", "vlan_id": 4},
+        _networks = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
         ]
-        subnets = []
+
+        networks = [utils.ConcreteVlan(**n) for n in _networks]
         with self.assertRaises(MissingNetworkError):
-            utils.concretize_networks(self.resources, networks, subnets)
+            utils.concretize_networks(self.resources, networks)
 
     def test_not_order_dependent(self):
-        networks_1 = [
-            {"site": "rennes", "vlan_id": 4},
-            {"site": "rennes", "vlan_id": 5}
+        _networks_1 = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
+            {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        networks_2 = [
-            {"site": "rennes", "vlan_id": 5},
-            {"site": "rennes", "vlan_id": 4}
-        ]
-        subnets = []
+        networks_1 = [utils.ConcreteVlan(**n) for n in _networks_1]
+        networks_2 = [networks_1[1], networks_1[0]]
+
         resources_1 = copy.deepcopy(self.resources)
         resources_2 = copy.deepcopy(self.resources)
-        utils.concretize_networks(resources_1, networks_1, subnets)
-        utils.concretize_networks(resources_2, networks_2, subnets)
+        utils.concretize_networks(resources_1, networks_1)
+        utils.concretize_networks(resources_2, networks_2)
+
+        self.maxDiff = None
         self.assertCountEqual(resources_1["networks"], resources_2["networks"])
 
 
@@ -498,3 +500,4 @@ class TestGridStuffs(EnosTest):
 
         ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
         self.assertTrue(ok)
+

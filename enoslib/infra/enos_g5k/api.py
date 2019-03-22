@@ -125,10 +125,10 @@ class Resources:
             self.grant_root_access()
 
     def reserve(self):
-        nodes, vlans, subnets = self.driver.reserve()
+        nodes, networks = self.driver.reserve()
 
         # The following as side-effect on self.c_resources
-        self._concretize_resources(nodes, vlans, subnets)
+        self._concretize_resources(nodes, networks)
 
     def deploy(self):
         def translate_vlan(primary_network, networks, nodes):
@@ -141,7 +141,7 @@ class Resources:
             if utils.is_prod(primary_network, networks):
                 return nodes
             net = utils.lookup_networks(primary_network, networks)
-            vlan_id = net["_c_network"]["vlan_id"]
+            vlan_id = net["_c_network"].vlan_id
             return [translate(node, vlan_id) for node in nodes]
 
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
@@ -161,7 +161,7 @@ class Resources:
             }
             if not utils.is_prod(primary_network, networks):
                 net = utils.lookup_networks(primary_network, networks)
-                options.update({"vlan": net["_c_network"]["vlan_id"]})
+                options.update({"vlan": net["_c_network"].vlan_id})
             # Yes, this is sequential
             deployed, undeployed = utils._deploy(nodes, force_deploy, options)
             for desc in descs:
@@ -187,17 +187,16 @@ class Resources:
         """Get the networks assoiated with the resource description.
 
         Returns
-            list of networks
+            list of tuple roles, network
         """
         networks = self.c_resources["networks"]
         result = []
         for net in networks:
-            current = {}
-            current.update(net)
-            _c_network = current.pop("_c_network", None)
-            if _c_network:
-                current.update(_c_network)
-            result.append(current)
+            _c_network = net.get("_c_network")
+            if _c_network is None:
+                continue
+            roles = utils.get_roles_as_list(net)
+            result.append((roles, _c_network))
         return result
 
     def get_roles(self):
@@ -227,12 +226,12 @@ class Resources:
         hosts = [{"host": h, "nics": nics} for h in hosts]
         return hosts
 
-    def _concretize_resources(self, nodes, vlans, subnets):
+    def _concretize_resources(self, nodes, networks):
         self._concretize_nodes(nodes)
-        self._concretize_networks(vlans, subnets)
+        self._concretize_networks(networks)
 
     def _concretize_nodes(self, nodes):
         utils.concretize_nodes(self.c_resources, nodes)
 
-    def _concretize_networks(self, vlans, subnets):
-        utils.concretize_networks(self.c_resources, vlans, subnets)
+    def _concretize_networks(self, networks):
+        utils.concretize_networks(self.c_resources, networks)
