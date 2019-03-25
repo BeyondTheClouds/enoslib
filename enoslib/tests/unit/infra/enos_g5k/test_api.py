@@ -11,18 +11,26 @@ class TestGetNetwork(EnosTest):
 
     @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
     def test_no_concrete_network_yet(self, mock_gk):
-        expected_networks = [{"type": PROD, "id": "network1"}]
-        r = Resources({"resources": {"networks": expected_networks, "machines": []}})
+        demand_networks = [{"type": PROD, "id": "network1"}]
+        r = Resources({"resources": {"networks": demand_networks, "machines": []}})
         networks = r.get_networks()
-        self.assertCountEqual(expected_networks, networks)
+        self.assertCountEqual([], networks)
 
     @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
     def test_concrete_network(self, mock_gk):
-        networks = [{"type": KAVLAN, "id": "network1", "_c_network": {"site": "nancy", "vlan_id": 1}}]
-        expected_networks = [{"type": KAVLAN, "id": "network1", "site": "nancy", "vlan_id": 1}]
+        concrete_net = utils.ConcreteVlan(site="nancy", vlan_id=1)
+        expected_roles = ["mynetwork"]
+        networks = [{
+            "type": KAVLAN,
+            "id": "network1",
+            "roles": expected_roles,
+            "_c_network": concrete_net}]
+        # a bit hacky because _c_network will be deepcopied so the ref will change
         r = Resources({"resources": {"networks": networks, "machines": []}})
         networks = r.get_networks()
-        self.assertCountEqual(expected_networks, networks)
+        self.assertEqual(1, len(networks))
+        actual_roles, actual_net = networks[0]
+        self.assertCountEqual(expected_roles, actual_roles)
 
 
 class TestDeploy(EnosTest):
@@ -50,20 +58,21 @@ class TestDeploy(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
     def test_vlan(self, mock_gk):
         nodes = ["foocluster-1", "foocluster-2"]
+        _c_network = utils.ConcreteVlan(vlan_id="4", site="rennes")
         r = Resources({
             "resources": {
                 "machines": [{
                     "_c_nodes": nodes,
                     "primary_network": "network1"
                 }],
-                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": _c_network}]
             }
         })
         deployed = set(["foocluster-1", "foocluster-2"])
         undeployed = set()
         utils._deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
-        utils._deploy.assert_called_with(nodes, False, {"env_name": DEFAULT_ENV_NAME, "vlan": 4})
+        utils._deploy.assert_called_with(nodes, False, {"env_name": DEFAULT_ENV_NAME, "vlan": "4"})
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
 
@@ -71,6 +80,9 @@ class TestDeploy(EnosTest):
     def test_2_deployements_with_undeployed(self, mock_gk):
         nodes_foo = ["foocluster-1", "foocluster-2"]
         nodes_bar = ["barcluster-1", "barcluster-2"]
+
+        _c_network_1 = utils.ConcreteProd(site="rennes")
+        _c_network_2 = utils.ConcreteVlan(vlan_id="4", site="rennes")
         r = Resources({
             "resources": {
                 "machines": [{
@@ -81,8 +93,8 @@ class TestDeploy(EnosTest):
                     "primary_network": "network2"
                 }],
                 "networks": [
-                    {"type": PROD, "id": "network1"},
-                    {"type": KAVLAN, "id": "network2", "_c_network": {"site": "rennes", "vlan_id": 4}}]
+                    {"type": PROD, "id": "network1", "_c_network": _c_network_1},
+                    {"type": KAVLAN, "id": "network2", "_c_network": _c_network_2}]
             }
         })
         d_foo = set(["foocluster-1"])

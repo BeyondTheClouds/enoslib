@@ -1,15 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-import socket
-
-from netaddr import IPAddress, IPNetwork, IPSet
 
 import enoslib.infra.enos_g5k.api as api
-from enoslib.infra.enos_g5k.schema import KAVLAN_TYPE, SUBNET_TYPE
 from enoslib.host import Host
 from enoslib.infra.provider import Provider
-from enoslib.utils import get_roles_as_list
-from .constants import NAMESERVER
 
 
 logger = logging.getLogger(__name__)
@@ -48,63 +42,8 @@ def _to_enos_networks(networks):
             :py:func:`enoslib.infra.provider.Provider.init`
     """
     nets = []
-    for network in networks:
-        net = {
-            "cidr": str(network["network"]),
-            "gateway": str(network["gateway"]),
-            # NOTE(msimonin): This will point to the nameserver of the site
-            # where the deployment is launched regardless the actual site in
-            # the network description. Until now we used the global DNS IP
-            # here. Finally this information couldn't be found in the API (dec.
-            # 18) otherwise we'd move this logic in utils.concretize_networks
-            # (like network and gateway)
-            "dns": socket.gethostbyname(NAMESERVER),
-            "roles": get_roles_as_list(network)
-        }
-        if network["type"] in KAVLAN_TYPE:
-            # On the network, the first IP are reserved to g5k machines.
-            # For a routed vlan I don't know exactly how many ip are
-            # reserved. However, the specification is clear about global
-            # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
-            # It is split -- contiguously -- so that every site gets one
-            # /23 (510 ip) in the global VLAN address space". There are 12
-            # site. This means that we could take ip from 13th subnetwork.
-            # Lets consider the strategy is the same for routed vlan. See,
-            # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
-            #
-            # First, split network in /23 this leads to 32 subnetworks.
-            # Then, (i) drops the 12 first subnetworks because they are
-            # dedicated to g5k machines, and (ii) drops the last one
-            # because some of ips are used for specific stuff such as
-            # gateway, kavlan server...
-            subnets = IPNetwork(network["network"])
-            if network["vlan_id"] < 4:
-                # vlan local
-                subnets = list(subnets.subnet(24))
-                subnets = subnets[4:7]
-            else:
-                subnets = list(subnets.subnet(23))
-                subnets = subnets[13:31]
-
-            # Finally, compute the range of available ips
-            ips = IPSet(subnets).iprange()
-
-            net.update({
-                "start": str(IPAddress(ips.first)),
-                "end": str(IPAddress(ips.last))
-            })
-        elif network["type"] in SUBNET_TYPE:
-            start_ip, start_mac = network["ipmac"][0]
-            end_ip, end_mac = network["ipmac"][-1]
-            net.update({
-                "start": start_ip,
-                "end": end_ip,
-                "mac_start": start_mac,
-                "mac_end": end_mac
-            })
-
-        net.update({"roles": get_roles_as_list(network)})
-        nets.append(net)
+    for roles, network in networks:
+        nets.append(network.to_enos(roles))
     logger.debug(nets)
     return nets
 

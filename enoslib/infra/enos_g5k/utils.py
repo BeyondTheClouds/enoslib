@@ -7,6 +7,7 @@ import time
 from execo import Host
 import execo_g5k as ex5
 import execo_g5k.api_utils as api
+from netaddr import IPAddress, IPNetwork, IPSet
 
 from enoslib.errors import EnosError
 from enoslib.infra.enos_g5k import remote
@@ -20,13 +21,192 @@ from enoslib.infra.utils import pick_things, mk_pools
 logger = logging.getLogger(__name__)
 
 
+NATURE_PROD = "prod"
 SYNCHRONISATION_OFFSET = 60
+G5KMACPREFIX = '00:16:3E'
 
 
-class EnosG5kDuplicateJobs(EnosError):
+class ConcreteNetwork:
+    def __init__(self, *,
+                 site=None,
+                 network=None,
+                 gateway=None,
+                 dns=None,
+                 vlan_id=None,
+                 ipmac=None,
+                 nature=None,
+                 **kwargs):
+        self.site = site
+        self.network = network
+        self.gateway = gateway
+        self.dns = dns
+        self.vlan_id = vlan_id
+        self.ipmac = []
+        if ipmac is not None:
+            self.ipmac = ipmac
+
+        self.nature = nature
+
+    @staticmethod
+    def to_nature(n_type):
+        return n_type
+
+    def __repr__(self):
+        return """<ConcreteNetwork
+        site=%s
+        nature=%s
+        network=%s
+        gateway=%s
+        dns=%s
+        vlan_id=%s>""" % (
+            self.site,
+            self.nature,
+            self.network,
+            self.gateway,
+            self.dns,
+            self.vlan_id
+        )
+
+
+class ConcreteSubnet(ConcreteNetwork):
+
+    @staticmethod
+    def to_nature(subnet):
+        return "slash_%s" % subnet[-2:]
+
+    @classmethod
+    def from_job(cls, site_info, subnet):
+        ipmac = []
+
+        network = IPNetwork(subnet)
+        for ip in network[1:-1]:
+            _, x, y, z = ip.words
+            ipmac.append((str(ip),
+                          G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
+        nature = ConcreteSubnet.to_nature(subnet)
+
+        kwds = {
+            "nature": nature,
+            "gateway": site_info.g5ksubnet["gateway"],
+            "network": subnet,
+            "site": site_info.uid,
+            "ipmac": ipmac,
+        }
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        net = {}
+        start_ip, start_mac = self.ipmac[0]
+        end_ip, end_mac = self.ipmac[-1]
+        net.update(start=start_ip,
+                   end=end_ip,
+                   mac_start=start_mac,
+                   mac_end=end_mac,
+                   roles=roles,
+                   cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns)
+        return net
+
+
+class ConcreteVlan(ConcreteNetwork):
+
+    kavlan_local = ["1", "2", "3"]
+    kavlan = ["4", "5", "6", "7", "8", "9"]
+
+    @staticmethod
+    def to_nature(vlan_id):
+        if vlan_id in ConcreteVlan.kavlan_local:
+            return KAVLAN_LOCAL
+        if vlan_id in ConcreteVlan.kavlan:
+            return KAVLAN
+        return KAVLAN_GLOBAL
+
+    @classmethod
+    def from_job(cls, site_info, vlan_id):
+
+        nature = ConcreteVlan.to_nature(vlan_id)
+        kwds = {
+            "nature": nature,
+            "vlan_id": str(vlan_id),
+        }
+        kwds.update(site_info.kavlans[str(vlan_id)])
+        kwds.update(site=site_info.uid)
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        # On the network, the first IP are reserved to g5k machines.
+        # For a routed vlan I don't know exactly how many ip are
+        # reserved. However, the specification is clear about global
+        # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
+        # It is split -- contiguously -- so that every site gets one
+        # /23 (510 ip) in the global VLAN address space". There are 12
+        # site. This means that we could take ip from 13th subnetwork.
+        # Lets consider the strategy is the same for routed vlan. See,
+        # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
+        #
+        # First, split network in /23 this leads to 32 subnetworks.
+        # Then, (i) drops the 12 first subnetworks because they are
+        # dedicated to g5k machines, and (ii) drops the last one
+        # because some of ips are used for specific stuff such as
+        # gateway, kavlan server...
+        net = {}
+        subnets = IPNetwork(self.network)
+        if self.vlan_id in ConcreteVlan.kavlan_local:
+            # vlan local
+            subnets = list(subnets.subnet(24))
+            subnets = subnets[4:7]
+        else:
+            subnets = list(subnets.subnet(23))
+            subnets = subnets[13:31]
+
+        # Finally, compute the range of available ips
+        ips = IPSet(subnets).iprange()
+
+        net.update(start=str(IPAddress(ips.first)),
+                   end=str(IPAddress(ips.last)),
+                   cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns,
+                   roles=roles)
+        return net
+
+
+class ConcreteProd(ConcreteNetwork):
+
+    @classmethod
+    def from_job(cls, site_info):
+        nature = NATURE_PROD
+        vlan_id = "default"
+        kwds = {
+            "nature": nature,
+            "vlan_id": str(vlan_id),
+            "site": site_info.uid,
+        }
+        kwds.update(site_info.kavlans[vlan_id])
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        net = {}
+        net.update(cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns,
+                   roles=roles)
+        return net
+
+
+class EnosG5kDuplicateJobsError(EnosError):
     def __init__(self, site, job_name):
         super(EnosG5kDuplicateJobs, self).__init__(
             "Duplicate jobs on %s with the same name %s"
+            % (site, job_name)
+        )
+
+
+class EnosG5kSynchronisationError(EnosError):
+    def __init__(self, sites, job_name):
+        super(EnosG5kSynchronisationError, self).__init__(
+            "Unable to find a synchronised start for the jobs on" % sites
             % (site, job_name)
         )
 
@@ -59,18 +239,6 @@ def is_prod(network, networks):
     return net["type"] == PROD
 
 
-def to_vlan_type(vlan_id):
-    if vlan_id < 4:
-        return KAVLAN_LOCAL
-    if vlan_id < 10:
-        return KAVLAN
-    return KAVLAN_GLOBAL
-
-
-def to_subnet_type(ip_prefix):
-    return "slash_%s" % ip_prefix[-2:]
-
-
 def _grid_reload_from_name(gk, job_name):
     sites = gk.sites.list()
     jobs = []
@@ -82,7 +250,7 @@ def _grid_reload_from_name(gk, job_name):
             logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
             jobs.append(_jobs[0])
         elif len(_jobs) > 1:
-            raise EnosG5kDuplicateJobs(site, job_name)
+            raise EnosG5kDuplicateJobsError(site, job_name)
     return jobs
 
 
@@ -112,6 +280,27 @@ def wait_for_jobs(jobs):
     logger.info("All jobs are Running !")
 
 
+def _build_resources(gk, jobs):
+    nodes = []
+    networks = []
+    for job in jobs:
+        # Ok so we build the networks given by g5k for each job
+        # a network is here a dict
+        _subnets = job.resources_by_type.get("subnets", [])
+        _vlans = job.resources_by_type.get("vlans", [])
+        nodes = nodes + job.assigned_nodes
+        site_info = gk.sites[job.site]
+
+        networks += [ConcreteSubnet.from_job(site_info, subnet)
+                     for subnet in _subnets]
+        networks += [ConcreteVlan.from_job(site_info, vlan_id)
+                     for vlan_id in _vlans]
+        networks += [ConcreteProd.from_job(site_info)]
+
+    logger.debug("nodes=%s, networks=%s" % (nodes, networks))
+    return nodes, networks
+
+
 def grid_get_or_create_job(gk, job_name, walltime, reservation_date,
                            queue, job_type, machines, networks):
     jobs = _grid_reload_from_name(gk, job_name)
@@ -120,44 +309,7 @@ def grid_get_or_create_job(gk, job_name, walltime, reservation_date,
                                         queue, job_type, machines, networks)
     wait_for_jobs(jobs)
 
-    vlans = []
-    subnets = []
-    nodes = []
-    for job in jobs:
-        _subnets = job.resources_by_type.get("subnets", [])
-        _vlans = job.resources_by_type.get("vlans", [])
-        nodes = nodes + job.assigned_nodes
-        # TODO FIXME networks
-        subnets = subnets + [{"site": job.site,
-                              "ipmac": "fillme"} for s in _subnets]
-        vlans = vlans + [{"site": job.site,
-                          "vlan_id": vlan_id} for vlan_id in _vlans]
-    logger.debug("nodes=%s, subnets=%s, vlans=%s" % (nodes, subnets, vlans))
-
-    return nodes, vlans, subnets
-
-
-def get_network_info_from_job_id(job_id, site, vlans, subnets):
-    vlan_ids = ex5.get_oar_job_kavlan(job_id, site)
-    vlans.extend([{
-        "site": site,
-        "vlan_id": vlan_id} for vlan_id in vlan_ids])
-    # NOTE(msimonin): this currently returned only one subnet
-    # even if several are reserved
-    # We'll need to patch execo the same way it has been patched for vlans
-    ipmac, info = ex5.get_oar_job_subnets(job_id, site)
-    if not ipmac:
-        logger.debug("No subnet information found for this job")
-        return vlans, subnets
-    subnet = {
-        "site": site,
-        "ipmac": ipmac,
-    }
-    subnet.update(info)
-    # Mandatory key when it comes to concretize resources
-    subnet.update({"network": info["ip_prefix"]})
-    subnets.append(subnet)
-    return vlans, subnets
+    return _build_resources(gk, jobs)
 
 
 def oar_reload_from_id(oarjob, site):
@@ -214,7 +366,7 @@ def _mount_secondary_nics(desc, networks):
             continue
         nic_device, nic_name = nics[idx]
         nodes_to_set = [Host(n) for n in desc["_c_nodes"]]
-        vlan_id = net["_c_network"]["vlan_id"]
+        vlan_id = net["_c_network"].vlan_id
         logger.info("Put %s, %s in vlan id %s for nodes %s" %
                     (nic_device, nic_name, vlan_id, nodes_to_set))
         api.set_nodes_vlan(net["site"],
@@ -284,37 +436,20 @@ def concretize_nodes(resources, nodes):
     return resources
 
 
-def concretize_networks(resources, vlans, subnets):
+def concretize_networks(resources, networks):
     # avoid any non-determinism
-    s_vlans = sorted(vlans, key=lambda v: (v["site"], v["vlan_id"]))
-    s_subnets = sorted(subnets, key=lambda s: (s["site"], s["ip_prefix"]))
+    s_networks = sorted(networks, key=lambda n: (n.site, n.nature, n.network))
     pools = mk_pools(
-        s_vlans,
-        lambda n: (n["site"], to_vlan_type(n["vlan_id"])))
-    pools_subnets = mk_pools(
-        s_subnets,
-        lambda n: (n["site"], to_subnet_type(n["ip_prefix"])))
-
+        s_networks,
+        lambda n: (n.site, n.nature))
+    print(s_networks)
     for desc in resources["networks"]:
         site = desc["site"]
-        site_info = ex5.get_resource_attributes('/sites/%s' % site)
         n_type = desc["type"]
-        if n_type == PROD:
-            desc["_c_network"] = {"site": site, "vlan_id": None}
-            desc["_c_network"].update(site_info["kavlans"]["default"])
-        elif n_type in KAVLAN_TYPE:
-            networks = pick_things(pools, (site, n_type), 1)
-            if len(networks) < 1:
-                raise MissingNetworkError(site, n_type)
-            # concretize the network
-            desc["_c_network"] = networks[0]
-            vlan_id = desc["_c_network"]["vlan_id"]
-            desc["_c_network"].update(site_info["kavlans"][str(vlan_id)])
-        elif n_type in SUBNET_TYPE:
-            networks = pick_things(pools_subnets, (site, n_type), 1)
-            if len(networks) < 1:
-                raise MissingNetworkError(site, n_type)
-            desc["_c_network"] = networks[0]
+        _networks = pick_things(pools, (site, n_type), 1)
+        if len(_networks) < 1:
+            raise MissingNetworkError(site, n_type)
+        desc["_c_network"] = _networks[0]
 
     return resources
 
@@ -354,7 +489,7 @@ def _do_submit_jobs(gk, job_specs):
     jobs = []
     try:
         for site, job_spec in job_specs:
-            logging.info("Submitting %s on %s" % (job_spec, site))
+            logger.info("Submitting %s on %s" % (job_spec, site))
             jobs.append(gk.sites[site].jobs.create(job_spec))
     except Error as e:
         logger.error("An error occured during the job submissions")
@@ -448,7 +583,8 @@ def _do_synchronise_jobs(gk, walltime, machines):
         logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
         return start
 
-    return None
+    if start is None:
+        raise EnosG5kSynchronisationError(sites)
 
 
 def grid_make_reservation(gk, job_name, walltime, reservation_date,

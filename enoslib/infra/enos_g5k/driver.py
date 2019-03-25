@@ -116,16 +116,16 @@ class OargridDynamicDriver(Driver):
         self.gk = gk
 
     def reserve(self):
-        nodes, vlans, subnets = grid_get_or_create_job(self.gk,
-                                                       self.job_name,
-                                                       self.walltime,
-                                                       self.reservation_date,
-                                                       self.queue,
-                                                       self.job_type,
-                                                       self.machines,
-                                                       self.networks)
+        nodes, networks = grid_get_or_create_job(self.gk,
+                                                 self.job_name,
+                                                 self.walltime,
+                                                 self.reservation_date,
+                                                 self.queue,
+                                                 self.job_type,
+                                                 self.machines,
+                                                 self.networks)
 
-        return nodes, vlans, subnets
+        return nodes, networks
 
     def destroy(self):
         grid_destroy_from_name(self.gk, self.job_name)
