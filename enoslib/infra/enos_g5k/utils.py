@@ -24,7 +24,16 @@ logger = logging.getLogger(__name__)
 NATURE_PROD = "prod"
 SYNCHRONISATION_OFFSET = 60
 G5KMACPREFIX = '00:16:3E'
-
+DNS = {
+    "grenoble": "172.16.31.110",
+    "lille": "172.16.47.101",
+    "luxembourg": "172.16.191.101",
+    "lyon": "172.16.63.113",
+    "nancy": "172.16.79.106",
+    "nantes": "172.16.207.101",
+    "rennes": "172.16.111.118",
+    "sophia": "172.16.143.101",
+}
 
 class ConcreteNetwork:
     def __init__(self, *,
@@ -39,7 +48,8 @@ class ConcreteNetwork:
         self.site = site
         self.network = network
         self.gateway = gateway
-        self.dns = dns
+        # NOTE(msimonin): dns info isn't present in g5k api
+        self.dns = DNS[site]
         self.vlan_id = vlan_id
         self.ipmac = []
         if ipmac is not None:
@@ -52,20 +62,19 @@ class ConcreteNetwork:
         return n_type
 
     def __repr__(self):
-        return """<ConcreteNetwork
-        site=%s
-        nature=%s
-        network=%s
-        gateway=%s
-        dns=%s
-        vlan_id=%s>""" % (
-            self.site,
-            self.nature,
-            self.network,
-            self.gateway,
-            self.dns,
-            self.vlan_id
-        )
+        return ("<ConcreteNetwork site=%s"
+                                " nature=%s"
+                                " network=%s"
+                                " gateway=%s"
+                                " dns=%s"
+                                " vlan_id=%s>") % (
+                                    self.site,
+                                    self.nature,
+                                    self.network,
+                                    self.gateway,
+                                    self.dns,
+                                    self.vlan_id
+                                )
 
 
 class ConcreteSubnet(ConcreteNetwork):
