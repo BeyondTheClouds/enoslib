@@ -246,7 +246,7 @@ class TestConcretizeNodesMin(EnosTest):
 @ddt
 class TestBuildReservationCriteria(EnosTest):
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
     def test_only_machines_one_site(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -255,12 +255,12 @@ class TestBuildReservationCriteria(EnosTest):
                 "cluster": "foocluster",
             }],
         }
-
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", side_effect=["site1", "site2"])
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", side_effect=["site1", "site2"])
     def test_only_machines_two_sites(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -274,13 +274,14 @@ class TestBuildReservationCriteria(EnosTest):
             }],
         }
 
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({
             "site1": ["{cluster='foocluster'}/nodes=1"],
             "site2": ["{cluster='barcluster'}/nodes=2"]
         }, criteria)
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
     def test_only_no_machines(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -290,7 +291,8 @@ class TestBuildReservationCriteria(EnosTest):
             }],
         }
 
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({}, criteria)
 
 
@@ -303,7 +305,8 @@ class TestBuildReservationCriteria(EnosTest):
             }]
         }
 
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
 
@@ -316,7 +319,8 @@ class TestBuildReservationCriteria(EnosTest):
             }]
         }
 
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
 
 class TestGridStuffs(EnosTest):

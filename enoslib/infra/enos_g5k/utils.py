@@ -384,12 +384,24 @@ def _mount_secondary_nics(desc, networks):
         idx = idx + 1
 
 
-def get_cluster_site(cluster):
-    return ex5.get_cluster_site(cluster)
+def _get_clusters_sites(gk, clusters):
+    sites = gk.sites.list()
+    matches = {}
+    for site in sites:
+        candidates = site.clusters.list()
+        matching = [c.uid for c in candidates if c.uid in clusters]
+        if len(matching) == 1:
+            matches.setdefault(matching[0], site.uid)
+            clusters.remove(matching[0])
+    return matches
+
+def _get_cluster_site(gk, cluster):
+    match = _get_clusters_sites(gk, [cluster])
+    return match[cluster]
 
 
 def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
-    site = ex5.get_cluster_site(cluster)
+    site = _get_cluster_site(cluster)
     nics = ex5.get_resource_attributes(
         "/sites/%s/clusters/%s/nodes" % (site, cluster))
     nics = nics['items'][0]['network_adapters']
@@ -460,14 +472,14 @@ def concretize_networks(resources, networks):
     return resources
 
 
-def _build_reservation_criteria(machines, networks):
+def _build_reservation_criteria(gk, machines, networks):
     criteria = {}
     # machines reservations
     for desc in machines:
         cluster = desc["cluster"]
         nodes = desc["nodes"]
         if nodes:
-            site = api.get_cluster_site(cluster)
+            site = _get_cluster_site(gk, cluster)
             criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
             criteria.setdefault(site, []).append(criterion)
 
@@ -600,7 +612,7 @@ def grid_make_reservation(gk, job_name, walltime, reservation_date,
         reservation_date = _do_synchronise_jobs(gk, walltime, machines)
 
     # Build the OAR criteria
-    criteria = _build_reservation_criteria(machines, networks)
+    criteria = _build_reservation_criteria(gk, machines, networks)
 
     # Submit them
     jobs = _do_grid_make_reservation(gk, criteria, job_name, walltime,

@@ -23,13 +23,7 @@ def get_clusters_sites(clusters):
         dict of cluster with its associated site
 
     """
-
-    sites = {}
-    for cluster in clusters:
-        site = utils.get_cluster_site(cluster)
-        sites.setdefault(cluster, site)
-
-    return sites
+    return utils._get_clusters_sites(clusters)
 
 
 def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
