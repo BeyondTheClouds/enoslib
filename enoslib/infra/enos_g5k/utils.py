@@ -24,16 +24,6 @@ logger = logging.getLogger(__name__)
 NATURE_PROD = "prod"
 SYNCHRONISATION_OFFSET = 60
 G5KMACPREFIX = '00:16:3E'
-DNS = {
-    "grenoble": "172.16.31.110",
-    "lille": "172.16.47.101",
-    "luxembourg": "172.16.191.101",
-    "lyon": "172.16.63.113",
-    "nancy": "172.16.79.106",
-    "nantes": "172.16.207.101",
-    "rennes": "172.16.111.118",
-    "sophia": "172.16.143.101",
-}
 
 class ConcreteNetwork:
     def __init__(self, *,
@@ -49,7 +39,7 @@ class ConcreteNetwork:
         self.network = network
         self.gateway = gateway
         # NOTE(msimonin): dns info isn't present in g5k api
-        self.dns = DNS[site]
+        self.dns = dns
         self.vlan_id = vlan_id
         self.ipmac = []
         if ipmac is not None:
@@ -60,6 +50,10 @@ class ConcreteNetwork:
     @staticmethod
     def to_nature(n_type):
         return n_type
+
+    @staticmethod
+    def get_dns(site_info):
+        return site_info.servers["dns"].network_adapters["default"]["ip"]
 
     def __repr__(self):
         return ("<ConcreteNetwork site=%s"
@@ -100,6 +94,7 @@ class ConcreteSubnet(ConcreteNetwork):
             "network": subnet,
             "site": site_info.uid,
             "ipmac": ipmac,
+            "dns": cls.get_dns(site_info)
         }
         return cls(**kwds)
 
@@ -138,6 +133,7 @@ class ConcreteVlan(ConcreteNetwork):
         kwds = {
             "nature": nature,
             "vlan_id": str(vlan_id),
+            "dns": cls.get_dns(site_info)
         }
         kwds.update(site_info.kavlans[str(vlan_id)])
         kwds.update(site=site_info.uid)
@@ -191,6 +187,7 @@ class ConcreteProd(ConcreteNetwork):
             "nature": nature,
             "vlan_id": str(vlan_id),
             "site": site_info.uid,
+            "dns": cls.get_dns(site_info)
         }
         kwds.update(site_info.kavlans[vlan_id])
         return cls(**kwds)
