@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-from pathlib import Path
 
 import copy
 import logging
-import os
 import time
 
 from execo import Host
@@ -13,7 +11,7 @@ import execo_g5k.api_utils as api
 from netaddr import IPAddress, IPNetwork, IPSet
 
 from enoslib.errors import EnosError
-from enoslib.infra.enos_g5k import remote
+from enoslib.infra.enos_g5k import remote, constants
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
@@ -342,7 +340,7 @@ def grid_deploy(gk, site, nodes, force_deploy, options):
     environment = options.pop("env_name")
     options.update(environment=environment)
     options.update(nodes=nodes)
-    key_path = Path.home().joinpath(".ssh", "id_rsa.pub")
+    key_path = constants.DEFAULT_SSH_KEYFILE
     options.update(key=key_path.read_text())
     logger.info("Deploying %s with options %s" % (nodes, options))
     deployment = gk.sites[site].deployments.create(options)
