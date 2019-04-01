@@ -18,7 +18,7 @@ class TestGetDriver(unittest.TestCase):
 
     def test_getdriver_oargridstatic(self):
         resources = {
-            "oargrid_jobid": "1234",
+            "oargrid_jobids": ["rennes", "1234"],
             "resources": {
                 "machines": [],
                 "networks": [],

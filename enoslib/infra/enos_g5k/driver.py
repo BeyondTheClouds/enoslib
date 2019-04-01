@@ -5,9 +5,8 @@ import logging
 from enoslib.infra.enos_g5k.utils import (grid_deploy,
                                           grid_get_or_create_job,
                                           grid_destroy_from_name,
-                                          grid_destroy_from_id,
-                                          oar_reload_from_id,
-                                          oar_destroy_from_id)
+                                          grid_reload_from_ids,
+                                          grid_destroy_from_ids)
 from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
                                               DEFAULT_WALLTIME,
                                               JOB_TYPE_DEPLOY)
@@ -22,15 +21,11 @@ def get_driver(configuration, gk):
     resources = configuration["resources"]
     machines = resources["machines"]
     networks = resources["networks"]
-    oargrid_jobid = configuration.get("oargrid_jobid")
-    oar_jobid = configuration.get("oar_jobid")
-    oar_site = configuration.get("oar_site")
-    if oargrid_jobid:
+    oargrid_jobids = configuration.get("oargrid_jobids")
+
+    if oargrid_jobids:
         logger.debug("Loading the OargridStaticDriver")
-        return OargridStaticDriver(oargrid_jobid)
-    elif oar_jobid and oar_site:
-        logger.debug("Loading the OarStaticDriver")
-        return OarStaticDriver(oar_jobid, oar_site)
+        return OargridStaticDriver(gk, oargrid_jobids)
     else:
         job_name = configuration.get("job_name", DEFAULT_JOB_NAME)
         walltime = configuration.get("walltime", DEFAULT_WALLTIME)
@@ -80,28 +75,37 @@ class Driver:
 
 class OargridStaticDriver(Driver):
     """
-    Use this driver when a oargrid job id is given.
+    Use this driver when a list of oar job ids and sites are given
 
-    - reserve will reload the job resources from the job id
-    - destroy will destroy the oargrid job given its id
+    Since enoslib 3 we deprecated the use of oargridsub.
+    Thus one must pass a list of jobs here (one for each site).
+    Note that they can be created using oargrid manually.
+
+    - reserve will create or reload the job resources from all the (site, id)s
+    - destroy will destroy the oargrid job given all the (site, id)s
     """
-    def __init__(self, oargrid_jobid):
-        self.oargrid_jobid = int(oargrid_jobid)
+    def __init__(self, gk, oargrid_jobids):
+        self.gk = gk
+        self.oargrid_jobids = oargrid_jobids
 
     def reserve(self):
-        nodes, vlans, subnets = grid_reload_from_id(self.oargrid_jobid)
-        return nodes, vlans, subnets
+        nodes, networks = grid_reload_from_ids(self.gk, self.oargrid_jobids)
+        return nodes, networks
 
     def destroy(self):
-        grid_destroy_from_id(self.oargrid_jobid)
+        grid_destroy_from_ids(self.oargrid_jobids)
+
+    def deploy(self, site, nodes, force_deploy, options):
+        return grid_deploy(self.gk, site, nodes, force_deploy, options)
 
 
 class OargridDynamicDriver(Driver):
     """
     Use this driver when a new oargrid job must be created
 
-    - reserve will create or reload the job resources from the job name
-    - destroy will destroy the oargrid job given its name
+    Since enoslib 3 we deprecated the use of oargridsub. Thus we need to keep a
+    way to recover the job running on each site corresponding to the current
+    deployment. This is done using the job name.
     """
     def __init__(self,
                  gk,
@@ -138,24 +142,3 @@ class OargridDynamicDriver(Driver):
 
     def deploy(self, site, nodes, force_deploy, options):
         return grid_deploy(self.gk, site, nodes, force_deploy, options)
-
-
-class OarStaticDriver(Driver):
-    """
-    Use this driver when a oar job id is given.
-
-    - reserve will reload the job resources from the job id
-    - destroy will destroy the oargrid job given its id
-    """
-    def __init__(self, oar_jobid, oar_site):
-        self.oar_jobid = int(oar_jobid)
-        self.oar_site = oar_site
-
-    def reserve(self):
-        nodes, vlans, subnets = oar_reload_from_id(self.oar_jobid,
-                                                   self.oar_site)
-        return nodes, vlans, subnets
-
-    def destroy(self):
-        oar_destroy_from_id(self.oar_jobid,
-                            self.oar_site)

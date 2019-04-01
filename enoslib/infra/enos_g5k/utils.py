@@ -261,6 +261,13 @@ def _grid_reload_from_name(gk, job_name):
     return jobs
 
 
+def _grid_reload_from_ids(gk, oargrid_jobids):
+    jobs = []
+    for site, job_id in oargrid_jobids:
+        jobs.append(gk.sites[site].jobs[job_id])
+    return jobs
+
+
 def _date2h(timestamp):
     t = time.strftime("%Y-%m-%d %H:%M:%S",
                       time.localtime(timestamp))
@@ -319,18 +326,13 @@ def grid_get_or_create_job(gk, job_name, walltime, reservation_date,
     return _build_resources(gk, jobs)
 
 
-def oar_reload_from_id(oarjob, site):
-    logger.info("Reloading the resources from oar job %s", oarjob)
-    job_id = int(oarjob)
-    nodes = ex5.get_oar_job_nodes(job_id)
+def grid_reload_from_ids(gk, oarjobids):
+    logger.info("Reloading the resources from oar jobs %s", oarjobids)
+    jobs = _grid_reload_from_ids(gk, oarjobids)
 
-    vlans = []
-    subnets = []
-    vlans, subnets = get_network_info_from_job_id(job_id,
-                                                  site,
-                                                  vlans,
-                                                  subnets)
-    return nodes, vlans, subnets
+    wait_for_jobs(jobs)
+
+    return _build_resources(gk, jobs)
 
 
 def grid_deploy(gk, site, nodes, force_deploy, options):
@@ -649,20 +651,12 @@ def grid_destroy_from_name(gk, job_name):
         logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
 
 
-def grid_destroy_from_id(gridjob):
+def grid_destroy_from_ids(gk, oargrid_jobids):
     """Destroy the job."""
-    gridjob = int(gridjob)
-    if gridjob is not None:
-        ex5.oargriddel([gridjob])
+    jobs = _grid_reload_from_ids(gk, oargrid_jobids)
+    for job in jobs:
+        job.delete()
         logger.info("Killing the job %s" % gridjob)
-
-
-def oar_destroy_from_id(oarjob, site):
-    """Destroy the job."""
-    oarjob = int(oarjob)
-    if oarjob is not None and site is not None:
-        ex5.oardel([[oarjob, site]])
-        logger.info("Killing the job %s" % oarjob)
 
 
 def can_start_on_cluster(nodes_status,

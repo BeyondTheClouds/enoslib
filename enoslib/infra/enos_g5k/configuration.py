@@ -16,9 +16,7 @@ class Configuration(BaseConfiguration):
         self.job_name = DEFAULT_JOB_NAME
         self.job_type = DEFAULT_JOB_TYPE
         self.key = None
-        self.oargrid_jobid = None
-        self.oar_jobid = None
-        self.oar_site = None
+        self.oargrid_jobids = None
         self.queue = DEFAULT_QUEUE
         self.reservation = None
         self.walltime = DEFAULT_WALLTIME
