@@ -23,6 +23,7 @@ SCHEMA = {
         "env_name": {"type": "string"},
         "job_name": {"type": "string"},
         "job_type": {"type": "string", "enum": JOB_TYPES},
+        "key": {"type": "string"},
         "oargrid_jobid": {"type": "string"},
         "oar_jobid": {"type": "string"},
         "oar_site": {"type": "string"},

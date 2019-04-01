@@ -15,6 +15,7 @@ class Configuration(BaseConfiguration):
         self.env_name = DEFAULT_ENV_NAME
         self.job_name = DEFAULT_JOB_NAME
         self.job_type = DEFAULT_JOB_TYPE
+        self.key = None
         self.oargrid_jobid = None
         self.oar_jobid = None
         self.oar_site = None
