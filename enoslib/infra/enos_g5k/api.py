@@ -11,6 +11,7 @@ from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
+from enoslib.infra.enos_g5k.schema import PROD
 
 
 def get_clusters_sites(clusters):
@@ -159,11 +160,14 @@ class Resources:
             options = {
                 "env_name": env_name
             }
-            if not utils.is_prod(primary_network, networks):
-                net = utils.lookup_networks(primary_network, networks)
+
+            net = utils.lookup_networks(primary_network, networks)
+            if net["type"] != PROD:
                 options.update({"vlan": net["_c_network"].vlan_id})
+            site = net["site"]
             # Yes, this is sequential
-            deployed, undeployed = utils._deploy(nodes, force_deploy, options)
+            deployed, undeployed = self.driver.deploy(site, nodes,
+                                                      force_deploy, options)
             for desc in descs:
                 c_nodes = desc.get("_c_nodes", [])
                 desc["_c_deployed"] = list(set(c_nodes) & set(deployed))

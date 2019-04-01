@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from pathlib import Path
+
 import copy
 import logging
+import os
 import time
 
 from execo import Host
@@ -335,11 +338,30 @@ def oar_reload_from_id(oarjob, site):
     return nodes, vlans, subnets
 
 
-def _deploy(nodes, force_deploy, options):
-    # For testing purpose
+def grid_deploy(gk, site, nodes, force_deploy, options):
+    environment = options.pop("env_name")
+    options.update(environment=environment)
+    options.update(nodes=nodes)
+    key_path = Path.home().joinpath(".ssh", "id_rsa.pub")
+    options.update(key=key_path.read_text())
     logger.info("Deploying %s with options %s" % (nodes, options))
-    dep = ex5.Deployment(nodes, **options)
-    return ex5.deploy(dep, check_deployed_command=not force_deploy)
+    deployment = gk.sites[site].deployments.create(options)
+    while deployment.status not in ["terminated", "error"]:
+        deployment.refresh()
+        print("Waiting for the deployment [%s] to be finished" % deployment.uid)
+        time.sleep(10)
+
+    deploy = []
+    undeploy = []
+    if deployment.status == "terminated":
+        deploy = [node for node, v in deployment.result.items()
+                  if v["state"] == "OK"]
+        undeploy = [node for node, v in deployment.result.items()
+                    if v["state"] == "KO"]
+    elif deployment.status == "error":
+        undeploy = nodes
+
+    return deploy, undeploy
 
 
 def mount_nics(c_resources):
