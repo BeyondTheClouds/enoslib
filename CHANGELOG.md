@@ -3,6 +3,7 @@
 * Dependencies: add pyyaml and be a bit strict
 * tasks: add the knowledge of host datastructure when deserializing
 * Vagrant: force gateway ip to string
+* Doc: add performance tuning section
 
 # 2.2.7
 

@@ -91,5 +91,6 @@ Now where {{ user }} can go from here depends on the needs:
 
    tutorials/index.rst
    apidoc/index.rst
+   performance_tuning.rst
    theyuseit.rst
    contributing.rst
