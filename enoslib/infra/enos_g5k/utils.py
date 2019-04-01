@@ -6,8 +6,6 @@ import logging
 import time
 
 from execo import Host
-import execo_g5k as ex5
-import execo_g5k.api_utils as api
 from netaddr import IPAddress, IPNetwork, IPSet
 
 from enoslib.errors import EnosError
@@ -25,6 +23,7 @@ logger = logging.getLogger(__name__)
 NATURE_PROD = "prod"
 SYNCHRONISATION_OFFSET = 60
 G5KMACPREFIX = '00:16:3E'
+
 
 class ConcreteNetwork:
     def __init__(self, *,
@@ -68,8 +67,7 @@ class ConcreteNetwork:
                                     self.network,
                                     self.gateway,
                                     self.dns,
-                                    self.vlan_id
-                                )
+                                    self.vlan_id)
 
 
 class ConcreteSubnet(ConcreteNetwork):
@@ -263,7 +261,7 @@ def _grid_reload_from_name(gk, job_name):
 
 def _grid_reload_from_ids(gk, oargrid_jobids):
     jobs = []
-    for site, job_id in oargrid_jobids:
+    for site, job_id in oarjobids:
         jobs.append(gk.sites[site].jobs[job_id])
     return jobs
 
@@ -357,19 +355,19 @@ def grid_deploy(gk, site, nodes, force_deploy, options):
                     if v["state"] == "KO"]
     elif deployment.status == "error":
         undeploy = nodes
-
     return deploy, undeploy
 
 
-def mount_nics(c_resources):
+def mount_nics(gk, c_resources):
     machines = c_resources["machines"]
     networks = c_resources["networks"]
     for desc in machines:
-        _, nic_name = get_cluster_interfaces(desc["cluster"],
+        _, nic_name = get_cluster_interfaces(gk,
+                                             desc["cluster"],
                                              lambda nic: nic['mounted'])[0]
         net = lookup_networks(desc["primary_network"], networks)
         desc["_c_nics"] = [(nic_name, get_roles_as_list(net))]
-        _mount_secondary_nics(desc, networks)
+        _mount_secondary_nics(gk, desc, networks)
     return c_resources
 
 
@@ -381,10 +379,23 @@ def get_roles_as_list(desc):
     return roles
 
 
-def _mount_secondary_nics(desc, networks):
+def set_nodes_vlan(gk, site, nodes, interface, vlan_id):
+    def _to_network_address(host):
+        """Translate a host to a network address
+        e.g:
+        paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
+        """
+        splitted = host.split('.')
+        splitted[0] = splitted[0] + "-" + interface
+        return ".".join(splitted)
+    network_addresses = [_to_network_address(n) for n in nodes]
+    gk.sites[site].vlans[vlan_id].submit({"nodes": network_addresses})
+
+
+def _mount_secondary_nics(gk, desc, networks):
     cluster = desc["cluster"]
     # get only the secondary interfaces
-    nics = get_cluster_interfaces(cluster, lambda nic: not nic['mounted'])
+    nics = get_cluster_interfaces(gk, cluster, lambda nic: not nic['mounted'])
     idx = 0
     desc["_c_nics"] = desc.get("_c_nics") or []
     for network_id in desc.get("secondary_networks", []):
@@ -393,14 +404,14 @@ def _mount_secondary_nics(desc, networks):
             # nothing to do
             continue
         nic_device, nic_name = nics[idx]
-        nodes_to_set = [Host(n) for n in desc["_c_nodes"]]
         vlan_id = net["_c_network"].vlan_id
         logger.info("Put %s, %s in vlan id %s for nodes %s" %
-                    (nic_device, nic_name, vlan_id, nodes_to_set))
-        api.set_nodes_vlan(net["site"],
-                           nodes_to_set,
-                           nic_device,
-                           vlan_id)
+                    (nic_device, nic_name, vlan_id, desc["_c_nodes"]))
+        set_nodes_vlan(gk,
+                       net["site"],
+                       desc["_c_nodes"],
+                       nic_device,
+                       vlan_id)
         # recording the mapping, just in case
         desc["_c_nics"].append((nic_name, get_roles_as_list(net)))
         idx = idx + 1
@@ -422,11 +433,10 @@ def _get_cluster_site(gk, cluster):
     return match[cluster]
 
 
-def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
-    site = _get_cluster_site(cluster)
-    nics = ex5.get_resource_attributes(
-        "/sites/%s/clusters/%s/nodes" % (site, cluster))
-    nics = nics['items'][0]['network_adapters']
+def get_cluster_interfaces(gk, cluster, extra_cond=lambda nic: True):
+    site = _get_cluster_site(gk, cluster)
+    nics = gk.sites[site].clusters[cluster].nodes.list()
+    nics = nics[0].network_adapters
     # NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
     # the api description keep the legacy name (device key) and the new
     # predictable name (key name).  The legacy names is still used for api

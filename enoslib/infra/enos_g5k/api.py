@@ -108,7 +108,8 @@ class Resources:
         # This one will be modified
         self.c_resources = copy.deepcopy(self.configuration["resources"])
         # Load the driver that will interact with G5K
-        self.driver = get_driver(configuration, _get_grid5000_client())
+        self.gk = _get_grid5000_client()
+        self.driver = get_driver(configuration, self.gk)
 
     def launch(self):
         self.reserve()
@@ -173,7 +174,7 @@ class Resources:
 
     def configure_network(self):
         dhcp = self.configuration.get("dhcp", False)
-        utils.mount_nics(self.c_resources)
+        utils.mount_nics(self.gk, self.c_resources)
         if dhcp:
             utils.dhcp_interfaces(self.c_resources)
         return self.c_resources
