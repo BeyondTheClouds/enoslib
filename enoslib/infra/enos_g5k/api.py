@@ -14,48 +14,6 @@ from enoslib.infra.enos_g5k.constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
 from enoslib.infra.enos_g5k.schema import PROD
 
 
-def get_clusters_sites(clusters):
-    """ Returns the name of the site for each cluster.
-
-    Args:
-        clusters (str): list of clusters
-
-    Returns:
-        dict of cluster with its associated site
-
-    """
-    return utils._get_clusters_sites(clusters)
-
-
-def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
-    """ Returns for each cluster the available cluster interfaces
-
-    Args:
-        clusters (str): list of the clusters
-        extra_cond (lambda): extra predicate to filter network card retrieved
-    from the API. E.g lambda nic: not nic['mounted'] will retrieve all the
-    usable network cards that are not mounted by default.
-
-    Returns:
-        dict of cluster with their associated nic names
-
-    Examples:
-        .. code-block:: python
-
-            # pseudo code
-            actual = get_clusters_interfaces(["paravance"])
-            expected = {"paravance": ["eth0", "eth1"]}
-            assertDictEquals(expected, actual)
-    """
-
-    interfaces = {}
-    for cluster in clusters:
-        nics = utils.get_cluster_interfaces(cluster, extra_cond=extra_cond)
-        interfaces.setdefault(cluster, nics)
-
-    return interfaces
-
-
 def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     """Execute a command on a node (id or hostname) or on a set of nodes.
 
@@ -117,7 +75,6 @@ class Resources:
             self.deploy()
             self.configure_network()
         else:
-            # make sure we can connect as root on non-deploy nodes
             self.grant_root_access()
 
     def reserve(self):

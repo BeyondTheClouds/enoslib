@@ -59,7 +59,7 @@ class TestMountSecondaryNics(EnosTest):
                 "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="5")}
         ]
         utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
-        utils._add_in_vlan = mock.Mock()
+        utils.set_nodes_vlan = mock.Mock()
         gk = mock.Mock()
         utils._mount_secondary_nics(gk, desc, networks)
         self.assertCountEqual([("en0", ["net_role_1"]), ("en1", ["net_role_2", "net_role_3"])], desc["_c_nics"])

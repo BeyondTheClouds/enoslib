@@ -20,7 +20,8 @@ class TestBuildG5kConf(EnosTest):
                          number=10,
                          flavour="tiny")
         conf.finalize()
-        g5k_conf = _do_build_g5k_conf(conf, "rennes")
+        gk = mock.Mock()
+        g5k_conf = _do_build_g5k_conf(gk, conf, "rennes")
         # it's valid
         g5k_conf.finalize()
 

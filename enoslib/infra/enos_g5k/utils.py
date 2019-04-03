@@ -232,7 +232,7 @@ def dhcp_interfaces(c_resources):
 def grant_root_access(c_resources):
     machines = c_resources["machines"]
     for desc in machines:
-        cmd = ["cat ~/.ssh/id_rsa.pub"]
+        cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         cmd = "|".join(cmd)
         remote.exec_command_on_nodes(desc["_c_nodes"],
