@@ -43,7 +43,7 @@ python3.6_sonar:
   - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
   - wget --no-check-certificate https://sonarqube.bordeaux.inria.fr/static/digicertca.crt
   - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar-scanner-3.2.0.1227-linux/jre/lib/security/cacerts -file digicertca.crt
-  - sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -Dsonar.login=$SONAR_LOGIN
+  - sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
   artifacts:
     paths:
     - ./utest.xml
