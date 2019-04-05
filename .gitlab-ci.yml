@@ -11,7 +11,7 @@ python3.5:
   tags: [qlf-ci.inria.fr]
   script:
   - pip install tox
-  - tox -e py35 pep8
+  - tox -e py35
 
 python3.6:
   image: python:3.6
@@ -19,8 +19,16 @@ python3.6:
   tags: [qlf-ci.inria.fr]
   script:
   - pip install tox
-  - tox -e py36 pep8
+  - tox -e py36
   coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
+
+pep8:
+  image: python:3.6
+  stage: test
+  tags: [qlf-ci.inria.fr]
+  script:
+  - pip install tox
+  - tox -e pep8
 
 python3.6_sonar:
   image: python:3.6-stretch

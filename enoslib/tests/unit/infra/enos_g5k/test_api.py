@@ -52,7 +52,7 @@ class TestDeploy(EnosTest):
         undeployed = set()
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
-        r.driver.deploy.assert_called_with(site, nodes, False, {"env_name": DEFAULT_ENV_NAME})
+        r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME})
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
 
@@ -75,7 +75,7 @@ class TestDeploy(EnosTest):
 
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
-        r.driver.deploy.assert_called_with(site, nodes, False, {"env_name": DEFAULT_ENV_NAME, "vlan": "4"})
+        r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME, "vlan": "4"})
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
