@@ -5,7 +5,6 @@ import copy
 import logging
 import time
 
-from execo import Host
 from netaddr import IPAddress, IPNetwork, IPSet
 
 from enoslib.errors import EnosError
@@ -333,7 +332,8 @@ def grid_reload_from_ids(gk, oarjobids):
     return _build_resources(gk, jobs)
 
 
-def grid_deploy(gk, site, nodes, force_deploy, options):
+def grid_deploy(gk, site, nodes, options):
+
     environment = options.pop("env_name")
     options.update(environment=environment)
     options.update(nodes=nodes)
@@ -343,7 +343,7 @@ def grid_deploy(gk, site, nodes, force_deploy, options):
     deployment = gk.sites[site].deployments.create(options)
     while deployment.status not in ["terminated", "error"]:
         deployment.refresh()
-        print("Waiting for the deployment [%s] to be finished" % deployment.uid)
+        print("Waiting for the end of deployment [%s]" % deployment.uid)
         time.sleep(10)
 
     deploy = []
@@ -427,6 +427,7 @@ def _get_clusters_sites(gk, clusters):
             matches.setdefault(matching[0], site.uid)
             clusters.remove(matching[0])
     return matches
+
 
 def _get_cluster_site(gk, cluster):
     match = _get_clusters_sites(gk, [cluster])

@@ -27,12 +27,60 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
 
     """
 
-    remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
+    return remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
+
+
+def get_execo_remote(*args, **kwargs):
+    return remote.get_execo_remote(*args, **kwargs)
 
 
 def _get_grid5000_client():
     conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
     return Grid5000.from_yaml(conf_file)
+
+
+def _translate_vlan(primary_network, networks, nodes, reverse=False):
+    def translate(node, vlan_id):
+        if not reverse:
+            splitted = node.split(".")
+            splitted[0] = "%s-kavlan-%s" % (splitted[0], vlan_id)
+            return ".".join(splitted)
+        else:
+            node = node.replace("-kavlan-%s" % vlan_id, "")
+            return node
+
+    if utils.is_prod(primary_network, networks):
+        return nodes
+    net = utils.lookup_networks(primary_network, networks)
+    vlan_id = net["_c_network"].vlan_id
+    return [translate(node, vlan_id) for node in nodes]
+
+
+def _check_deployed_nodes(nodes):
+    """This is borrowed from execo."""
+    deployed = []
+    undeployed = []
+    cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
+
+    deployed_check = get_execo_remote(
+        cmd,
+        nodes,
+        remote.DEFAULT_CONN_PARAMS)
+
+    for p in deployed_check.processes:
+        p.nolog_exit_code = True
+        p.nolog_timeout = True
+        p.nolog_error = True
+        p.timeout = 10
+    deployed_check.run()
+
+    for p in deployed_check.processes:
+        if p.ok:
+            deployed.append(p.host.address)
+        else:
+            undeployed.append(p.host.address)
+
+    return deployed, undeployed
 
 
 class Resources:
@@ -84,19 +132,6 @@ class Resources:
         self._concretize_resources(nodes, networks)
 
     def deploy(self):
-        def translate_vlan(primary_network, networks, nodes):
-
-            def translate(node, vlan_id):
-                splitted = node.split(".")
-                splitted[0] = "%s-kavlan-%s" % (splitted[0], vlan_id)
-                return ".".join(splitted)
-
-            if utils.is_prod(primary_network, networks):
-                return nodes
-            net = utils.lookup_networks(primary_network, networks)
-            vlan_id = net["_c_network"].vlan_id
-            return [translate(node, vlan_id) for node in nodes]
-
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
         force_deploy = self.configuration.get("force_deploy", False)
 
@@ -117,14 +152,25 @@ class Resources:
             if net["type"] != PROD:
                 options.update({"vlan": net["_c_network"].vlan_id})
             site = net["site"]
+
             # Yes, this is sequential
-            deployed, undeployed = self.driver.deploy(site, nodes,
-                                                      force_deploy, options)
+            deployed, undeployed = [], nodes
+            if not force_deploy:
+                deployed, undeployed = _check_deployed_nodes(
+                    _translate_vlan(primary_network, networks, nodes))
+                deployed = _translate_vlan(primary_network, networks, deployed,
+                                          reverse=True)
+                undeployed = _translate_vlan(primary_network, networks,
+                                              undeployed, reverse=True)
+
+            if force_deploy or not deployed:
+                deployed, undeployed = self.driver.deploy(site, nodes, options)
+
             for desc in descs:
                 c_nodes = desc.get("_c_nodes", [])
                 desc["_c_deployed"] = list(set(c_nodes) & set(deployed))
                 desc["_c_undeployed"] = list(set(c_nodes) & set(undeployed))
-                desc["_c_ssh_nodes"] = translate_vlan(
+                desc["_c_ssh_nodes"] = _translate_vlan(
                     primary_network,
                     networks,
                     desc["_c_deployed"])

@@ -53,7 +53,7 @@ SCHEMA = {
 
     "jobids": {
         "title": "JobIds",
-        "type" : "array",
+        "type": "array",
     },
 
     "machine": {

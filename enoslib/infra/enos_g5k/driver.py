@@ -140,5 +140,5 @@ class OargridDynamicDriver(Driver):
     def destroy(self):
         grid_destroy_from_name(self.gk, self.job_name)
 
-    def deploy(self, site, nodes, force_deploy, options):
-        return grid_deploy(self.gk, site, nodes, force_deploy, options)
+    def deploy(self, site, nodes, options):
+        return grid_deploy(self.gk, site, nodes, options)
