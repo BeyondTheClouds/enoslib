@@ -8,6 +8,11 @@ Publications / White papers:
   EnosStack: A LAMP-like stack for the experimenter. INFOCOM WKSHPS 2018 - IEEE
   International Conference on Computer Communications, Apr 2018, Honolulu,
   United States. IEEE, pp.336-341**
+  
+- V. Marangozova-Martin, A. El Rheddane and N. De Palma, "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
+  doi: 10.1109/TPDS.2019.2907950
+  keywords: {Containers;Storms;Measurement;Elasticity;Data models;Proposals;Computational modeling;stream processing;multi-level elasticity;Apache Storm},
+  URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8675450&isnumber=4359390
 
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
