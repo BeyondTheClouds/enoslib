@@ -13,7 +13,7 @@ network = NetworkConfiguration(id="n1",
                                roles=["mynetwork"],
                                site="rennes")
 conf = Configuration.from_settings(job_name="flent_on",
-                                  env_name="debian9-x64-nfs")\
+                                  env_name="debian9-x64-std")\
                     .add_network_conf(network)\
                     .add_machine(roles=["server"],
                                  cluster="parapluie",
