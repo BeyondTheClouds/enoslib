@@ -1,3 +1,11 @@
+# 2.2.10
+
+* Doc: use std env for primer on g5k
+
+# 2.2.9
+
+* Doc add 10.1109/TPDS.2019.2907950
+
 # 2.2.8
 
 * Dependencies: add pyyaml and be a bit strict
