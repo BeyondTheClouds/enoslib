@@ -11,13 +11,9 @@ inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 conf = Configuration.from_settings(job_name="tuto-vmong5k")\
-    .add_machine(roles=["control"],
-                 cluster="parapluie",
-                 number=3,
-                 flavour="large")\
     .add_machine(roles=["compute"],
-                 cluster="parapluie",
-                 number=100,
+                 cluster="grisou",
+                 number=1,
                  flavour="tiny")\
     .finalize()
 provider = VMonG5k(conf)

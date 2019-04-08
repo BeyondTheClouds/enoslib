@@ -1,7 +1,6 @@
 import copy
 
 from ddt import ddt, data
-from execo import Host
 import execo_g5k as ex5
 from execo_g5k import api_utils as api
 import mock
@@ -31,7 +30,8 @@ class TestMountNics(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.utils._mount_secondary_nics")
     @mock.patch("enoslib.infra.enos_g5k.utils.get_cluster_interfaces", return_value=[("eth0", "en0")])
     def test_primary(self, mock__mount_secondary_nics, mock_get_cluster_interfaces):
-        utils.mount_nics(self.c_resources)
+        gk = mock.Mock()
+        utils.mount_nics(gk, self.c_resources)
         self.assertCountEqual([("en0", ["n1", "n2"])], self.c_resources["machines"][0]["_c_nics"])
 
 
@@ -49,19 +49,19 @@ class TestMountSecondaryNics(EnosTest):
                 "id": "network_1",
                 "role": "net_role_1",
                 "site": "rennes",
-                "_c_network": {"vlan_id": 4, "site": "rennes"}
+                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="4")
             },
             {
                 "type": KAVLAN,
                 "id": "network_2",
                 "roles": ["net_role_2", "net_role_3"],
                 "site": "rennes",
-                "_c_network": {"vlan_id": 5, "site": "rennes"}},
+                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="5")}
         ]
         utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
-        ex5.get_cluster_site = mock.MagicMock(return_value="rennes")
-        api.set_nodes_vlan = mock.MagicMock()
-        utils._mount_secondary_nics(desc, networks)
+        utils.set_nodes_vlan = mock.Mock()
+        gk = mock.Mock()
+        utils._mount_secondary_nics(gk, desc, networks)
         self.assertCountEqual([("en0", ["net_role_1"]), ("en1", ["net_role_2", "net_role_3"])], desc["_c_nics"])
 
 
@@ -91,63 +91,65 @@ class TestConcretizeNetwork(EnosTest):
                 "id": "role1"
             }]
         }
-        ex5.get_resource_attributes = mock.MagicMock(return_value={'kavlans': {'default': {}, '4': {}, '5': {}}})
 
     def test_act(self):
-        networks = [
-            {"site": "rennes", "vlan_id": 4},
-            {"site": "rennes", "vlan_id": 5}
+        _networks = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
+            {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        subnets = []
-        utils.concretize_networks(self.resources, networks, subnets)
+        networks = [utils.ConcreteVlan(**n) for n in _networks]
+        utils.concretize_networks(self.resources, networks)
         self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
         self.assertEqual(networks[1], self.resources["networks"][1]["_c_network"])
 
 
     def test_act_subnets(self):
-        networks = []
-        subnets = [
-            {"site": "rennes", "ip_prefix": "10.156.1.0/18"},
-            {"site": "rennes", "ip_prefix": "10.156.0.0/22"},
+        _networks = [
+            {"site": "rennes", "network": "10.156.1.0/18", "nature": "slash_18"},
+            {"site": "rennes", "network": "10.156.0.0/22", "nature": "slash_22"},
         ]
-        utils.concretize_networks(self.resources_subnet, networks, subnets)
-        self.assertEqual(subnets[1], self.resources_subnet["networks"][0]["_c_network"])
-        self.assertEqual(subnets[0], self.resources_subnet["networks"][1]["_c_network"])
+        networks = [utils.ConcreteSubnet(**n) for n in _networks]
+        utils.concretize_networks(self.resources_subnet, networks)
+        self.assertEqual(networks[1], self.resources_subnet["networks"][0]["_c_network"])
+        self.assertEqual(networks[0], self.resources_subnet["networks"][1]["_c_network"])
 
 
     def test_prod(self):
         self.resources["networks"][0]["type"] = PROD
+        self.resources["networks"][0]["nature"] = PROD
         networks = [
-            {"site": "rennes", "vlan_id": 5}
+            utils.ConcreteVlan(**{"site": "rennes", "vlan_id": 5, "nature": "kavlan","network": "1.2.3.4/24"}),
+            utils.ConcreteProd(**{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"})
         ]
-        subnets = []
-        utils.concretize_networks(self.resources, networks, subnets)
+
+        utils.concretize_networks(self.resources, networks)
         # self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEqual(None, self.resources["networks"][0]["_c_network"]["vlan_id"])
+        self.assertEqual(None, self.resources["networks"][0]["_c_network"].vlan_id)
         self.assertEqual(networks[0], self.resources["networks"][1]["_c_network"])
 
     def test_one_missing(self):
-        networks = [
-            {"site": "rennes", "vlan_id": 4},
+        _networks = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
         ]
-        subnets = []
+
+        networks = [utils.ConcreteVlan(**n) for n in _networks]
         with self.assertRaises(MissingNetworkError):
-            utils.concretize_networks(self.resources, networks, subnets)
+            utils.concretize_networks(self.resources, networks)
 
     def test_not_order_dependent(self):
-        networks_1 = [
-            {"site": "rennes", "vlan_id": 4},
-            {"site": "rennes", "vlan_id": 5}
+        _networks_1 = [
+            {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
+            {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        networks_2 = [
-            {"site": "rennes", "vlan_id": 5},
-            {"site": "rennes", "vlan_id": 4}
-        ]
-        subnets = []
+        networks_1 = [utils.ConcreteVlan(**n) for n in _networks_1]
+        networks_2 = [networks_1[1], networks_1[0]]
+
         resources_1 = copy.deepcopy(self.resources)
         resources_2 = copy.deepcopy(self.resources)
-        utils.concretize_networks(resources_1, networks_1, subnets)
-        utils.concretize_networks(resources_2, networks_2, subnets)
+        utils.concretize_networks(resources_1, networks_1)
+        utils.concretize_networks(resources_2, networks_2)
+
+        self.maxDiff = None
         self.assertCountEqual(resources_1["networks"], resources_2["networks"])
 
 
@@ -167,7 +169,7 @@ class TestConcretizeNodes(EnosTest):
         }
 
     def test_exact(self):
-        nodes = [Host("foocluster-1"), Host("barcluster-2")]
+        nodes = ["foocluster-1", "barcluster-2"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-1"])
@@ -175,7 +177,7 @@ class TestConcretizeNodes(EnosTest):
                               ["barcluster-2"])
 
     def test_one_missing(self):
-        nodes = [Host("foocluster-1")]
+        nodes = ["foocluster-1"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-1"])
@@ -183,7 +185,7 @@ class TestConcretizeNodes(EnosTest):
 
 
     def test_same_cluster(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2")]
+        nodes = ["foocluster-1", "foocluster-2"]
         self.resources["machines"][1]["cluster"] = "foocluster"
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
@@ -191,11 +193,11 @@ class TestConcretizeNodes(EnosTest):
         self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], ["foocluster-2"])
 
     def test_not_order_dependent(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2"), Host("foocluster-3")]
+        nodes = ["foocluster-1", "foocluster-2", "foocluster-3"]
         self.resources["machines"][0]["nodes"] = 2
         resources_1 = copy.deepcopy(self.resources)
         utils.concretize_nodes(resources_1, nodes)
-        nodes = [Host("foocluster-2"), Host("foocluster-3"), Host("foocluster-1")]
+        nodes = ["foocluster-2", "foocluster-3", "foocluster-1"]
         resources_2 = copy.deepcopy(self.resources)
         resources_2["machines"][0]["nodes"] = 2
         utils.concretize_nodes(resources_2, nodes)
@@ -222,7 +224,7 @@ class TestConcretizeNodesMin(EnosTest):
         }
 
     def test_exact(self):
-        nodes = [Host("foocluster-1"), Host("foocluster-2")]
+        nodes = ["foocluster-1", "foocluster-2"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"],
                               ["foocluster-2"])
@@ -231,7 +233,7 @@ class TestConcretizeNodesMin(EnosTest):
                               ["foocluster-1"])
 
     def test_one_missing(self):
-        nodes = [Host("foocluster-1")]
+        nodes = ["foocluster-1"]
         utils.concretize_nodes(self.resources, nodes)
         self.assertCountEqual(self.resources["machines"][0]["_c_nodes"], [])
         self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], ["foocluster-1"])
@@ -245,7 +247,7 @@ class TestConcretizeNodesMin(EnosTest):
 @ddt
 class TestBuildReservationCriteria(EnosTest):
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
     def test_only_machines_one_site(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -254,12 +256,12 @@ class TestBuildReservationCriteria(EnosTest):
                 "cluster": "foocluster",
             }],
         }
-
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", side_effect=["site1", "site2"])
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", side_effect=["site1", "site2"])
     def test_only_machines_two_sites(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -273,13 +275,14 @@ class TestBuildReservationCriteria(EnosTest):
             }],
         }
 
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({
             "site1": ["{cluster='foocluster'}/nodes=1"],
             "site2": ["{cluster='barcluster'}/nodes=2"]
         }, criteria)
 
-    @mock.patch("execo_g5k.api_utils.get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
     def test_only_no_machines(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -289,7 +292,8 @@ class TestBuildReservationCriteria(EnosTest):
             }],
         }
 
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
         self.assertDictEqual({}, criteria)
 
 
@@ -302,7 +306,8 @@ class TestBuildReservationCriteria(EnosTest):
             }]
         }
 
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
 
@@ -315,5 +320,189 @@ class TestBuildReservationCriteria(EnosTest):
             }]
         }
 
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        gk = mock.Mock()
+        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
+
+class TestGridStuffs(EnosTest):
+
+    def test_can_start_on_cluster_1_1(self):
+        """
+        status:
+            ----****----
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            }
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_1(self):
+        """
+        status:
+            ----****----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_2(self):
+        """
+        status:
+            ----****----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        self.assertTrue(ok)
+
+
+    def test_can_start_on_cluster_2_2(self):
+        """
+        status:
+            ----bbbb----
+            ****--------
+
+        job:
+            ****-------- 1, 0, 1
+            --****------ 1, 0.5, 1
+            ----****---- 1, 1, 1
+            ------****-- 1, 1.5, 1
+            --------**** 1, 2, 1
+        """
+
+        nodes_status = {
+            "node1": {
+                "reservations": [{
+                    "queue": "besteffort",
+                    "walltime": 1,
+                    "scheduled_at": 1,
+                    "started_at": 1
+                }]
+            },
+            "node2": {
+                "reservations": [{
+                    "walltime": 1,
+                    "scheduled_at": 0,
+                    "started_at": 0
+                }]
+            },
+        }
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        self.assertFalse(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        self.assertTrue(ok)
+
+        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        self.assertTrue(ok)
+

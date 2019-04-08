@@ -37,3 +37,8 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     remote.run()
     if not remote.finished_ok:
         raise Exception('An error occcured during remote execution')
+    return remote
+
+
+def get_execo_remote(*args, **kwargs):
+    return ex.get_remote(*args, **kwargs)

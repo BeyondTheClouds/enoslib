@@ -23,9 +23,8 @@ SCHEMA = {
         "env_name": {"type": "string"},
         "job_name": {"type": "string"},
         "job_type": {"type": "string", "enum": JOB_TYPES},
-        "oargrid_jobid": {"type": "string"},
-        "oar_jobid": {"type": "string"},
-        "oar_site": {"type": "string"},
+        "key": {"type": "string"},
+        "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "reservation": {"type": "string"},
         "walltime": {"type": "string"},
@@ -33,9 +32,9 @@ SCHEMA = {
     },
     "additionalProperties": False,
     "required": ["resources"],
+
     "resources": {
         "title": "Resource",
-
         "type": "object",
         "properties": {
             "machines": {
@@ -50,6 +49,11 @@ SCHEMA = {
         },
         "additionalProperties": False,
         "required": ["machines", "networks"],
+    },
+
+    "jobids": {
+        "title": "JobIds",
+        "type": "array",
     },
 
     "machine": {
@@ -72,6 +76,7 @@ SCHEMA = {
             "primary_network"
         ]
     },
+
     "network": {
         "type": "object",
         "properties": {

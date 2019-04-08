@@ -31,7 +31,6 @@ inventory = os.path.join(os.getcwd(), "hosts")
 print("Starting ressources with the provider vagrant")
 provider = Enos_vagrant(VagrantConf.from_dictionnary(provider_conf))
 roles, networks = provider.init()
-import ipdb; ipdb.set_trace()
 print("Building the machine list")
 resources = {"machines": [], "networks": []}
 

@@ -1,62 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import copy
-
 from itertools import groupby
 from operator import itemgetter
+import os
+
+from grid5000 import Grid5000
 
 from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
-
-
-def get_clusters_sites(clusters):
-    """ Returns the name of the site for each cluster.
-
-    Args:
-        clusters (str): list of clusters
-
-    Returns:
-        dict of cluster with its associated site
-
-    """
-
-    sites = {}
-    for cluster in clusters:
-        site = utils.get_cluster_site(cluster)
-        sites.setdefault(cluster, site)
-
-    return sites
-
-
-def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
-    """ Returns for each cluster the available cluster interfaces
-
-    Args:
-        clusters (str): list of the clusters
-        extra_cond (lambda): extra predicate to filter network card retrieved
-    from the API. E.g lambda nic: not nic['mounted'] will retrieve all the
-    usable network cards that are not mounted by default.
-
-    Returns:
-        dict of cluster with their associated nic names
-
-    Examples:
-        .. code-block:: python
-
-            # pseudo code
-            actual = get_clusters_interfaces(["paravance"])
-            expected = {"paravance": ["eth0", "eth1"]}
-            assertDictEquals(expected, actual)
-    """
-
-    interfaces = {}
-    for cluster in clusters:
-        nics = utils.get_cluster_interfaces(cluster, extra_cond=extra_cond)
-        interfaces.setdefault(cluster, nics)
-
-    return interfaces
+from enoslib.infra.enos_g5k.schema import PROD
 
 
 def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
@@ -72,7 +27,60 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
 
     """
 
-    remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
+    return remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
+
+
+def get_execo_remote(*args, **kwargs):
+    return remote.get_execo_remote(*args, **kwargs)
+
+
+def _get_grid5000_client():
+    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+    return Grid5000.from_yaml(conf_file)
+
+
+def _translate_vlan(primary_network, networks, nodes, reverse=False):
+    def translate(node, vlan_id):
+        if not reverse:
+            splitted = node.split(".")
+            splitted[0] = "%s-kavlan-%s" % (splitted[0], vlan_id)
+            return ".".join(splitted)
+        else:
+            node = node.replace("-kavlan-%s" % vlan_id, "")
+            return node
+
+    if utils.is_prod(primary_network, networks):
+        return nodes
+    net = utils.lookup_networks(primary_network, networks)
+    vlan_id = net["_c_network"].vlan_id
+    return [translate(node, vlan_id) for node in nodes]
+
+
+def _check_deployed_nodes(nodes):
+    """This is borrowed from execo."""
+    deployed = []
+    undeployed = []
+    cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
+
+    deployed_check = get_execo_remote(
+        cmd,
+        nodes,
+        remote.DEFAULT_CONN_PARAMS)
+
+    for p in deployed_check.processes:
+        p.nolog_exit_code = True
+        p.nolog_timeout = True
+        p.nolog_error = True
+        p.timeout = 10
+    deployed_check.run()
+
+    for p in deployed_check.processes:
+        if p.ok:
+            deployed.append(p.host.address)
+        else:
+            undeployed.append(p.host.address)
+
+    return deployed, undeployed
 
 
 class Resources:
@@ -101,12 +109,16 @@ class Resources:
     thus follow the same syntax as the g5k provider.
     """
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, client=None):
         self.configuration = configuration
         # This one will be modified
         self.c_resources = copy.deepcopy(self.configuration["resources"])
         # Load the driver that will interact with G5K
-        self.driver = get_driver(configuration)
+        if client is None:
+            self.gk = _get_grid5000_client()
+        else:
+            self.gk = client
+        self.driver = get_driver(configuration, self.gk)
 
     def launch(self):
         self.reserve()
@@ -114,29 +126,15 @@ class Resources:
             self.deploy()
             self.configure_network()
         else:
-            # make sure we can connect as root on non-deploy nodes
             self.grant_root_access()
 
     def reserve(self):
-        nodes, vlans, subnets = self.driver.reserve()
+        nodes, networks = self.driver.reserve()
 
         # The following as side-effect on self.c_resources
-        self._concretize_resources(nodes, vlans, subnets)
+        self._concretize_resources(nodes, networks)
 
     def deploy(self):
-        def translate_vlan(primary_network, networks, nodes):
-
-            def translate(node, vlan_id):
-                splitted = node.split(".")
-                splitted[0] = "%s-kavlan-%s" % (splitted[0], vlan_id)
-                return ".".join(splitted)
-
-            if utils.is_prod(primary_network, networks):
-                return nodes
-            net = utils.lookup_networks(primary_network, networks)
-            vlan_id = net["_c_network"]["vlan_id"]
-            return [translate(node, vlan_id) for node in nodes]
-
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
         force_deploy = self.configuration.get("force_deploy", False)
 
@@ -152,23 +150,37 @@ class Resources:
             options = {
                 "env_name": env_name
             }
-            if not utils.is_prod(primary_network, networks):
-                net = utils.lookup_networks(primary_network, networks)
-                options.update({"vlan": net["_c_network"]["vlan_id"]})
+
+            net = utils.lookup_networks(primary_network, networks)
+            if net["type"] != PROD:
+                options.update({"vlan": net["_c_network"].vlan_id})
+            site = net["site"]
+
             # Yes, this is sequential
-            deployed, undeployed = utils._deploy(nodes, force_deploy, options)
+            deployed, undeployed = [], nodes
+            if not force_deploy:
+                deployed, undeployed = _check_deployed_nodes(
+                    _translate_vlan(primary_network, networks, nodes))
+                deployed = _translate_vlan(primary_network, networks, deployed,
+                                          reverse=True)
+                undeployed = _translate_vlan(primary_network, networks,
+                                              undeployed, reverse=True)
+
+            if force_deploy or not deployed:
+                deployed, undeployed = self.driver.deploy(site, nodes, options)
+
             for desc in descs:
                 c_nodes = desc.get("_c_nodes", [])
                 desc["_c_deployed"] = list(set(c_nodes) & set(deployed))
                 desc["_c_undeployed"] = list(set(c_nodes) & set(undeployed))
-                desc["_c_ssh_nodes"] = translate_vlan(
+                desc["_c_ssh_nodes"] = _translate_vlan(
                     primary_network,
                     networks,
                     desc["_c_deployed"])
 
     def configure_network(self):
         dhcp = self.configuration.get("dhcp", False)
-        utils.mount_nics(self.c_resources)
+        utils.mount_nics(self.gk, self.c_resources)
         if dhcp:
             utils.dhcp_interfaces(self.c_resources)
         return self.c_resources
@@ -180,17 +192,16 @@ class Resources:
         """Get the networks assoiated with the resource description.
 
         Returns
-            list of networks
+            list of tuple roles, network
         """
         networks = self.c_resources["networks"]
         result = []
         for net in networks:
-            current = {}
-            current.update(net)
-            _c_network = current.pop("_c_network", None)
-            if _c_network:
-                current.update(_c_network)
-            result.append(current)
+            _c_network = net.get("_c_network")
+            if _c_network is None:
+                continue
+            roles = utils.get_roles_as_list(net)
+            result.append((roles, _c_network))
         return result
 
     def get_roles(self):
@@ -220,12 +231,12 @@ class Resources:
         hosts = [{"host": h, "nics": nics} for h in hosts]
         return hosts
 
-    def _concretize_resources(self, nodes, vlans, subnets):
+    def _concretize_resources(self, nodes, networks):
         self._concretize_nodes(nodes)
-        self._concretize_networks(vlans, subnets)
+        self._concretize_networks(networks)
 
     def _concretize_nodes(self, nodes):
         utils.concretize_nodes(self.c_resources, nodes)
 
-    def _concretize_networks(self, vlans, subnets):
-        utils.concretize_networks(self.c_resources, vlans, subnets)
+    def _concretize_networks(self, networks):
+        utils.concretize_networks(self.c_resources, networks)

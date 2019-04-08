@@ -1,4 +1,6 @@
+import mock
 import unittest
+
 from enoslib.infra.enos_g5k.driver import *
 
 class TestGetDriver(unittest.TestCase):
@@ -10,17 +12,19 @@ class TestGetDriver(unittest.TestCase):
                 "networks": [],
             }
         }
-        driver = get_driver(resources)
+        gk = mock.Mock()
+        driver = get_driver(resources, gk)
         self.assertIsInstance(driver, OargridDynamicDriver)
 
     def test_getdriver_oargridstatic(self):
         resources = {
-            "oargrid_jobid": "1234",
+            "oargrid_jobids": ["rennes", "1234"],
             "resources": {
                 "machines": [],
                 "networks": [],
             }
         }
-        driver = get_driver(resources)
+        gk = mock.Mock()
+        driver = get_driver(resources, gk)
         self.assertIsInstance(driver, OargridStaticDriver)
 
