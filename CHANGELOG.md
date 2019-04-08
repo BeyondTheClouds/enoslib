@@ -1,3 +1,7 @@
+# 3.0.0 (WiP)
+
+* [G5k]: now uses python-grid5000 for all the interactions with Grid'5000
+
 # 2.2.10
 
 * Doc: use std env for primer on g5k
