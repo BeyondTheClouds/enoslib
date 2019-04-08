@@ -109,12 +109,15 @@ class Resources:
     thus follow the same syntax as the g5k provider.
     """
 
-    def __init__(self, configuration):
+    def __init__(self, configuration, client=None):
         self.configuration = configuration
         # This one will be modified
         self.c_resources = copy.deepcopy(self.configuration["resources"])
         # Load the driver that will interact with G5K
-        self.gk = _get_grid5000_client()
+        if client is None:
+            self.gk = _get_grid5000_client()
+        else:
+            self.gk = client
         self.driver = get_driver(configuration, self.gk)
 
     def launch(self):

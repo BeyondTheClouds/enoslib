@@ -12,14 +12,14 @@ inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 network = NetworkConfiguration(id="n1",
-                               type="prod",
+                               type="kavlan",
                                roles=["my_network"],
                                site="rennes")
 second = NetworkConfiguration(id="n2",
                               type="kavlan",
                               roles=["my_network_2"],
                               site="rennes")
-conf = Configuration.from_settings(job_name="_test-enoslib_")\
+conf = Configuration.from_settings(job_name="test-enoslib")\
     .add_network_conf(network)\
     .add_network_conf(second)\
     .add_machine(roles=["control"],

@@ -51,7 +51,7 @@ def _to_enos_networks(networks):
 class G5k(Provider):
     """The provider to use when deploying on Grid'5000."""
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, client=None):
         """Reserve and deploys the nodes according to the resources section
 
         In comparison to the vagrant provider, networks must be characterized
@@ -69,7 +69,7 @@ class G5k(Provider):
 
         # TODO remove the use of dict
         self._provider_conf = self.provider_conf.to_dict()
-        r = api.Resources(self._provider_conf)
+        r = api.Resources(self._provider_conf, client=client)
         r.launch()
         roles = r.get_roles()
         networks = r.get_networks()

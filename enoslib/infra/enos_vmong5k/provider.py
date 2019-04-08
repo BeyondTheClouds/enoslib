@@ -183,7 +183,7 @@ class VMonG5k(Provider):
         gk = enoslib._get_grid5000_client()
         g5k_conf = _build_g5k_conf(gk, self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
-        g5k_roles, g5k_networks = g5k_provider.init()
+        g5k_roles, g5k_networks = g5k_provider.init(client=gk)
         g5k_subnet = [n for n in g5k_networks if "__subnet__" in n["roles"]][0]
         vmong5k_roles = _distribute(self.provider_conf.machines,
                                     g5k_roles,

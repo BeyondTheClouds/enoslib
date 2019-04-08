@@ -542,7 +542,7 @@ def _do_submit_jobs(gk, job_specs):
         for site, job_spec in job_specs:
             logger.info("Submitting %s on %s" % (job_spec, site))
             jobs.append(gk.sites[site].jobs.create(job_spec))
-    except Error as e:
+    except Exception as e:
         logger.error("An error occured during the job submissions")
         logger.error("Cleaning the jobs created")
         for job in jobs:
