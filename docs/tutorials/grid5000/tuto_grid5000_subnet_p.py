@@ -23,7 +23,7 @@ conf.add_network_conf(prod_network)\
                  roles=["my_subnet"],
                  site="rennes")\
     .add_machine(roles=["control"],
-                 cluster="parapluie",
+                 cluster="paravance",
                  nodes=1,
                  primary_network=prod_network)\
     .finalize()

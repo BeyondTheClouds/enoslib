@@ -1,27 +1,19 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
-
-import copy
 import logging
-import time
 
 from netaddr import IPAddress, IPNetwork, IPSet
 
-from enoslib.errors import EnosError
-from enoslib.infra.enos_g5k import remote, constants
+from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, NATURE_PROD
+import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
+from enoslib.infra.enos_g5k import remote
 from enoslib.infra.enos_g5k.schema import (PROD, KAVLAN_GLOBAL, KAVLAN_LOCAL,
                                            KAVLAN, KAVLAN_TYPE, SUBNET_TYPE)
 from enoslib.infra.utils import pick_things, mk_pools
 
 
 logger = logging.getLogger(__name__)
-
-
-NATURE_PROD = "prod"
-SYNCHRONISATION_OFFSET = 60
-G5KMACPREFIX = '00:16:3E'
 
 
 class ConcreteNetwork:
@@ -78,7 +70,6 @@ class ConcreteSubnet(ConcreteNetwork):
     @classmethod
     def from_job(cls, site_info, subnet):
         ipmac = []
-
         network = IPNetwork(subnet)
         for ip in network[1:-1]:
             _, x, y, z = ip.words
@@ -199,22 +190,6 @@ class ConcreteProd(ConcreteNetwork):
         return net
 
 
-class EnosG5kDuplicateJobsError(EnosError):
-    def __init__(self, site, job_name):
-        super(EnosG5kDuplicateJobs, self).__init__(
-            "Duplicate jobs on %s with the same name %s"
-            % (site, job_name)
-        )
-
-
-class EnosG5kSynchronisationError(EnosError):
-    def __init__(self, sites, job_name):
-        super(EnosG5kSynchronisationError, self).__init__(
-            "Unable to find a synchronised start for the jobs on" % sites
-            % (site, job_name)
-        )
-
-
 def dhcp_interfaces(c_resources):
     # TODO(msimonin) add a filter
     machines = c_resources["machines"]
@@ -243,55 +218,8 @@ def is_prod(network, networks):
     return net["type"] == PROD
 
 
-def _grid_reload_from_name(gk, job_name):
-    sites = gk.sites.list()
-    jobs = []
-    for site in sites:
-        logger.info("Reloading %s from %s" % (job_name, site.uid))
-        _jobs = site.jobs.list(name=job_name,
-                               state="waiting,launching,running")
-        if len(_jobs) == 1:
-            logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
-            jobs.append(_jobs[0])
-        elif len(_jobs) > 1:
-            raise EnosG5kDuplicateJobsError(site, job_name)
-    return jobs
-
-
-def _grid_reload_from_ids(gk, oargrid_jobids):
-    jobs = []
-    for site, job_id in oarjobids:
-        jobs.append(gk.sites[site].jobs[job_id])
-    return jobs
-
-
-def _date2h(timestamp):
-    t = time.strftime("%Y-%m-%d %H:%M:%S",
-                      time.localtime(timestamp))
-    return t
-
-
-def wait_for_jobs(jobs):
-    """Waits for all the jobs to be runnning."""
-
-    all_running = False
-    while not all_running:
-        all_running = True
-        time.sleep(5)
-        for job in jobs:
-            job.refresh()
-            scheduled = getattr(job, "scheduled_at", None)
-            if scheduled is not None:
-                logger.info("Waiting for %s on %s [%s]" % (job.uid,
-                                                           job.site,
-                                                           _date2h(scheduled)))
-            all_running = all_running and job.state == "running"
-            if job.state == "error":
-                raise Exception("The job %s is in error state" % job)
-    logger.info("All jobs are Running !")
-
-
-def _build_resources(gk, jobs):
+def _build_resources(jobs):
+    gk = g5k_api_utils.get_api_client()
     nodes = []
     networks = []
     for job in jobs:
@@ -312,62 +240,36 @@ def _build_resources(gk, jobs):
     return nodes, networks
 
 
-def grid_get_or_create_job(gk, job_name, walltime, reservation_date,
+def grid_get_or_create_job(job_name, walltime, reservation_date,
                            queue, job_type, machines, networks):
-    jobs = _grid_reload_from_name(gk, job_name)
+    jobs = g5k_api_utils.grid_reload_from_name(job_name)
     if len(jobs) == 0:
-        jobs = grid_make_reservation(gk, job_name, walltime, reservation_date,
-                                        queue, job_type, machines, networks)
-    wait_for_jobs(jobs)
+        jobs = grid_make_reservation(job_name, walltime, reservation_date,
+                                     queue, job_type, machines, networks)
+    g5k_api_utils.wait_for_jobs(jobs)
 
-    return _build_resources(gk, jobs)
+    return _build_resources(jobs)
 
 
-def grid_reload_from_ids(gk, oarjobids):
+def grid_reload_from_ids(oarjobids):
     logger.info("Reloading the resources from oar jobs %s", oarjobids)
-    jobs = _grid_reload_from_ids(gk, oarjobids)
+    jobs = g5k_api_utils.grid_reload_from_ids(oarjobids)
 
-    wait_for_jobs(jobs)
+    g5k_api_utils.wait_for_jobs(jobs)
 
-    return _build_resources(gk, jobs)
-
-
-def grid_deploy(gk, site, nodes, options):
-
-    environment = options.pop("env_name")
-    options.update(environment=environment)
-    options.update(nodes=nodes)
-    key_path = constants.DEFAULT_SSH_KEYFILE
-    options.update(key=key_path.read_text())
-    logger.info("Deploying %s with options %s" % (nodes, options))
-    deployment = gk.sites[site].deployments.create(options)
-    while deployment.status not in ["terminated", "error"]:
-        deployment.refresh()
-        print("Waiting for the end of deployment [%s]" % deployment.uid)
-        time.sleep(10)
-
-    deploy = []
-    undeploy = []
-    if deployment.status == "terminated":
-        deploy = [node for node, v in deployment.result.items()
-                  if v["state"] == "OK"]
-        undeploy = [node for node, v in deployment.result.items()
-                    if v["state"] == "KO"]
-    elif deployment.status == "error":
-        undeploy = nodes
-    return deploy, undeploy
+    return _build_resources(jobs)
 
 
-def mount_nics(gk, c_resources):
+def mount_nics(c_resources):
     machines = c_resources["machines"]
     networks = c_resources["networks"]
     for desc in machines:
-        _, nic_name = get_cluster_interfaces(gk,
-                                             desc["cluster"],
-                                             lambda nic: nic['mounted'])[0]
+        _, nic_name = g5k_api_utils.get_cluster_interfaces(
+            desc["cluster"],
+            lambda nic: nic['mounted'])[0]
         net = lookup_networks(desc["primary_network"], networks)
         desc["_c_nics"] = [(nic_name, get_roles_as_list(net))]
-        _mount_secondary_nics(gk, desc, networks)
+        _mount_secondary_nics(desc, networks)
     return c_resources
 
 
@@ -379,23 +281,11 @@ def get_roles_as_list(desc):
     return roles
 
 
-def set_nodes_vlan(gk, site, nodes, interface, vlan_id):
-    def _to_network_address(host):
-        """Translate a host to a network address
-        e.g:
-        paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
-        """
-        splitted = host.split('.')
-        splitted[0] = splitted[0] + "-" + interface
-        return ".".join(splitted)
-    network_addresses = [_to_network_address(n) for n in nodes]
-    gk.sites[site].vlans[vlan_id].submit({"nodes": network_addresses})
-
-
-def _mount_secondary_nics(gk, desc, networks):
+def _mount_secondary_nics(desc, networks):
     cluster = desc["cluster"]
     # get only the secondary interfaces
-    nics = get_cluster_interfaces(gk, cluster, lambda nic: not nic['mounted'])
+    nics = g5k_api_utils.get_cluster_interfaces(cluster,
+                                                lambda nic: not nic['mounted'])
     idx = 0
     desc["_c_nics"] = desc.get("_c_nics") or []
     for network_id in desc.get("secondary_networks", []):
@@ -407,50 +297,13 @@ def _mount_secondary_nics(gk, desc, networks):
         vlan_id = net["_c_network"].vlan_id
         logger.info("Put %s, %s in vlan id %s for nodes %s" %
                     (nic_device, nic_name, vlan_id, desc["_c_nodes"]))
-        set_nodes_vlan(gk,
-                       net["site"],
-                       desc["_c_nodes"],
-                       nic_device,
-                       vlan_id)
+        g5k_api_utils.set_nodes_vlan(net["site"],
+                                     desc["_c_nodes"],
+                                     nic_device,
+                                     vlan_id)
         # recording the mapping, just in case
         desc["_c_nics"].append((nic_name, get_roles_as_list(net)))
         idx = idx + 1
-
-
-def _get_clusters_sites(gk, clusters):
-    sites = gk.sites.list()
-    matches = {}
-    for site in sites:
-        candidates = site.clusters.list()
-        matching = [c.uid for c in candidates if c.uid in clusters]
-        if len(matching) == 1:
-            matches.setdefault(matching[0], site.uid)
-            clusters.remove(matching[0])
-    return matches
-
-
-def _get_cluster_site(gk, cluster):
-    match = _get_clusters_sites(gk, [cluster])
-    return match[cluster]
-
-
-def get_cluster_interfaces(gk, cluster, extra_cond=lambda nic: True):
-    site = _get_cluster_site(gk, cluster)
-    nics = gk.sites[site].clusters[cluster].nodes.list()
-    nics = nics[0].network_adapters
-    # NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
-    # the api description keep the legacy name (device key) and the new
-    # predictable name (key name).  The legacy names is still used for api
-    # request to the vlan endpoint This should be fixed in
-    # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
-    # When its fixed we should be able to only use the new predictable name.
-    nics = [(nic['device'], nic['name']) for nic in nics
-            if nic['mountable']
-            and nic['interface'] == 'Ethernet'
-            and not nic['management']
-            and extra_cond(nic)]
-    nics = sorted(nics)
-    return nics
 
 
 def lookup_networks(network_id, networks):
@@ -493,7 +346,6 @@ def concretize_networks(resources, networks):
     pools = mk_pools(
         s_networks,
         lambda n: (n.site, n.nature))
-    print(s_networks)
     for desc in resources["networks"]:
         site = desc["site"]
         n_type = desc["type"]
@@ -505,14 +357,14 @@ def concretize_networks(resources, networks):
     return resources
 
 
-def _build_reservation_criteria(gk, machines, networks):
+def _build_reservation_criteria(machines, networks):
     criteria = {}
     # machines reservations
     for desc in machines:
         cluster = desc["cluster"]
         nodes = desc["nodes"]
         if nodes:
-            site = _get_cluster_site(gk, cluster)
+            site = g5k_api_utils.get_cluster_site(cluster)
             criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
             criteria.setdefault(site, []).append(criterion)
 
@@ -536,25 +388,8 @@ def _build_reservation_criteria(gk, machines, networks):
     return criteria
 
 
-def _do_submit_jobs(gk, job_specs):
-    jobs = []
-    try:
-        for site, job_spec in job_specs:
-            logger.info("Submitting %s on %s" % (job_spec, site))
-            jobs.append(gk.sites[site].jobs.create(job_spec))
-    except Exception as e:
-        logger.error("An error occured during the job submissions")
-        logger.error("Cleaning the jobs created")
-        for job in jobs:
-            job.delete()
-        raise(e)
-
-    return jobs
-
-
-def _do_grid_make_reservation(gk, criterias, job_name, walltime,
+def _do_grid_make_reservation(criterias, job_name, walltime,
                               reservation_date, queue, job_type):
-
     job_specs = []
     for site, criteria in criterias.items():
         resources = "+".join(criteria)
@@ -568,141 +403,22 @@ def _do_grid_make_reservation(gk, criterias, job_name, walltime,
             job_spec.update(reservation=reservation_date)
         job_specs.append((site, job_spec))
 
-    jobs = _do_submit_jobs(gk, job_specs)
+    jobs = g5k_api_utils.submit_jobs(job_specs)
     return jobs
 
 
-def _do_synchronise_jobs(gk, walltime, machines):
-    """ This returns a common reservation date for all the jobs.
-
-    This reservation date is really only a hint and will be supplied to each
-    oar server. Without this *common* reservation_date, one oar server can
-    decide to postpone the start of the job while the other are already
-    running. But this doens't prevent the start of a job on one site to drift
-    (e.g because the machines need to be restarted.) But this shouldn't exceed
-    few minutes.
-    """
-
-    def _clusters_sites(gk, clusters):
-        _clusters = copy.deepcopy(clusters)
-        sites = gk.sites.list()
-        matches = {}
-        for site in sites:
-            candidates = site.clusters.list()
-            matching = [c.uid for c in candidates if c.uid in _clusters]
-            if len(matching) == 1:
-                matches[matching[0]] = site
-                _clusters.remove(matching[0])
-        return matches
-
-    offset = SYNCHRONISATION_OFFSET
-    start = time.time() + offset
-    _t = time.strptime(walltime, "%H:%M:%S")
-    _walltime = _t.tm_hour * 3600 + _t.tm_min * 60 + _t.tm_sec
-
-    # Compute the demand for each cluster
-    demands = defaultdict(int)
-    for machine in machines:
-        cluster = machine["cluster"]
-        demands[cluster] += machine["nodes"]
-
-    # Early leave if only one cluster is there
-    if len(list(demands.keys())) <= 1:
-        logger.debug("Only one cluster detected: no synchronisation needed")
-        return None
-
-    clusters = _clusters_sites(gk, list(demands.keys()))
-
-    # Early leave if only one site is concerned
-    sites = set(list(clusters.values()))
-    if len(sites) <= 1:
-        logger.debug("Only one site detected: no synchronisation needed")
-        return None
-
-    # Test the proposed reservation_date
-    ok = True
-    for cluster, nodes in demands.items():
-        cluster_status = clusters[cluster].status.list()
-        ok = ok and can_start_on_cluster(cluster_status.nodes,
-                                         nodes,
-                                         start,
-                                         _walltime)
-        if not ok:
-            break
-    if ok:
-        # The proposed reservation_date fits
-        logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
-        return start
-
-    if start is None:
-        raise EnosG5kSynchronisationError(sites)
-
-
-def grid_make_reservation(gk, job_name, walltime, reservation_date,
+def grid_make_reservation(job_name, walltime, reservation_date,
                           queue, job_type, machines, networks):
     if not reservation_date:
         # First check if synchronisation is required
-        reservation_date = _do_synchronise_jobs(gk, walltime, machines)
+        reservation_date = g5k_api_utils._do_synchronise_jobs(walltime,
+                                                              machines)
 
     # Build the OAR criteria
-    criteria = _build_reservation_criteria(gk, machines, networks)
+    criteria = _build_reservation_criteria(machines, networks)
 
     # Submit them
-    jobs = _do_grid_make_reservation(gk, criteria, job_name, walltime,
+    jobs = _do_grid_make_reservation(criteria, job_name, walltime,
                                         reservation_date, queue, job_type)
 
     return jobs
-
-
-def grid_destroy_from_name(gk, job_name):
-    """Destroy the job."""
-    jobs = _grid_reload_from_name(gk, job_name)
-    for job in jobs:
-        job.delete()
-        logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
-
-
-def grid_destroy_from_ids(gk, oargrid_jobids):
-    """Destroy the job."""
-    jobs = _grid_reload_from_ids(gk, oargrid_jobids)
-    for job in jobs:
-        job.delete()
-        logger.info("Killing the job %s" % gridjob)
-
-
-def can_start_on_cluster(nodes_status,
-                         nodes,
-                         start,
-                         walltime):
-    """Check if #nodes can be started on a given cluster.
-
-    This is intended to give a good enough approximation.
-    This can be use to prefiltered possible reservation dates before submitting
-    them on oar.
-    """
-    candidates = []
-    for node, status in nodes_status.items():
-        reservations = status.get("reservations", [])
-        # we search for the overlapping reservations
-        overlapping_reservations = []
-        for reservation in reservations:
-            queue = reservation.get("queue")
-            if queue == "besteffort":
-                # ignoring any besteffort reservation
-                continue
-            r_start = reservation.get("started_at",
-                                      reservation.get("scheduled_at"))
-            if r_start is None:
-                break
-            r_start = int(r_start)
-            r_end = r_start + int(reservation["walltime"])
-            # compute segment intersection
-            _intersect = min(r_end, start + walltime) - max(r_start, start)
-            if _intersect > 0:
-                overlapping_reservations.append(reservation)
-        if len(overlapping_reservations) == 0:
-            # this node can be accounted for a potential reservation
-            candidates.append(node)
-    if len(candidates) >= nodes:
-        return True
-    return False

@@ -2,11 +2,11 @@
 from abc import ABCMeta, abstractmethod
 import logging
 
-from enoslib.infra.enos_g5k.utils import (grid_deploy,
-                                          grid_get_or_create_job,
-                                          grid_destroy_from_name,
+from enoslib.infra.enos_g5k.g5k_api_utils import (grid_deploy,
                                           grid_reload_from_ids,
+                                          grid_destroy_from_name,
                                           grid_destroy_from_ids)
+from enoslib.infra.enos_g5k.utils import grid_get_or_create_job
 from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
                                               DEFAULT_WALLTIME,
                                               JOB_TYPE_DEPLOY)
@@ -15,7 +15,7 @@ from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
 logger = logging.getLogger(__name__)
 
 
-def get_driver(configuration, gk):
+def get_driver(configuration):
     """Build an instance of the driver to interact with G5K
     """
     resources = configuration["resources"]
@@ -25,7 +25,7 @@ def get_driver(configuration, gk):
 
     if oargrid_jobids:
         logger.debug("Loading the OargridStaticDriver")
-        return OargridStaticDriver(gk, oargrid_jobids)
+        return OargridStaticDriver(oargrid_jobids)
     else:
         job_name = configuration.get("job_name", DEFAULT_JOB_NAME)
         walltime = configuration.get("walltime", DEFAULT_WALLTIME)
@@ -38,7 +38,6 @@ def get_driver(configuration, gk):
         logger.debug("Loading the OargridDynamicDriver")
 
         return OargridDynamicDriver(
-            gk,
             job_name,
             walltime,
             job_type,
@@ -84,19 +83,18 @@ class OargridStaticDriver(Driver):
     - reserve will create or reload the job resources from all the (site, id)s
     - destroy will destroy the oargrid job given all the (site, id)s
     """
-    def __init__(self, gk, oargrid_jobids):
-        self.gk = gk
+    def __init__(self, oargrid_jobids):
         self.oargrid_jobids = oargrid_jobids
 
     def reserve(self):
-        nodes, networks = grid_reload_from_ids(self.gk, self.oargrid_jobids)
+        nodes, networks = grid_reload_from_ids(self.oargrid_jobids)
         return nodes, networks
 
     def destroy(self):
         grid_destroy_from_ids(self.oargrid_jobids)
 
     def deploy(self, site, nodes, force_deploy, options):
-        return grid_deploy(self.gk, site, nodes, force_deploy, options)
+        return grid_deploy(site, nodes, force_deploy, options)
 
 
 class OargridDynamicDriver(Driver):
@@ -108,7 +106,6 @@ class OargridDynamicDriver(Driver):
     deployment. This is done using the job name.
     """
     def __init__(self,
-                 gk,
                  job_name,
                  walltime,
                  job_type,
@@ -123,11 +120,9 @@ class OargridDynamicDriver(Driver):
         self.queue = queue
         self.machines = machines
         self.networks = networks
-        self.gk = gk
 
     def reserve(self):
-        nodes, networks = grid_get_or_create_job(self.gk,
-                                                 self.job_name,
+        nodes, networks = grid_get_or_create_job(self.job_name,
                                                  self.walltime,
                                                  self.reservation_date,
                                                  self.queue,
@@ -138,7 +133,7 @@ class OargridDynamicDriver(Driver):
         return nodes, networks
 
     def destroy(self):
-        grid_destroy_from_name(self.gk, self.job_name)
+        grid_destroy_from_name(self.job_name)
 
     def deploy(self, site, nodes, options):
-        return grid_deploy(self.gk, site, nodes, options)
+        return grid_deploy(site, nodes, options)

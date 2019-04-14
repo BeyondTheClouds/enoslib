@@ -13,7 +13,7 @@ class TestGetDriver(unittest.TestCase):
             }
         }
         gk = mock.Mock()
-        driver = get_driver(resources, gk)
+        driver = get_driver(resources)
         self.assertIsInstance(driver, OargridDynamicDriver)
 
     def test_getdriver_oargridstatic(self):
@@ -25,6 +25,6 @@ class TestGetDriver(unittest.TestCase):
             }
         }
         gk = mock.Mock()
-        driver = get_driver(resources, gk)
+        driver = get_driver(resources)
         self.assertIsInstance(driver, OargridStaticDriver)
 

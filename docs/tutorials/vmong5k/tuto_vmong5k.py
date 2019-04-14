@@ -4,7 +4,7 @@ from enoslib.infra.enos_vmong5k.configuration import Configuration
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # path to the inventory
 inventory = os.path.join(os.getcwd(), "hosts")

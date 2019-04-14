@@ -3,40 +3,12 @@
 import copy
 from itertools import groupby
 from operator import itemgetter
-import os
 
-from grid5000 import Grid5000
-
-from enoslib.infra.enos_g5k import remote
-from enoslib.infra.enos_g5k import utils
-from enoslib.infra.enos_g5k.driver import get_driver
-from enoslib.infra.enos_g5k.constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
-from enoslib.infra.enos_g5k.schema import PROD
-
-
-def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
-    """Execute a command on a node (id or hostname) or on a set of nodes.
-
-    Args:
-        nodes (list):  list of targets of the command cmd. Each must be an
-    execo.Host.
-        cmd (str): string representing the command to run on the remote nodes.
-        label (str):  string for debugging purpose.
-        conn_params (dict): connection parameters passed to the execo.Remote
-    function.
-
-    """
-
-    return remote.exec_command_on_nodes(nodes, cmd, label, conn_params)
-
-
-def get_execo_remote(*args, **kwargs):
-    return remote.get_execo_remote(*args, **kwargs)
-
-
-def _get_grid5000_client():
-    conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
-    return Grid5000.from_yaml(conf_file)
+from .remote import get_execo_remote, DEFAULT_CONN_PARAMS
+from .driver import get_driver
+from .constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
+from .schema import PROD
+import enoslib.infra.enos_g5k.utils as utils
 
 
 def _translate_vlan(primary_network, networks, nodes, reverse=False):
@@ -65,7 +37,7 @@ def _check_deployed_nodes(nodes):
     deployed_check = get_execo_remote(
         cmd,
         nodes,
-        remote.DEFAULT_CONN_PARAMS)
+        DEFAULT_CONN_PARAMS)
 
     for p in deployed_check.processes:
         p.nolog_exit_code = True
@@ -113,12 +85,7 @@ class Resources:
         self.configuration = configuration
         # This one will be modified
         self.c_resources = copy.deepcopy(self.configuration["resources"])
-        # Load the driver that will interact with G5K
-        if client is None:
-            self.gk = _get_grid5000_client()
-        else:
-            self.gk = client
-        self.driver = get_driver(configuration, self.gk)
+        self.driver = get_driver(configuration)
 
     def launch(self):
         self.reserve()
@@ -180,7 +147,7 @@ class Resources:
 
     def configure_network(self):
         dhcp = self.configuration.get("dhcp", False)
-        utils.mount_nics(self.gk, self.c_resources)
+        utils.mount_nics(self.c_resources)
         if dhcp:
             utils.dhcp_interfaces(self.c_resources)
         return self.c_resources

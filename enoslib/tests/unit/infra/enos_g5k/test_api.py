@@ -9,19 +9,17 @@ from enoslib.tests.unit import EnosTest
 
 class TestGetNetwork(EnosTest):
 
-    @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
-    def test_no_concrete_network_yet(self, mock_gk):
+    def test_no_concrete_network_yet(self):
         demand_networks = [{"type": PROD, "id": "network1"}]
         r = Resources({"resources": {"networks": demand_networks, "machines": []}})
         networks = r.get_networks()
         self.assertCountEqual([], networks)
 
-    @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
-    def test_concrete_network(self, mock_gk):
+    def test_concrete_network(self):
         concrete_net = utils.ConcreteVlan(site="nancy", vlan_id=1)
         expected_roles = ["mynetwork"]
         networks = [{
-            "type": KAVLAN,
+            "typlse": KAVLAN,
             "id": "network1",
             "roles": expected_roles,
             "_c_network": concrete_net}]
@@ -35,8 +33,7 @@ class TestGetNetwork(EnosTest):
 
 class TestDeploy(EnosTest):
 
-    @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
-    def test_prod(self, mock_gk):
+    def test_prod(self):
         site = "rennes"
         nodes = ["foocluster-1", "foocluster-2"]
         r = Resources({
@@ -56,8 +53,7 @@ class TestDeploy(EnosTest):
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
 
-    @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
-    def test_vlan(self, mock_gk):
+    def test_vlan(self):
         site = "rennes"
         nodes = ["foocluster-1", "foocluster-2"]
         _c_network = utils.ConcreteVlan(vlan_id="4", site=site)
@@ -80,8 +76,7 @@ class TestDeploy(EnosTest):
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
 
-    @mock.patch("enoslib.infra.enos_g5k.api._get_grid5000_client")
-    def test_2_deployements_with_undeployed(self, mock_gk):
+    def test_2_deployements_with_undeployed(self):
         site = "rennes"
         nodes_foo = ["foocluster-1", "foocluster-2"]
         nodes_bar = ["barcluster-1", "barcluster-2"]

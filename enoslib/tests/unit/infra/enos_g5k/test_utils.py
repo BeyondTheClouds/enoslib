@@ -5,7 +5,7 @@ import execo_g5k as ex5
 from execo_g5k import api_utils as api
 import mock
 
-from enoslib.infra.enos_g5k import utils
+from enoslib.infra.enos_g5k import utils, g5k_api_utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
 from enoslib.infra.enos_g5k.schema import KAVLAN, PROD, SLASH_22, SLASH_18
@@ -28,10 +28,9 @@ class TestMountNics(EnosTest):
         }
 
     @mock.patch("enoslib.infra.enos_g5k.utils._mount_secondary_nics")
-    @mock.patch("enoslib.infra.enos_g5k.utils.get_cluster_interfaces", return_value=[("eth0", "en0")])
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_interfaces", return_value=[("eth0", "en0")])
     def test_primary(self, mock__mount_secondary_nics, mock_get_cluster_interfaces):
-        gk = mock.Mock()
-        utils.mount_nics(gk, self.c_resources)
+        utils.mount_nics(self.c_resources)
         self.assertCountEqual([("en0", ["n1", "n2"])], self.c_resources["machines"][0]["_c_nics"])
 
 
@@ -58,10 +57,10 @@ class TestMountSecondaryNics(EnosTest):
                 "site": "rennes",
                 "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="5")}
         ]
-        utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
-        utils.set_nodes_vlan = mock.Mock()
+        g5k_api_utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
+        g5k_api_utils.set_nodes_vlan = mock.Mock()
         gk = mock.Mock()
-        utils._mount_secondary_nics(gk, desc, networks)
+        utils._mount_secondary_nics(desc, networks)
         self.assertCountEqual([("en0", ["net_role_1"]), ("en1", ["net_role_2", "net_role_3"])], desc["_c_nics"])
 
 
@@ -247,7 +246,7 @@ class TestConcretizeNodesMin(EnosTest):
 @ddt
 class TestBuildReservationCriteria(EnosTest):
 
-    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", return_value="site1")
     def test_only_machines_one_site(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -256,12 +255,11 @@ class TestBuildReservationCriteria(EnosTest):
                 "cluster": "foocluster",
             }],
         }
-        gk = mock.Mock()
-        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
 
-    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", side_effect=["site1", "site2"])
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", side_effect=["site1", "site2"])
     def test_only_machines_two_sites(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -274,15 +272,13 @@ class TestBuildReservationCriteria(EnosTest):
                 "cluster": "barcluster"
             }],
         }
-
-        gk = mock.Mock()
-        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
         self.assertDictEqual({
             "site1": ["{cluster='foocluster'}/nodes=1"],
             "site2": ["{cluster='barcluster'}/nodes=2"]
         }, criteria)
 
-    @mock.patch("enoslib.infra.enos_g5k.utils._get_cluster_site", return_value="site1")
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", return_value="site1")
     def test_only_no_machines(self, mock_get_cluster_site):
         resources = {
             "machines": [{
@@ -291,9 +287,7 @@ class TestBuildReservationCriteria(EnosTest):
                 "cluster": "foocluster",
             }],
         }
-
-        gk = mock.Mock()
-        criteria = utils._build_reservation_criteria(gk, resources["machines"], [])
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
         self.assertDictEqual({}, criteria)
 
 
@@ -305,9 +299,7 @@ class TestBuildReservationCriteria(EnosTest):
                 "site": "site1"
             }]
         }
-
-        gk = mock.Mock()
-        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
+        criteria = utils._build_reservation_criteria([], resources["networks"])
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
 
@@ -319,9 +311,7 @@ class TestBuildReservationCriteria(EnosTest):
                 "site": "site1"
             }]
         }
-
-        gk = mock.Mock()
-        criteria = utils._build_reservation_criteria(gk, [], resources["networks"])
+        criteria = utils._build_reservation_criteria([], resources["networks"])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
 
 class TestGridStuffs(EnosTest):
@@ -349,19 +339,19 @@ class TestGridStuffs(EnosTest):
             }
         }
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 2, 1)
         self.assertTrue(ok)
 
 
@@ -396,19 +386,19 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 2, 1)
         self.assertTrue(ok)
 
 
@@ -443,23 +433,23 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 2, 1)
         self.assertTrue(ok)
 
 
-    def test_can_start_on_cluster_2_2(self):
+    def test_can_start_on_cluster_2_2b(self):
         """
         status:
             ----bbbb----
@@ -491,18 +481,18 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
         self.assertFalse(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
         self.assertTrue(ok)
 
-        ok = utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 2, 1)
         self.assertTrue(ok)
 
