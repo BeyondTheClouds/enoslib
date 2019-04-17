@@ -5,14 +5,14 @@ from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfigura
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # path to the inventory
 inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 network = NetworkConfiguration(id="n1",
-                               type="kavlan",
+                               type="kavlan-global",
                                roles=["my_network"],
                                site="rennes")
 second = NetworkConfiguration(id="n2",
@@ -28,10 +28,10 @@ conf = Configuration.from_settings(job_name="test-enoslib")\
                  primary_network=network,
                  secondary_networks=[second])\
     .add_machine(roles=["control", "compute"],
-                 cluster="paravance",
+                 cluster="dahu",
                  nodes=1,
                  primary_network=network,
-                 secondary_networks=[second])\
+                 secondary_networks=[])\
     .finalize()
 
 provider = G5k(conf)

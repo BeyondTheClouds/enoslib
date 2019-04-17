@@ -1,9 +1,9 @@
 [all]
-paravance-49.rennes.grid5000.fr ansible_host=paravance-49.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.96.49'
-paravance-13.rennes.grid5000.fr ansible_host=paravance-13.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.96.13'
+dahu-3-kavlan-16.grenoble.grid5000.fr ansible_host=dahu-3-kavlan-16.grenoble.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['enp24s0f0']" my_network='enp24s0f0' my_network_dev='enp24s0f0' my_network_ip='10.27.193.3'
+paravance-58-kavlan-16.rennes.grid5000.fr ansible_host=paravance-58-kavlan-16.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['eno1','eno2']" my_network='eno1' my_network_2='eno2' my_network_2_dev='eno2' my_network_2_ip='10.24.6.58' my_network_dev='eno1' my_network_ip='10.27.224.58'
 [ungrouped]
 [control]
-paravance-13.rennes.grid5000.fr ansible_host=paravance-13.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.96.13'
-paravance-49.rennes.grid5000.fr ansible_host=paravance-49.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.96.49'
-[network]
-paravance-49.rennes.grid5000.fr ansible_host=paravance-49.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.96.49'
+paravance-58-kavlan-16.rennes.grid5000.fr ansible_host=paravance-58-kavlan-16.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['eno1','eno2']" my_network='eno1' my_network_2='eno2' my_network_2_dev='eno2' my_network_2_ip='10.24.6.58' my_network_dev='eno1' my_network_ip='10.27.224.58'
+dahu-3-kavlan-16.grenoble.grid5000.fr ansible_host=dahu-3-kavlan-16.grenoble.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['enp24s0f0']" my_network='enp24s0f0' my_network_dev='enp24s0f0' my_network_ip='10.27.193.3'
+[compute]
+dahu-3-kavlan-16.grenoble.grid5000.fr ansible_host=dahu-3-kavlan-16.grenoble.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['enp24s0f0']" my_network='enp24s0f0' my_network_dev='enp24s0f0' my_network_ip='10.27.193.3'

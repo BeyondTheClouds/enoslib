@@ -2,6 +2,7 @@ import mock
 import os
 
 from enoslib.infra.enos_g5k.api import Resources, DEFAULT_ENV_NAME
+import enoslib.infra.enos_g5k.api as api
 from enoslib.infra.enos_g5k import utils
 from enoslib.infra.enos_g5k.schema import PROD, KAVLAN
 from enoslib.tests.unit import EnosTest
@@ -35,7 +36,7 @@ class TestDeploy(EnosTest):
 
     def test_prod(self):
         site = "rennes"
-        nodes = ["foocluster-1", "foocluster-2"]
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
         r = Resources({
             "resources":{
                 "machines": [{
@@ -45,8 +46,9 @@ class TestDeploy(EnosTest):
                 "networks": [{"type": PROD, "id": "network1", "site": site}]
             }
         })
-        deployed = set(["foocluster-1", "foocluster-2"])
+        deployed = set(nodes)
         undeployed = set()
+        api._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
         r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME})
@@ -55,7 +57,7 @@ class TestDeploy(EnosTest):
 
     def test_vlan(self):
         site = "rennes"
-        nodes = ["foocluster-1", "foocluster-2"]
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
         _c_network = utils.ConcreteVlan(vlan_id="4", site=site)
         r = Resources({
             "resources": {
@@ -66,9 +68,10 @@ class TestDeploy(EnosTest):
                 "networks": [{"type": KAVLAN, "id": "network1", "_c_network": _c_network, "site": "rennes"}]
             }
         })
-        deployed = set(["foocluster-1", "foocluster-2"])
+        deployed = set(nodes)
         undeployed = set()
 
+        api._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
         r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME, "vlan": "4"})
@@ -78,8 +81,8 @@ class TestDeploy(EnosTest):
 
     def test_2_deployements_with_undeployed(self):
         site = "rennes"
-        nodes_foo = ["foocluster-1", "foocluster-2"]
-        nodes_bar = ["barcluster-1", "barcluster-2"]
+        nodes_foo = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        nodes_bar = ["barcluster-1.rennes.grid5000.fr", "barcluster-2.rennes.grid5000.fr"]
 
         _c_network_1 = utils.ConcreteProd(site=site)
         _c_network_2 = utils.ConcreteVlan(vlan_id="4", site="rennes")
@@ -97,11 +100,12 @@ class TestDeploy(EnosTest):
                     {"type": KAVLAN, "id": "network2", "_c_network": _c_network_2, "site": "rennes"}]
             }
         })
-        d_foo = set(["foocluster-1"])
+        d_foo = set(["foocluster-1.rennes.grid5000.fr"])
         u_foo = set(nodes_foo) - d_foo
-        d_bar = set(["barcluster-2"])
+        d_bar = set(["barcluster-2.rennes.grid5000.fr"])
         u_bar = set(nodes_bar) - d_bar
 
+        api._check_deployed_nodes = mock.Mock(side_effect=[([], []), ([], [])])
         r.driver.deploy = mock.Mock(side_effect=[(d_foo, u_foo), (d_bar, u_bar)])
         r.deploy()
         self.assertEqual(2, r.driver.deploy.call_count)

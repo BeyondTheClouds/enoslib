@@ -102,14 +102,25 @@ class Resources:
         self._concretize_resources(nodes, networks)
 
     def deploy(self):
+        def _key(desc):
+            """Get the site and the primary network of a description.
+
+            Prerequesite: the desc must have some concrete nodes attached.
+            """
+            site = desc["_c_nodes"][0].split(".")[1]
+            net = desc["primary_network"]
+            return site, net
+
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
         force_deploy = self.configuration.get("force_deploy", False)
 
         machines = self.c_resources["machines"]
         networks = self.c_resources["networks"]
-        key = itemgetter("primary_network")
-        s_machines = sorted(machines, key=key)
-        for primary_network, i_descs in groupby(s_machines, key=key):
+        # Get rid of empty groups if any
+        # There's nothing to deploy for such description
+        s_machines = [m for m in machines if m.get("_c_nodes", [])]
+        s_machines = sorted(s_machines, key=_key)
+        for (site, primary_network), i_descs in groupby(s_machines, key=_key):
             descs = list(i_descs)
             nodes = [desc.get("_c_nodes", []) for desc in descs]
             # flatten
@@ -121,7 +132,6 @@ class Resources:
             net = utils.lookup_networks(primary_network, networks)
             if net["type"] != PROD:
                 options.update({"vlan": net["_c_network"].vlan_id})
-            site = net["site"]
 
             # Yes, this is sequential
             deployed, undeployed = [], nodes

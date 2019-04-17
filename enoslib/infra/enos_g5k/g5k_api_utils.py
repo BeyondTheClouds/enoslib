@@ -258,6 +258,16 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
 
 
 @cached
+def get_all_clusters_sites():
+    result = {}
+    gk = get_api_client()
+    sites = gk.sites.list()
+    for site in sites:
+        clusters = site.clusters.list()
+        result.update({c.uid: site.uid for c in clusters})
+    return result
+
+
 def get_clusters_sites(clusters):
     """Get the corresponding sites of given clusters.
 
@@ -267,20 +277,10 @@ def get_clusters_sites(clusters):
     Returns:
         dict of corresponding to the mapping cluster -> site
     """
-    gk = get_api_client()
-    sites = gk.sites.list()
-    matches = {}
-    _clusters = copy.deepcopy(clusters)
-    for site in sites:
-        candidates = site.clusters.list()
-        matching = [c.uid for c in candidates if c.uid in _clusters]
-        if len(matching) == 1:
-            matches.setdefault(matching[0], site.uid)
-            _clusters.remove(matching[0])
-    return matches
+    clusters_sites = get_all_clusters_sites()
+    return {c: clusters_sites[c] for c in clusters}
 
 
-@cached
 def get_cluster_site(cluster):
     """Get the site of a given cluster.
 
@@ -310,7 +310,7 @@ def get_nics(cluster):
     Returns:
         dict of nic information
     """
-    nodes = get_nodes()[0]
+    nodes = get_nodes(cluster)
     nics = nodes[0].network_adapters
     return nics
 
@@ -421,20 +421,20 @@ def _do_synchronise_jobs(walltime, machines):
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
     """
-
     @cached
-    def _clusters_sites(clusters):
+    def _get_site(site):
         gk = get_api_client()
-        _clusters = copy.deepcopy(clusters)
-        sites = gk.sites.list()
-        matches = {}
-        for site in sites:
-            candidates = site.clusters.list()
-            matching = [c.uid for c in candidates if c.uid in _clusters]
-            if len(matching) == 1:
-                matches[matching[0]] = site
-                _clusters.remove(matching[0])
-        return matches
+        return gk.sites[site]
+
+    def _clusters_sites(clusters):
+        result = {}
+        clusters_sites = {c: s for (c,s) in get_all_clusters_sites().items()
+                          if c in clusters}
+        for cluster, site in clusters_sites.items():
+
+            # here we want the site python-grid5000 site object
+            result.update(cluster=_get_site(site))
+        return result
 
     offset = SYNCHRONISATION_OFFSET
     start = time.time() + offset
