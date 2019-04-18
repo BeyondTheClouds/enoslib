@@ -65,7 +65,8 @@ class G5k(Provider):
             NotEnoughNodesError: If the `min` constraints can't be met.
 
            """
-        self.provider_conf.force_deploy = self.provider_conf.force_deploy or force_deploy
+        _force_deploy = self.provider_conf.force_deploy
+        self.provider_conf.force_deploy = _force_deploy or force_deploy
         self._provider_conf = self.provider_conf.to_dict()
         r = api.Resources(self._provider_conf, client=client)
         r.launch()

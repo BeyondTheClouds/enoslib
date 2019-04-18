@@ -2,7 +2,6 @@
 
 import copy
 from itertools import groupby
-from operator import itemgetter
 
 from .remote import get_execo_remote, DEFAULT_CONN_PARAMS
 from .driver import get_driver

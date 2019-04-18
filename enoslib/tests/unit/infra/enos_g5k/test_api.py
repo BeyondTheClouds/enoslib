@@ -105,6 +105,7 @@ class TestDeploy(EnosTest):
         d_bar = set(["barcluster-2.rennes.grid5000.fr"])
         u_bar = set(nodes_bar) - d_bar
 
+        # we make the deployed check fail to force the deployment
         api._check_deployed_nodes = mock.Mock(side_effect=[([], []), ([], [])])
         r.driver.deploy = mock.Mock(side_effect=[(d_foo, u_foo), (d_bar, u_bar)])
         r.deploy()
@@ -113,3 +114,29 @@ class TestDeploy(EnosTest):
         self.assertCountEqual(u_foo, r.c_resources["machines"][0]["_c_undeployed"])
         self.assertCountEqual(d_bar, r.c_resources["machines"][1]["_c_deployed"])
         self.assertCountEqual(u_bar, r.c_resources["machines"][1]["_c_undeployed"])
+
+
+    def test_dont_deployed_if_check_deployed_pass(self):
+        site = "rennes"
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        _c_network = utils.ConcreteVlan(vlan_id="4", site=site)
+        r = Resources({
+            "resources": {
+                "machines": [{
+                    "_c_nodes": nodes,
+                    "primary_network": "network1"
+                }],
+                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": _c_network, "site": "rennes"}]
+            }
+        })
+        deployed = set(nodes)
+        undeployed = set()
+
+        api._check_deployed_nodes = mock.Mock(return_value=(deployed, undeployed))
+        r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+        r.deploy()
+
+        r.driver.deploy.assert_not_called()
+        self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
+        self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
+        self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])

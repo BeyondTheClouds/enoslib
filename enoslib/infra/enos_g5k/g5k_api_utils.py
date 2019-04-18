@@ -7,7 +7,6 @@ with the platform.
 """
 
 from collections import defaultdict
-import copy
 import functools
 import logging
 import os
@@ -32,11 +31,13 @@ _api_client = None
 _cache_lock = threading.RLock()
 cache = {}
 
+
 def cached(f):
     """Decorator for caching/retrieving api calls request.
 
-    Many calls to the API are getter on static parts (e.g site of a given cluster name won't
-    change). By caching some responses we can avoid hammering the API server.
+    Many calls to the API are getter on static parts (e.g site of a given
+    cluster name won't change). By caching some responses we can avoid
+    hammering the API server.
     """
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
@@ -45,14 +46,13 @@ def cached(f):
             key = pickle.dumps(identifier)
             value = cache.get(key)
             if value is not None:
-                logger.debug("Cache HIT for %s -> %s" % (str(identifier), value))
+                logger.debug("HIT for %s -> %s" % (str(identifier), value))
             else:
-                logger.debug("Cache MISS for %s" % str(identifier))
+                logger.debug("MISS for %s" % str(identifier))
                 value = f(*args, **kwargs)
                 cache[key] = value
             return value
     return wrapped
-
 
 
 def get_api_client():
@@ -428,7 +428,8 @@ def _do_synchronise_jobs(walltime, machines):
 
     def _clusters_sites(clusters):
         result = {}
-        clusters_sites = {c: s for (c,s) in get_all_clusters_sites().items()
+        all_clusters = get_all_clusters_sites()
+        clusters_sites = {c: s for (c, s) in all_clusters.items()
                           if c in clusters}
         for cluster, site in clusters_sites.items():
 
