@@ -5,12 +5,11 @@ from enoslib.infra.enos_g5k.configuration import Configuration
 import logging
 import os
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "job_type": "allow_classic_ssh",
-#    "job_name": "test-non-deploy",
-    "oargrid_jobids": [["rennes", 1139779]],
+    "job_name": "test-non-deploy",
     "resources": {
         "machines": [{
             "roles": ["control"],

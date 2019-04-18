@@ -1,12 +1,12 @@
 from enoslib.api import generate_inventory
 from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import (Configuration,
+from enoslib.infra.enos_g5k.configuration import (Configuration, 
                                                   NetworkConfiguration)
 
 import logging
 import os
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 # path to the inventory
 inventory = os.path.join(os.getcwd(), "hosts")
@@ -23,7 +23,7 @@ conf.add_network_conf(prod_network)\
                  roles=["my_subnet"],
                  site="rennes")\
     .add_machine(roles=["control"],
-                 cluster="paravance",
+                 cluster="parapluie",
                  nodes=1,
                  primary_network=prod_network)\
     .finalize()
@@ -44,7 +44,7 @@ logging.info(subnet)
 #    'gateway': '10.159.255.254'
 #    'mac_end': '00:16:3E:9E:03:FE',
 #    'mac_start': '00:16:3E:9E:00:01',
-# }
+# } 
 
 # generate an inventory compatible with ansible
 generate_inventory(roles, networks, inventory, check_networks=True)
