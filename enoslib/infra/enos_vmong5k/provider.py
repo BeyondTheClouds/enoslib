@@ -10,10 +10,9 @@ from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
 from enoslib.host import Host
-import enoslib.infra.enos_g5k.api as enoslib
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
-import enoslib.infra.enos_g5k.utils as g5kutils
+import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import PLAYBOOK_PATH
 from ..provider import Provider
 
@@ -31,9 +30,9 @@ def mac_range(start, stop, step=1):
         yield EUI(item, dialect=mac_unix_expanded)
 
 
-def get_host_cores(gk, cluster):
-    site = g5kutils._get_cluster_site(gk, cluster)
-    attributes = gk.sites[site].clusters[cluster].nodes.list()[-1]
+def get_host_cores(cluster):
+    nodes = g5k_api_utils.get_nodes(cluster)
+    attributes = nodes[-1]
     processors = attributes.architecture['nb_procs']
     cores = attributes.architecture['nb_cores']
 
@@ -41,12 +40,12 @@ def get_host_cores(gk, cluster):
     return cores * processors
 
 
-def find_nodes_number(gk, machine):
-    cores = get_host_cores(gk, machine.cluster)
+def find_nodes_number(machine):
+    cores = get_host_cores(machine.cluster)
     return - ((-1 * machine.number * machine.flavour_desc["core"]) // cores)
 
 
-def _do_build_g5k_conf(gk, vmong5k_conf, site):
+def _do_build_g5k_conf(vmong5k_conf, site):
     g5k_conf = g5kconf.Configuration.from_settings(
         job_name=vmong5k_conf.job_name,
         walltime=vmong5k_conf.walltime,
@@ -72,20 +71,20 @@ def _do_build_g5k_conf(gk, vmong5k_conf, site):
         roles.append(machine.cookie)
         g5k_conf.add_machine(roles=roles,
                              cluster=machine.cluster,
-                             nodes=find_nodes_number(gk, machine),
+                             nodes=find_nodes_number(machine),
                              primary_network=prod_network)
     return g5k_conf
 
 
-def _build_g5k_conf(gk, vmong5k_conf):
+def _build_g5k_conf(vmong5k_conf):
     """Build the conf of the g5k provider from the vmong5k conf."""
     clusters = [m.cluster for m in vmong5k_conf.machines]
-    sites = g5kutils._get_clusters_sites(gk, clusters)
+    sites = g5k_api_utils.get_clusters_sites(clusters)
     site_names = set(sites.values())
     if len(site_names) > 1:
         raise Exception("Multisite deployment not supported yet")
     site = site_names.pop()
-    return _do_build_g5k_conf(gk, vmong5k_conf, site)
+    return _do_build_g5k_conf(vmong5k_conf, site)
 
 
 def _build_static_hash(roles, cookie):
@@ -180,10 +179,9 @@ class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 
     def init(self, force_deploy=False):
-        gk = enoslib._get_grid5000_client()
-        g5k_conf = _build_g5k_conf(gk, self.provider_conf)
+        g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
-        g5k_roles, g5k_networks = g5k_provider.init(client=gk)
+        g5k_roles, g5k_networks = g5k_provider.init()
         g5k_subnet = [n for n in g5k_networks if "__subnet__" in n["roles"]][0]
         vmong5k_roles = _distribute(self.provider_conf.machines,
                                     g5k_roles,

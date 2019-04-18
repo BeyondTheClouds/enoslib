@@ -55,6 +55,15 @@ G5k API
     :undoc-members:
     :show-inheritance:
 
+
+G5k API utils
+^^^^^^^^^^^^^
+
+.. automodule:: enoslib.infra.enos_g5k.g5k_api_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Virtual Machines on Grid5000 (VMonG5k)
 --------------------------------------
 

@@ -11,3 +11,7 @@ DEFAULT_NUMBER = 1
 DEFAULT_SSH_KEYFILE = Path.home().joinpath(".ssh", "id_rsa.pub")
 
 NAMESERVER = "dns.grid5000.fr"
+
+NATURE_PROD = "prod"
+SYNCHRONISATION_OFFSET = 60
+G5KMACPREFIX = '00:16:3E'

@@ -22,6 +22,22 @@ On Grid'5000, you can go with a virtualenv :
 
     $ pip install enoslib
 
+
+Configuration
+-------------
+
+Since `python-grid5000 <https://pypi.org/project/python-grid5000/>`_ is used
+behind the scene, the configuration is read from a configuration file located in
+the home directory. It can be created with the following:
+
+::
+
+    echo '
+    username: MYLOGIN
+    password: MYPASSWORD
+    ' > ~/.python-grid5000.yaml
+
+
 Basic example
 -------------
 
