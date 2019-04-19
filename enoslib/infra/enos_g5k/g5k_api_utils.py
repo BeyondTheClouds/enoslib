@@ -55,6 +55,26 @@ def cached(f):
     return wrapped
 
 
+class Client(Grid5000):
+    """Wrapper of the python-grid5000 client.
+
+    It accepts extra parameters to be set in the configuration file.
+    """
+
+    def __init__(self, excluded_sites=None, **kwargs):
+        """Constructor.
+
+        Args:
+            excluded_sites(list): sites to forget about when reloading the
+                jobs. The primary use case was to exclude unreachable sites and
+                allow the program to go on.
+        """
+        super().__init__(**kwargs)
+        self.excluded_site = excluded_sites
+        if excluded_sites is None:
+            self.excluded_site = []
+
+
 def get_api_client():
     """Gets the reference to the API cient (singleton)."""
     with _api_lock:
@@ -62,7 +82,8 @@ def get_api_client():
         if not _api_client:
             conf_file = os.path.join(os.environ.get("HOME"),
                                      ".python-grid5000.yaml")
-            _api_client = Grid5000.from_yaml(conf_file)
+            _api_client = Client.from_yaml(conf_file)
+
         return _api_client
 
 
@@ -75,8 +96,12 @@ def _date2h(timestamp):
 def grid_reload_from_name(job_name):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
-    All the sites will be searched for jobs with the name ``job_name``.
-    Using EnOSlib there can be only one job per site with name ``job_name``.
+    By default all the sites will be searched for jobs with the name
+    ``job_name``. Using EnOSlib there can be only one job per site with name
+    ``job_name``.
+
+    Note that it honors the ``exluded_sites`` attribute of the client so the
+    scan can be reduced.
 
     Args:
         job_name (str): the job name
@@ -90,9 +115,9 @@ def grid_reload_from_name(job_name):
             on a site.
     """
     gk = get_api_client()
-    sites = gk.sites.list()
+    sites = get_all_sites_obj()
     jobs = []
-    for site in sites:
+    for site in [s for s in sites if s.uid not in gk.excluded_site]:
         logger.info("Reloading %s from %s" % (job_name, site.uid))
         _jobs = site.jobs.list(name=job_name,
                                state="waiting,launching,running")
@@ -258,7 +283,56 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
 
 
 @cached
+def get_all_sites_obj():
+    """Return the list of the sites.
+
+    Returns:
+       list of python-grid5000 sites
+    """
+    gk = get_api_client()
+    sites = gk.sites.list()
+    return sites
+
+
+@cached
+def get_site_obj(site):
+    """Get a single site.
+
+    Returns:
+        the python-grid5000 site
+    """
+    gk = get_api_client()
+    return gk.sites[site]
+
+
+@cached
+def clusters_sites_obj(clusters):
+    """Get all the corresponding sites of the passed clusters.
+
+    Args:
+        clusters(list): list of string uid of sites (e.g 'rennes')
+
+    Return:
+        dict corresponding to the mapping cluster uid to python-grid5000 site
+    """
+    result = {}
+    all_clusters = get_all_clusters_sites()
+    clusters_sites = {c: s for (c, s) in all_clusters.items()
+                        if c in clusters}
+    for cluster, site in clusters_sites.items():
+
+        # here we want the site python-grid5000 site object
+        result.update(cluster=get_site_obj(site))
+    return result
+
+
+@cached
 def get_all_clusters_sites():
+    """Get all the cluster of all the sites.
+
+    Returns:
+        dict corresponding to the mapping cluster uid to python-grid5000 site
+    """
     result = {}
     gk = get_api_client()
     sites = gk.sites.list()
@@ -296,6 +370,11 @@ def get_cluster_site(cluster):
 
 @cached
 def get_nodes(cluster):
+    """Get all the nodes of a given cluster.
+
+    Args:
+        cluster(string): uid of the cluster (e.g 'rennes')
+    """
     gk = get_api_client()
     site = get_cluster_site(cluster)
     return gk.sites[site].clusters[cluster].nodes.list()
@@ -421,21 +500,6 @@ def _do_synchronise_jobs(walltime, machines):
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
     """
-    @cached
-    def _get_site(site):
-        gk = get_api_client()
-        return gk.sites[site]
-
-    def _clusters_sites(clusters):
-        result = {}
-        all_clusters = get_all_clusters_sites()
-        clusters_sites = {c: s for (c, s) in all_clusters.items()
-                          if c in clusters}
-        for cluster, site in clusters_sites.items():
-
-            # here we want the site python-grid5000 site object
-            result.update(cluster=_get_site(site))
-        return result
 
     offset = SYNCHRONISATION_OFFSET
     start = time.time() + offset
@@ -453,7 +517,7 @@ def _do_synchronise_jobs(walltime, machines):
         logger.debug("Only one cluster detected: no synchronisation needed")
         return None
 
-    clusters = _clusters_sites(list(demands.keys()))
+    clusters = clusters_sites_obj(list(demands.keys()))
 
     # Early leave if only one site is concerned
     sites = set(list(clusters.values()))
