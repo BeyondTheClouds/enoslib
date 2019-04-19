@@ -322,7 +322,7 @@ def clusters_sites_obj(clusters):
     for cluster, site in clusters_sites.items():
 
         # here we want the site python-grid5000 site object
-        result.update(cluster=get_site_obj(site))
+        result.update({cluster: get_site_obj(site)})
     return result
 
 
@@ -500,7 +500,6 @@ def _do_synchronise_jobs(walltime, machines):
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
     """
-
     offset = SYNCHRONISATION_OFFSET
     start = time.time() + offset
     _t = time.strptime(walltime, "%H:%M:%S")
