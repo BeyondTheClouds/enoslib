@@ -47,6 +47,15 @@ Notes
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
   So these files must be present in your home directory.
 
+
+|enoslib| primer using VMonG5k
+------------------------------
+
+.. literalinclude:: ansible-integration/flent_on_vmong5k.py
+   :language: python
+   :linenos:
+
+
 SSH external access to the virtual machines
 -------------------------------------------
 
