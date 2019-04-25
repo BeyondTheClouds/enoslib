@@ -95,7 +95,7 @@ def _build_static_hash(roles, cookie):
     return md5.hexdigest()
 
 
-def _distribute(machines, g5k_roles, g5k_subnet):
+def _distribute(machines, g5k_roles, g5k_subnet, extra=None):
     vmong5k_roles = defaultdict(list)
     euis = mac_range(EUI(g5k_subnet["mac_start"]), EUI(g5k_subnet["mac_end"]))
     static_hashes = {}
@@ -111,7 +111,7 @@ def _distribute(machines, g5k_roles, g5k_subnet):
                 static_hashes[static_hash],
                 idx)
             pm = next(pms_it)
-            vm = VirtualMachine(name, next(euis), machine.flavour_desc, pm)
+            vm = VirtualMachine(name, next(euis), machine.flavour_desc, pm, extra=extra)
 
             for role in machine.roles:
                 vmong5k_roles[role].append(vm)
@@ -153,8 +153,8 @@ def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
 
 class VirtualMachine(Host):
 
-    def __init__(self, name, eui, flavour_desc, pm):
-        super().__init__(str(get_subnet_ip(eui)), alias=name)
+    def __init__(self, name, eui, flavour_desc, pm, extra=None):
+        super().__init__(str(get_subnet_ip(eui)), alias=name, extra=extra)
         self.core = flavour_desc["core"]
         # libvirt uses kiB by default
         self.mem = int(flavour_desc["mem"]) * 1024

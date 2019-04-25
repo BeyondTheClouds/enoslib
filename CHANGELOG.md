@@ -1,6 +1,7 @@
 # 3.0.0 (WiP)
 
 * [G5k]: now uses python-grid5000 for all the interactions with Grid'5000
+* [VMonG5K]: Add a gateway option
 
 # 2.2.10
 

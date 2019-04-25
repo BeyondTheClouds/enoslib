@@ -8,6 +8,8 @@ SCHEMA = {
     "type": "object",
     "properties": {
         "resources": {"$ref": "#/resources"},
+        "gateway": {"type": "string"},
+        "gateway_user": {"type": "string"},
         "job_name": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
