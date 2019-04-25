@@ -175,6 +175,13 @@ class VirtualMachine(Host):
         return int(self.eui) == int(other.eui)
 
 
+def _to_hosts(roles):
+    _roles = {}
+    for role, machines in roles.items():
+        _roles[role] = [m.to_host() for m in machines]
+    return _roles
+
+
 class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 
@@ -183,15 +190,22 @@ class VMonG5k(Provider):
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
         g5k_subnet = [n for n in g5k_networks if "__subnet__" in n["roles"]][0]
+
+        extra = {}
+        if self.provider_conf.gateway:
+            extra.update(gateway=self.provider_conf.gateway)
+        if self.provider_conf.gateway_user:
+            extra.update(gateway_user=self.provider_conf.gateway_user)
         vmong5k_roles = _distribute(self.provider_conf.machines,
                                     g5k_roles,
-                                    g5k_subnet)
+                                    g5k_subnet,
+                                    extra=extra)
 
         start_virtualmachines(self.provider_conf,
                               g5k_roles,
                               vmong5k_roles)
 
-        return vmong5k_roles, [g5k_subnet]
+        return _to_hosts(vmong5k_roles), [g5k_subnet]
 
     def destroy(self):
         pass

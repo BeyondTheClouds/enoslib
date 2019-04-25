@@ -24,6 +24,15 @@ class Host(object):
     def to_dict(self):
         return copy.deepcopy(self.__dict__)
 
+    def to_host(self):
+        """Copy or coerce to a Host."""
+        return Host(self.address,
+                    alias=self.alias,
+                    user=self.user,
+                    keyfile=self.keyfile,
+                    port=self.port,
+                    extra=self.extra)
+
     def __repr__(self):
         args = [self.alias, "address=%s" % self.address]
         return "Host(%s)" % ", ".join(args)

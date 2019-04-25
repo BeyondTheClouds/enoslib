@@ -78,7 +78,7 @@ class G5k(Provider):
 
     def destroy(self):
         """Destroys the jobs."""
-        r = api.Resources(self._provider_conf)
+        r = api.Resources(self.provider_conf.to_dict())
         # insert force_deploy
         r.destroy()
 
