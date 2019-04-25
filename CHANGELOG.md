@@ -1,3 +1,7 @@
+# 3.0.1
+
+* Doc: Add VMonG5k primer
+
 # 3.0.0
 
 * [G5k]: now uses python-grid5000 for all the interactions with Grid'5000
