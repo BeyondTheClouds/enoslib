@@ -2,6 +2,7 @@
 
 * [G5k]: now uses python-grid5000 for all the interactions with Grid'5000
 * [VMonG5K]: Add a gateway option
+* [VMonG5K]: Coerce to `enoslib.Host` before returning from init.
 
 # 2.2.10
 
