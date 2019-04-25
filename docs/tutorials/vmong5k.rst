@@ -50,11 +50,11 @@ Notes
 SSH external access to the virtual machines
 -------------------------------------------
 
-In addition to reach the nodes from your local machine, you'll need also to be
-able to access the virtual machines from your local machine. Due to the
-dynamicity of the acquired IPs, it's difficult to configure a ssh config file
-that fit this need. Adding the following in your configuration force Ansible to
-jump through a gateway:
+This is mandatory if you deployed from your local machine.
+
+- Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
+- Solution 2: Add the following in your configuration force Ansible to
+  jump through a gateway:
 
 ::
 

@@ -33,8 +33,8 @@ With the above you can access the Grid'5000 API from you local machine aswell.
 SSH external access
 -------------------
 
-As ``~/.ssh/config`` is honored by |enoslib|, to access Grid'5000 resources from you local
-machine you can configure the ssh configuration file as follows:
+- Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
+- Solution 2: configure you ``~/.ssh/config`` properly:
 
 ::
 
