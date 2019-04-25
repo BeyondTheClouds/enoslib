@@ -11,33 +11,10 @@ virtual machines for you on Grid'5000.
 
    For a complete schema reference see :ref:`vmong5k-schema`
 
-Installation
-------------
+.. include:: ./setup_g5k.rst
 
 
-On Grid'5000, you can go with a virtualenv :
-
-.. code-block:: bash
-
-    $ virtualenv venv
-    $ source venv/bin/activate
-    $ pip install -U pip
-
-    $ pip install enoslib
-
-Configuration
--------------
-
-Since `python-grid5000 <https://pypi.org/project/python-grid5000/>`_ is used
-behind the scene, the configuration is read from a configuration file located in
-the home directory. It can be created with the following:
-
-::
-
-    echo '
-    username: MYLOGIN
-    password: MYPASSWORD
-    ' > ~/.python-grid5000.yaml
+To accesss your virtual machines from your local machine, see below.
 
 
 Basic example
@@ -69,3 +46,19 @@ Notes
 
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
   So these files must be present in your home directory.
+
+SSH external access to the virtual machines
+-------------------------------------------
+
+In addition to reach the nodes from your local machine, you'll need also to be
+able to access the virtual machines from your local machine. Due to the
+dynamicity of the acquired IPs, it's difficult to configure a ssh config file
+that fit this need. Adding the following in your configuration force Ansible to
+jump through a gateway:
+
+::
+
+   Configuration.from_settings(...
+                               gateway=access.grid5000.fr,
+                               gateway_user=<g5k_login>
+                              )
