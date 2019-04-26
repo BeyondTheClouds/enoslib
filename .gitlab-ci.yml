@@ -123,7 +123,7 @@ package:
     - dist/
 
 pages:
-  when: manual
+  # when: manual
   stage: publish
   tags: [qlf-ci.inria.fr]
   only:

@@ -26,6 +26,8 @@ the home directory. It can be created with the following:
    password: MYPASSWORD
    ' > ~/.python-grid5000.yaml
 
+   chmod 600 ~/.python-grid5000.yaml
+
 
 With the above you can access the Grid'5000 API from you local machine aswell.
 

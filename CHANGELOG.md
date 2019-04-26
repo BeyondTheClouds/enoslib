@@ -1,6 +1,7 @@
 # 3.0.1
 
 * Doc: Add VMonG5k primer
+* Doc: Secure credential file
 
 # 3.0.0
 
