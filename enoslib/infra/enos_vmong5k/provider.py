@@ -19,18 +19,59 @@ from ..provider import Provider
 logger = logging.getLogger(__name__)
 
 
-def get_subnet_ip(mac):
+def start_virtualmachines(provider_conf,
+                          g5k_subnet):
+    """Starts virtualmachines on G5K.
+
+    Args:
+        provider_conf(Configuration):
+            :py:class:`enoslib.infra.enos_vmong5k.configuraton.Configuration`
+            This is the abstract description of your overcloud (VMs). Each
+            configuration has a its undercloud attributes filled with the
+            undercloud machines to use. Round Robin strategy to distribute the
+            VMs to the PMs will be used for each configuration. Mac addresses
+            will be generated according to the g5k_subnet parameter.
+        g5k_subnet(dict): The subnet to use. Serialization of
+            :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
+
+    Returns:
+        (roles, networks) tuple
+
+    """
+    def _to_hosts(roles):
+        _roles = {}
+        for role, machines in roles.items():
+            _roles[role] = [m.to_host() for m in machines]
+        return _roles
+
+    extra = {}
+    if provider_conf.gateway:
+        extra.update(gateway=provider_conf.gateway)
+    if provider_conf.gateway_user:
+        extra.update(gateway_user=provider_conf.gateway_user)
+
+    vmong5k_roles = _distribute(provider_conf.machines,
+                                g5k_subnet,
+                                extra=extra)
+
+    _start_virtualmachines(provider_conf,
+                           vmong5k_roles)
+
+    return _to_hosts(vmong5k_roles), [g5k_subnet]
+
+
+def _get_subnet_ip(mac):
     # This is the format allowed on G5K for subnets
     address = ['10'] + [str(int(i, 2)) for i in mac.bits().split('-')[-3:]]
     return IPv4Address('.'.join(address))
 
 
-def mac_range(start, stop, step=1):
+def _mac_range(start, stop, step=1):
     for item in range(int(start) + 1, int(stop), step):
         yield EUI(item, dialect=mac_unix_expanded)
 
 
-def get_host_cores(cluster):
+def _get_host_cores(cluster):
     nodes = g5k_api_utils.get_nodes(cluster)
     attributes = nodes[-1]
     processors = attributes.architecture['nb_procs']
@@ -40,8 +81,8 @@ def get_host_cores(cluster):
     return cores * processors
 
 
-def find_nodes_number(machine):
-    cores = get_host_cores(machine.cluster)
+def _find_nodes_number(machine):
+    cores = _get_host_cores(machine.cluster)
     return - ((-1 * machine.number * machine.flavour_desc["core"]) // cores)
 
 
@@ -71,7 +112,7 @@ def _do_build_g5k_conf(vmong5k_conf, site):
         roles.append(machine.cookie)
         g5k_conf.add_machine(roles=roles,
                              cluster=machine.cluster,
-                             nodes=find_nodes_number(machine),
+                             nodes=_find_nodes_number(machine),
                              primary_network=prod_network)
     return g5k_conf
 
@@ -95,12 +136,12 @@ def _build_static_hash(roles, cookie):
     return md5.hexdigest()
 
 
-def _distribute(machines, g5k_roles, g5k_subnet, extra=None):
+def _distribute(machines, g5k_subnet, extra=None):
     vmong5k_roles = defaultdict(list)
-    euis = mac_range(EUI(g5k_subnet["mac_start"]), EUI(g5k_subnet["mac_end"]))
+    euis = _mac_range(EUI(g5k_subnet["mac_start"]), EUI(g5k_subnet["mac_end"]))
     static_hashes = {}
     for machine in machines:
-        pms = g5k_roles[machine.cookie]
+        pms = machine.undercloud
         pms_it = itertools.cycle(pms)
         for idx in range(machine.number):
             static_hash = _build_static_hash(machine.roles, machine.cookie)
@@ -139,26 +180,32 @@ def _index_by_host(roles):
     return dict(vms_by_host)
 
 
-def start_virtualmachines(provider_conf, g5k_roles, vmong5k_roles):
+def _start_virtualmachines(provider_conf, vmong5k_roles):
     vms_by_host = _index_by_host(vmong5k_roles)
 
-    extra_vars = {'vms': vms_by_host,
-                  'base_image': provider_conf.image,
+    extra_vars = {"vms": vms_by_host,
+                  "base_image": provider_conf.image,
                   # push the g5k user in the env
-                  'g5k_user': os.environ.get('USER'),
-                  'working_dir': provider_conf.working_dir,
-                  'strategy': provider_conf.strategy
+                  "g5k_user": os.environ.get("USER"),
+                  "working_dir": provider_conf.working_dir,
+                  "strategy": provider_conf.strategy
                   }
     # pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
     # generate_inventory(*g5k_init, pm_inventory_path)
     # deploy virtual machines with ansible playbook
-    run_ansible([PLAYBOOK_PATH], roles=g5k_roles, extra_vars=extra_vars)
+    all_pms = []
+    for machine in provider_conf.machines:
+        all_pms.extend(machine.undercloud)
+    all_pms = {"all": all_pms}
+
+    run_ansible([PLAYBOOK_PATH], roles=all_pms,  extra_vars=extra_vars)
 
 
 class VirtualMachine(Host):
+    """Internal data structure to manipulate virtual machines."""
 
     def __init__(self, name, eui, flavour_desc, pm, extra=None):
-        super().__init__(str(get_subnet_ip(eui)), alias=name, extra=extra)
+        super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra)
         self.core = flavour_desc["core"]
         # libvirt uses kiB by default
         self.mem = int(flavour_desc["mem"]) * 1024
@@ -179,13 +226,6 @@ class VirtualMachine(Host):
         return int(self.eui) == int(other.eui)
 
 
-def _to_hosts(roles):
-    _roles = {}
-    for role, machines in roles.items():
-        _roles[role] = [m.to_host() for m in machines]
-    return _roles
-
-
 class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 
@@ -195,21 +235,14 @@ class VMonG5k(Provider):
         g5k_roles, g5k_networks = g5k_provider.init()
         g5k_subnet = [n for n in g5k_networks if "__subnet__" in n["roles"]][0]
 
-        extra = {}
-        if self.provider_conf.gateway:
-            extra.update(gateway=self.provider_conf.gateway)
-        if self.provider_conf.gateway_user:
-            extra.update(gateway_user=self.provider_conf.gateway_user)
-        vmong5k_roles = _distribute(self.provider_conf.machines,
-                                    g5k_roles,
-                                    g5k_subnet,
-                                    extra=extra)
+        # we concretize the virtualmachines
+        for machine in self.provider_conf.machines:
+            pms = g5k_roles[machine.cookie]
+            machine.undercloud = pms
 
-        start_virtualmachines(self.provider_conf,
-                              g5k_roles,
-                              vmong5k_roles)
-
-        return _to_hosts(vmong5k_roles), [g5k_subnet]
+        roles, networks = start_virtualmachines(self.provider_conf,
+                                                g5k_subnet)
+        return roles, networks
 
     def destroy(self):
         pass

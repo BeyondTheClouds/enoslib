@@ -71,7 +71,8 @@ class MachineConfiguration:
                  cluster=None,
                  flavour=None,
                  flavour_desc=None,
-                 number=DEFAULT_NUMBER):
+                 number=DEFAULT_NUMBER,
+                 undercloud=None):
         self.roles = roles
 
         # Internally we keep the flavour_desc as reference not a descriptor
@@ -95,6 +96,9 @@ class MachineConfiguration:
         # this could be used to express some affinity between vms
         self.cookie = uuid.uuid4().hex
 
+        #
+        self.undercloud = undercloud if undercloud else []
+
     @classmethod
     def from_dictionnary(cls, dictionnary):
         kwargs = {}
@@ -117,10 +121,23 @@ class MachineConfiguration:
         if cluster is not None:
             kwargs.update(cluster=cluster)
 
+        undercloud = dictionnary.get("undercloud")
+        if undercloud is not None:
+            undercloud = [Host.from_dict(h) for h in undercloud]
+            kwargs.update(undercloud=undercloud)
+
         return cls(**kwargs)
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
-                 number=self.number, cluster=self.cluster)
+        undercloud = self.undercloud
+        if undercloud is not None:
+            undercloud = [h.to_dict() for h in undercloud]
+            d.update(undercloud=undercloud)
+        cluster = self.cluster
+        if cluster is not None:
+            d.update(cluster=cluster)
+        d.update(roles=self.roles,
+                 flavour_desc=self.flavour_desc,
+                 number=self.number)
         return d

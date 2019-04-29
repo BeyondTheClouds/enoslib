@@ -1,3 +1,7 @@
+# 3.1.0
+
+* VMonG5k: expose `start_virtualmachines` function
+
 # 3.0.1
 
 * Doc: Add VMonG5k primer
