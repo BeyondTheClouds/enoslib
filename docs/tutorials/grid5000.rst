@@ -105,13 +105,16 @@ Build the configuration programmatically
     :linenos:
 
 
-More complete example
----------------------
-
-You can found it `here
-<https://github.com/BeyondTheClouds/enoslib/tree/master/docs/tutorials/grid5000/virt>`_.
-It starts reserve non-deploy nodes and a subnet and start virtual machines on
-them.
+Start Virtual Machines on nodes
+-------------------------------
 
 .. hint::
-  Note that it is now possible to use the ``VMonG5k`` provider directly.
+  Note that it is now possible to use the ``VMonG5k`` provider directly. This
+  provider will handle the reservation and deployment of virtual machines in an
+  atomic way. The following example illustrates a mixed environment where some virtual
+  machines are started on specific nodes of your reservation.
+
+
+.. literalinclude:: grid5000/tuto_grid5000_p_virt.py
+    :language: python
+    :linenos:

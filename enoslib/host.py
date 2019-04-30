@@ -24,6 +24,12 @@ class Host(object):
     def to_dict(self):
         return copy.deepcopy(self.__dict__)
 
+    @classmethod
+    def from_dict(cls, d):
+        _d = copy.deepcopy(d)
+        address = _d.pop("address")
+        return cls(address, **_d)
+
     def to_host(self):
         """Copy or coerce to a Host."""
         return Host(self.address,

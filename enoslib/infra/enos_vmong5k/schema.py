@@ -39,15 +39,14 @@ SCHEMA = {
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
-            "cluster": {"type": "string"},
             "number": {"type": "number"},
-            "oneOf": [
-                {"flavour": {"type": "string", "enum": list(FLAVOURS.keys())}},
-                {"flavour_desc": {"$ref": "#/flavour_desc"}}
-            ],
-
+            "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
+            "flavour_desc": {"$ref": "#/flavour_desc"},
+            "cluster": {"type": "string"},
+            "undercloud": {"type": "array", "items": {"type": "object"}}
         },
-        "required": ["roles", "cluster"]
+        "required": ["roles"],
+        "additionalProperties": False
     },
 
     "flavour_desc": {

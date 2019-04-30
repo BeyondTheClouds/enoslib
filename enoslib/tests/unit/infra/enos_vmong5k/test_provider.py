@@ -12,7 +12,7 @@ from enoslib.tests.unit import EnosTest
 
 class TestBuildG5kConf(EnosTest):
 
-    @mock.patch("enoslib.infra.enos_vmong5k.provider.find_nodes_number", return_value=2)
+    @mock.patch("enoslib.infra.enos_vmong5k.provider._find_nodes_number", return_value=2)
     def test_do_build_g5k_conf(self, mock_find_node_number):
         conf = Configuration()
         conf.add_machine(roles=["r1"],
@@ -42,53 +42,44 @@ class TestBuildG5kConf(EnosTest):
 class TestDistribute(EnosTest):
 
     def test_distribute_minimal(self):
-        machine = MachineConfiguration(roles=["r1"],
-                                       flavour="tiny",
-                                       cluster="paravance",
-                                       number=1)
-        machines = [machine]
-        host = Host("paravance-1")
 
-        g5k_roles = {
-            "r1": [host],
-            machine.cookie: [host]
-        }
+        host = Host("paravance-1")
+        machine = MachineConfiguration(roles=["r1"],
+                                      flavour="tiny",
+                                      undercloud=[host],
+                                      number=1)
+        machines = [machine]
 
         g5k_subnet = {
             "mac_start": "00:16:3E:9E:44:00",
             "mac_end": "00:16:3E:9E:47:FE"
         }
 
-        vmong5k_roles = _distribute(machines, g5k_roles, g5k_subnet)
+        vmong5k_roles = _distribute(machines, g5k_subnet)
         self.assertEqual(1, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
-        # we skip the first mac 
+        # we skip the first mac
         self.assertEqual(EUI(int(EUI(g5k_subnet['mac_start'])) + 1), vm.eui)
         self.assertEqual(host, vm.pm)
 
 
     def test_distribute_2_vms_1_host(self):
+        host = Host("paravance-1")
         machine = MachineConfiguration(roles=["r1"],
                                        flavour="tiny",
-                                       cluster="paravance",
+                                       undercloud=[host],
                                        number=2)
         machines = [machine]
-        host = Host("paravance-1")
-
-        g5k_roles = {
-            "r1": [host],
-            machine.cookie: [host]
-        }
 
         g5k_subnet = {
             "mac_start": "00:16:3E:9E:44:00",
             "mac_end": "00:16:3E:9E:47:FE"
         }
 
-        vmong5k_roles = _distribute(machines, g5k_roles, g5k_subnet)
+        vmong5k_roles = _distribute(machines, g5k_subnet)
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
-        # we skip the first mac 
+        # we skip the first mac
         self.assertEqual(EUI(int(EUI(g5k_subnet['mac_start'])) + 1), vm.eui)
         self.assertEqual(host, vm.pm)
 
@@ -97,25 +88,20 @@ class TestDistribute(EnosTest):
         self.assertEqual(host, vm.pm)
 
     def test_distribute_2_vms_2_hosts(self):
-        machine = MachineConfiguration(roles=["r1"],
-                                       flavour="tiny",
-                                       cluster="paravance",
-                                       number=2)
-        machines = [machine]
         host0 = Host("paravance-1")
         host1 = Host("paravance-2")
-
-        g5k_roles = {
-            "r1": [host0, host1],
-            machine.cookie: [host0, host1]
-        }
+        machine = MachineConfiguration(roles=["r1"],
+                                       flavour="tiny",
+                                       undercloud=[host0, host1],
+                                       number=2)
+        machines = [machine]
 
         g5k_subnet = {
             "mac_start": EUI("00:16:3E:9E:44:00"),
             "mac_end": EUI("00:16:3E:9E:47:FE")
         }
 
-        vmong5k_roles = _distribute(machines, g5k_roles, g5k_subnet)
+        vmong5k_roles = _distribute(machines, g5k_subnet)
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac

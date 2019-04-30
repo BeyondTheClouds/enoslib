@@ -8,14 +8,14 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 conf = Configuration.from_settings(job_name="flent_on",
-                                   image="/grid5000/virt-images/debian9-x64-std.qcow2",
+                                   image="/grid5000/virt-images/debian9-x64-std-2019040916.qcow2",
                                    gateway="access.grid5000.fr",
                                    gateway_user="msimonin")\
                     .add_machine(roles=["server"],
-                                 cluster="parapluie",
+                                 cluster="grisou",
                                  number=1)\
                     .add_machine(roles=["client"],
-                                 cluster="parapluie",
+                                 cluster="grisou",
                                  number=1)\
                     .finalize()
 
