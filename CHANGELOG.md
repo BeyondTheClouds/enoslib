@@ -1,3 +1,7 @@
+# 3.1.1
+
+* Doc: VMonG5K warning about the `working_dir` being removed
+
 # 3.1.0
 
 * VMonG5k: expose `start_virtualmachines` function

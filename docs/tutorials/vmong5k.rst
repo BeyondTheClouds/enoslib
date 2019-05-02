@@ -47,6 +47,16 @@ Notes
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
   So these files must be present in your home directory.
 
+* The ``working_dir`` setting controls where the temporary files and virtual
+  images disks will be stored. The default is to store everything in the temp
+  folder of the physical nodes.
+
+
+.. warning::
+
+   The ``working_dir`` and all its content is deleted by the provider.
+
+
 
 |enoslib| primer using VMonG5k
 ------------------------------

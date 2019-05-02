@@ -13,7 +13,11 @@ inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_settings(job_name="tuto-vmong5k")\
     .add_machine(roles=["compute"],
                  cluster="grisou",
-                 number=1,
+                 number=100,
+                 flavour="tiny")\
+    .add_machine(roles=["controller"],
+                 cluster="grisou",
+                 number=100,
                  flavour="tiny")\
     .finalize()
 provider = VMonG5k(conf)
