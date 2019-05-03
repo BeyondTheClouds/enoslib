@@ -1,3 +1,7 @@
+# 3.1.3
+
+* Doc: add missing files
+
 # 3.1.2
 
 * Doc: Document network emulation
