@@ -1,3 +1,7 @@
+# 3.1.2
+
+* Doc: Document network emulation
+
 # 3.1.1
 
 * Doc: VMonG5K warning about the `working_dir` being removed

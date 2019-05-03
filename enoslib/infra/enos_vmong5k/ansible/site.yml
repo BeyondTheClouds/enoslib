@@ -100,16 +100,6 @@
       become: yes
       become_user: "{{ g5k_user }}"
 
-    - name: Check base image
-      stat:
-        path: "{{ base_image }}"
-      register: p
-
-    - name: Verify base image accessibility
-      fail:
-        msg: "Base image does not exist. Verify this path is valid: {{ base_image }}"
-      when: p.stat.exists == False
-
     - name: Copy base image
       shell: > 
         ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 

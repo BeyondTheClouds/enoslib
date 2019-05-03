@@ -17,4 +17,5 @@ Tutorials
     static
     using-tasks
     ansible-integration
+    network_emulation
     quickstart
