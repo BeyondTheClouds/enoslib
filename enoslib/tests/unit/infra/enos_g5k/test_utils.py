@@ -48,14 +48,14 @@ class TestMountSecondaryNics(EnosTest):
                 "id": "network_1",
                 "role": "net_role_1",
                 "site": "rennes",
-                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="4")
+                "_c_network": g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="4")
             },
             {
                 "type": KAVLAN,
                 "id": "network_2",
                 "roles": ["net_role_2", "net_role_3"],
                 "site": "rennes",
-                "_c_network": utils.ConcreteVlan(site="rennes", vlan_id="5")}
+                "_c_network": g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="5")}
         ]
         g5k_api_utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
         g5k_api_utils.set_nodes_vlan = mock.Mock()
@@ -96,7 +96,7 @@ class TestConcretizeNetwork(EnosTest):
             {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
             {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        networks = [utils.ConcreteVlan(**n) for n in _networks]
+        networks = [g5k_api_utils.ConcreteVlan(**n) for n in _networks]
         utils.concretize_networks(self.resources, networks)
         self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
         self.assertEqual(networks[1], self.resources["networks"][1]["_c_network"])
@@ -107,7 +107,7 @@ class TestConcretizeNetwork(EnosTest):
             {"site": "rennes", "network": "10.156.1.0/18", "nature": "slash_18"},
             {"site": "rennes", "network": "10.156.0.0/22", "nature": "slash_22"},
         ]
-        networks = [utils.ConcreteSubnet(**n) for n in _networks]
+        networks = [g5k_api_utils.ConcreteSubnet(**n) for n in _networks]
         utils.concretize_networks(self.resources_subnet, networks)
         self.assertEqual(networks[1], self.resources_subnet["networks"][0]["_c_network"])
         self.assertEqual(networks[0], self.resources_subnet["networks"][1]["_c_network"])
@@ -117,8 +117,8 @@ class TestConcretizeNetwork(EnosTest):
         self.resources["networks"][0]["type"] = PROD
         self.resources["networks"][0]["nature"] = PROD
         networks = [
-            utils.ConcreteVlan(**{"site": "rennes", "vlan_id": 5, "nature": "kavlan","network": "1.2.3.4/24"}),
-            utils.ConcreteProd(**{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"})
+            g5k_api_utils.ConcreteVlan(**{"site": "rennes", "vlan_id": 5, "nature": "kavlan","network": "1.2.3.4/24"}),
+            g5k_api_utils.ConcreteProd(**{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"})
         ]
 
         utils.concretize_networks(self.resources, networks)
@@ -131,7 +131,7 @@ class TestConcretizeNetwork(EnosTest):
             {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
         ]
 
-        networks = [utils.ConcreteVlan(**n) for n in _networks]
+        networks = [g5k_api_utils.ConcreteVlan(**n) for n in _networks]
         with self.assertRaises(MissingNetworkError):
             utils.concretize_networks(self.resources, networks)
 
@@ -140,7 +140,7 @@ class TestConcretizeNetwork(EnosTest):
             {"site": "rennes", "vlan_id": 4, "nature": "kavlan", "network": "1.2.3.4/24"},
             {"site": "rennes", "vlan_id": 5, "nature": "kavlan", "network": "2.2.3.4/24"}
         ]
-        networks_1 = [utils.ConcreteVlan(**n) for n in _networks_1]
+        networks_1 = [g5k_api_utils.ConcreteVlan(**n) for n in _networks_1]
         networks_2 = [networks_1[1], networks_1[0]]
 
         resources_1 = copy.deepcopy(self.resources)

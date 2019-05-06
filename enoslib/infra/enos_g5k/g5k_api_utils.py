@@ -9,13 +9,18 @@ with the platform.
 from collections import defaultdict
 import functools
 import logging
+from netaddr import IPAddress, IPNetwork, IPSet
 import os
 import pickle
 import time
 import threading
 
 from .error import EnosG5kDuplicateJobsError, EnosG5kSynchronisationError
-from .constants import SYNCHRONISATION_OFFSET, DEFAULT_SSH_KEYFILE
+from .constants import (G5KMACPREFIX,
+                        SYNCHRONISATION_OFFSET,
+                        DEFAULT_SSH_KEYFILE,
+                        NATURE_PROD)
+from .schema import KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN
 
 from grid5000 import Grid5000
 
@@ -73,6 +78,183 @@ class Client(Grid5000):
         self.excluded_site = excluded_sites
         if excluded_sites is None:
             self.excluded_site = []
+
+
+class ConcreteNetwork:
+    def __init__(self, *,
+                 site=None,
+                 network=None,
+                 gateway=None,
+                 dns=None,
+                 vlan_id=None,
+                 ipmac=None,
+                 nature=None,
+                 **kwargs):
+        self.site = site
+        self.network = network
+        self.gateway = gateway
+        # NOTE(msimonin): dns info isn't present in g5k api
+        self.dns = dns
+        self.vlan_id = vlan_id
+        self.ipmac = []
+        if ipmac is not None:
+            self.ipmac = ipmac
+
+        self.nature = nature
+
+    @staticmethod
+    def to_nature(n_type):
+        return n_type
+
+    @staticmethod
+    def get_dns(site_info):
+        return site_info.servers["dns"].network_adapters["default"]["ip"]
+
+    def __repr__(self):
+        return ("<ConcreteNetwork site=%s"
+                                " nature=%s"
+                                " network=%s"
+                                " gateway=%s"
+                                " dns=%s"
+                                " vlan_id=%s>") % (
+                                    self.site,
+                                    self.nature,
+                                    self.network,
+                                    self.gateway,
+                                    self.dns,
+                                    self.vlan_id)
+
+
+class ConcreteSubnet(ConcreteNetwork):
+    """Modelizes a Grid'5000 subnet."""
+
+    @staticmethod
+    def to_nature(subnet):
+        return "slash_%s" % subnet[-2:]
+
+    @classmethod
+    def from_job(cls, site_info, subnet):
+        ipmac = []
+        network = IPNetwork(subnet)
+        for ip in list(network[1:-1]):
+            _, x, y, z = ip.words
+            ipmac.append((str(ip),
+                          G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
+        nature = ConcreteSubnet.to_nature(subnet)
+
+        kwds = {
+            "nature": nature,
+            "gateway": site_info.g5ksubnet["gateway"],
+            "network": subnet,
+            "site": site_info.uid,
+            "ipmac": ipmac,
+            "dns": cls.get_dns(site_info)
+        }
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        net = {}
+        start_ip, start_mac = self.ipmac[0]
+        end_ip, end_mac = self.ipmac[-1]
+        net.update(start=start_ip,
+                   end=end_ip,
+                   mac_start=start_mac,
+                   mac_end=end_mac,
+                   roles=roles,
+                   cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns)
+        return net
+
+
+class ConcreteVlan(ConcreteNetwork):
+    """Modelizes a Grid'5000 kavlan."""
+
+    kavlan_local = ["1", "2", "3"]
+    kavlan = ["4", "5", "6", "7", "8", "9"]
+
+    @staticmethod
+    def to_nature(vlan_id):
+        if vlan_id in ConcreteVlan.kavlan_local:
+            return KAVLAN_LOCAL
+        if vlan_id in ConcreteVlan.kavlan:
+            return KAVLAN
+        return KAVLAN_GLOBAL
+
+    @classmethod
+    def from_job(cls, site_info, vlan_id):
+
+        nature = ConcreteVlan.to_nature(vlan_id)
+        kwds = {
+            "nature": nature,
+            "vlan_id": str(vlan_id),
+            "dns": cls.get_dns(site_info)
+        }
+        kwds.update(site_info.kavlans[str(vlan_id)])
+        kwds.update(site=site_info.uid)
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        # On the network, the first IP are reserved to g5k machines.
+        # For a routed vlan I don't know exactly how many ip are
+        # reserved. However, the specification is clear about global
+        # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
+        # It is split -- contiguously -- so that every site gets one
+        # /23 (510 ip) in the global VLAN address space". There are 12
+        # site. This means that we could take ip from 13th subnetwork.
+        # Lets consider the strategy is the same for routed vlan. See,
+        # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
+        #
+        # First, split network in /23 this leads to 32 subnetworks.
+        # Then, (i) drops the 12 first subnetworks because they are
+        # dedicated to g5k machines, and (ii) drops the last one
+        # because some of ips are used for specific stuff such as
+        # gateway, kavlan server...
+        net = {}
+        subnets = IPNetwork(self.network)
+        if self.vlan_id in ConcreteVlan.kavlan_local:
+            # vlan local
+            subnets = list(subnets.subnet(24))
+            subnets = subnets[4:7]
+        else:
+            subnets = list(subnets.subnet(23))
+            subnets = subnets[13:31]
+
+        # Finally, compute the range of available ips
+        ips = IPSet(subnets).iprange()
+
+        net.update(start=str(IPAddress(ips.first)),
+                   end=str(IPAddress(ips.last)),
+                   cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns,
+                   roles=roles)
+        return net
+
+
+class ConcreteProd(ConcreteNetwork):
+    """Modelizes a Grid'5000 production network."""
+
+    @classmethod
+    def from_job(cls, site_info):
+        nature = NATURE_PROD
+        vlan_id = "default"
+        kwds = {
+            "nature": nature,
+            "vlan_id": str(vlan_id),
+            "site": site_info.uid,
+            "dns": cls.get_dns(site_info)
+        }
+        kwds.update(site_info.kavlans[vlan_id])
+        return cls(**kwds)
+
+    def to_enos(self, roles):
+        net = {}
+        net.update(cidr=self.network,
+                   gateway=self.gateway,
+                   dns=self.dns,
+                   roles=roles)
+        return net
 
 
 def get_api_client():
@@ -144,6 +326,38 @@ def grid_reload_from_ids(oargrid_jobids):
     for site, job_id in oargrid_jobids:
         jobs.append(gk.sites[site].jobs[job_id])
     return jobs
+
+
+def build_resources(jobs):
+    """Build the resources from the list of jobs.
+
+    Args:
+        jobs(list): The list of python-grid5000 jobs
+
+    Returns:
+        nodes, networks tuple where
+            - nodes is a list of all the nodes of the various reservations
+            - networks is a list of all the networks of the various reservation
+    """
+    gk = get_api_client()
+    nodes = []
+    networks = []
+    for job in jobs:
+        # Ok so we build the networks given by g5k for each job
+        # a network is here a dict
+        _subnets = job.resources_by_type.get("subnets", [])
+        _vlans = job.resources_by_type.get("vlans", [])
+        nodes = nodes + job.assigned_nodes
+        site_info = gk.sites[job.site]
+
+        networks += [ConcreteSubnet.from_job(site_info, subnet)
+                     for subnet in _subnets]
+        networks += [ConcreteVlan.from_job(site_info, vlan_id)
+                     for vlan_id in _vlans]
+        networks += [ConcreteProd.from_job(site_info)]
+
+    logger.debug("nodes=%s, networks=%s" % (nodes, networks))
+    return nodes, networks
 
 
 def grid_destroy_from_name(job_name):

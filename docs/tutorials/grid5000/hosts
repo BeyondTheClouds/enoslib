@@ -1,5 +1,5 @@
+[all]
+parapluie-21.rennes.grid5000.fr ansible_host=parapluie-21.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.99.21'
+[ungrouped]
 [control]
-paravance-49-kavlan-8.rennes.grid5000.fr ansible_host=paravance-49-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1
-paravance-51-kavlan-8.rennes.grid5000.fr ansible_host=paravance-51-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1
-[compute]
-paravance-51-kavlan-8.rennes.grid5000.fr ansible_host=paravance-51-kavlan-8.rennes.grid5000.fr ansible_ssh_user=root ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' enos_devices="['eno1']" my_network=eno1
+parapluie-21.rennes.grid5000.fr ansible_host=parapluie-21.rennes.grid5000.fr ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='root' enos_devices="['br0']" my_network='br0' my_network_dev='br0' my_network_ip='172.16.99.21'
