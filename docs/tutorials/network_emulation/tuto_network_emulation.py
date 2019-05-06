@@ -101,8 +101,6 @@ CITIES = {
 
 # Building the configuration
 conf = Configuration.from_settings(job_name="tuto-vmong5k-netem",
-                                   gateway="access.grid5000.fr",
-                                   gateway_user="msimonin",
                                    image="/grid5000/virt-images/debian9-x64-base-2019040916.qcow2")
 cities = list(CITIES.keys())
 for city in cities:
