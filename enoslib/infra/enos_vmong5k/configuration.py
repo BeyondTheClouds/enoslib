@@ -3,7 +3,7 @@ import uuid
 from ..configuration import BaseConfiguration
 from .constants import (DEFAULT_FLAVOUR, DEFAULT_IMAGE, DEFAULT_JOB_NAME,
                         DEFAULT_NETWORKS, DEFAULT_NUMBER, DEFAULT_QUEUE,
-                        DEFAULT_STRATEGY, DEFAULT_SUBNET_TYPE, 
+                        DEFAULT_STRATEGY, DEFAULT_SUBNET_TYPE,
                         DEFAULT_WALLTIME, DEFAULT_WORKING_DIR, FLAVOURS)
 from .schema import SCHEMA
 

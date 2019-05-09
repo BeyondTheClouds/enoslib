@@ -337,7 +337,6 @@ def build_resources(jobs):
             - nodes is a list of all the nodes of the various reservations
             - networks is a list of all the networks of the various reservation
     """
-    gk = get_api_client()
     nodes = []
     networks = []
     for job in jobs:
