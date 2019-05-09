@@ -4,7 +4,7 @@ import os
 from enoslib.infra.enos_g5k.api import Resources, DEFAULT_ENV_NAME
 import enoslib.infra.enos_g5k.api as api
 from enoslib.infra.enos_g5k import utils, g5k_api_utils
-from enoslib.infra.enos_g5k.schema import PROD, KAVLAN
+from enoslib.infra.enos_g5k.constants import PROD, KAVLAN
 from enoslib.tests.unit import EnosTest
 
 
@@ -65,7 +65,7 @@ class TestDeploy(EnosTest):
                     "_c_nodes": nodes,
                     "primary_network": "network1"
                 }],
-                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": _c_network, "site": "rennes"}]
+                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": [_c_network], "site": "rennes"}]
             }
         })
         deployed = set(nodes)
@@ -96,8 +96,8 @@ class TestDeploy(EnosTest):
                     "primary_network": "network2"
                 }],
                 "networks": [
-                    {"type": PROD, "id": "network1", "_c_network": _c_network_1, "site": "rennes"},
-                    {"type": KAVLAN, "id": "network2", "_c_network": _c_network_2, "site": "rennes"}]
+                    {"type": PROD, "id": "network1", "_c_network": [_c_network_1], "site": "rennes"},
+                    {"type": KAVLAN, "id": "network2", "_c_network": [_c_network_2], "site": "rennes"}]
             }
         })
         d_foo = set(["foocluster-1.rennes.grid5000.fr"])
@@ -126,7 +126,7 @@ class TestDeploy(EnosTest):
                     "_c_nodes": nodes,
                     "primary_network": "network1"
                 }],
-                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": _c_network, "site": "rennes"}]
+                "networks": [{"type": KAVLAN, "id": "network1", "_c_network": [_c_network], "site": "rennes"}]
             }
         })
         deployed = set(nodes)

@@ -66,9 +66,13 @@ def _get_subnet_ip(mac):
     return IPv4Address('.'.join(address))
 
 
-def _mac_range(start, stop, step=1):
-    for item in range(int(start) + 1, int(stop), step):
-        yield EUI(item, dialect=mac_unix_expanded)
+def _mac_range(g5k_subnets, step=1):
+    for g5k_subnet in g5k_subnets:
+        start = EUI(g5k_subnet["mac_start"])
+        stop = EUI(g5k_subnet["mac_end"])
+        for item in range(int(start) + 1, int(stop), step):
+            yield EUI(item, dialect=mac_unix_expanded)
+    raise StopIteration
 
 
 def _get_host_cores(cluster):
@@ -100,7 +104,7 @@ def _do_build_g5k_conf(vmong5k_conf, site):
     subnet_roles.append("__subnet__")
     subnet = g5kconf.NetworkConfiguration(roles=subnet_roles,
                                           id="subnet",
-                                          type="slash_22",
+                                          type=vmong5k_conf.subnet_type,
                                           site=site)
     # let's start by adding the networks
     g5k_conf.add_network_conf(prod_network)\
@@ -136,9 +140,9 @@ def _build_static_hash(roles, cookie):
     return md5.hexdigest()
 
 
-def _distribute(machines, g5k_subnet, extra=None):
+def _distribute(machines, g5k_subnets, extra=None):
     vmong5k_roles = defaultdict(list)
-    euis = _mac_range(EUI(g5k_subnet["mac_start"]), EUI(g5k_subnet["mac_end"]))
+    euis = _mac_range(g5k_subnets)
     static_hashes = {}
     for machine in machines:
         pms = machine.undercloud
@@ -233,7 +237,7 @@ class VMonG5k(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
-        g5k_subnet = [n for n in g5k_networks if "__subnet__" in n["roles"]][0]
+        g5k_subnets = [n for n in g5k_networks if "__subnet__" in n["roles"]]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:
@@ -241,7 +245,7 @@ class VMonG5k(Provider):
             machine.undercloud = pms
 
         roles, networks = start_virtualmachines(self.provider_conf,
-                                                g5k_subnet)
+                                                g5k_subnets)
         return roles, networks
 
     def destroy(self):

@@ -17,10 +17,12 @@ import threading
 
 from .error import EnosG5kDuplicateJobsError, EnosG5kSynchronisationError
 from .constants import (G5KMACPREFIX,
+                        KAVLAN_GLOBAL,
+                        KAVLAN_LOCAL,
+                        KAVLAN,
                         SYNCHRONISATION_OFFSET,
                         DEFAULT_SSH_KEYFILE,
                         NATURE_PROD)
-from .schema import KAVLAN_GLOBAL, KAVLAN_LOCAL, KAVLAN
 
 from grid5000 import Grid5000
 

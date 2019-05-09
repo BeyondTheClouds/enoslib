@@ -43,7 +43,8 @@ def _to_enos_networks(networks):
     """
     nets = []
     for roles, network in networks:
-        nets.append(network.to_enos(roles))
+        # each network is a list (see utils.concretize_networks)
+        nets.extend([n.to_enos(roles) for n in network])
     logger.debug(nets)
     return nets
 

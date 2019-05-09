@@ -8,7 +8,7 @@ import mock
 from enoslib.infra.enos_g5k import utils, g5k_api_utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
-from enoslib.infra.enos_g5k.schema import KAVLAN, PROD, SLASH_22, SLASH_18
+from enoslib.infra.enos_g5k.constants import KAVLAN, PROD, SLASH_22, SLASH_16
 from enoslib.tests.unit import EnosTest
 
 
@@ -48,14 +48,14 @@ class TestMountSecondaryNics(EnosTest):
                 "id": "network_1",
                 "role": "net_role_1",
                 "site": "rennes",
-                "_c_network": g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="4")
+                "_c_network": [g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="4")]
             },
             {
                 "type": KAVLAN,
                 "id": "network_2",
                 "roles": ["net_role_2", "net_role_3"],
                 "site": "rennes",
-                "_c_network": g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="5")}
+                "_c_network": [g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="5")]}
         ]
         g5k_api_utils.get_cluster_interfaces = mock.MagicMock(return_value=[("eth0", "en0"), ("eth1", "en1")])
         g5k_api_utils.set_nodes_vlan = mock.Mock()
@@ -85,7 +85,7 @@ class TestConcretizeNetwork(EnosTest):
                 "site": "rennes",
                 "id": "role1"
             }, {
-                "type": SLASH_18,
+                "type": SLASH_16,
                 "site": "rennes",
                 "id": "role1"
             }]
@@ -98,20 +98,26 @@ class TestConcretizeNetwork(EnosTest):
         ]
         networks = [g5k_api_utils.ConcreteVlan(**n) for n in _networks]
         utils.concretize_networks(self.resources, networks)
-        self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEqual(networks[1], self.resources["networks"][1]["_c_network"])
+        self.assertEqual([networks[0]], self.resources["networks"][0]["_c_network"])
+        self.assertEqual([networks[1]], self.resources["networks"][1]["_c_network"])
 
 
-    def test_act_subnets(self):
+    def test_act_subnets_enough(self):
         _networks = [
-            {"site": "rennes", "network": "10.156.1.0/18", "nature": "slash_18"},
-            {"site": "rennes", "network": "10.156.0.0/22", "nature": "slash_22"},
+            {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"} for i in range(65)
         ]
         networks = [g5k_api_utils.ConcreteSubnet(**n) for n in _networks]
         utils.concretize_networks(self.resources_subnet, networks)
-        self.assertEqual(networks[1], self.resources_subnet["networks"][0]["_c_network"])
-        self.assertEqual(networks[0], self.resources_subnet["networks"][1]["_c_network"])
+        self.assertCountEqual([networks[0]], self.resources_subnet["networks"][0]["_c_network"])
+        self.assertCountEqual(networks[1:], self.resources_subnet["networks"][1]["_c_network"])
 
+    def test_act_subnets_not_enough(self):
+        _networks = [
+            {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"} for i in range(33)
+        ]
+        networks = [g5k_api_utils.ConcreteSubnet(**n) for n in _networks]
+        utils.concretize_networks(self.resources_subnet, networks)
+        self.assertEqual(32, len(self.resources_subnet["networks"][1]["_c_network"]))
 
     def test_prod(self):
         self.resources["networks"][0]["type"] = PROD
@@ -123,8 +129,8 @@ class TestConcretizeNetwork(EnosTest):
 
         utils.concretize_networks(self.resources, networks)
         # self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEqual(None, self.resources["networks"][0]["_c_network"].vlan_id)
-        self.assertEqual(networks[0], self.resources["networks"][1]["_c_network"])
+        self.assertEqual(None, self.resources["networks"][0]["_c_network"][0].vlan_id)
+        self.assertEqual([networks[0]], self.resources["networks"][1]["_c_network"])
 
     def test_one_missing(self):
         _networks = [
@@ -303,7 +309,7 @@ class TestBuildReservationCriteria(EnosTest):
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
 
-    @data("slash_18", "slash_22")
+    @data("slash_16", "slash_22")
     def test_network_subnet(self, value):
         resources = {
             "networks": [{

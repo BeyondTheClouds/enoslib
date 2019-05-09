@@ -5,8 +5,7 @@ from itertools import groupby
 
 from .remote import get_execo_remote, DEFAULT_CONN_PARAMS
 from .driver import get_driver
-from .constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY
-from .schema import PROD
+from .constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY, PROD
 import enoslib.infra.enos_g5k.utils as utils
 
 
@@ -23,7 +22,8 @@ def _translate_vlan(primary_network, networks, nodes, reverse=False):
     if utils.is_prod(primary_network, networks):
         return nodes
     net = utils.lookup_networks(primary_network, networks)
-    vlan_id = net["_c_network"].vlan_id
+    # There can be only one network in the vlan case...
+    vlan_id = net["_c_network"][0].vlan_id
     return [translate(node, vlan_id) for node in nodes]
 
 
@@ -130,7 +130,7 @@ class Resources:
 
             net = utils.lookup_networks(primary_network, networks)
             if net["type"] != PROD:
-                options.update({"vlan": net["_c_network"].vlan_id})
+                options.update({"vlan": net["_c_network"][0].vlan_id})
 
             # Yes, this is sequential
             deployed, undeployed = [], nodes

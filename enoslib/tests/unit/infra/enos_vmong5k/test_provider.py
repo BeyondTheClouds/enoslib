@@ -55,7 +55,7 @@ class TestDistribute(EnosTest):
             "mac_end": "00:16:3E:9E:47:FE"
         }
 
-        vmong5k_roles = _distribute(machines, g5k_subnet)
+        vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(1, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac
@@ -76,7 +76,7 @@ class TestDistribute(EnosTest):
             "mac_end": "00:16:3E:9E:47:FE"
         }
 
-        vmong5k_roles = _distribute(machines, g5k_subnet)
+        vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac
@@ -101,7 +101,7 @@ class TestDistribute(EnosTest):
             "mac_end": EUI("00:16:3E:9E:47:FE")
         }
 
-        vmong5k_roles = _distribute(machines, g5k_subnet)
+        vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac

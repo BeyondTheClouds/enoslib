@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
 
-KAVLAN = "kavlan"
-KAVLAN_LOCAL = "kavlan-local"
-KAVLAN_GLOBAL = "kavlan-global"
-KAVLAN_TYPE = [KAVLAN, KAVLAN_LOCAL, KAVLAN_GLOBAL]
+from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES
 
-SLASH_22 = "slash_22"
-SLASH_18 = "slash_18"
-SUBNET_TYPE = [SLASH_18, SLASH_22]
-
-PROD = "prod"
-
-NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPE
-JOB_TYPES = ["deploy", "allow_classic_ssh"]
-QUEUE_TYPES = ["default", "production", "testing"]
 
 SCHEMA = {
     "type": "object",

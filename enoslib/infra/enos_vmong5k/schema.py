@@ -1,6 +1,8 @@
 from .constants import FLAVOURS
 
-QUEUE_TYPES = ["default", "testing", "production"]
+
+from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
+
 
 STRATEGY = ["copy", "cow"]
 
@@ -15,6 +17,7 @@ SCHEMA = {
         "walltime": {"type": "string"},
         "image": {"type": "string"},
         "strategy": {"type": "string", "enum": STRATEGY},
+        "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
         "working_dir": {"type": "string"}
     },
     "additionalProperties": False,

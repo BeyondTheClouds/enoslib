@@ -5,7 +5,8 @@ import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from enoslib.infra.enos_g5k.error import (MissingNetworkError,
                                           NotEnoughNodesError)
 from enoslib.infra.enos_g5k import remote
-from enoslib.infra.enos_g5k.schema import PROD, KAVLAN_TYPE, SUBNET_TYPE
+from enoslib.infra.enos_g5k.constants import (PROD, KAVLAN_TYPE, SUBNET_TYPES,
+                                              SLASH_16, SLASH_22)
 from enoslib.infra.utils import pick_things, mk_pools
 
 
@@ -94,7 +95,8 @@ def _mount_secondary_nics(desc, networks):
             # nothing to do
             continue
         nic_device, nic_name = nics[idx]
-        vlan_id = net["_c_network"].vlan_id
+        # There can be only one here...
+        vlan_id = net["_c_network"][0].vlan_id
         logger.info("Put %s, %s in vlan id %s for nodes %s" %
                     (nic_device, nic_name, vlan_id, desc["_c_nodes"]))
         g5k_api_utils.set_nodes_vlan(net["site"],
@@ -141,7 +143,11 @@ def concretize_nodes(resources, nodes):
 
 
 def concretize_networks(resources, networks):
-    # avoid any non-determinism
+    """Maps abstract to concrete networks.
+
+    Warning:
+        Side effect on resources
+    """
     s_networks = sorted(networks, key=lambda n: (n.site, n.nature, n.network))
     pools = mk_pools(
         s_networks,
@@ -149,10 +155,16 @@ def concretize_networks(resources, networks):
     for desc in resources["networks"]:
         site = desc["site"]
         n_type = desc["type"]
-        _networks = pick_things(pools, (site, n_type), 1)
+        # On grid'5000 a slash_16 is 64 slash_22
+        # So if we ask for a slash_16 we return 64 sash_22
+        # yes, this smells
+        if n_type == SLASH_16:
+            _networks = pick_things(pools, (site, SLASH_22), 64)
+        else:
+            _networks = pick_things(pools, (site, n_type), 1)
         if len(_networks) < 1:
             raise MissingNetworkError(site, n_type)
-        desc["_c_network"] = _networks[0]
+        desc["_c_network"] = _networks
 
     return resources
 
@@ -178,7 +190,7 @@ def _build_reservation_criteria(machines, networks):
         criteria.setdefault(site, []).append(criterion)
 
     subnets = [network for network in networks
-               if network["type"] in SUBNET_TYPE]
+               if network["type"] in SUBNET_TYPES]
     for desc in subnets:
         site = desc["site"]
         n_type = desc["type"]
