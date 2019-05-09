@@ -108,10 +108,6 @@ class ConcreteNetwork:
     def to_nature(n_type):
         return n_type
 
-    @staticmethod
-    def get_dns(site_info):
-        return site_info.servers["dns"].network_adapters["default"]["ip"]
-
     def __repr__(self):
         return ("<ConcreteNetwork site=%s"
                                 " nature=%s"
@@ -135,7 +131,7 @@ class ConcreteSubnet(ConcreteNetwork):
         return "slash_%s" % subnet[-2:]
 
     @classmethod
-    def from_job(cls, site_info, subnet):
+    def from_job(cls, site, subnet):
         ipmac = []
         network = IPNetwork(subnet)
         for ip in list(network[1:-1]):
@@ -143,14 +139,14 @@ class ConcreteSubnet(ConcreteNetwork):
             ipmac.append((str(ip),
                           G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
         nature = ConcreteSubnet.to_nature(subnet)
-
+        gateway = get_subnet_gateway(site)
         kwds = {
             "nature": nature,
-            "gateway": site_info.g5ksubnet["gateway"],
+            "gateway": gateway,
             "network": subnet,
-            "site": site_info.uid,
+            "site": site,
             "ipmac": ipmac,
-            "dns": cls.get_dns(site_info)
+            "dns": get_dns(site)
         }
         return cls(**kwds)
 
@@ -184,16 +180,16 @@ class ConcreteVlan(ConcreteNetwork):
         return KAVLAN_GLOBAL
 
     @classmethod
-    def from_job(cls, site_info, vlan_id):
+    def from_job(cls, site, vlan_id):
 
         nature = ConcreteVlan.to_nature(vlan_id)
         kwds = {
             "nature": nature,
             "vlan_id": str(vlan_id),
-            "dns": cls.get_dns(site_info)
+            "dns": get_dns(site)
         }
-        kwds.update(site_info.kavlans[str(vlan_id)])
-        kwds.update(site=site_info.uid)
+        kwds.update(get_vlans(site)[str(vlan_id)])
+        kwds.update(site=site)
         return cls(**kwds)
 
     def to_enos(self, roles):
@@ -238,16 +234,16 @@ class ConcreteProd(ConcreteNetwork):
     """Modelizes a Grid'5000 production network."""
 
     @classmethod
-    def from_job(cls, site_info):
+    def from_job(cls, site):
         nature = NATURE_PROD
         vlan_id = "default"
         kwds = {
             "nature": nature,
             "vlan_id": str(vlan_id),
-            "site": site_info.uid,
-            "dns": cls.get_dns(site_info)
+            "site": site,
+            "dns": get_dns(site)
         }
-        kwds.update(site_info.kavlans[vlan_id])
+        kwds.update(get_vlans(site)[vlan_id])
         return cls(**kwds)
 
     def to_enos(self, roles):
@@ -350,13 +346,13 @@ def build_resources(jobs):
         _subnets = job.resources_by_type.get("subnets", [])
         _vlans = job.resources_by_type.get("vlans", [])
         nodes = nodes + job.assigned_nodes
-        site_info = gk.sites[job.site]
+        site = job.site
 
-        networks += [ConcreteSubnet.from_job(site_info, subnet)
+        networks += [ConcreteSubnet.from_job(site, subnet)
                      for subnet in _subnets]
-        networks += [ConcreteVlan.from_job(site_info, vlan_id)
+        networks += [ConcreteVlan.from_job(site, vlan_id)
                      for vlan_id in _vlans]
-        networks += [ConcreteProd.from_job(site_info)]
+        networks += [ConcreteProd.from_job(site)]
 
     logger.debug("nodes=%s, networks=%s" % (nodes, networks))
     return nodes, networks
@@ -757,3 +753,21 @@ def _do_synchronise_jobs(walltime, machines):
 
     if start is None:
         raise EnosG5kSynchronisationError(sites)
+
+
+@cached
+def get_dns(site):
+    site_info = get_site_obj(site)
+    return site_info.servers["dns"].network_adapters["default"]["ip"]
+
+
+@cached
+def get_subnet_gateway(site):
+    site_info = get_site_obj(site)
+    return site_info.g5ksubnet["gateway"]
+
+
+@cached
+def get_vlans(site):
+    site_info = get_site_obj(site)
+    return site_info.kavlans
