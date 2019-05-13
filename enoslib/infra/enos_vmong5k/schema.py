@@ -10,6 +10,7 @@ SCHEMA = {
     "type": "object",
     "properties": {
         "resources": {"$ref": "#/resources"},
+        "enable_taktuk": {"type": "boolean"},
         "gateway": {"type": "string"},
         "gateway_user": {"type": "string"},
         "job_name": {"type": "string"},
