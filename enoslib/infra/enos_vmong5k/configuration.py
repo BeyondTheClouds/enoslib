@@ -14,6 +14,7 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
+        self.enable_taktuk = False
         self.gateway = None
         self.gateway_user = None
         self.job_name = DEFAULT_JOB_NAME

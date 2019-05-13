@@ -100,13 +100,38 @@
       become: yes
       become_user: "{{ g5k_user }}"
 
-    - name: Copy base image
-      shell: > 
+      #    - name: Copy base image
+      # shell: > 
+      #  ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+      #  || 
+      #  cp {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
+      # become: yes
+      # become_user: "{{ g5k_user }}"
+
+    - set_fact:
+        taktuk_hosts: "{% for h in ansible_play_batch %} -m {{ h }} {% endfor %}"
+
+    - set_fact:
+        taktuk_command: "taktuk -s {{ taktuk_hosts }} broadcast put [ {{ base_image }} ] [ {{ working_dir }}/enos_vmong5k-base-image.qcow2 ]"
+
+    - name: Copy (using taktuk) the base image
+      shell: >
         ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
-        || 
-        cp {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
+        ||
+        {{ taktuk_command }}
+      run_once: yes
       become: yes
       become_user: "{{ g5k_user }}"
+      when: enable_taktuk | bool 
+
+    - name: Copy (regular copy) the base image
+      shell: >
+        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+        ||
+        cp  {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+      become: yes
+      become_user: "{{ g5k_user }}"
+      when: not enable_taktuk | bool 
 
     - name: Removing previous disk
       file:
