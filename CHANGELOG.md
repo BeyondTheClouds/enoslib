@@ -1,3 +1,7 @@
+# 3.2.0
+
+* VMonG5K: Enables taktuk for image broadcast
+
 # 3.1.4
 
 * Doc: Fix network_emulation conf
