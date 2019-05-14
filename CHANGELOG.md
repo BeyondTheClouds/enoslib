@@ -1,3 +1,7 @@
+# 3.1.5
+
+* G5k: Fix static driver
+
 # 3.1.4
 
 * Doc: Fix network_emulation conf
