@@ -3,10 +3,10 @@ from abc import ABCMeta, abstractmethod
 import logging
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (grid_deploy,
-                                          grid_reload_from_ids,
                                           grid_destroy_from_name,
                                           grid_destroy_from_ids)
-from enoslib.infra.enos_g5k.utils import grid_get_or_create_job
+from enoslib.infra.enos_g5k.utils import (grid_get_or_create_job,
+                                          grid_reload_from_ids)
 from enoslib.infra.enos_g5k.constants import (DEFAULT_JOB_NAME,
                                               DEFAULT_WALLTIME,
                                               JOB_TYPE_DEPLOY)
@@ -93,8 +93,8 @@ class OargridStaticDriver(Driver):
     def destroy(self):
         grid_destroy_from_ids(self.oargrid_jobids)
 
-    def deploy(self, site, nodes, force_deploy, options):
-        return grid_deploy(site, nodes, force_deploy, options)
+    def deploy(self, site, nodes, options):
+        return grid_deploy(site, nodes, options)
 
 
 class OargridDynamicDriver(Driver):
