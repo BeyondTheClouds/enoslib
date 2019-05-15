@@ -1,3 +1,7 @@
+# 3.2.1
+
+* G5k: Fix static driver
+
 # 3.2.0
 
 * VMonG5K: Enables taktuk for image broadcast
