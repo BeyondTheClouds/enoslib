@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def start_virtualmachines(provider_conf,
-                          g5k_subnet):
+                          g5k_subnets):
     """Starts virtualmachines on G5K.
 
     Args:
@@ -31,7 +31,7 @@ def start_virtualmachines(provider_conf,
             undercloud machines to use. Round Robin strategy to distribute the
             VMs to the PMs will be used for each configuration. Mac addresses
             will be generated according to the g5k_subnet parameter.
-        g5k_subnet(dict): The subnet to use. Serialization of
+        g5k_subnets(list): The subnets to use. Each element is a serialization of
             :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
 
     Returns:
@@ -51,13 +51,13 @@ def start_virtualmachines(provider_conf,
         extra.update(gateway_user=provider_conf.gateway_user)
 
     vmong5k_roles = _distribute(provider_conf.machines,
-                                g5k_subnet,
+                                g5k_subnets,
                                 extra=extra)
 
     _start_virtualmachines(provider_conf,
                            vmong5k_roles)
 
-    return _to_hosts(vmong5k_roles), [g5k_subnet]
+    return _to_hosts(vmong5k_roles), g5k_subnets
 
 
 def _get_subnet_ip(mac):
