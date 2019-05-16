@@ -31,7 +31,8 @@ def start_virtualmachines(provider_conf,
             undercloud machines to use. Round Robin strategy to distribute the
             VMs to the PMs will be used for each configuration. Mac addresses
             will be generated according to the g5k_subnet parameter.
-        g5k_subnets(list): The subnets to use. Each element is a serialization of
+        g5k_subnets(list): The subnets to use. Each element is a serialization
+            of
             :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
 
     Returns:

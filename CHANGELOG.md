@@ -1,3 +1,7 @@
+# 3.2.2
+
+* VMonG5k: fix the networks returned value
+
 # 3.2.1
 
 * G5k: Fix static driver
