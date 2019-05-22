@@ -1,3 +1,7 @@
+# 3.2.3
+
+* Fix an issue with emulate_network (it now uses `inventory_hostname`)
+
 # 3.2.2
 
 * VMonG5k: fix the networks returned value
