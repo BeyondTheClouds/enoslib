@@ -1,6 +1,6 @@
 ---
 {% for host in groups['all'] %}
-{{ hostvars[host]['ansible_nodename'] | indent(width=0)}}:
+{{ hostvars[host]['inventory_hostname'] | indent(width=0)}}:
   all_ipv4_addresses:
 {{hostvars[host]['ansible_all_ipv4_addresses'] | to_nice_yaml(2) | indent(width=4, indentfirst=true)}}
   devices:
