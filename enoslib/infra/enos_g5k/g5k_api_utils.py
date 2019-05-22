@@ -300,7 +300,8 @@ def grid_reload_from_name(job_name):
     for site in [s for s in sites if s.uid not in gk.excluded_site]:
         logger.info("Reloading %s from %s" % (job_name, site.uid))
         _jobs = site.jobs.list(name=job_name,
-                               state="waiting,launching,running")
+                               state="waiting,launching,running",
+                               user=gk.username)
         if len(_jobs) == 1:
             logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
             jobs.append(_jobs[0])
