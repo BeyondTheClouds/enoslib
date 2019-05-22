@@ -1,3 +1,7 @@
+# 3.2.4
+
+* Avoid job_name collision from 2 distinct users
+
 # 3.2.3
 
 * Fix an issue with emulate_network (it now uses `inventory_hostname`)
