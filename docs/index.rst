@@ -6,7 +6,7 @@
 Welcome to EnOSlib's documentation!
 ===================================
 
-EnOSlib helps you deploy applications on various platforms.
+EnOSlib helps you deploy applications on various platforms. 
 
 It targets role based deployments and allows you to describe your operations
 using tasks.
@@ -14,6 +14,9 @@ using tasks.
 More pragmatically, with the EnOSlib, you can iterate on your application
 deployment and experimental workflow locally before moving to a large testbed
 like Grid'5000, or Chameleon. It saves time and energy.
+
+EnOSlib is designed for experimentation purpose: benchmark in a controlled
+environment, academic validation ...
 
 .. hint ::
 

@@ -129,7 +129,7 @@ for city, others in CITIES.items():
         constraints.append({
             "src": city,
             "dst": other,
-            "delay": delay,
+            "delay": "%sms" % delay,
             "symetric": True
         })
 emulation_conf["constraints"] = constraints
