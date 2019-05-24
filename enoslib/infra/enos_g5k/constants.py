@@ -31,3 +31,6 @@ PROD = "prod"
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPES
 JOB_TYPES = ["deploy", "allow_classic_ssh"]
 QUEUE_TYPES = ["default", "production", "testing"]
+
+
+MAX_DEPLOY = 3

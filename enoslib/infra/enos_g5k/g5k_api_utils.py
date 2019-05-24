@@ -22,7 +22,8 @@ from .constants import (G5KMACPREFIX,
                         KAVLAN,
                         SYNCHRONISATION_OFFSET,
                         DEFAULT_SSH_KEYFILE,
-                        NATURE_PROD)
+                        NATURE_PROD,
+                        MAX_DEPLOY)
 
 from grid5000 import Grid5000
 
@@ -432,6 +433,20 @@ def wait_for_jobs(jobs):
     logger.info("All jobs are Running !")
 
 
+def _deploy(site, deployed, undeployed, count, options):
+    logger.info("Deploying %s with options %s [%s/%s]",
+                undeployed,
+                options,
+                count,
+                MAX_DEPLOY)
+    if count >= MAX_DEPLOY or len(undeployed) == 0:
+        return deployed, undeployed
+
+    d, u = deploy(site, undeployed, options)
+
+    return _deploy(site, deployed + d, u, count + 1, options)
+
+
 def grid_deploy(site, nodes, options):
     """Deploy and wait for the deployment to be finished.
 
@@ -444,29 +459,12 @@ def grid_deploy(site, nodes, options):
     Returns:
         tuple of deployed(list), undeployed(list) nodes.
     """
-    gk = get_api_client()
+
     environment = options.pop("env_name")
     options.update(environment=environment)
-    options.update(nodes=nodes)
     key_path = DEFAULT_SSH_KEYFILE
     options.update(key=key_path.read_text())
-    logger.info("Deploying %s with options %s" % (nodes, options))
-    deployment = gk.sites[site].deployments.create(options)
-    while deployment.status not in ["terminated", "error"]:
-        deployment.refresh()
-        print("Waiting for the end of deployment [%s]" % deployment.uid)
-        time.sleep(10)
-
-    deploy = []
-    undeploy = []
-    if deployment.status == "terminated":
-        deploy = [node for node, v in deployment.result.items()
-                  if v["state"] == "OK"]
-        undeploy = [node for node, v in deployment.result.items()
-                    if v["state"] == "KO"]
-    elif deployment.status == "error":
-        undeploy = nodes
-    return deploy, undeploy
+    return _deploy(site, [], nodes, 0, options)
 
 
 def set_nodes_vlan(site, nodes, interface, vlan_id):
@@ -771,3 +769,25 @@ def get_subnet_gateway(site):
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
+
+
+def deploy(site, nodes, options):
+    gk = get_api_client()
+    options.update(nodes=nodes)
+    deployment = gk.sites[site].deployments.create(options)
+    while deployment.status not in ["terminated", "error"]:
+        deployment.refresh()
+        print("Waiting for the end of deployment [%s]" % deployment.uid)
+        time.sleep(10)
+    # parse output
+    deploy = []
+    undeploy = []
+    if deployment.status == "terminated":
+        deploy = [node for node, v in deployment.result.items()
+                if v["state"] == "OK"]
+        undeploy = [node for node, v in deployment.result.items()
+                    if v["state"] == "KO"]
+    elif deployment.status == "error":
+        undeploy = nodes
+
+    return deploy, undeploy
