@@ -97,3 +97,4 @@ Now where {{ user }} can go from here depends on the needs:
    performance_tuning.rst
    theyuseit.rst
    contributing.rst
+   changelog.rst
