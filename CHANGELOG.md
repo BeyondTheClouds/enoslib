@@ -1,3 +1,7 @@
+# 3.3.0
+
+* G5k: automatic redepoy (max 3) when nodes aren't deployed correctly
+
 # 3.2.4
 
 * Avoid job_name collision from 2 distinct users
