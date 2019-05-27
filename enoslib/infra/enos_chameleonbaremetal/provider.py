@@ -184,7 +184,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
                 _machines,
                 # NOTE(msimonin): we should be able to deduce the flavour from
                 # the name
-                extra_prefix="-o-{}-o-".format(flavor),
+                extra_prefix="-o-{}-o-".format(flavor.replace("_", '-')),
                 force_deploy=force_deploy,
                 key_name=conf.key_name,
                 image_id=env["image_id"],
@@ -213,7 +213,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             conf,
             gateway_ip,
             deployed,
-            lambda s: s.name.split("-o-")[1],
+            lambda s: s.name.split("-o-")[1].replace("-", "_"),
             extra_ips=extra_ips)
 
     def destroy(self):
