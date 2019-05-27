@@ -1,6 +1,13 @@
 Changelog
 ===========
 
+3.3.1
+------
+
+* Doc: Include changelog in the documentation
+* ChameleonBaremetal: fix tutorial
+
+
 3.3.0
 ------
 
