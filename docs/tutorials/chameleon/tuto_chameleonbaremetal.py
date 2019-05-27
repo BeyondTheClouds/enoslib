@@ -1,9 +1,8 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
+from enoslib.api import discover_networks, emulate_network, validate_network
 from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal
 from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration
 
 import logging
-import os
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,12 +27,13 @@ tc = {
     "default_delay": "20ms",
     "default_rate": "1gbit",
 }
-inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Chameleonbaremetal(conf)
 # provider.destroy()
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
-emulate_network(roles, inventory, tc)
-validate_network(roles, inventory)
+discover_networks(roles, networks)
+
+emulate_network(tc, roles=roles)
+validate_network(roles=roles)
+
 provider.destroy()
