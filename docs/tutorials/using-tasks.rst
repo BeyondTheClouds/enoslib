@@ -83,8 +83,7 @@ Using tasks
 
 .. literalinclude:: using-tasks/step2.py
    :language: python
-   :emphasize-lines: 33,45,51
-   :lines: 33-65
+   :emphasize-lines: 32,44,50
 
 - Using Tasks is a neat way to organize your program into a workflow.
 
@@ -115,7 +114,6 @@ First ensure that it is installed:
 
   .. literalinclude:: using-tasks/step3.py
      :language: python
-     :lines: 32-75
 
 - For the sake of illustration, we added a flag (``--force``) to the command
   line which allows to force the recreation of the virtual machines (see

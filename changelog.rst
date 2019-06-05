@@ -1,6 +1,16 @@
 Changelog
 ===========
 
+3.3.3
+------
+
+* Doc: in using-tasks include whole python script
+
+3.3.2
+------
+
+* Doc: fix using-tasks output
+
 3.3.1
 ------
 
