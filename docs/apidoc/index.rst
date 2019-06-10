@@ -11,5 +11,5 @@ API documentation
    :caption: Contents:
 
    api.rst
+   service.rst
    infra.rst
-
