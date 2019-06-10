@@ -284,16 +284,22 @@ class play_on(object):
 
         """
         def _f(**kwargs):
+            display_name = kwargs.pop("display_name",
+                                      "__calling__ %s" % module_name)
             task = {}
             task.update(**kwargs)
             self._tasks.append({
-                "name": "__calling__ %s" % module_name,
+                "name": display_name,
                 module_name: task,
             })
 
         def _shell_like(command, **kwargs):
+            display_name = kwargs.pop("display_name",
+                                      "__calling__ %s" % module_name)
+            task = {}
+            task.update(**kwargs)
             self._tasks.append({
-                "name": "__calling__ %s" % module_name,
+                "name": display_name,
                 module_name: command,
                 "args": dict(**kwargs),
             })
