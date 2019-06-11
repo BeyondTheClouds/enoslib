@@ -1,0 +1,35 @@
+[global_tags]
+  role = "default"
+
+[agent]
+  interval = "10s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  debug = false
+  quiet = false
+  hostname = ""
+  omit_hostname = false
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+  fielddrop = ["time_*"]
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs"]
+[[inputs.diskio]]
+[[inputs.kernel]]
+[[inputs.mem]]
+[[inputs.processes]]
+[[inputs.swap]]
+[[inputs.system]]
+[[inputs.net]]
+  interfaces = []
+[[inputs.docker]]
+  endpoint = "unix:///var/run/docker.sock"
+[[inputs.netstat]]
+  interval = "30s"
+[[outputs.influxdb]]
+  urls = ["http://{{ collector_address }}:8086"]
