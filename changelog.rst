@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+3.4.0
+-----
+
+* Introduce a monitoring service (quickly deploy a monitoring stack)
+* API: Add `display_name` kwargs in `play_on` (debug/display purpose)
+
 3.3.3
 ------
 
