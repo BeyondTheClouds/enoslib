@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+3.4.2
+-----
+
+* Service: fix example
+
 3.4.1
 -----
 
