@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+3.4.1
+-----
+
+* Service: monitoring update doc
+
 3.4.0
 -----
 

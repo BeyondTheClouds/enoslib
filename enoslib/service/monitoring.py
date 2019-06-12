@@ -27,6 +27,53 @@ class Monitoring(Service):
         quick way to deploy a monitoring stack on your nodes. It's opinionated
         out of the box but allow for some convenient customizations.
 
+
+        Example:
+            .. code-block:: python
+
+
+                from enoslib.api import generate_inventory, discover_networks
+                from enoslib.service import Monitoring
+                from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+                from enoslib.infra.enos_vagrant.configuration import Configuration
+
+                import logging
+                import os
+
+                logging.basicConfig(level=logging.INFO)
+
+                conf = Configuration()\\
+                    .add_machine(roles=["control"],
+                                    flavour="tiny",
+                                    number=1)\\
+                    .add_machine(roles=["compute"],
+                                    flavour="tiny",
+                                    number=1)\\
+                    .add_network(roles=["mynetwork"],
+                                    cidr="192.168.42.0/24")\\
+                    .finalize()
+
+                # claim the resources
+                provider = Enos_vagrant(conf)
+                roles, networks = provider.init()
+
+
+                # path to the inventory
+                inventory = os.path.join(os.getcwd(), "hosts")
+
+                # generate an inventory compatible with ansible
+                discover_networks(roles, networks)
+
+
+                monitoring = Monitoring(collector=roles["control"],
+                                        agent=roles["control"] + roles["compute"],
+                                        ui=roles["control"],
+                                        network="mynetwork",
+                                        agent_conf="mytelegraf.conf.j2")
+
+                monitoring.deploy()
+
+
         Args:
             collector (list): list of :py:class:`enoslib.Host` where the
                               collector will be installed
