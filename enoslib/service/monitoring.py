@@ -35,7 +35,8 @@ class Monitoring(Service):
                 from enoslib.api import generate_inventory, discover_networks
                 from enoslib.service import Monitoring
                 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-                from enoslib.infra.enos_vagrant.configuration import Configuration
+                from enoslib.infra.enos_vagrant.configuration
+                    import Configuration
 
                 import logging
                 import os
@@ -66,7 +67,7 @@ class Monitoring(Service):
 
 
                 monitoring = Monitoring(collector=roles["control"],
-                                        agent=roles["control"] + roles["compute"],
+                                        agent=roles["control"]+roles["compute"],
                                         ui=roles["control"],
                                         network="mynetwork",
                                         agent_conf="mytelegraf.conf.j2")
