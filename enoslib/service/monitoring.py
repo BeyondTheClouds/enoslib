@@ -69,8 +69,7 @@ class Monitoring(Service):
                 monitoring = Monitoring(collector=roles["control"],
                                         agent=roles["control"]+roles["compute"],
                                         ui=roles["control"],
-                                        network="mynetwork",
-                                        agent_conf="mytelegraf.conf.j2")
+                                        network="mynetwork")
 
                 monitoring.deploy()
 
