@@ -41,6 +41,10 @@ SCHEMA = {
         "required": [
             "roles",
         ],
+        "oneOf": [
+            {"required": ["flavour"]},
+            {"required": ["flavour_desc"]}
+        ],
         "additionalProperties": False,
     },
 

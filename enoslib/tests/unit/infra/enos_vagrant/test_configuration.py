@@ -1,4 +1,5 @@
 import jsonschema
+from jsonschema.exceptions import ValidationError
 
 from enoslib.infra.enos_vagrant.configuration import (Configuration,
                                                       MachineConfiguration,
@@ -33,6 +34,18 @@ class TestConfiguration(EnosTest):
         }
         conf = Configuration.from_dictionnary(d)
         self.assertEqual("virtualbox", conf.backend)
+
+
+    def test_missing_flavour_and_flavour_desc(self):
+        d = {
+            "backend": "virtualbox",
+            "resources": {
+                "machines": [{"roles": ["role1"]}],
+                "networks": []
+            }
+        }
+        with self.assertRaises(ValidationError) as e:
+            conf = Configuration.from_dictionnary(d)
 
     def test_programmatic(self):
         conf = Configuration()
