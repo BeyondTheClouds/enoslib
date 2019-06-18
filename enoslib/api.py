@@ -273,7 +273,10 @@ class play_on(object):
         with tempfile.NamedTemporaryFile('w',
                                          buffering=1,
                                          dir=os.getcwd()) as _pb:
-            _pb.write(yaml.dump([self.prior, play_source]))
+            content = yaml.dump([self.prior, play_source])
+            _pb.write(content)
+            logger.debug("Generated playbook")
+            logger.debug(content)
             run_ansible([_pb.name],
                         roles=self.roles,
                         extra_vars=self.extra_vars,
