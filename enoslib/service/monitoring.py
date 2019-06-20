@@ -140,6 +140,7 @@ class Monitoring(Service):
         # Deploy the agents
         _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
         if self.network is not None:
+            # This assumes that `discover_network` has been run before
             collector_address = self.collector[0].extra[self.network + "_ip"]
         else:
             collector_address = self.collector[0].address

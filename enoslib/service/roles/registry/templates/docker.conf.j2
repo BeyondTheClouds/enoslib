@@ -1,0 +1,5 @@
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// --insecure-registry {{ registry.ip }}:{{ registry.port }} --registry-mirror=http://{{ registry.ip }}:{{ registry.port }}
+LimitMEMLOCK=infinity
+LimitNOFILE=16384

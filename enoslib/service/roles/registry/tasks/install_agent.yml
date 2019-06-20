@@ -1,0 +1,15 @@
+- name: Installing dependencies
+  apt:
+    name:
+      - curl
+      - python-pip
+    state: present
+    update_cache: yes
+
+- name: Installing docker python bindings
+  pip:
+    name: docker
+    state: present
+
+- name: Installing docker
+  shell: which docker || (curl -sSL https://get.docker.com/ | sh)

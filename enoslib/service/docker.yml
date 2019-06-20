@@ -1,0 +1,5 @@
+---
+- name: Deploy docker and registry
+  hosts: all
+  roles:
+    - registry

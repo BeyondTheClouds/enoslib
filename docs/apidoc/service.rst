@@ -10,6 +10,19 @@ Base Service Class
     :show-inheritance:
 
 
+Docker
+----------
+
+Docker Service Class
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. automodule:: enoslib.service.docker
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Monitoring
 ----------
 
