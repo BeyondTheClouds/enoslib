@@ -34,4 +34,4 @@ Links
    :target: https://gitter.im/BeyondTheClouds/enoslib?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 .. |Coverage| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/coverage.svg
-   :target: https://sonarqube.bordeaux.inria.fr/sonarqube/dashboard?id=discovery%3Aenoslib%3Adev
+   :target: https://sonarqube.inria.fr/sonarqube/dashboard?id=discovery%3Aenoslib%3Adev
