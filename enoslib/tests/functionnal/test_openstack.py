@@ -1,6 +1,7 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network, wait_ssh
+from enoslib.api import discover_networks
 from enoslib.infra.enos_openstack.provider import Openstack
 from enoslib.infra.enos_openstack.configuration import Configuration
+from enoslib.service import Netem
 
 import logging
 import os
@@ -34,10 +35,8 @@ tc = {
 inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Openstack(conf)
-provider.destroy()
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory)
-wait_ssh(inventory)
-generate_inventory(roles, networks, inventory, check_networks=True)
-emulate_network(roles, inventory, tc)
-validate_network(roles, inventory)
+discover_networks(roles, networks)
+netem = Netem(roles, networks)
+netem.deploy()
+netem.validate()

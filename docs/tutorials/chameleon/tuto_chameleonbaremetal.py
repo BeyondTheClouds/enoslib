@@ -1,6 +1,7 @@
-from enoslib.api import discover_networks, emulate_network, validate_network
+from enoslib.api import discover_networks
 from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal
 from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration
+from enosib.service import Netem
 
 import logging
 
@@ -33,7 +34,8 @@ provider = Chameleonbaremetal(conf)
 roles, networks = provider.init()
 discover_networks(roles, networks)
 
-emulate_network(tc, roles=roles)
-validate_network(roles=roles)
+netem = Netem(tc, roles=roles)
+netem.deploy()
+netem.validate()
 
 provider.destroy()

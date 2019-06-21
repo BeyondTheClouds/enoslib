@@ -1,8 +1,9 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
+from enoslib.api import discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration as StaticConf
+from enoslib.service import Netem
 
 import os
 
@@ -10,15 +11,14 @@ provider_conf = {
     "resources": {
         "machines": [{
             "roles": ["control"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1", "n2"]
         },{
             "roles": ["compute"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1", "n3"]
-        }]
+        }],
+        "networks": [{"cidr": "192.168.20.0/24", "roles": ["mynetwork"]}]
     }
 }
 
@@ -49,8 +49,8 @@ resources["networks"] = networks
 
 
 provider = Static(StaticConf.from_dictionnary({"resources": resources}))
-roles, _ = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
-emulate_network(roles, inventory, tc)
-validate_network(roles, inventory)
-
+roles, networks = provider.init()
+discover_networks(roles, networks)
+netem = Netem(tc, roles=roles)
+netem.deploy()
+netem.validate()

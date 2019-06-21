@@ -1,3 +1,4 @@
+.ansible
 Vagrantfile
 .vagrant
 facts.yml

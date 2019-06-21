@@ -1,4 +1,3 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
 
@@ -30,9 +29,6 @@ conf = Configuration.from_settings(job_name="test-enoslib")\
 
 provider = G5k(conf)
 roles, networks = provider.init()
-
-# generate an inventory compatible with ansible
-generate_inventory(roles, networks, inventory, check_networks=True)
 
 # destroy the reservation
 provider.destroy()

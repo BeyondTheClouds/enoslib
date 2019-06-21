@@ -34,3 +34,16 @@ Monitoring Service Class
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+Netem
+----------
+
+Netem Service Class
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. automodule:: enoslib.service.netem
+    :members:
+    :undoc-members:
+    :show-inheritance:

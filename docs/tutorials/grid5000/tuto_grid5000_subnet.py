@@ -1,4 +1,3 @@
-from enoslib.api import generate_inventory, emulate_network, validate_network
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import Configuration
 
@@ -54,9 +53,6 @@ logging.info(subnet)
 #    'mac_end': '00:16:3E:9E:03:FE',
 #    'mac_start': '00:16:3E:9E:00:01',
 # } 
-
-# generate an inventory compatible with ansible
-generate_inventory(roles, networks, inventory, check_networks=True)
 
 # destroy the reservation
 provider.destroy()
