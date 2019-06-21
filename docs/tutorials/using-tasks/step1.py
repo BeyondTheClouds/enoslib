@@ -1,9 +1,10 @@
-from enoslib.api import emulate_network,\
-    validate_network, reset_network, check_networks, generate_inventory
+import logging
+
+from enoslib.api import discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
+from enoslib.service import Netem
 
-import logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -13,15 +14,14 @@ provider_conf = {
     "resources": {
         "machines": [{
             "roles": ["control"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1"]
         },{
             "roles": ["compute"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1"]
-        }]
+        }],
+        "networks": [{"cidr": "192.168.40.0/24", "roles": ["mynetwork"]}]
     }
 }
 
@@ -38,18 +38,17 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 
-generate_inventory(roles, networks, "hosts.ini")
-check_networks(roles, networks)
-generate_inventory(roles, networks, "hosts.ini")
+discover_networks(roles, networks)
 
+netem = Netem(tc, roles=roles)
 # apply network constraints
-emulate_network(roles, tc)
+netem.deploy()
 
 # validate network constraints
-validate_network(roles)
+netem.validate()
 
 # reset network constraints
-reset_network(roles)
+netem.destroy()
 
 # validate network constraints and saving in an alternative
-validate_network(roles, output_dir="after_reset")
+netem.validate(output_dir="after_reset")

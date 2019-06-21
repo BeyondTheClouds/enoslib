@@ -1,0 +1,7 @@
+{% for host in groups.all %}
+{% for device in hostvars[host]['enos_devices'] %}
+{% if 'ipv4' in  hostvars[host]['ansible_' + device]%}
+{{ hostvars[host]['ansible_' + device].ipv4.address }}
+{% endif %}
+{% endfor %}
+{% endfor %}

@@ -1,25 +1,31 @@
-from enoslib.api import emulate_network, validate_network, check_networks
-from enoslib.task import enostask
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import os
 
+from enoslib.api import discover_networks
+from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+from enoslib.infra.enos_vagrant.configuration import Configuration
+from enoslib.service import Netem
+from enoslib.task import enostask
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+provider_conf = {
+    "backend": "libvirt",
+    "box": "generic/debian9",
     "resources": {
         "machines": [{
             "roles": ["control"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1"]
         },{
             "roles": ["compute"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
-            "networks": ["n1"]
-        }]
+        }],
+        "networks": [{"cidr": "192.168.40.0/24", "roles": ["mynetwork"]}]
     }
 }
-
 
 tc = {
     "enable": True,
@@ -35,7 +41,7 @@ def up(force=True, env=None, **kwargs):
     conf = Configuration.from_dictionnary(provider_conf)
     provider = Enos_vagrant(conf)
     roles, networks = provider.init()
-    check_networks(roles, networks)
+    discover_networks(roles, networks)
     env["roles"] = roles
     env["networks"] = networks
 
@@ -43,13 +49,15 @@ def up(force=True, env=None, **kwargs):
 @enostask()
 def emulate(env=None, **kwargs):
     roles = env["roles"]
-    emulate_network(roles, tc)
+    netem = Netem(tc, roles=roles)
+    netem.deploy()
 
 
 @enostask()
 def validate(env=None, **kwargs):
     roles = env["roles"]
-    validate_network(roles)
+    netem = Netem(tc, roles=roles)
+    netem.validate()
 
 up()
 emulate()

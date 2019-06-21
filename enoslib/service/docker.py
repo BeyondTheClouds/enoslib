@@ -3,11 +3,10 @@ import os
 from jsonschema import validate
 
 from enoslib.api import run_ansible
-from .service import Service
+from .service import SERVICE_PATH, Service
 
 
 REGISTRY_OPTS = {"type": "internal"}
-SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Docker(Service):

@@ -1,6 +1,7 @@
-from enoslib.api import emulate_network, discover_networks, validate_network
+from enoslib.api import discover_networks
 from enoslib.infra.enos_vmong5k.provider import VMonG5k
 from enoslib.infra.enos_vmong5k.configuration import Configuration
+from enoslib.service import Netem
 
 import logging
 import os
@@ -101,11 +102,13 @@ CITIES = {
 
 # Building the configuration
 conf = Configuration.from_settings(job_name="tuto-vmong5k-netem",
-                                   image="/grid5000/virt-images/debian9-x64-base-2019040916.qcow2")
+                                   image="/grid5000/virt-images/debian9-x64-base-2019040916.qcow2",
+                                   gateway="access.grid5000.fr",
+                                   gateway_user="msimonin")
 cities = list(CITIES.keys())
 for city in cities:
     conf.add_machine(roles=[city],
-                     cluster="paravance",
+                     cluster="parasilo",
                      number=1,
                      flavour="tiny")
 conf.finalize()
@@ -136,5 +139,6 @@ emulation_conf["constraints"] = constraints
 
 logging.info(emulation_conf)
 discover_networks(roles, networks)
-emulate_network(emulation_conf, roles=roles)
-validate_network(roles=roles)
+netem = Netem(emulation_conf, roles=roles)
+netem.deploy()
+netem.validate()

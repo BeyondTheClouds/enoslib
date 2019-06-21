@@ -1,9 +1,9 @@
-from enoslib.api import (_build_ip_constraints,
-                         _expand_description,
-                         _generate_default_grp_constraints,
-                         _generate_actual_grp_constraints,
-                         _build_grp_constraints,
-                         _merge_constraints)
+from enoslib.service.netem import (_build_ip_constraints,
+                                   _expand_description,
+                                   _generate_default_grp_constraints,
+                                   _generate_actual_grp_constraints,
+                                   _build_grp_constraints,
+                                   _merge_constraints)
 from enoslib.host import Host
 from enoslib.tests.unit import EnosTest
 
