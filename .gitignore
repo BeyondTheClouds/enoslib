@@ -1,3 +1,7 @@
+.vscode
+.vagrant
+.ansible
+_tmp_enos_
 .pytest_cache
 ################
 # Ansible      #
