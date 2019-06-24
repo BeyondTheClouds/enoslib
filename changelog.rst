@@ -1,6 +1,19 @@
 Changelog
 ===========
 
+4.0.0
+-----
+
+* Service: add Netem service as a replacement for ``(emulate|reset|validate)_network`` functions.
+  Those functions have been dropped
+* Service: add Docker service. Install the docker agent on all your nodes and
+  optionally a docker registry cache
+* Upgrade jsonschema dependency
+* Migrate sonarqube server
+* Vagrant: OneOf for ``flavour`` and ``flavour_desc`` has been fixed
+* Api: ``play_on`` tasks now accept a ``display_name`` keyword. The string will
+  be displayed on the screen as the name of the command.
+
 3.4.2
 -----
 
