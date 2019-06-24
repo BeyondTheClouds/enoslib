@@ -11,5 +11,27 @@
     name: docker
     state: present
 
+- name: Creating docker volume directory in /tmp
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ bind_volumes }}"
+    - /var/lib/docker/volumes
+  when:
+    - bind_volumes is defined
+
+- name: Bind mount the docker volume directory
+  mount:
+    path: /var/lib/docker/volumes
+    src: /tmp/docker/volumes
+    opts: bind
+    state: mounted
+    fstype: none
+  when:
+    - bind_volumes is defined
+
 - name: Installing docker
   shell: which docker || (curl -sSL https://get.docker.com/ | sh)
+
+

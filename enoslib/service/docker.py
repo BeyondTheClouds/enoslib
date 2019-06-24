@@ -40,7 +40,8 @@ class Docker(Service):
     def __init__(self, *,
                  agent=None,
                  registry=None,
-                 registry_opts=None):
+                 registry_opts=None,
+                 bind_volumes="/tmp/docker/volumes"):
 
         """Deploy docker agents on the nodes and registry cache(optionnal)
 
@@ -67,12 +68,16 @@ class Docker(Service):
 
         Args:
             agent (list): list of :py:class:`enoslib.Host` where the docker
-                          agent will be installed
+                agent will be installed
             registry (list): list of :py:class:`enoslib.Host` where the docker
-                          registry will be installed.
+                registry will be installed.
             registry_opts (dict): registry options. The dictionnary must comply
-                          with the schema.
-
+                with the schema.
+            bind_volumes (str): If set the default volume directory
+                (/var/lib/docker/volumes) will be bind mounted in this
+                directory. The rationale is that on Grid'5000, there isn't much
+                disk space on /var/lib by default. Set it to False to disable
+                the fallback to the default location.
         """
         # TODO: use a decorator for this purpose
         if registry_opts:
@@ -93,6 +98,7 @@ class Docker(Service):
             else:
                 self.registry_opts["port"] = 5000
 
+        self.bind_volumes = bind_volumes
         self._roles = {
             "agent": self.agent,
             "registry": self.registry
@@ -101,7 +107,11 @@ class Docker(Service):
     def deploy(self):
         """Deploy docker and optionnaly a docker registry cache."""
         _playbook = os.path.join(SERVICE_PATH, "docker.yml")
-        extra_vars = {"registry": self.registry_opts, "enos_action": "deploy"}
+        extra_vars = {
+            "registry": self.registry_opts,
+            "enos_action": "deploy"}
+        if self.bind_volumes:
+            extra_vars.update(bind_volumes=self.bind_volumes)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
