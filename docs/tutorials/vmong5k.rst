@@ -81,3 +81,11 @@ This is mandatory if you deployed from your local machine.
                                gateway=access.grid5000.fr,
                                gateway_user=<g5k_login>
                               )
+
+Controlling the virtual machines placement
+------------------------------------------
+
+
+.. literalinclude:: ./vmong5k/tuto_placement.py
+   :language: python
+   :linenos:
