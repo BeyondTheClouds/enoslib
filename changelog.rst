@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.0.2
+-----
+
+* Doc: Add a placement example (vmong5k)
+
 4.0.1
 -----
 
