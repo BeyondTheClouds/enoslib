@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.0.1
+-----
+
+* Doc: Capitalize -> EnOSlib
+
 4.0.0
 -----
 
