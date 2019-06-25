@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'enoslib'
+project = u'EnOSlib'
 copyright = u'2017, Ronan-Alexandre Cherrueau, Matthieu Simonin'
 author = u'Ronan-Alexandre Cherrueau, Matthieu Simonin'
 
