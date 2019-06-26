@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.0.3
+-----
+
+* Doc: Fix netem service link
+
 4.0.2
 -----
 
