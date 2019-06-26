@@ -82,7 +82,7 @@ Now where {{ user }} can go from here depends on the needs:
 
 - Applying specific network constraints between the nodes of the reservation is
   also possible. {{ user }}'ll need to learn more about how enforcing the constraints
-  -- see :ref:`[4] <api>`.
+  -- see :ref:`[4] <netem>`.
 
 - Contributing to this project would be wonderful. {{ user }} doesn't need to do much,
   improving the documentation would be very helpful -- see :ref:`[5] <contributing>`.
