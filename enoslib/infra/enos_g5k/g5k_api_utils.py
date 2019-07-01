@@ -25,8 +25,12 @@ from .constants import (G5KMACPREFIX,
                         NATURE_PROD,
                         MAX_DEPLOY)
 
+import diskcache
 from grid5000 import Grid5000
+import ring
 
+
+storage = diskcache.Cache('cachedir')
 
 logger = logging.getLogger(__name__)
 
@@ -38,29 +42,6 @@ _api_client = None
 # Poor man's cache (for now)
 _cache_lock = threading.RLock()
 cache = {}
-
-
-def cached(f):
-    """Decorator for caching/retrieving api calls request.
-
-    Many calls to the API are getter on static parts (e.g site of a given
-    cluster name won't change). By caching some responses we can avoid
-    hammering the API server.
-    """
-    @functools.wraps(f)
-    def wrapped(*args, **kwargs):
-        with _cache_lock:
-            identifier = (f.__name__,  args, kwargs)
-            key = pickle.dumps(identifier)
-            value = cache.get(key)
-            if value is not None:
-                logger.debug("HIT for %s -> %s" % (str(identifier), value))
-            else:
-                logger.debug("MISS for %s" % str(identifier))
-                value = f(*args, **kwargs)
-                cache[key] = value
-            return value
-    return wrapped
 
 
 class Client(Grid5000):
@@ -492,7 +473,7 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
     gk.sites[site].vlans[str(vlan_id)].submit({"nodes": network_addresses})
 
 
-@cached
+@ring.disk(storage)
 def get_all_sites_obj():
     """Return the list of the sites.
 
@@ -504,7 +485,7 @@ def get_all_sites_obj():
     return sites
 
 
-@cached
+@ring.disk(storage)
 def get_site_obj(site):
     """Get a single site.
 
@@ -515,7 +496,7 @@ def get_site_obj(site):
     return gk.sites[site]
 
 
-@cached
+@ring.disk(storage)
 def clusters_sites_obj(clusters):
     """Get all the corresponding sites of the passed clusters.
 
@@ -536,7 +517,7 @@ def clusters_sites_obj(clusters):
     return result
 
 
-@cached
+@ring.disk(storage)
 def get_all_clusters_sites():
     """Get all the cluster of all the sites.
 
@@ -578,7 +559,7 @@ def get_cluster_site(cluster):
     return match[cluster]
 
 
-@cached
+@ring.disk(storage)
 def get_nodes(cluster):
     """Get all the nodes of a given cluster.
 
@@ -753,19 +734,19 @@ def _do_synchronise_jobs(walltime, machines):
         raise EnosG5kSynchronisationError(sites)
 
 
-@cached
+@ring.disk(storage)
 def get_dns(site):
     site_info = get_site_obj(site)
     return site_info.servers["dns"].network_adapters["default"]["ip"]
 
 
-@cached
+@ring.disk(storage)
 def get_subnet_gateway(site):
     site_info = get_site_obj(site)
     return site_info.g5ksubnet["gateway"]
 
 
-@cached
+@ring.disk(storage)
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
