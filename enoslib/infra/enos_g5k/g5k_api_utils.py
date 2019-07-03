@@ -7,11 +7,9 @@ with the platform.
 """
 
 from collections import defaultdict
-import functools
 import logging
 from netaddr import IPAddress, IPNetwork, IPSet
 import os
-import pickle
 import time
 import threading
 
