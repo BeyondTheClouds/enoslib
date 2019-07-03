@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.1.0
+-----
+
+* Api: Introduce ``gather_facts`` function
+
 4.0.3
 -----
 
