@@ -310,7 +310,9 @@ class play_on(object):
         return _f
 
 
-def run_command(pattern_hosts, command, inventory_path=None, roles=None,
+def run_command(pattern_hosts, command, *,
+                inventory_path=None,
+                roles=None,
                 extra_vars=None,
                 on_error_continue=False):
     """Run a shell command on some remote hosts.
@@ -320,6 +322,7 @@ def run_command(pattern_hosts, command, inventory_path=None, roles=None,
             see https://docs.ansible.com/ansible/latest/intro_patterns.html
         command (str): the command to run
         inventory_path (str): inventory to use
+        roles (dict): the roles to use (replacement for inventory_path).
         extra_vars (dict): extra_vars to use
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
@@ -394,6 +397,98 @@ def run_command(pattern_hosts, command, inventory_path=None, roles=None,
                        extra_vars=extra_vars)
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
+    return {"ok": ok, "failed": failed, "results": results}
+
+
+def gather_facts(pattern_hosts, *,
+                 gather_subset="all",
+                 inventory_path=None,
+                 roles=None,
+                 extra_vars=None,
+                 on_error_continue=False):
+    """Gather facts about hosts.
+
+
+    This function can be used to check/save the information of the
+    infrastructure where the experiment ran. It'll give the information
+    gathered by Ansible (see
+    https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html
+    )
+
+    Args:
+        pattern_hosts (str): pattern to describe ansible hosts to target.
+            see https://docs.ansible.com/ansible/latest/intro_patterns.html
+        gather_subset (str): if supplied, restrict the additional facts
+            collected to the given subset.
+            https://docs.ansible.com/ansible/latest/modules/setup_module.html
+        inventory_path (str): inventory to use
+        roles (dict): the roles to use (replacement for inventory_path).
+        extra_vars (dict): extra_vars to use
+        on_error_continue(bool): Don't throw any exception in case a host is
+            unreachable or the playbooks run with errors
+
+    Raises:
+        :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
+            error on a host and ``on_error_continue==False``
+        :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
+            unreachable (through ssh) and ``on_error_continue==False``
+
+    Returns:
+        Dict combining the ansible facts of ok and failed hosts and every
+        results of tasks executed.
+
+    Example:
+
+    .. code-block:: python
+
+        # Inventory
+        [control1]
+        enos-0
+        [control2]
+        enos-1
+
+        # Python
+        result = gather_facts("all", roles=roles)
+
+        # Result
+        {
+            'failed': {},
+            'ok':
+            {
+              'enos-0':
+              {
+                'ansible_product_serial': 'NA',
+                'ansible_form_factor': 'Other',
+                'ansible_user_gecos': 'root',
+                ...
+              },
+              'enos-1':
+              {...}
+            'results': [...]
+        }
+
+    """
+    def filter_results(results, status):
+        _r = [r for r in results
+              if r.status == status and r.task == COMMAND_NAME]
+        s = dict([[r.host, r.payload.get("ansible_facts")] for r in _r])
+        return s
+
+    play_source = {
+        "hosts": pattern_hosts,
+        "tasks": [{
+            "name": COMMAND,
+            "setup": {"gather_subset": gather_subset}
+        }]
+    }
+    results = run_play(play_source,
+                       inventory_path=inventory_path,
+                       roles=roles,
+                       extra_vars=extra_vars,
+                       on_error_continue=on_error_continue)
+    ok = filter_results(results, STATUS_OK)
+    failed = filter_results(results, STATUS_FAILED)
+
     return {"ok": ok, "failed": failed, "results": results}
 
 
