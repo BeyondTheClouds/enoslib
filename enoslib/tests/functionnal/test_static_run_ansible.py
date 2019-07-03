@@ -32,5 +32,9 @@ inventory = os.path.join(os.getcwd(), "hosts")
 provider = Static(Configuration.from_dictionnary(provider_conf))
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
-result = run_command("control", "date", inventory)
+# using an inventory
+result = run_command("control", "date", inventory_path=inventory)
+print(json.dumps(result))
+# using the roles
+result = run_command("control", "date", roles=roles)
 print(json.dumps(result))
