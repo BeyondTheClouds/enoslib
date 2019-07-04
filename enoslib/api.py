@@ -203,7 +203,8 @@ def run_play(play_source, inventory_path=None, roles=None,
 
 class play_on(object):
     """A context manager to manage a sequence of Ansible module calls."""
-    def __init__(self, pattern_hosts,
+    def __init__(self, *,
+                 pattern_hosts="all",
                  inventory_path=None,
                  roles=None,
                  extra_vars=None,
@@ -310,7 +311,8 @@ class play_on(object):
         return _f
 
 
-def run_command(pattern_hosts, command, *,
+def run_command(command, *,
+                pattern_hosts="all",
                 inventory_path=None,
                 roles=None,
                 extra_vars=None,
@@ -318,9 +320,9 @@ def run_command(pattern_hosts, command, *,
     """Run a shell command on some remote hosts.
 
     Args:
+        command (str): the command to run
         pattern_hosts (str): pattern to describe ansible hosts to target.
             see https://docs.ansible.com/ansible/latest/intro_patterns.html
-        command (str): the command to run
         inventory_path (str): inventory to use
         roles (dict): the roles to use (replacement for inventory_path).
         extra_vars (dict): extra_vars to use
@@ -400,7 +402,8 @@ def run_command(pattern_hosts, command, *,
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def gather_facts(pattern_hosts, *,
+def gather_facts(*,
+                 pattern_hosts="all",
                  gather_subset="all",
                  inventory_path=None,
                  roles=None,

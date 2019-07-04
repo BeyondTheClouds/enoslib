@@ -29,7 +29,9 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 discover_networks(roles, networks)
-result = run_command("control*", "date", roles=roles)
+result = run_command("date",
+                     pattern_hosts="control*",
+                     roles=roles)
 with open("result_ok", "w") as f:
     json.dump(result["ok"], f, indent=2)
 with open("result_failed", "w") as f:

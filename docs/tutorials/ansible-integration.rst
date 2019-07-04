@@ -28,10 +28,11 @@ Let's consider the following script :
 
 - :py:func:`~enoslib.api.run_command` takes at least 3 parameters :
 
+    - (mandatory)the actual command to run
+
     - the host pattern (see 
       https://docs.ansible.com/ansible/latest/intro_patterns.html)
-
-    - the actual command to run
+      This allow to further filter on which nodes the command will be run.
 
     - the roles (as returned by the provider init method) or the path to the inventory
 

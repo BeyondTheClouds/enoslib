@@ -4,7 +4,8 @@ Changelog
 4.1.0
 -----
 
-* Api: Introduce ``gather_facts`` function
+* API: Introduce ``gather_facts`` function
+* API(breaks): Introduce ``host_patterns`` as a keyword argument
 
 4.0.3
 -----
