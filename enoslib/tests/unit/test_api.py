@@ -36,14 +36,15 @@ class TestSSH(unittest.TestCase):
 class TestPlayOn(unittest.TestCase):
 
     def test_no_gather(self):
-        p = play_on("pattern", gather_facts=False)
+        p = play_on(pattern_hosts="pattern",
+                    gather_facts=False)
         p.__exit__ = mock.MagicMock()
         a = p.__enter__()
         self.assertEqual({}, p.prior)
         self.assertEqual([], p._tasks)
 
     def test_gather(self):
-        p = play_on("pattern")
+        p = play_on(pattern_hosts="pattern")
         p.__exit__ = mock.MagicMock()
         a = p.__enter__()
         g = {
@@ -56,7 +57,7 @@ class TestPlayOn(unittest.TestCase):
         self.assertDictEqual(g, p.prior)
 
     def test_modules(self):
-        p = play_on("pattern")
+        p = play_on(pattern_hosts="pattern")
         p.__exit__ = mock.MagicMock()
         a = p.__enter__()
         a.test_module(name="test", state="present")
@@ -67,6 +68,6 @@ class TestPlayOn(unittest.TestCase):
 
     def test_call_ansible(self):
         with mock.patch('enoslib.api.run_ansible') as m:
-            with play_on("pattern") as p:
+            with play_on(pattern_hosts="pattern") as p:
                 p.a()
             m.assert_called_once()
