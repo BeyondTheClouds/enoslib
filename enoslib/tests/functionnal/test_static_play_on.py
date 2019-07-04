@@ -33,7 +33,7 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-with play_on("all", roles=roles) as p:
+with play_on(pattern_hosts="all", roles=roles) as p:
     p.shell("date > /tmp/date")
 
 with open("/tmp/date") as f:

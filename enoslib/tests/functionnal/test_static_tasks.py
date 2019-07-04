@@ -37,7 +37,7 @@ def up(env=None, **kwargs):
 @enostask()
 def config(env=None):
     roles = env["roles"]
-    with play_on("all", roles=roles) as p:
+    with play_on(pattern_hosts="all", roles=roles) as p:
         p.shell("date > /tmp/date")
 
     with open("/tmp/date") as f:

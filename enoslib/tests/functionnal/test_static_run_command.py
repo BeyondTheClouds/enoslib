@@ -34,8 +34,8 @@ provider = Static(conf)
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
 # With an inventory
-result = run_command("control", "date", inventory_path=inventory)
+result = run_command("date", pattern_hosts="control", inventory_path=inventory)
 print(json.dumps(result))
 # With roles
-result = run_command("control", "date", roles=roles)
+result = run_command("date", pattern_hosts="control", roles=roles)
 print(json.dumps(result))
