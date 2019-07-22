@@ -131,13 +131,14 @@ class _MyCallback(CallbackModule):
         self._store(result, STATUS_UNREACHABLE)
 
 
-def run_play(play_source, inventory_path=None, roles=None,
-             extra_vars=None, on_error_continue=False):
+def run_play(play_source, *,
+             inventory_path=None,
+             roles=None,
+             extra_vars=None,
+             on_error_continue=False):
     """Run a play.
 
     Args:
-        pattern_hosts (str): pattern to describe ansible hosts to target.
-            see https://docs.ansible.com/ansible/latest/intro_patterns.html
         play_source (dict): ansible task
         inventory_path (str): inventory to use
         extra_vars (dict): extra_vars to use

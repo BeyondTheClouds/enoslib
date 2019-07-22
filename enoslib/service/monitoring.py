@@ -107,7 +107,7 @@ class Monitoring(Service):
             return
 
         # Some requirements
-        with play_on("all", roles=self._roles) as p:
+        with play_on(pattern_hosts="all", roles=self._roles) as p:
             p.apt(display_name="Installing python-setuptools",
                   name="python-setuptools",
                   state="present",
@@ -121,7 +121,7 @@ class Monitoring(Service):
                     display_name="Installing docker")
 
         # Deploy the collector
-        with play_on("collector", roles=self._roles) as p:
+        with play_on(pattern_hosts="collector", roles=self._roles) as p:
 
             p.docker_container(display_name="Installing",
                                name="influxdb",
@@ -145,7 +145,9 @@ class Monitoring(Service):
         else:
             collector_address = self.collector[0].address
         extra_vars = {"collector_address": collector_address}
-        with play_on("agent", roles=self._roles, extra_vars=extra_vars) as p:
+        with play_on(pattern_hosts="agent",
+                     roles=self._roles,
+                     extra_vars=extra_vars) as p:
             p.template(display_name="Generating the configuration file",
                        src=os.path.join(_path, self.agent_conf),
                        dest="/telegraf.conf")
@@ -169,7 +171,7 @@ class Monitoring(Service):
                                    "HOST_SYS": "/rootfs/sys"
                                })
         # Deploy the UI
-        with play_on("ui", roles=self._roles) as p:
+        with play_on(pattern_hosts="ui", roles=self._roles) as p:
             p.docker_container(display_name="Installing Grafana",
                                name="grafana",
                                image="grafana/grafana",
@@ -188,18 +190,18 @@ class Monitoring(Service):
 
         This destroys all the container and associated volumes.
         """
-        with play_on("ui", roles=self._roles) as p:
+        with play_on(pattern_hosts="ui", roles=self._roles) as p:
             p.docker_container(display_name="Destroying Grafana",
                                name="grafana",
                                state="absent",
                                force_kill=True)
 
-        with play_on("agent", roles=self._roles) as p:
+        with play_on(pattern_hosts="agent", roles=self._roles) as p:
             p.docker_container(display_name="Destroying telegraf",
                                name="telegraf",
                                state="absent")
 
-        with play_on("collector", roles=self._roles) as p:
+        with play_on(pattern_hosts="collector", roles=self._roles) as p:
             p.docker_container(display_name="Destroying InfluxDB",
                                name="influxdb",
                                state="absent",
@@ -227,7 +229,7 @@ class Monitoring(Service):
 
         _backup_dir = _check_path(backup_dir)
 
-        with play_on("collector", roles=self._roles) as p:
+        with play_on(pattern_hosts="collector", roles=self._roles) as p:
             p.docker_container(display_name="Stopping InfluxDB",
                                name="influxdb",
                                state="stopped")
