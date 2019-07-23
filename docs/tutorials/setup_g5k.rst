@@ -5,7 +5,7 @@ On Grid'5000, you can go with a virtualenv :
 
 .. code-block:: bash
 
-    $ virtualenv venv
+    $ virtualenv -p python3 venv
     $ source venv/bin/activate
     $ pip install -U pip
 
