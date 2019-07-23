@@ -19,10 +19,8 @@ class Configuration(BaseConfiguration):
         _resources = dictionnary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in
-                         _machines]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in
-                         _networks]
+        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
+        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
 
         self.finalize()
         return self
@@ -31,21 +29,23 @@ class Configuration(BaseConfiguration):
         return {
             "resources": {
                 "machines": [m.to_dict() for m in self.machines],
-                "networks": [n.to_dict() for n in self.networks]
+                "networks": [n.to_dict() for n in self.networks],
             }
         }
 
 
 class MachineConfiguration:
-
-    def __init__(self, *,
-                 address=None,
-                 roles=None,
-                 alias=None,
-                 user=None,
-                 keyfile=None,
-                 port=None,
-                 extra=None):
+    def __init__(
+        self,
+        *,
+        address=None,
+        roles=None,
+        alias=None,
+        user=None,
+        keyfile=None,
+        port=None,
+        extra=None
+    ):
         self.address = address
         self.roles = roles
         self.alias = alias
@@ -57,13 +57,15 @@ class MachineConfiguration:
     @classmethod
     def from_dictionnary(cls, dictionnary):
 
-        return cls(address=dictionnary["address"],
-                   roles=dictionnary["roles"],
-                   alias=dictionnary.get("alias"),
-                   user=dictionnary.get("user"),
-                   keyfile=dictionnary.get("keyfile"),
-                   port=dictionnary.get("port"),
-                   extra=dictionnary.get("extra"))
+        return cls(
+            address=dictionnary["address"],
+            roles=dictionnary["roles"],
+            alias=dictionnary.get("alias"),
+            user=dictionnary.get("user"),
+            keyfile=dictionnary.get("keyfile"),
+            port=dictionnary.get("port"),
+            extra=dictionnary.get("extra"),
+        )
 
     def to_dict(self):
         d = {}
@@ -83,14 +85,9 @@ class MachineConfiguration:
 
 
 class NetworkConfiguration:
-
-    def __init__(self, *,
-                 roles=None,
-                 start=None,
-                 end=None,
-                 cidr=None,
-                 gateway=None,
-                 dns=None):
+    def __init__(
+        self, *, roles=None, start=None, end=None, cidr=None, gateway=None, dns=None
+    ):
         self.roles = roles
         self.cidr = cidr
         self.gateway = gateway
@@ -101,19 +98,23 @@ class NetworkConfiguration:
     @classmethod
     def from_dictionnary(cls, dictionnary):
 
-        return cls(roles=dictionnary["roles"],
-                   start=dictionnary["start"],
-                   end=dictionnary["end"],
-                   cidr=dictionnary["cidr"],
-                   gateway=dictionnary["gateway"],
-                   dns=dictionnary["dns"])
+        return cls(
+            roles=dictionnary["roles"],
+            start=dictionnary["start"],
+            end=dictionnary["end"],
+            cidr=dictionnary["cidr"],
+            gateway=dictionnary["gateway"],
+            dns=dictionnary["dns"],
+        )
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles,
-                 start=self.start,
-                 end=self.end,
-                 cidr=self.cidr,
-                 gateway=self.gateway,
-                 dns=self.dns)
+        d.update(
+            roles=self.roles,
+            start=self.start,
+            end=self.end,
+            cidr=self.cidr,
+            gateway=self.gateway,
+            dns=self.dns,
+        )
         return d

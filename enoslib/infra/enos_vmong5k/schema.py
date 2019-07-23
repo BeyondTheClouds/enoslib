@@ -19,25 +19,20 @@ SCHEMA = {
         "image": {"type": "string"},
         "strategy": {"type": "string", "enum": STRATEGY},
         "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
-        "working_dir": {"type": "string"}
+        "working_dir": {"type": "string"},
     },
     "additionalProperties": False,
     "required": ["resources"],
     "resources": {
         "title": "Resource",
-
         "type": "object",
         "properties": {
-            "machines": {
-                "type": "array",
-                "items": {"$ref": "#/machine"}
-            },
-            "networks": {"type": "array", "items": {"type": "string"}}
+            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "networks": {"type": "array", "items": {"type": "string"}},
         },
         "additionalProperties": False,
         "required": ["machines", "networks"],
     },
-
     "machine": {
         "title": "Compute",
         "type": "object",
@@ -47,20 +42,16 @@ SCHEMA = {
             "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
             "flavour_desc": {"$ref": "#/flavour_desc"},
             "cluster": {"type": "string"},
-            "undercloud": {"type": "array", "items": {"type": "object"}}
+            "undercloud": {"type": "array", "items": {"type": "object"}},
         },
         "required": ["roles"],
-        "additionalProperties": False
+        "additionalProperties": False,
     },
-
     "flavour_desc": {
         "title": "Flavour",
         "type": "object",
-        "properties": {
-            "core": {"type": "number"},
-            "mem": {"type": "number"}
-        },
+        "properties": {"core": {"type": "number"}, "mem": {"type": "number"}},
         "required": ["core", "mem"],
-        "additionalProperties": False
-    }
+        "additionalProperties": False,
+    },
 }

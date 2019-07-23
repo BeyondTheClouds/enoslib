@@ -40,14 +40,17 @@ def lease_to_s(lease):
         lease["name"],
         lease["start_date"],
         lease["end_date"],
-        lease["status"])
+        lease["status"],
+    )
 
 
 def create_blazar_client(config, session):
     """Check the reservation, creates a new one if nescessary."""
-    return blazar_client.Client(session=session,
-                                service_type="reservation",
-                                region_name=os.environ["OS_REGION_NAME"])
+    return blazar_client.Client(
+        session=session,
+        service_type="reservation",
+        region_name=os.environ["OS_REGION_NAME"],
+    )
 
 
 def get_reservation(bclient, provider_conf):
@@ -78,46 +81,43 @@ def create_reservation(bclient, provider_config):
     #  * we don"t support yet in advance reservation
     start_datetime = datetime.datetime.utcnow()
     w = provider_config.walltime.split(":")
-    delta = datetime.timedelta(hours=int(w[0]),
-                               minutes=int(w[1]),
-                               seconds=int(w[2]))
+    delta = datetime.timedelta(hours=int(w[0]), minutes=int(w[1]), seconds=int(w[2]))
     # Make sure we"re not reserving in the past by adding 1 minute
     # This should be rare
     start_datetime = start_datetime + datetime.timedelta(minutes=1)
     end_datetime = start_datetime + delta
     start_date = start_datetime.strftime("%Y-%m-%d %H:%M")
     end_date = end_datetime.strftime("%Y-%m-%d %H:%M")
-    logger.info("[blazar]: Claiming a lease start_date=%s, end_date=%s",
-                start_date,
-                end_date)
+    logger.info(
+        "[blazar]: Claiming a lease start_date=%s, end_date=%s", start_date, end_date
+    )
 
     reservations = []
     for flavor, machines in groupby(provider_config.machines, key=by_flavor):
         # NOTE(msimonin): We create one reservation per flavor
         total = sum([machine.number for machine in machines])
-        resource_properties = "[\"=\", \"$node_type\", \"%s\"]" % flavor
+        resource_properties = '["=", "$node_type", "%s"]' % flavor
 
-        reservations.append({
-            "min": total,
-            "max": total,
-            "resource_properties": resource_properties,
-            "hypervisor_properties": "",
-            "resource_type": "physical:host"
-            })
+        reservations.append(
+            {
+                "min": total,
+                "max": total,
+                "resource_properties": resource_properties,
+                "hypervisor_properties": "",
+                "resource_type": "physical:host",
+            }
+        )
 
     lease = bclient.lease.create(
-        provider_config.lease_name,
-        start_date,
-        end_date,
-        reservations,
-        [])
+        provider_config.lease_name, start_date, end_date, reservations, []
+    )
     return lease
 
 
 def wait_reservation(bclient, lease):
     logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
     lease = bclient.lease.get(lease["id"])
-    while(not lease_is_running(lease)):
+    while not lease_is_running(lease):
         time.sleep(10)
         lease = bclient.lease.get(lease["id"])
         logger.info("[blazar]: Waiting for %s to start" % lease_to_s(lease))
@@ -136,8 +136,9 @@ def check_reservation(config, session):
 
 
 def check_extra_ports(session, network, total):
-    nclient = neutron.Client("2", session=session,
-                             region_name=os.environ["OS_REGION_NAME"])
+    nclient = neutron.Client(
+        "2", session=session, region_name=os.environ["OS_REGION_NAME"]
+    )
     ports = nclient.list_ports()["ports"]
     logger.debug("Found %s ports" % ports)
     port_name = PORT_NAME
@@ -145,9 +146,7 @@ def check_extra_ports(session, network, total):
     logger.info("[neutron]: Reusing %s ports" % len(ports_with_name))
     # create missing ports
     for _ in range(0, total - len(ports_with_name)):
-        port = {"admin_state_up": True,
-                "name": PORT_NAME,
-                "network_id": network["id"]}
+        port = {"admin_state_up": True, "name": PORT_NAME, "network_id": network["id"]}
         # Checking port with PORT_NAME
         nclient.create_port({"port": port})
     ports = nclient.list_ports()["ports"]
@@ -160,15 +159,12 @@ def check_extra_ports(session, network, total):
 
 
 class Chameleonbaremetal(cc.Chameleonkvm):
-
     def init(self, force_deploy=False):
 
         conf = self.provider_conf
         env = openstack.check_environment(conf)
         lease = check_reservation(conf, env["session"])
-        extra_ips = check_extra_ports(env["session"],
-                                      env["network"],
-                                      conf.extra_ips)
+        extra_ips = check_extra_ports(env["session"], env["network"], conf.extra_ips)
         reservations = lease["reservations"]
         machines = self.provider_conf.machines
         machines = sorted(machines, key=by_flavor)
@@ -176,32 +172,31 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         for flavor, descs in groupby(machines, key=by_flavor):
             _machines = list(descs)
             # NOTE(msimonin): There should be only one reservation per flavor
-            hints = [{"reservation": r["id"]} for r in reservations
-                     if flavor in r["resource_properties"]]
+            hints = [
+                {"reservation": r["id"]}
+                for r in reservations
+                if flavor in r["resource_properties"]
+            ]
             # It's still a bit tricky here
             os_servers = openstack.check_servers(
                 env["session"],
                 _machines,
                 # NOTE(msimonin): we should be able to deduce the flavour from
                 # the name
-                extra_prefix="-o-{}-o-".format(flavor.replace("_", '-')),
+                extra_prefix="-o-{}-o-".format(flavor.replace("_", "-")),
                 force_deploy=force_deploy,
                 key_name=conf.key_name,
                 image_id=env["image_id"],
                 flavors="baremetal",
                 network=env["network"],
                 ext_net=env["ext_net"],
-                scheduler_hints=hints)
+                scheduler_hints=hints,
+            )
             servers.extend(os_servers)
 
-        deployed, _ = openstack.wait_for_servers(
-            env["session"],
-            servers)
+        deployed, _ = openstack.wait_for_servers(env["session"], servers)
 
-        gateway_ip, _ = openstack.check_gateway(
-            env,
-            conf.gateway,
-            deployed)
+        gateway_ip, _ = openstack.check_gateway(env, conf.gateway, deployed)
 
         # NOTE(msimonin) build the roles and networks This is a bit tricky here
         # since flavor (e.g compute_haswell) doesn"t correspond to a flavor
@@ -214,7 +209,8 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             gateway_ip,
             deployed,
             lambda s: s.name.split("-o-")[1].replace("-", "_"),
-            extra_ips=extra_ips)
+            extra_ips=extra_ips,
+        )
 
     def destroy(self):
         # destroy the associated lease should be enough

@@ -15,12 +15,9 @@ def _to_abs(path):
 
 
 class Monitoring(Service):
-    def __init__(self, *,
-                 collector=None,
-                 agent=None,
-                 ui=None,
-                 network=None,
-                 agent_conf=None):
+    def __init__(
+        self, *, collector=None, agent=None, ui=None, network=None, agent_conf=None
+    ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
         This assumes a debian/ubuntu base environment and aims at producing a
@@ -93,9 +90,7 @@ class Monitoring(Service):
         self.ui = ui if agent else []
         self.network = network
         self._roles = {}
-        self._roles.update(collector=self.collector,
-                          agent=self.agent,
-                          ui=self.ui)
+        self._roles.update(collector=self.collector, agent=self.agent, ui=self.ui)
         if agent_conf is None:
             self.agent_conf = "telegraf.conf.j2"
         else:
@@ -108,34 +103,39 @@ class Monitoring(Service):
 
         # Some requirements
         with play_on(pattern_hosts="all", roles=self._roles) as p:
-            p.apt(display_name="Installing python-setuptools",
-                  name="python-setuptools",
-                  state="present",
-                  update_cache=True)
-            p.easy_install(display_name="Installing pip",
-                           name="pip",
-                           state="latest")
-            p.pip(display_name="Installing python-docker",
-                  name="docker")
-            p.shell("which docker || (curl -sSL https://get.docker.com/ | sh)",
-                    display_name="Installing docker")
+            p.apt(
+                display_name="Installing python-setuptools",
+                name="python-setuptools",
+                state="present",
+                update_cache=True,
+            )
+            p.easy_install(display_name="Installing pip", name="pip", state="latest")
+            p.pip(display_name="Installing python-docker", name="docker")
+            p.shell(
+                "which docker || (curl -sSL https://get.docker.com/ | sh)",
+                display_name="Installing docker",
+            )
 
         # Deploy the collector
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
 
-            p.docker_container(display_name="Installing",
-                               name="influxdb",
-                               image="influxdb",
-                               detach=True,
-                               network_mode="host",
-                               state="started",
-                               volumes=["/influxdb-data:/var/lib/influxdb"])
-            p.wait_for(display_name="Waiting for InfluxDB to be ready",
-                       host="localhost",
-                       port="8086",
-                       state="started",
-                       delay=2,
-                       timeout=120)
+            p.docker_container(
+                display_name="Installing",
+                name="influxdb",
+                image="influxdb",
+                detach=True,
+                network_mode="host",
+                state="started",
+                volumes=["/influxdb-data:/var/lib/influxdb"],
+            )
+            p.wait_for(
+                display_name="Waiting for InfluxDB to be ready",
+                host="localhost",
+                port="8086",
+                state="started",
+                delay=2,
+                timeout=120,
+            )
 
         # Deploy the agents
         _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
@@ -145,45 +145,50 @@ class Monitoring(Service):
         else:
             collector_address = self.collector[0].address
         extra_vars = {"collector_address": collector_address}
-        with play_on(pattern_hosts="agent",
-                     roles=self._roles,
-                     extra_vars=extra_vars) as p:
-            p.template(display_name="Generating the configuration file",
-                       src=os.path.join(_path, self.agent_conf),
-                       dest="/telegraf.conf")
+        with play_on(
+            pattern_hosts="agent", roles=self._roles, extra_vars=extra_vars
+        ) as p:
+            p.template(
+                display_name="Generating the configuration file",
+                src=os.path.join(_path, self.agent_conf),
+                dest="/telegraf.conf",
+            )
 
             volumes = [
                 "/telegraf.conf:/etc/telegraf/telegraf.conf",
                 "sys:/rootfs/sys:ro",
                 "/proc:/rootfs/proc:ro",
-                "/var/run/docker.sock:/var/run/docker.sock:ro"
+                "/var/run/docker.sock:/var/run/docker.sock:ro",
             ]
 
-            p.docker_container(display_name="Installing Telegraf",
-                               name="telegraf",
-                               image="telegraf",
-                               detach=True,
-                               state="started",
-                               network_mode="host",
-                               volumes=volumes,
-                               env={
-                                   "HOST_PROC": "/rootfs/proc",
-                                   "HOST_SYS": "/rootfs/sys"
-                               })
+            p.docker_container(
+                display_name="Installing Telegraf",
+                name="telegraf",
+                image="telegraf",
+                detach=True,
+                state="started",
+                network_mode="host",
+                volumes=volumes,
+                env={"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"},
+            )
         # Deploy the UI
         with play_on(pattern_hosts="ui", roles=self._roles) as p:
-            p.docker_container(display_name="Installing Grafana",
-                               name="grafana",
-                               image="grafana/grafana",
-                               detach=True,
-                               network_mode="host",
-                               state="started")
-            p.wait_for(display_name="Waiting for grafana to be ready",
-                       host="localhost",
-                       port=3000,
-                       state="started",
-                       delay=2,
-                       timeout=120)
+            p.docker_container(
+                display_name="Installing Grafana",
+                name="grafana",
+                image="grafana/grafana",
+                detach=True,
+                network_mode="host",
+                state="started",
+            )
+            p.wait_for(
+                display_name="Waiting for grafana to be ready",
+                host="localhost",
+                port=3000,
+                state="started",
+                delay=2,
+                timeout=120,
+            )
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -191,24 +196,30 @@ class Monitoring(Service):
         This destroys all the container and associated volumes.
         """
         with play_on(pattern_hosts="ui", roles=self._roles) as p:
-            p.docker_container(display_name="Destroying Grafana",
-                               name="grafana",
-                               state="absent",
-                               force_kill=True)
+            p.docker_container(
+                display_name="Destroying Grafana",
+                name="grafana",
+                state="absent",
+                force_kill=True,
+            )
 
         with play_on(pattern_hosts="agent", roles=self._roles) as p:
-            p.docker_container(display_name="Destroying telegraf",
-                               name="telegraf",
-                               state="absent")
+            p.docker_container(
+                display_name="Destroying telegraf", name="telegraf", state="absent"
+            )
 
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
-            p.docker_container(display_name="Destroying InfluxDB",
-                               name="influxdb",
-                               state="absent",
-                               force_kill=True)
-            p.docker_volume(display_name="Destroying associated volumes",
-                            name="influxdb-data",
-                            state="absent")
+            p.docker_container(
+                display_name="Destroying InfluxDB",
+                name="influxdb",
+                state="absent",
+                force_kill=True,
+            )
+            p.docker_volume(
+                display_name="Destroying associated volumes",
+                name="influxdb-data",
+                state="absent",
+            )
 
     def backup(self, backup_dir=None):
         """Backup the monitoring stack.
@@ -230,16 +241,19 @@ class Monitoring(Service):
         _backup_dir = _check_path(backup_dir)
 
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
-            p.docker_container(display_name="Stopping InfluxDB",
-                               name="influxdb",
-                               state="stopped")
-            p.archive(display_name="Archiving the data volume",
-                      path="/influxdb-data",
-                      dest="/influxdb-data.tar.gz")
+            p.docker_container(
+                display_name="Stopping InfluxDB", name="influxdb", state="stopped"
+            )
+            p.archive(
+                display_name="Archiving the data volume",
+                path="/influxdb-data",
+                dest="/influxdb-data.tar.gz",
+            )
 
-            p.fetch(display_name="Fetching the data volume",
-                    src="/influxdb-data.tar.gz",
-                    dest=str(Path(_backup_dir, "influxdb-data.tar.gz")),
-                    flat=True)
-            p.shell("docker start influxdb",
-                    display_name="Restarting InfluxDB")
+            p.fetch(
+                display_name="Fetching the data volume",
+                src="/influxdb-data.tar.gz",
+                dest=str(Path(_backup_dir, "influxdb-data.tar.gz")),
+                flat=True,
+            )
+            p.shell("docker start influxdb", display_name="Restarting InfluxDB")

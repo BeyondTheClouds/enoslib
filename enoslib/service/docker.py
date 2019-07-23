@@ -11,37 +11,40 @@ REGISTRY_OPTS = {"type": "internal"}
 
 class Docker(Service):
     SCHEMA = {
-        "oneOf": [{
-            "type": "object",
-            "properties": {
-                "type": {"const": "external"},
-                "ip": {"type": "string"},
-                "port": {"type": "number"}
+        "oneOf": [
+            {
+                "type": "object",
+                "properties": {
+                    "type": {"const": "external"},
+                    "ip": {"type": "string"},
+                    "port": {"type": "number"},
+                },
+                "additionalProperties": False,
+                "required": ["type", "ip", "port"],
             },
-            "additionalProperties": False,
-            "required": ["type", "ip", "port"]
-        }, {
-            "type": "object",
-            "properties": {
-                "type": {"const": "internal"}
+            {
+                "type": "object",
+                "properties": {"type": {"const": "internal"}},
+                "additionalProperties": False,
+                "required": ["type"],
             },
-            "additionalProperties": False,
-            "required": ["type"]
-        }, {
-            "type": "object",
-            "properties": {
-                "type": {"const": "none"}
+            {
+                "type": "object",
+                "properties": {"type": {"const": "none"}},
+                "additionalProperties": False,
+                "required": ["type"],
             },
-            "additionalProperties": False,
-            "required": ["type"]
-        }]
+        ]
     }
 
-    def __init__(self, *,
-                 agent=None,
-                 registry=None,
-                 registry_opts=None,
-                 bind_volumes="/tmp/docker/volumes"):
+    def __init__(
+        self,
+        *,
+        agent=None,
+        registry=None,
+        registry_opts=None,
+        bind_volumes="/tmp/docker/volumes"
+    ):
 
         """Deploy docker agents on the nodes and registry cache(optionnal)
 
@@ -99,17 +102,12 @@ class Docker(Service):
                 self.registry_opts["port"] = 5000
 
         self.bind_volumes = bind_volumes
-        self._roles = {
-            "agent": self.agent,
-            "registry": self.registry
-        }
+        self._roles = {"agent": self.agent, "registry": self.registry}
 
     def deploy(self):
         """Deploy docker and optionnaly a docker registry cache."""
         _playbook = os.path.join(SERVICE_PATH, "docker.yml")
-        extra_vars = {
-            "registry": self.registry_opts,
-            "enos_action": "deploy"}
+        extra_vars = {"registry": self.registry_opts, "enos_action": "deploy"}
         if self.bind_volumes:
             extra_vars.update(bind_volumes=self.bind_volumes)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)

@@ -8,22 +8,24 @@ import os
 
 provider_conf = {
     "resources": {
-        "machines": [{
-            "roles": ["control"],
-            "address": "localhost",
-            "alias": "test_machine",
-            "extra": {
-                "ansible_connection": "local"
+        "machines": [
+            {
+                "roles": ["control"],
+                "address": "localhost",
+                "alias": "test_machine",
+                "extra": {"ansible_connection": "local"},
             }
-        }],
-        "networks": [{
-            "roles": ["local"],
-            "start": "172.17.0.0",
-            "end": "172.17.255.255",
-            "cidr": "172.17.0.0/16",
-            "gateway": "172.17.0.1",
-            "dns": "172.17.0.1",
-        }]
+        ],
+        "networks": [
+            {
+                "roles": ["local"],
+                "start": "172.17.0.0",
+                "end": "172.17.255.255",
+                "cidr": "172.17.0.0/16",
+                "gateway": "172.17.0.1",
+                "dns": "172.17.0.1",
+            }
+        ],
     }
 }
 

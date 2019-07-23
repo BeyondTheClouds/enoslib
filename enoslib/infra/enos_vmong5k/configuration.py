@@ -1,10 +1,19 @@
 import uuid
 
 from ..configuration import BaseConfiguration
-from .constants import (DEFAULT_FLAVOUR, DEFAULT_IMAGE, DEFAULT_JOB_NAME,
-                        DEFAULT_NETWORKS, DEFAULT_NUMBER, DEFAULT_QUEUE,
-                        DEFAULT_STRATEGY, DEFAULT_SUBNET_TYPE,
-                        DEFAULT_WALLTIME, DEFAULT_WORKING_DIR, FLAVOURS)
+from .constants import (
+    DEFAULT_FLAVOUR,
+    DEFAULT_IMAGE,
+    DEFAULT_JOB_NAME,
+    DEFAULT_NETWORKS,
+    DEFAULT_NUMBER,
+    DEFAULT_QUEUE,
+    DEFAULT_STRATEGY,
+    DEFAULT_SUBNET_TYPE,
+    DEFAULT_WALLTIME,
+    DEFAULT_WORKING_DIR,
+    FLAVOURS,
+)
 from .schema import SCHEMA
 
 
@@ -45,8 +54,7 @@ class Configuration(BaseConfiguration):
         _machines = _resources["machines"]
         _networks = _resources["networks"]
         self.networks = _networks
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in
-                         _machines]
+        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
 
         self.finalize()
         return self
@@ -54,27 +62,35 @@ class Configuration(BaseConfiguration):
     def to_dict(self):
         d = {}
         for k, v in self.__dict__.items():
-            if v is None or k in ["machines", "networks", "_machine_cls",
-                                  "_network_cls"]:
+            if v is None or k in [
+                "machines",
+                "networks",
+                "_machine_cls",
+                "_network_cls",
+            ]:
                 continue
             d.update({k: v})
 
-        d.update(resources={
-            "machines": [m.to_dict() for m in self.machines],
-            "networks": self.networks
-        })
+        d.update(
+            resources={
+                "machines": [m.to_dict() for m in self.machines],
+                "networks": self.networks,
+            }
+        )
         return d
 
 
 class MachineConfiguration:
-
-    def __init__(self, *,
-                 roles=None,
-                 cluster=None,
-                 flavour=None,
-                 flavour_desc=None,
-                 number=DEFAULT_NUMBER,
-                 undercloud=None):
+    def __init__(
+        self,
+        *,
+        roles=None,
+        cluster=None,
+        flavour=None,
+        flavour_desc=None,
+        number=DEFAULT_NUMBER,
+        undercloud=None
+    ):
         self.roles = roles
 
         # Internally we keep the flavour_desc as reference not a descriptor
@@ -139,7 +155,5 @@ class MachineConfiguration:
         cluster = self.cluster
         if cluster is not None:
             d.update(cluster=cluster)
-        d.update(roles=self.roles,
-                 flavour_desc=self.flavour_desc,
-                 number=self.number)
+        d.update(roles=self.roles, flavour_desc=self.flavour_desc, number=self.number)
         return d

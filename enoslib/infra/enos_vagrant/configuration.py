@@ -1,6 +1,11 @@
 from ..configuration import BaseConfiguration
-from .constants import (DEFAULT_BACKEND, DEFAULT_BOX, DEFAULT_FLAVOUR,
-                        DEFAULT_USER, FLAVOURS)
+from .constants import (
+    DEFAULT_BACKEND,
+    DEFAULT_BOX,
+    DEFAULT_FLAVOUR,
+    DEFAULT_USER,
+    FLAVOURS,
+)
 from .schema import SCHEMA
 
 
@@ -28,10 +33,8 @@ class Configuration(BaseConfiguration):
         _resources = dictionnary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in
-                         _machines]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in
-                         _networks]
+        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
+        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
         for key in ["backend", "user", "box"]:
             value = dictionnary.get(key)
             if value is not None:
@@ -42,23 +45,20 @@ class Configuration(BaseConfiguration):
 
     def to_dict(self):
         d = {}
-        d.update(backend=self.backend,
-                 user=self.user,
-                 box=self.box,
-                 resources={
-                     "machines": [m.to_dict() for m in self.machines],
-                     "networks": [n.to_dict() for n in self.networks]
-                 })
+        d.update(
+            backend=self.backend,
+            user=self.user,
+            box=self.box,
+            resources={
+                "machines": [m.to_dict() for m in self.machines],
+                "networks": [n.to_dict() for n in self.networks],
+            },
+        )
         return d
 
 
 class MachineConfiguration:
-
-    def __init__(self, *,
-                 roles=None,
-                 flavour=None,
-                 flavour_desc=None,
-                 number=1):
+    def __init__(self, *, roles=None, flavour=None, flavour_desc=None, number=1):
 
         self.roles = roles
 
@@ -96,16 +96,12 @@ class MachineConfiguration:
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
-                 number=self.number)
+        d.update(roles=self.roles, flavour_desc=self.flavour_desc, number=self.number)
         return d
 
 
 class NetworkConfiguration:
-
-    def __init__(self, *,
-                 roles=None,
-                 cidr=""):
+    def __init__(self, *, roles=None, cidr=""):
         self.roles = roles
         self.cidr = cidr
 

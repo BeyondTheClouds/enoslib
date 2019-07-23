@@ -1,3 +1,4 @@
+from enoslib.service.monitoring import Monitoring
 from enoslib.api import generate_inventory, discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
@@ -29,6 +30,11 @@ inventory = os.path.join(os.getcwd(), "hosts")
 # generate an inventory compatible with ansible
 discover_networks(roles, networks)
 generate_inventory(roles, networks, inventory, check_networks=True)
+
+m = Monitoring(collector=roles["compute"], agent=roles["control"], ui=roles["compute"])
+m.deploy()
+m.backup()
+m.destroy()
 
 # destroy the boxes
 # provider.destroy()

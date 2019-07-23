@@ -11,7 +11,7 @@ from enoslib.errors import EnosFilePathError
 # Following this bug
 # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10266
 # we force the task to know about host
-from enoslib.host import Host # noqa
+from enoslib.host import Host  # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ def enostask(new=False):
                 # saving a new key
                 env['foo'] = 'bar'
     """
+
     def decorator(fn):
         @wraps(fn)
         def decorated(*args, **kwargs):
@@ -62,7 +63,9 @@ def enostask(new=False):
             # Save the environment
             finally:
                 _save_env(kwargs["env"])
+
         return decorated
+
     return decorator
 
 
@@ -84,13 +87,13 @@ def _make_env(resultdir=None):
         resultdir (str): directory path to load the env from.
     """
     env = {
-        "config":      {},          # The config
-        "resultdir":   "",          # Path to the result directory
-        "config_file": "",          # The initial config file
-        "nodes":       {},          # Roles with nodes
-        "phase":       "",          # Last phase that have been run
-        "user":        "",          # User id for this job
-        "cwd":         os.getcwd()  # Current Working Directory
+        "config": {},  # The config
+        "resultdir": "",  # Path to the result directory
+        "config_file": "",  # The initial config file
+        "nodes": {},  # Roles with nodes
+        "phase": "",  # Last phase that have been run
+        "user": "",  # User id for this job
+        "cwd": os.getcwd(),  # Current Working Directory
     }
 
     if resultdir:
@@ -128,6 +131,7 @@ def _check_env(fn):
 
     This decorator checks if an environment file exists.
     """
+
     def decorator(*args, **kwargs):
         # If no directory is provided, set the default one
         resultdir = kwargs.get("--env", SYMLINK_NAME)
@@ -138,6 +142,7 @@ def _check_env(fn):
 
         # Proceeds with the function execution
         return fn(*args, **kwargs)
+
     return decorator
 
 
@@ -164,9 +169,11 @@ def _set_resultdir(name=None):
 
     # Raise error if a related file exists
     if os.path.isfile(resultdir_path):
-        raise EnosFilePathError(resultdir_path,
-                                "Result directory cannot be created due "
-                                "to existing file %s" % resultdir_path)
+        raise EnosFilePathError(
+            resultdir_path,
+            "Result directory cannot be created due "
+            "to existing file %s" % resultdir_path,
+        )
 
     # Create the result directory if it does not exist
     if not os.path.isdir(resultdir_path):
@@ -183,7 +190,6 @@ def _set_resultdir(name=None):
     except OSError:
         # An harmless error can occur due to a race condition when
         # multiple regions are simultaneously deployed
-        logger.warning("Symlink %s to %s failed" %
-                       (resultdir_path, link_path))
+        logger.warning("Symlink %s to %s failed" % (resultdir_path, link_path))
 
     return resultdir_path

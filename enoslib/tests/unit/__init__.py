@@ -2,9 +2,9 @@
 import unittest
 
 # Addding assertCountEqual in python 2
-if not hasattr(unittest.TestCase, 'assertCountEqual'):
+if not hasattr(unittest.TestCase, "assertCountEqual"):
     unittest.TestCase.assertCountEqual = unittest.TestCase.assertItemsEqual
+
 
 class EnosTest(unittest.TestCase):
     pass
-

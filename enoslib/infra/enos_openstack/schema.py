@@ -14,67 +14,49 @@ SCHEMA = {
         "gateway_user": {"type": "string"},
         "network": {"$ref": "#/os_network"},
         "subnet": {"$ref": "#/os_subnet"},
-        "prefix": {"type": "string"}
+        "prefix": {"type": "string"},
     },
     "additionalProperties": False,
     "required": ["resources", "key_name", "image", "user"],
-
     "os_allocation_pool": {
         "title": "OSallocationPool",
         "type": "object",
-        "properties": {
-            "start": {"type": "string"},
-            "end": {"type": "string"}
-        },
+        "properties": {"start": {"type": "string"}, "end": {"type": "string"}},
         "required": ["start", "end"],
-        "additionalProperties": False
+        "additionalProperties": False,
     },
-
     "os_network": {
         "title": "OSNetwork",
         "type": "object",
-        "properties": {
-            "name": {"type": "string"}
-        },
+        "properties": {"name": {"type": "string"}},
         "required": ["name"],
-        "additionalProperties": False
+        "additionalProperties": False,
     },
-
     "os_subnet": {
         "title": "OSSubnet",
         "type": "object",
-        "properties": {
-            "name": {"type": "string"},
-            "cidr": {"type": "string"}
-        },
+        "properties": {"name": {"type": "string"}, "cidr": {"type": "string"}},
         "required": ["name", "cidr"],
-        "additionalProperties": False
+        "additionalProperties": False,
     },
-
     "resources": {
         "title": "Resource",
-
         "type": "object",
         "properties": {
             "machines": {"type": "array", "items": {"$ref": "#/machine"}},
-            "networks": {"type": "array", "items": {"type": "string"}}
+            "networks": {"type": "array", "items": {"type": "string"}},
         },
         "additionalProperties": False,
-        "required": ["machines", "networks"]
+        "required": ["machines", "networks"],
     },
-
     "machine": {
         "title": "Compute",
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
             "flavour": {"type": "string"},
-            "number": {"type": "number"}
+            "number": {"type": "number"},
         },
-        "required": [
-            "roles",
-            "number",
-            "flavour"
-        ]
-    }
+        "required": ["roles", "number", "flavour"],
+    },
 }

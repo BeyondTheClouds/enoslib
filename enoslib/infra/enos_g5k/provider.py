@@ -74,8 +74,7 @@ class G5k(Provider):
         roles = r.get_roles()
         networks = r.get_networks()
 
-        return (_to_enos_roles(roles),
-                _to_enos_networks(networks))
+        return (_to_enos_roles(roles), _to_enos_networks(networks))
 
     def destroy(self):
         """Destroys the jobs."""
@@ -84,4 +83,4 @@ class G5k(Provider):
         r.destroy()
 
     def __str__(self):
-        return 'G5k'
+        return "G5k"

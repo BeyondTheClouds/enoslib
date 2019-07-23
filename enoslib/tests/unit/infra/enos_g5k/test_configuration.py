@@ -1,17 +1,16 @@
-from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration, MachineConfiguration
+from enoslib.infra.enos_g5k.configuration import (
+    Configuration,
+    NetworkConfiguration,
+    MachineConfiguration,
+)
 import enoslib.infra.enos_g5k.constants as constants
 
 from ... import EnosTest
 
-class TestConfiguration(EnosTest):
 
+class TestConfiguration(EnosTest):
     def test_from_dictionnary_minimal(self):
-        d = {
-            "resources": {
-                "machines": [],
-                "networks": []
-            }
-        }
+        d = {"resources": {"machines": [], "networks": []}}
         conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
@@ -21,15 +20,11 @@ class TestConfiguration(EnosTest):
         self.assertEqual([], conf.machines)
         self.assertEqual([], conf.networks)
 
-
     def test_from_dictionnary_some_metadatas(self):
         d = {
             "job_name": "test",
             "queue": "production",
-            "resources": {
-                "machines": [],
-                "networks": []
-            }
+            "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
@@ -41,18 +36,17 @@ class TestConfiguration(EnosTest):
     def test_from_dictionnary_with_machines(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1"
-                }],
-                "networks": [{
-                    "id": "n1",
-                    "roles": ["rn1"],
-                    "site": "siteA",
-                    "type": "prod"
-                }]
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "siteA", "type": "prod"}
+                ],
             }
         }
 
@@ -71,24 +65,19 @@ class TestConfiguration(EnosTest):
     def test_from_dictionnary_with_machines_and_secondary_networks(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1",
-                    "secondary_networks": ["n2"]
-                }],
-                "networks": [{
-                    "id": "n1",
-                    "roles": ["rn1"],
-                    "site": "siteA",
-                    "type": "prod"
-                }, {
-                    "id": "n2",
-                    "roles": ["rn2"],
-                    "site": "siteA",
-                    "type": "kavlan"
-                }]
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                        "secondary_networks": ["n2"],
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "siteA", "type": "prod"},
+                    {"id": "n2", "roles": ["rn2"], "site": "siteA", "type": "kavlan"},
+                ],
             }
         }
 
@@ -108,17 +97,18 @@ class TestConfiguration(EnosTest):
         self.assertTrue(machine_group.secondary_networks[0] in networks)
         self.assertEqual("n2", machine_group.secondary_networks[0].id)
 
-
     def test_from_dictionnary_no_network(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1"
-                }],
-                "networks": []
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                    }
+                ],
+                "networks": [],
             }
         }
 
@@ -128,41 +118,43 @@ class TestConfiguration(EnosTest):
     def test_from_dictionnary_unbound_network(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1"
-                }],
-                "networks": [{
-                    "id": "unbound_network",
-                    "roles": ["rn1"],
-                    "site": "siteA",
-                    "type": "prod"
-                }]
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                    }
+                ],
+                "networks": [
+                    {
+                        "id": "unbound_network",
+                        "roles": ["rn1"],
+                        "site": "siteA",
+                        "type": "prod",
+                    }
+                ],
             }
         }
 
         with self.assertRaises(ValueError) as _:
             Configuration.from_dictionnary(d)
 
-
     def test_from_dictionnary_no_secondary_networks(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1",
-                    "secondary_networks": ["n2"]
-                }],
-                "networks": [{
-                    "id": "n1",
-                    "roles": ["rn1"],
-                    "site": "siteA",
-                    "type": "prod"
-                }]
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                        "secondary_networks": ["n2"],
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "siteA", "type": "prod"}
+                ],
             }
         }
 
@@ -172,46 +164,45 @@ class TestConfiguration(EnosTest):
     def test_from_dictionnary_unbound_secondary_networks(self):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "nodes": 2,
-                    "cluster": "cluste1",
-                    "primary_network": "n1",
-                    "secondary_networks": ["n2"]
-                }],
-                "networks": [{
-                    "id": "network",
-                    "roles": ["n1"],
-                    "site": "siteA",
-                    "type": "prod"
-                }, {
-                    "id": "unbound_network",
-                    "roles": ["nr2"],
-                    "site": "siteA",
-                    "type": "kavlan"
-                }]
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                        "secondary_networks": ["n2"],
+                    }
+                ],
+                "networks": [
+                    {"id": "network", "roles": ["n1"], "site": "siteA", "type": "prod"},
+                    {
+                        "id": "unbound_network",
+                        "roles": ["nr2"],
+                        "site": "siteA",
+                        "type": "kavlan",
+                    },
+                ],
             }
         }
 
         with self.assertRaises(ValueError) as ctx:
             conf = Configuration.from_dictionnary(d)
 
-
     def test_programmatic(self):
         conf = Configuration()
-        network = NetworkConfiguration(id="id",
-                                       roles=["my_network"],
-                                       type="prod",
-                                       site="rennes")
+        network = NetworkConfiguration(
+            id="id", roles=["my_network"], type="prod", site="rennes"
+        )
 
-        conf.add_network_conf(network)\
-            .add_machine_conf(MachineConfiguration(roles=["r1"],
-                                                   cluster="paravance",
-                                                   primary_network=network))\
-            .add_machine_conf(MachineConfiguration(roles=["r2"],
-                                                   cluster="parapluie",
-                                                   primary_network=network,
-                                                   nodes=10))
+        conf.add_network_conf(network).add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"], cluster="paravance", primary_network=network
+            )
+        ).add_machine_conf(
+            MachineConfiguration(
+                roles=["r2"], cluster="parapluie", primary_network=network, nodes=10
+            )
+        )
 
         conf.finalize()
 
@@ -220,19 +211,11 @@ class TestConfiguration(EnosTest):
 
 
 class TestNetworkConfiguration(EnosTest):
-
     def test_network_minimal(self):
-        n = {
-            "id": "n1",
-            "roles": ["r1"],
-            "site": "siteA",
-            "type": "prod"
-        }
+        n = {"id": "n1", "roles": ["r1"], "site": "siteA", "type": "prod"}
 
         network = NetworkConfiguration.from_dictionnary(n)
         self.assertEqual("siteA", network.site)
         self.assertEqual(["r1"], network.roles)
         self.assertEqual("prod", network.type)
         self.assertEqual("n1", network.id)
-
-

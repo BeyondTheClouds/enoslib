@@ -19,14 +19,16 @@ class Static(Provider):
         for machine in machines:
             for r in machine.roles:
                 roles.setdefault(r, []).append(
-                    Host(machine.address,
-                         alias=machine.alias,
-                         user=machine.user,
-                         keyfile=machine.keyfile,
-                         port=machine.port,
-                         extra=machine.extra))
-        return roles, [n.to_dict() for n in
-                       self.provider_conf.networks]
+                    Host(
+                        machine.address,
+                        alias=machine.alias,
+                        user=machine.user,
+                        keyfile=machine.keyfile,
+                        port=machine.port,
+                        extra=machine.extra,
+                    )
+                )
+        return roles, [n.to_dict() for n in self.provider_conf.networks]
 
     def destroy(self):
         pass

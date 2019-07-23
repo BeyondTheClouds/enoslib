@@ -33,10 +33,7 @@ def _check_deployed_nodes(nodes):
     undeployed = []
     cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
 
-    deployed_check = get_execo_remote(
-        cmd,
-        nodes,
-        DEFAULT_CONN_PARAMS)
+    deployed_check = get_execo_remote(cmd, nodes, DEFAULT_CONN_PARAMS)
 
     for p in deployed_check.processes:
         p.nolog_exit_code = True
@@ -124,9 +121,7 @@ class Resources:
             nodes = [desc.get("_c_nodes", []) for desc in descs]
             # flatten
             nodes = sum(nodes, [])
-            options = {
-                "env_name": env_name
-            }
+            options = {"env_name": env_name}
 
             net = utils.lookup_networks(primary_network, networks)
             if net["type"] != PROD:
@@ -136,11 +131,14 @@ class Resources:
             deployed, undeployed = [], nodes
             if not force_deploy:
                 deployed, undeployed = _check_deployed_nodes(
-                    _translate_vlan(primary_network, networks, nodes))
-                deployed = _translate_vlan(primary_network, networks, deployed,
-                                          reverse=True)
-                undeployed = _translate_vlan(primary_network, networks,
-                                              undeployed, reverse=True)
+                    _translate_vlan(primary_network, networks, nodes)
+                )
+                deployed = _translate_vlan(
+                    primary_network, networks, deployed, reverse=True
+                )
+                undeployed = _translate_vlan(
+                    primary_network, networks, undeployed, reverse=True
+                )
 
             if force_deploy or not deployed:
                 deployed, undeployed = self.driver.deploy(site, nodes, options)
@@ -150,9 +148,8 @@ class Resources:
                 desc["_c_deployed"] = list(set(c_nodes) & set(deployed))
                 desc["_c_undeployed"] = list(set(c_nodes) & set(undeployed))
                 desc["_c_ssh_nodes"] = _translate_vlan(
-                    primary_network,
-                    networks,
-                    desc["_c_deployed"])
+                    primary_network, networks, desc["_c_deployed"]
+                )
 
     def configure_network(self):
         dhcp = self.configuration.get("dhcp", False)

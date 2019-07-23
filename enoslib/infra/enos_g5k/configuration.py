@@ -1,6 +1,12 @@
 from ..configuration import BaseConfiguration
-from .constants import (DEFAULT_ENV_NAME, DEFAULT_JOB_NAME, DEFAULT_JOB_TYPE,
-                        DEFAULT_NUMBER, DEFAULT_QUEUE, DEFAULT_WALLTIME)
+from .constants import (
+    DEFAULT_ENV_NAME,
+    DEFAULT_JOB_NAME,
+    DEFAULT_JOB_TYPE,
+    DEFAULT_NUMBER,
+    DEFAULT_QUEUE,
+    DEFAULT_WALLTIME,
+)
 from .schema import SCHEMA
 
 
@@ -39,10 +45,10 @@ class Configuration(BaseConfiguration):
         _resources = dictionnary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in
-                         _networks]
-        self.machines = [MachineConfiguration.from_dictionnary(
-            m, self.networks) for m in _machines]
+        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
+        self.machines = [
+            MachineConfiguration.from_dictionnary(m, self.networks) for m in _machines
+        ]
 
         self.finalize()
         return self
@@ -50,26 +56,34 @@ class Configuration(BaseConfiguration):
     def to_dict(self):
         d = {}
         for k, v in self.__dict__.items():
-            if v is None or k in ["machines", "networks", "_machine_cls",
-                                  "_network_cls"]:
+            if v is None or k in [
+                "machines",
+                "networks",
+                "_machine_cls",
+                "_network_cls",
+            ]:
                 continue
             d.update({k: v})
 
-        d.update(resources={
-            "machines": [m.to_dict() for m in self.machines],
-            "networks": [n.to_dict() for n in self.networks]
-        })
+        d.update(
+            resources={
+                "machines": [m.to_dict() for m in self.machines],
+                "networks": [n.to_dict() for n in self.networks],
+            }
+        )
         return d
 
 
 class MachineConfiguration:
-
-    def __init__(self, *,
-                 roles=None,
-                 cluster=None,
-                 primary_network=None,
-                 nodes=DEFAULT_NUMBER,
-                 secondary_networks=None):
+    def __init__(
+        self,
+        *,
+        roles=None,
+        cluster=None,
+        primary_network=None,
+        nodes=DEFAULT_NUMBER,
+        secondary_networks=None
+    ):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles
@@ -93,11 +107,11 @@ class MachineConfiguration:
 
         primary_network = [n for n in networks if n.id == primary_network_id]
         if len(primary_network) < 1:
-            raise ValueError("Primary network with id={id} not found".format(
-                id=primary_network_id))
+            raise ValueError(
+                "Primary network with id={id} not found".format(id=primary_network_id)
+            )
 
-        secondary_networks = [n for n in networks if n.id in
-                              secondary_networks_ids]
+        secondary_networks = [n for n in networks if n.id in secondary_networks_ids]
         if len(secondary_networks_ids) != len(secondary_networks):
             raise ValueError("Secondary network resolution fails")
 
@@ -106,11 +120,13 @@ class MachineConfiguration:
         if nodes is not None:
             kwargs.update(nodes=nodes)
 
-        return cls(roles=roles,
-                   cluster=cluster,
-                   primary_network=primary_network[0],
-                   secondary_networks=secondary_networks,
-                   **kwargs)
+        return cls(
+            roles=roles,
+            cluster=cluster,
+            primary_network=primary_network[0],
+            secondary_networks=secondary_networks,
+            **kwargs
+        )
 
     def to_dict(self):
         d = {}
@@ -119,18 +135,13 @@ class MachineConfiguration:
             cluster=self.cluster,
             nodes=self.nodes,
             primary_network=self.primary_network.id,
-            secondary_networks=[n.id for n in self.secondary_networks]
+            secondary_networks=[n.id for n in self.secondary_networks],
         )
         return d
 
 
 class NetworkConfiguration:
-
-    def __init__(self, *,
-                 id=None,
-                 roles=None,
-                 type=None,
-                 site=None):
+    def __init__(self, *, id=None, roles=None, type=None, site=None):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles
@@ -150,8 +161,5 @@ class NetworkConfiguration:
 
     def to_dict(self):
         d = {}
-        d.update(id=self.id,
-                 type=self.type,
-                 roles=self.roles,
-                 site=self.site)
+        d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d

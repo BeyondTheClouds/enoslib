@@ -30,12 +30,14 @@ class Enos_vagrant(Provider):
         _networks = []
         for network in networks:
             ipnet = IPNetwork(network.cidr)
-            _networks.append({
-                "netpool": list(ipnet)[10:-10],
-                "cidr": network.cidr,
-                "roles": network.roles,
-                "gateway": ipnet.ip
-            })
+            _networks.append(
+                {
+                    "netpool": list(ipnet)[10:-10],
+                    "cidr": network.cidr,
+                    "roles": network.roles,
+                    "gateway": ipnet.ip,
+                }
+            )
 
         vagrant_machines = []
         vagrant_roles = {}
@@ -58,22 +60,22 @@ class Enos_vagrant(Provider):
 
         loader = FileSystemLoader(searchpath=TEMPLATE_DIR)
         env = Environment(loader=loader, autoescape=True)
-        template = env.get_template('Vagrantfile.j2')
-        vagrantfile = template.render(machines=vagrant_machines,
-                                      provider_conf=self.provider_conf)
+        template = env.get_template("Vagrantfile.j2")
+        vagrantfile = template.render(
+            machines=vagrant_machines, provider_conf=self.provider_conf
+        )
         vagrantfile_path = os.path.join(os.getcwd(), "Vagrantfile")
-        with open(vagrantfile_path, 'w') as f:
+        with open(vagrantfile_path, "w") as f:
             f.write(vagrantfile)
 
         # Build env for Vagrant with a copy of env variables (needed by
         # subprocess opened by vagrant
         v_env = dict(os.environ)
-        v_env['VAGRANT_DEFAULT_PROVIDER'] = self.provider_conf.backend
+        v_env["VAGRANT_DEFAULT_PROVIDER"] = self.provider_conf.backend
 
-        v = vagrant.Vagrant(root=os.getcwd(),
-                            quiet_stdout=False,
-                            quiet_stderr=False,
-                            env=v_env)
+        v = vagrant.Vagrant(
+            root=os.getcwd(), quiet_stdout=False, quiet_stderr=False, env=v_env
+        )
         if force_deploy:
             v.destroy()
         v.up()
@@ -81,24 +83,30 @@ class Enos_vagrant(Provider):
         roles = {}
         for role, machines in vagrant_roles.items():
             for machine in machines:
-                keyfile = v.keyfile(vm_name=machine['name'])
-                port = v.port(vm_name=machine['name'])
-                address = v.hostname(vm_name=machine['name'])
+                keyfile = v.keyfile(vm_name=machine["name"])
+                port = v.port(vm_name=machine["name"])
+                address = v.hostname(vm_name=machine["name"])
                 roles.setdefault(role, []).append(
-                    Host(address,
-                         alias=machine['name'],
-                         user=self.provider_conf.user,
-                         port=port,
-                         keyfile=keyfile))
+                    Host(
+                        address,
+                        alias=machine["name"],
+                        user=self.provider_conf.user,
+                        port=port,
+                        keyfile=keyfile,
+                    )
+                )
 
-        networks = [{
-            'cidr': str(n["cidr"]),
-            'start': str(n["netpool"][0]),
-            'end': str(n["netpool"][-1]),
-            'dns': '8.8.8.8',
-            'gateway': str(n["gateway"]),
-            'roles': n["roles"]
-            } for n in _networks]
+        networks = [
+            {
+                "cidr": str(n["cidr"]),
+                "start": str(n["netpool"][0]),
+                "end": str(n["netpool"][-1]),
+                "dns": "8.8.8.8",
+                "gateway": str(n["gateway"]),
+                "roles": n["roles"],
+            }
+            for n in _networks
+        ]
         logger.debug(roles)
         logger.debug(networks)
 
@@ -106,7 +114,5 @@ class Enos_vagrant(Provider):
 
     def destroy(self):
         """Destroy all vagrant box involved in the deployment."""
-        v = vagrant.Vagrant(root=os.getcwd(),
-                            quiet_stdout=False,
-                            quiet_stderr=True)
+        v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()

@@ -11,11 +11,13 @@ import yaml
 
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
@@ -24,9 +26,11 @@ from netaddr import IPAddress, IPSet
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
 from enoslib.utils import _check_tmpdir, get_roles_as_list
-from enoslib.errors import (EnosFailedHostsError,
-                            EnosUnreachableHostsError,
-                            EnosSSHNotReady)
+from enoslib.errors import (
+    EnosFailedHostsError,
+    EnosUnreachableHostsError,
+    EnosSSHNotReady,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +42,13 @@ STATUS_SKIPPED = "SKIPPED"
 DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
 
 AnsibleExecutionRecord = namedtuple(
-    'AnsibleExecutionRecord', ['host', 'status', 'task', 'payload'])
+    "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
+)
 
 
-def _load_defaults(inventory_path=None, roles=None, extra_vars=None, tags=None,
-                   basedir=False):
+def _load_defaults(
+    inventory_path=None, roles=None, extra_vars=None, tags=None, basedir=False
+):
     """Load common defaults data structures.
 
     For factorization purpose."""
@@ -53,11 +59,9 @@ def _load_defaults(inventory_path=None, roles=None, extra_vars=None, tags=None,
     if basedir:
         loader.set_basedir(basedir)
 
-    inventory = EnosInventory(loader=loader,
-                              sources=inventory_path, roles=roles)
+    inventory = EnosInventory(loader=loader, sources=inventory_path, roles=roles)
 
-    variable_manager = VariableManager(loader=loader,
-                                       inventory=inventory)
+    variable_manager = VariableManager(loader=loader, inventory=inventory)
 
     # seems mandatory to load group_vars variable
     if basedir:
@@ -69,28 +73,56 @@ def _load_defaults(inventory_path=None, roles=None, extra_vars=None, tags=None,
     # NOTE(msimonin): The ansible api is "low level" in the
     # sense that we are redefining here all the default values
     # that are usually enforce by ansible called from the cli
-    Options = namedtuple("Options", ["listtags", "listtasks",
-                                     "listhosts", "syntax",
-                                     "connection", "module_path",
-                                     "forks", "private_key_file",
-                                     "ssh_common_args",
-                                     "ssh_extra_args",
-                                     "sftp_extra_args",
-                                     "scp_extra_args", "become",
-                                     "become_method", "become_user",
-                                     "remote_user", "verbosity",
-                                     "check", "tags",
-                                     "diff", "basedir"])
+    Options = namedtuple(
+        "Options",
+        [
+            "listtags",
+            "listtasks",
+            "listhosts",
+            "syntax",
+            "connection",
+            "module_path",
+            "forks",
+            "private_key_file",
+            "ssh_common_args",
+            "ssh_extra_args",
+            "sftp_extra_args",
+            "scp_extra_args",
+            "become",
+            "become_method",
+            "become_user",
+            "remote_user",
+            "verbosity",
+            "check",
+            "tags",
+            "diff",
+            "basedir",
+        ],
+    )
 
-    options = Options(listtags=False, listtasks=False,
-                      listhosts=False, syntax=False, connection="ssh",
-                      module_path=None, forks=100,
-                      private_key_file=None, ssh_common_args=None,
-                      ssh_extra_args=None, sftp_extra_args=None,
-                      scp_extra_args=None, become=None,
-                      become_method="sudo", become_user="root",
-                      remote_user=None, verbosity=2, check=False,
-                      tags=tags, diff=None, basedir=basedir)
+    options = Options(
+        listtags=False,
+        listtasks=False,
+        listhosts=False,
+        syntax=False,
+        connection="ssh",
+        module_path=None,
+        forks=100,
+        private_key_file=None,
+        ssh_common_args=None,
+        ssh_extra_args=None,
+        sftp_extra_args=None,
+        scp_extra_args=None,
+        become=None,
+        become_method="sudo",
+        become_user="root",
+        remote_user=None,
+        verbosity=2,
+        check=False,
+        tags=tags,
+        diff=None,
+        basedir=basedir,
+    )
 
     return inventory, variable_manager, loader, options
 
@@ -98,8 +130,8 @@ def _load_defaults(inventory_path=None, roles=None, extra_vars=None, tags=None,
 class _MyCallback(CallbackModule):
 
     CALLBACK_VERSION = 2.0
-    CALLBACK_TYPE = 'stdout'
-    CALLBACK_NAME = 'mycallback'
+    CALLBACK_TYPE = "stdout"
+    CALLBACK_NAME = "mycallback"
 
     def __init__(self, storage):
         super(_MyCallback, self).__init__()
@@ -110,8 +142,11 @@ class _MyCallback(CallbackModule):
 
     def _store(self, result, status):
         record = AnsibleExecutionRecord(
-            host=result._host.get_name(), status=status,
-            task=result._task.get_name(), payload=result._result)
+            host=result._host.get_name(),
+            status=status,
+            task=result._task.get_name(),
+            payload=result._result,
+        )
         self.storage.append(record)
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
@@ -131,11 +166,14 @@ class _MyCallback(CallbackModule):
         self._store(result, STATUS_UNREACHABLE)
 
 
-def run_play(play_source, *,
-             inventory_path=None,
-             roles=None,
-             extra_vars=None,
-             on_error_continue=False):
+def run_play(
+    play_source,
+    *,
+    inventory_path=None,
+    roles=None,
+    extra_vars=None,
+    on_error_continue=False
+):
     """Run a play.
 
     Args:
@@ -157,9 +195,8 @@ def run_play(play_source, *,
     # NOTE(msimonin): inventory could be infered from a host list (maybe)
     results = []
     inventory, variable_manager, loader, options = _load_defaults(
-        inventory_path=inventory_path,
-        roles=roles,
-        extra_vars=extra_vars)
+        inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
+    )
     callback = _MyCallback(results)
     passwords = {}
     tqm = task_queue_manager.TaskQueueManager(
@@ -168,12 +205,13 @@ def run_play(play_source, *,
         loader=loader,
         options=options,
         passwords=passwords,
-        stdout_callback=callback)
+        stdout_callback=callback,
+    )
 
     # create play
-    play_inst = play.Play().load(play_source,
-                                 variable_manager=variable_manager,
-                                 loader=loader)
+    play_inst = play.Play().load(
+        play_source, variable_manager=variable_manager, loader=loader
+    )
 
     # actually run it
     try:
@@ -204,13 +242,17 @@ def run_play(play_source, *,
 
 class play_on(object):
     """A context manager to manage a sequence of Ansible module calls."""
-    def __init__(self, *,
-                 pattern_hosts="all",
-                 inventory_path=None,
-                 roles=None,
-                 extra_vars=None,
-                 on_error_continue=False,
-                 gather_facts=True):
+
+    def __init__(
+        self,
+        *,
+        pattern_hosts="all",
+        inventory_path=None,
+        roles=None,
+        extra_vars=None,
+        on_error_continue=False,
+        gather_facts=True
+    ):
         """Constructor.
 
         Args:
@@ -247,16 +289,7 @@ class play_on(object):
         self._tasks = []
 
         # Handle gather_facts
-        # if True we generate a first play to gather the facts
-        self.prior = {}
-        if gather_facts:
-            self.prior = {
-                "hosts": "all",
-                "tasks": [{
-                    "name": "Gathering Facts",
-                    "setup": {"gather_subset": "all"}
-                }]
-            }
+        self.gather_facts = gather_facts
 
     def __enter__(self):
         return self
@@ -266,58 +299,57 @@ class play_on(object):
             # we force the fact gathering on all hosts
             # There'll be some performance impact if caching isn't enable.
             "hosts": self.pattern_hosts,
-            "tasks": self._tasks
+            "tasks": self._tasks,
         }
+        if not self.gather_facts:
+            play_source.update(gather_facts=False)
         logger.debug(play_source)
 
         # Generate a playbook and run it
-        with tempfile.NamedTemporaryFile('w',
-                                         buffering=1,
-                                         dir=os.getcwd()) as _pb:
-            content = yaml.dump([self.prior, play_source])
+        with tempfile.NamedTemporaryFile("w", buffering=1, dir=os.getcwd()) as _pb:
+            content = yaml.dump([play_source])
             _pb.write(content)
             logger.debug("Generated playbook")
             logger.debug(content)
-            run_ansible([_pb.name],
-                        roles=self.roles,
-                        extra_vars=self.extra_vars,
-                        on_error_continue=self.on_error_continue)
+            run_ansible(
+                [_pb.name],
+                roles=self.roles,
+                extra_vars=self.extra_vars,
+                on_error_continue=self.on_error_continue,
+            )
 
     def __getattr__(self, module_name):
         """Providers an handy way to use ansible module from python.
 
         """
+
         def _f(**kwargs):
-            display_name = kwargs.pop("display_name",
-                                      "__calling__ %s" % module_name)
+            display_name = kwargs.pop("display_name", "__calling__ %s" % module_name)
             task = {}
             task.update(**kwargs)
-            self._tasks.append({
-                "name": display_name,
-                module_name: task,
-            })
+            self._tasks.append({"name": display_name, module_name: task})
 
         def _shell_like(command, **kwargs):
             display_name = kwargs.pop("display_name", command)
-            task = {}
-            task.update(**kwargs)
-            self._tasks.append({
-                "name": display_name,
-                module_name: command,
-                "args": dict(**kwargs),
-            })
+            task = {"name": display_name, module_name: command}
+            if dict(**kwargs):
+                task.update(args=dict(**kwargs))
+            self._tasks.append(task)
 
-        if module_name in ["command", "shell"]:
+        if module_name in ["command", "shell", "raw"]:
             return _shell_like
         return _f
 
 
-def run_command(command, *,
-                pattern_hosts="all",
-                inventory_path=None,
-                roles=None,
-                extra_vars=None,
-                on_error_continue=False):
+def run_command(
+    command,
+    *,
+    pattern_hosts="all",
+    inventory_path=None,
+    roles=None,
+    extra_vars=None,
+    on_error_continue=False
+):
     """Run a shell command on some remote hosts.
 
     Args:
@@ -380,36 +412,42 @@ def run_command(command, *,
     """
 
     def filter_results(results, status):
-        _r = [r for r in results
-              if r.status == status and r.task == COMMAND_NAME]
-        s = dict([[r.host, {"stdout": r.payload.get("stdout"),
-                            "stderr": r.payload.get("stderr")}]
-                  for r in _r])
+        _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
+        s = dict(
+            [
+                [
+                    r.host,
+                    {
+                        "stdout": r.payload.get("stdout"),
+                        "stderr": r.payload.get("stderr"),
+                    },
+                ]
+                for r in _r
+            ]
+        )
         return s
 
     play_source = {
         "hosts": pattern_hosts,
-        "tasks": [{
-            "name": COMMAND_NAME,
-            "shell": command,
-        }]
+        "tasks": [{"name": COMMAND_NAME, "shell": command}],
     }
-    results = run_play(play_source,
-                       inventory_path=inventory_path,
-                       roles=roles,
-                       extra_vars=extra_vars)
+    results = run_play(
+        play_source, inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
+    )
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def gather_facts(*,
-                 pattern_hosts="all",
-                 gather_subset="all",
-                 inventory_path=None,
-                 roles=None,
-                 extra_vars=None,
-                 on_error_continue=False):
+def gather_facts(
+    *,
+    pattern_hosts="all",
+    gather_subset="all",
+    inventory_path=None,
+    roles=None,
+    extra_vars=None,
+    on_error_continue=False
+):
     """Gather facts about hosts.
 
 
@@ -472,32 +510,38 @@ def gather_facts(*,
         }
 
     """
+
     def filter_results(results, status):
-        _r = [r for r in results
-              if r.status == status and r.task == COMMAND_NAME]
+        _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
         s = dict([[r.host, r.payload.get("ansible_facts")] for r in _r])
         return s
 
     play_source = {
         "hosts": pattern_hosts,
-        "tasks": [{
-            "name": COMMAND,
-            "setup": {"gather_subset": gather_subset}
-        }]
+        "tasks": [{"name": COMMAND, "setup": {"gather_subset": gather_subset}}],
     }
-    results = run_play(play_source,
-                       inventory_path=inventory_path,
-                       roles=roles,
-                       extra_vars=extra_vars,
-                       on_error_continue=on_error_continue)
+    results = run_play(
+        play_source,
+        inventory_path=inventory_path,
+        roles=roles,
+        extra_vars=extra_vars,
+        on_error_continue=on_error_continue,
+    )
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
 
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
-        tags=None, on_error_continue=False, basedir='.'):
+def run_ansible(
+    playbooks,
+    inventory_path=None,
+    roles=None,
+    extra_vars=None,
+    tags=None,
+    on_error_continue=False,
+    basedir=".",
+):
     """Run Ansible.
 
     Args:
@@ -520,7 +564,7 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
         roles=roles,
         extra_vars=extra_vars,
         tags=tags,
-        basedir=basedir
+        basedir=basedir,
     )
     passwords = {}
     for path in playbooks:
@@ -531,7 +575,7 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
             variable_manager=variable_manager,
             loader=loader,
             options=options,
-            passwords=passwords
+            passwords=passwords,
         )
 
         code = pbex.run()
@@ -562,8 +606,7 @@ def run_ansible(playbooks, inventory_path=None, roles=None, extra_vars=None,
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def discover_networks(roles, networks, fake_interfaces=None,
-                    fake_networks=None):
+def discover_networks(roles, networks, fake_interfaces=None, fake_networks=None):
     """Checks the network interfaces on the nodes.
 
     This enables to auto-discover the mapping interface name <-> network role.
@@ -597,10 +640,10 @@ def discover_networks(roles, networks, fake_interfaces=None,
     def get_devices(facts):
         """Extract the network devices information from the facts."""
         devices = []
-        for interface in facts['ansible_interfaces']:
-            ansible_interface = 'ansible_' + interface
+        for interface in facts["ansible_interfaces"]:
+            ansible_interface = "ansible_" + interface
             # filter here (active/ name...)
-            if 'ansible_' + interface in facts:
+            if "ansible_" + interface in facts:
                 interface = facts[ansible_interface]
                 devices.append(interface)
         return devices
@@ -611,26 +654,25 @@ def discover_networks(roles, networks, fake_interfaces=None,
     fake_interfaces = fake_interfaces or []
     fake_networks = fake_networks or []
 
-    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
-    facts_file = os.path.join(tmpdir, 'facts.json')
+    utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
+    facts_file = os.path.join(tmpdir, "facts.json")
     options = {
-        'enos_action': 'check_network',
-        'facts_file': facts_file,
-        'fake_interfaces': fake_interfaces
+        "enos_action": "check_network",
+        "facts_file": facts_file,
+        "fake_interfaces": fake_interfaces,
     }
-    run_ansible([utils_playbook], roles=roles,
-        extra_vars=options,
-        on_error_continue=False)
+    run_ansible(
+        [utils_playbook], roles=roles, extra_vars=options, on_error_continue=False
+    )
 
     # Read the file
     # Match provider networks to interface names for each host
     with open(facts_file) as f:
         facts = json.load(f)
         for _, host_facts in facts.items():
-            host_nets = _map_device_on_host_networks(networks,
-                                                    get_devices(host_facts))
+            host_nets = _map_device_on_host_networks(networks, get_devices(host_facts))
             # Add the mapping : networks <-> nic name
-            host_facts['networks'] = host_nets
+            host_facts["networks"] = host_nets
 
     # Finally update the env with this information
     # generate the extra_mapping for the fake interfaces
@@ -638,8 +680,14 @@ def discover_networks(roles, networks, fake_interfaces=None,
     _update_hosts(roles, facts, extra_mapping=extra_mapping)
 
 
-def generate_inventory(roles, networks, inventory_path, check_networks=False,
-                       fake_interfaces=None, fake_networks=None):
+def generate_inventory(
+    roles,
+    networks,
+    inventory_path,
+    check_networks=False,
+    fake_interfaces=None,
+    fake_networks=None,
+):
     """Generate an inventory file in the ini format.
 
     The inventory is generated using the ``roles`` in the ``ini`` format.  If
@@ -671,7 +719,7 @@ def generate_inventory(roles, networks, inventory_path, check_networks=False,
             roles,
             networks,
             fake_interfaces=fake_interfaces,
-            fake_networks=fake_networks
+            fake_networks=fake_networks,
         )
         with open(inventory_path, "w") as f:
             f.write(_generate_inventory(roles))
@@ -687,22 +735,24 @@ def wait_ssh(roles, retries=100, interval=30):
         retries (int): Number of time we'll be retrying an SSH connection
         interval (int): Interval to wait in seconds between two retries
     """
-    utils_playbook = os.path.join(ANSIBLE_DIR, 'utils.yml')
-    options = {'enos_action': 'ping'}
+    utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
+    options = {"enos_action": "ping"}
 
     for i in range(0, retries):
         try:
-            run_ansible([utils_playbook],
-                        roles=roles,
-                        extra_vars=options,
-                        on_error_continue=False)
+            run_ansible(
+                [utils_playbook],
+                roles=roles,
+                extra_vars=options,
+                on_error_continue=False,
+            )
             break
         except EnosUnreachableHostsError as e:
             logger.info("Hosts unreachable: %s " % e.hosts)
             logger.info("Retrying... %s/%s" % (i + 1, retries))
             time.sleep(interval)
     else:
-        raise EnosSSHNotReady('Maximum retries reached')
+        raise EnosSSHNotReady("Maximum retries reached")
 
 
 # Private zone
@@ -723,11 +773,11 @@ def _update_hosts(roles, facts, extra_mapping=None):
     extra_mapping = extra_mapping or {}
     for hosts in roles.values():
         for host in hosts:
-            networks = facts[host.alias]['networks']
+            networks = facts[host.alias]["networks"]
             enos_devices = []
             host.extra.update(extra_mapping)
             for network in networks:
-                device = network['device']
+                device = network["device"]
                 if device:
                     for role in get_roles_as_list(network):
                         # backward compatibility:
@@ -745,15 +795,15 @@ def _update_hosts(roles, facts, extra_mapping=None):
                         # node1 node2 can use hostvars[node1].r1_ip as a
                         # template Note this can happen often in g5k between
                         # nodes of different clusters
-                        host.extra.update({'%s_dev' % role: device})
-                        key = 'ansible_%s' % device
-                        ip = facts[host.alias][key]['ipv4']['address']
-                        host.extra.update({'%s_ip' % role: ip})
+                        host.extra.update({"%s_dev" % role: device})
+                        key = "ansible_%s" % device
+                        ip = facts[host.alias][key]["ipv4"]["address"]
+                        host.extra.update({"%s_ip" % role: ip})
 
                     enos_devices.append(device)
 
             # Add the list of devices in used by Enos
-            host.extra.update({'enos_devices': enos_devices})
+            host.extra.update({"enos_devices": enos_devices})
 
 
 def _map_device_on_host_networks(provider_nets, devices):
@@ -761,17 +811,17 @@ def _map_device_on_host_networks(provider_nets, devices):
     networks = copy.deepcopy(provider_nets)
     for network in networks:
         for device in devices:
-            network.setdefault('device', None)
-            ip_set = IPSet([network['cidr']])
-            if 'ipv4' not in device:
+            network.setdefault("device", None)
+            ip_set = IPSet([network["cidr"]])
+            if "ipv4" not in device:
                 continue
-            ips = device['ipv4']
+            ips = device["ipv4"]
             if not isinstance(ips, list):
                 ips = [ips]
             if len(ips) < 1:
                 continue
-            ip = IPAddress(ips[0]['address'])
+            ip = IPAddress(ips[0]["address"])
             if ip in ip_set:
-                network['device'] = device['device']
+                network["device"] = device["device"]
                 continue
     return networks

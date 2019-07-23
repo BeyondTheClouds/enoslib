@@ -9,26 +9,24 @@ SCHEMA = {
         "backend": {"type": "string", "enum": BACKENDS},
         "box": {"type": "string"},
         "user": {"type": "string"},
-        "resources": {"$ref": "#/resources"}
+        "resources": {"$ref": "#/resources"},
     },
     "additionalProperties": False,
     "required": ["resources"],
-
     "resources": {
         "title": "Resource",
-
         "type": "object",
         "properties": {
             "machines": {"type": "array", "items": {"$ref": "#/machine"}},
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
-                "uniqueItems": True},
+                "uniqueItems": True,
+            },
         },
         "additionalProperties": False,
-        "required": ["machines", "networks"]
+        "required": ["machines", "networks"],
     },
-
     "machine": {
         "title": "Compute",
         "type": "object",
@@ -36,18 +34,12 @@ SCHEMA = {
             "roles": {"type": "array", "items": {"type": "string"}},
             "number": {"type": "number"},
             "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
-            "flavour_desc": {"$ref": "#/flavour_desc"}
+            "flavour_desc": {"$ref": "#/flavour_desc"},
         },
-        "required": [
-            "roles",
-        ],
-        "oneOf": [
-            {"required": ["flavour"]},
-            {"required": ["flavour_desc"]}
-        ],
+        "required": ["roles"],
+        "oneOf": [{"required": ["flavour"]}, {"required": ["flavour_desc"]}],
         "additionalProperties": False,
     },
-
     "network": {
         "type": "object",
         "properties": {
@@ -55,17 +47,13 @@ SCHEMA = {
             "roles": {"type": "array", "items": {"type": "string"}},
         },
         "additionalProperties": False,
-        "required": ["cidr", "roles"]
+        "required": ["cidr", "roles"],
     },
-
     "flavour_desc": {
         "title": "Flavour",
         "type": "object",
-        "properties": {
-            "core": {"type": "number"},
-            "mem": {"type": "number"}
-        },
+        "properties": {"core": {"type": "number"}, "mem": {"type": "number"}},
         "required": ["core", "mem"],
-        "additionalProperties": False
-    }
+        "additionalProperties": False,
+    },
 }

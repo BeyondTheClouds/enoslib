@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 BASESTRING = str
 
 
-DEFAULT_CONN_PARAMS = {'user': 'root'}
+DEFAULT_CONN_PARAMS = {"user": "root"}
 
 
 def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
@@ -36,7 +36,7 @@ def exec_command_on_nodes(nodes, cmd, label, conn_params=None):
     remote = ex.get_remote(cmd, nodes, conn_params)
     remote.run()
     if not remote.finished_ok:
-        raise Exception('An error occcured during remote execution')
+        raise Exception("An error occcured during remote execution")
     return remote
 
 

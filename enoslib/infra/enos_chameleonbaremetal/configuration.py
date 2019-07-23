@@ -1,8 +1,13 @@
 import enoslib.infra.enos_openstack.configuration as OSConfiguration
 
-from .constants import (DEFAULT_CONFIGURE_NETWORK, DEFAULT_IMAGE,
-                        DEFAULT_NAMESERVERS, DEFAULT_NETWORK, DEFAULT_SUBNET,
-                        DEFAULT_USER)
+from .constants import (
+    DEFAULT_CONFIGURE_NETWORK,
+    DEFAULT_IMAGE,
+    DEFAULT_NAMESERVERS,
+    DEFAULT_NETWORK,
+    DEFAULT_SUBNET,
+    DEFAULT_USER,
+)
 from ..enos_chameleonkvm.schema import SCHEMA
 
 

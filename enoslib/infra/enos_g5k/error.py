@@ -20,12 +20,12 @@ class NotEnoughNodesError(DeployError):
 class EnosG5kDuplicateJobsError(EnosError):
     def __init__(self, site, job_name):
         super(EnosG5kDuplicateJobsError, self).__init__(
-            "Duplicate jobs on %s with the same name %s"
-            % (site, job_name)
+            "Duplicate jobs on %s with the same name %s" % (site, job_name)
         )
 
 
 class EnosG5kSynchronisationError(EnosError):
     def __init__(self, sites):
         super(EnosG5kSynchronisationError, self).__init__(
-            "Unable to find a synchronised on %s" % sites)
+            "Unable to find a synchronised on %s" % sites
+        )

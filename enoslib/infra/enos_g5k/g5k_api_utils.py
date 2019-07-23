@@ -14,21 +14,23 @@ import time
 import threading
 
 from .error import EnosG5kDuplicateJobsError, EnosG5kSynchronisationError
-from .constants import (G5KMACPREFIX,
-                        KAVLAN_GLOBAL,
-                        KAVLAN_LOCAL,
-                        KAVLAN,
-                        SYNCHRONISATION_OFFSET,
-                        DEFAULT_SSH_KEYFILE,
-                        NATURE_PROD,
-                        MAX_DEPLOY)
+from .constants import (
+    G5KMACPREFIX,
+    KAVLAN_GLOBAL,
+    KAVLAN_LOCAL,
+    KAVLAN,
+    SYNCHRONISATION_OFFSET,
+    DEFAULT_SSH_KEYFILE,
+    NATURE_PROD,
+    MAX_DEPLOY,
+)
 
 import diskcache
 from grid5000 import Grid5000
 import ring
 
 
-storage = diskcache.Cache('cachedir')
+storage = diskcache.Cache("cachedir")
 
 logger = logging.getLogger(__name__)
 
@@ -63,15 +65,18 @@ class Client(Grid5000):
 
 
 class ConcreteNetwork:
-    def __init__(self, *,
-                 site=None,
-                 network=None,
-                 gateway=None,
-                 dns=None,
-                 vlan_id=None,
-                 ipmac=None,
-                 nature=None,
-                 **kwargs):
+    def __init__(
+        self,
+        *,
+        site=None,
+        network=None,
+        gateway=None,
+        dns=None,
+        vlan_id=None,
+        ipmac=None,
+        nature=None,
+        **kwargs
+    ):
         self.site = site
         self.network = network
         self.gateway = gateway
@@ -89,18 +94,14 @@ class ConcreteNetwork:
         return n_type
 
     def __repr__(self):
-        return ("<ConcreteNetwork site=%s"
-                                " nature=%s"
-                                " network=%s"
-                                " gateway=%s"
-                                " dns=%s"
-                                " vlan_id=%s>") % (
-                                    self.site,
-                                    self.nature,
-                                    self.network,
-                                    self.gateway,
-                                    self.dns,
-                                    self.vlan_id)
+        return (
+            "<ConcreteNetwork site=%s"
+            " nature=%s"
+            " network=%s"
+            " gateway=%s"
+            " dns=%s"
+            " vlan_id=%s>"
+        ) % (self.site, self.nature, self.network, self.gateway, self.dns, self.vlan_id)
 
 
 class ConcreteSubnet(ConcreteNetwork):
@@ -116,8 +117,7 @@ class ConcreteSubnet(ConcreteNetwork):
         network = IPNetwork(subnet)
         for ip in list(network[1:-1]):
             _, x, y, z = ip.words
-            ipmac.append((str(ip),
-                          G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
+            ipmac.append((str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
         nature = ConcreteSubnet.to_nature(subnet)
         gateway = get_subnet_gateway(site)
         kwds = {
@@ -126,7 +126,7 @@ class ConcreteSubnet(ConcreteNetwork):
             "network": subnet,
             "site": site,
             "ipmac": ipmac,
-            "dns": get_dns(site)
+            "dns": get_dns(site),
         }
         return cls(**kwds)
 
@@ -134,14 +134,16 @@ class ConcreteSubnet(ConcreteNetwork):
         net = {}
         start_ip, start_mac = self.ipmac[0]
         end_ip, end_mac = self.ipmac[-1]
-        net.update(start=start_ip,
-                   end=end_ip,
-                   mac_start=start_mac,
-                   mac_end=end_mac,
-                   roles=roles,
-                   cidr=self.network,
-                   gateway=self.gateway,
-                   dns=self.dns)
+        net.update(
+            start=start_ip,
+            end=end_ip,
+            mac_start=start_mac,
+            mac_end=end_mac,
+            roles=roles,
+            cidr=self.network,
+            gateway=self.gateway,
+            dns=self.dns,
+        )
         return net
 
 
@@ -163,11 +165,7 @@ class ConcreteVlan(ConcreteNetwork):
     def from_job(cls, site, vlan_id):
 
         nature = ConcreteVlan.to_nature(vlan_id)
-        kwds = {
-            "nature": nature,
-            "vlan_id": str(vlan_id),
-            "dns": get_dns(site)
-        }
+        kwds = {"nature": nature, "vlan_id": str(vlan_id), "dns": get_dns(site)}
         kwds.update(get_vlans(site)[str(vlan_id)])
         kwds.update(site=site)
         return cls(**kwds)
@@ -201,12 +199,14 @@ class ConcreteVlan(ConcreteNetwork):
         # Finally, compute the range of available ips
         ips = IPSet(subnets).iprange()
 
-        net.update(start=str(IPAddress(ips.first)),
-                   end=str(IPAddress(ips.last)),
-                   cidr=self.network,
-                   gateway=self.gateway,
-                   dns=self.dns,
-                   roles=roles)
+        net.update(
+            start=str(IPAddress(ips.first)),
+            end=str(IPAddress(ips.last)),
+            cidr=self.network,
+            gateway=self.gateway,
+            dns=self.dns,
+            roles=roles,
+        )
         return net
 
 
@@ -221,17 +221,14 @@ class ConcreteProd(ConcreteNetwork):
             "nature": nature,
             "vlan_id": str(vlan_id),
             "site": site,
-            "dns": get_dns(site)
+            "dns": get_dns(site),
         }
         kwds.update(get_vlans(site)[vlan_id])
         return cls(**kwds)
 
     def to_enos(self, roles):
         net = {}
-        net.update(cidr=self.network,
-                   gateway=self.gateway,
-                   dns=self.dns,
-                   roles=roles)
+        net.update(cidr=self.network, gateway=self.gateway, dns=self.dns, roles=roles)
         return net
 
 
@@ -240,16 +237,14 @@ def get_api_client():
     with _api_lock:
         global _api_client
         if not _api_client:
-            conf_file = os.path.join(os.environ.get("HOME"),
-                                     ".python-grid5000.yaml")
+            conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
             _api_client = Client.from_yaml(conf_file)
 
         return _api_client
 
 
 def _date2h(timestamp):
-    t = time.strftime("%Y-%m-%d %H:%M:%S",
-                      time.localtime(timestamp))
+    t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
     return t
 
 
@@ -279,9 +274,9 @@ def grid_reload_from_name(job_name):
     jobs = []
     for site in [s for s in sites if s.uid not in gk.excluded_site]:
         logger.info("Reloading %s from %s" % (job_name, site.uid))
-        _jobs = site.jobs.list(name=job_name,
-                               state="waiting,launching,running",
-                               user=gk.username)
+        _jobs = site.jobs.list(
+            name=job_name, state="waiting,launching,running", user=gk.username
+        )
         if len(_jobs) == 1:
             logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
             jobs.append(_jobs[0])
@@ -328,10 +323,8 @@ def build_resources(jobs):
         nodes = nodes + job.assigned_nodes
         site = job.site
 
-        networks += [ConcreteSubnet.from_job(site, subnet)
-                     for subnet in _subnets]
-        networks += [ConcreteVlan.from_job(site, vlan_id)
-                     for vlan_id in _vlans]
+        networks += [ConcreteSubnet.from_job(site, subnet) for subnet in _subnets]
+        networks += [ConcreteVlan.from_job(site, vlan_id) for vlan_id in _vlans]
         networks += [ConcreteProd.from_job(site)]
 
     logger.debug("nodes=%s, networks=%s" % (nodes, networks))
@@ -379,7 +372,7 @@ def submit_jobs(job_specs):
         logger.error("Cleaning the jobs created")
         for job in jobs:
             job.delete()
-        raise(e)
+        raise (e)
 
     return jobs
 
@@ -403,9 +396,10 @@ def wait_for_jobs(jobs):
             job.refresh()
             scheduled = getattr(job, "scheduled_at", None)
             if scheduled is not None:
-                logger.info("Waiting for %s on %s [%s]" % (job.uid,
-                                                           job.site,
-                                                           _date2h(scheduled)))
+                logger.info(
+                    "Waiting for %s on %s [%s]"
+                    % (job.uid, job.site, _date2h(scheduled))
+                )
             all_running = all_running and job.state == "running"
             if job.state == "error":
                 raise Exception("The job %s is in error state" % job)
@@ -413,11 +407,9 @@ def wait_for_jobs(jobs):
 
 
 def _deploy(site, deployed, undeployed, count, options):
-    logger.info("Deploying %s with options %s [%s/%s]",
-                undeployed,
-                options,
-                count,
-                MAX_DEPLOY)
+    logger.info(
+        "Deploying %s with options %s [%s/%s]", undeployed, options, count, MAX_DEPLOY
+    )
     if count >= MAX_DEPLOY or len(undeployed) == 0:
         return deployed, undeployed
 
@@ -457,12 +449,13 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
         interface(str): the network interface to put in the vlan
         vlan_id(str): the id of the vlan
     """
+
     def _to_network_address(host):
         """Translate a host to a network address
         e.g:
         paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
         """
-        splitted = host.split('.')
+        splitted = host.split(".")
         splitted[0] = splitted[0] + "-" + interface
         return ".".join(splitted)
 
@@ -506,8 +499,7 @@ def clusters_sites_obj(clusters):
     """
     result = {}
     all_clusters = get_all_clusters_sites()
-    clusters_sites = {c: s for (c, s) in all_clusters.items()
-                        if c in clusters}
+    clusters_sites = {c: s for (c, s) in all_clusters.items() if c in clusters}
     for cluster, site in clusters_sites.items():
 
         # here we want the site python-grid5000 site object
@@ -603,11 +595,14 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     # request to the vlan endpoint This should be fixed in
     # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
     # When its fixed we should be able to only use the new predictable name.
-    nics = [(nic['device'], nic['name']) for nic in nics
-            if nic['mountable']
-            and nic['interface'] == 'Ethernet'
-            and not nic['management']
-            and extra_cond(nic)]
+    nics = [
+        (nic["device"], nic["name"])
+        for nic in nics
+        if nic["mountable"]
+        and nic["interface"] == "Ethernet"
+        and not nic["management"]
+        and extra_cond(nic)
+    ]
     nics = sorted(nics)
     return nics
 
@@ -641,10 +636,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
     return interfaces
 
 
-def can_start_on_cluster(nodes_status,
-                         nodes,
-                         start,
-                         walltime):
+def can_start_on_cluster(nodes_status, nodes, start, walltime):
     """Check if #nodes can be started on a given cluster.
 
     This is intended to give a good enough approximation.
@@ -661,8 +653,7 @@ def can_start_on_cluster(nodes_status,
             if queue == "besteffort":
                 # ignoring any besteffort reservation
                 continue
-            r_start = reservation.get("started_at",
-                                      reservation.get("scheduled_at"))
+            r_start = reservation.get("started_at", reservation.get("scheduled_at"))
             if r_start is None:
                 break
             r_start = int(r_start)
@@ -717,10 +708,7 @@ def _do_synchronise_jobs(walltime, machines):
     ok = True
     for cluster, nodes in demands.items():
         cluster_status = clusters[cluster].status.list()
-        ok = ok and can_start_on_cluster(cluster_status.nodes,
-                                         nodes,
-                                         start,
-                                         _walltime)
+        ok = ok and can_start_on_cluster(cluster_status.nodes, nodes, start, _walltime)
         if not ok:
             break
     if ok:
@@ -762,10 +750,8 @@ def deploy(site, nodes, options):
     deploy = []
     undeploy = []
     if deployment.status == "terminated":
-        deploy = [node for node, v in deployment.result.items()
-                if v["state"] == "OK"]
-        undeploy = [node for node, v in deployment.result.items()
-                    if v["state"] == "KO"]
+        deploy = [node for node, v in deployment.result.items() if v["state"] == "OK"]
+        undeploy = [node for node, v in deployment.result.items() if v["state"] == "KO"]
     elif deployment.status == "error":
         undeploy = nodes
 

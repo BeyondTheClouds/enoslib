@@ -9,24 +9,15 @@ import os
 
 provider_conf = {
     "resources": {
-        "machines": [{
-            "roles": ["control"],
-            "flavour": "tiny",
-            "number": 1,
-        },{
-            "roles": ["compute"],
-            "flavour": "tiny",
-            "number": 1,
-        }],
-        "networks": [{"cidr": "192.168.20.0/24", "roles": ["mynetwork"]}]
+        "machines": [
+            {"roles": ["control"], "flavour": "tiny", "number": 1},
+            {"roles": ["compute"], "flavour": "tiny", "number": 1},
+        ],
+        "networks": [{"cidr": "192.168.20.0/24", "roles": ["mynetwork"]}],
     }
 }
 
-tc = {
-    "enable": True,
-    "default_delay": "20ms",
-    "default_rate": "1gbit",
-}
+tc = {"enable": True, "default_delay": "20ms", "default_rate": "1gbit"}
 inventory = os.path.join(os.getcwd(), "hosts")
 print("Starting ressources with the provider vagrant")
 provider = Enos_vagrant(VagrantConf.from_dictionnary(provider_conf))
@@ -36,14 +27,16 @@ resources = {"machines": [], "networks": []}
 
 for role, machines in roles.items():
     for machine in machines:
-        resources["machines"].append({
-            "address": machine.address,
-            "alias": machine.alias,
-            "user": machine.user,
-            "port": int(machine.port),
-            "keyfile": machine.keyfile,
-            "roles": [role]
-        })
+        resources["machines"].append(
+            {
+                "address": machine.address,
+                "alias": machine.alias,
+                "user": machine.user,
+                "port": int(machine.port),
+                "keyfile": machine.keyfile,
+                "roles": [role],
+            }
+        )
 
 resources["networks"] = networks
 

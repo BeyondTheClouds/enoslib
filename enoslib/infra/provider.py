@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 
 class Provider:
     """Base class for all providers."""
+
     __metaclass__ = ABCMeta
 
     def __init__(self, provider_conf):

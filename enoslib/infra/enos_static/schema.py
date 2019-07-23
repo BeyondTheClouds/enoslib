@@ -1,26 +1,22 @@
 SCHEMA = {
     "type": "object",
-    "properties": {
-        "resources": {"$ref": "#/resources"},
-    },
+    "properties": {"resources": {"$ref": "#/resources"}},
     "additionalProperties": True,
     "required": ["resources"],
-
     "resources": {
         "title": "Resource",
-
         "type": "object",
         "properties": {
             "machines": {"type": "array", "items": {"$ref": "#/machine"}},
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
-                "uniqueItems": True},
+                "uniqueItems": True,
             },
+        },
         "additionalProperties": False,
-        "required": ["machines", "networks"]
+        "required": ["machines", "networks"],
     },
-
     "machine": {
         "title": "Compute",
         "type": "object",
@@ -28,14 +24,13 @@ SCHEMA = {
             "roles": {"type": "array", "items": {"type": "string"}},
             "address": {"type": "string"},
             "alias": {"type": "string"},
-            "user": {"type":  "string"},
+            "user": {"type": "string"},
             "keyfile": {"type": "string"},
             "port": {"type": "number"},
-            "extra": {"type": "object"}
+            "extra": {"type": "object"},
         },
-        "required": ["roles", "address"]
+        "required": ["roles", "address"],
     },
-
     "network": {
         "type": "object",
         "properties": {
@@ -45,8 +40,8 @@ SCHEMA = {
             "end": {"type": "string"},
             "cidr": {"type": "string"},
             "gateway": {"type": "string"},
-            "dns": {"type": "string"}
+            "dns": {"type": "string"},
         },
-        "required": ["roles", "start", "end", "cidr", "gateway", "dns"]
-    }
+        "required": ["roles", "start", "end", "cidr", "gateway", "dns"],
+    },
 }

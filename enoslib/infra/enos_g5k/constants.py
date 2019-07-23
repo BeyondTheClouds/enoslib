@@ -14,7 +14,7 @@ NAMESERVER = "dns.grid5000.fr"
 
 NATURE_PROD = "prod"
 SYNCHRONISATION_OFFSET = 60
-G5KMACPREFIX = '00:16:3E'
+G5KMACPREFIX = "00:16:3E"
 
 # schema stuffs
 KAVLAN = "kavlan"

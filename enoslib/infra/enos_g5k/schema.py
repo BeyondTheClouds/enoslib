@@ -16,34 +16,25 @@ SCHEMA = {
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "reservation": {"type": "string"},
         "walltime": {"type": "string"},
-        "resources": {"$ref": "#/resources"}
+        "resources": {"$ref": "#/resources"},
     },
     "additionalProperties": False,
     "required": ["resources"],
-
     "resources": {
         "title": "Resource",
         "type": "object",
         "properties": {
-            "machines": {
-                "type": "array",
-                "items": {"$ref": "#/machine"}
-            },
+            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
-                "uniqueItems": True
+                "uniqueItems": True,
             },
         },
         "additionalProperties": False,
         "required": ["machines", "networks"],
     },
-
-    "jobids": {
-        "title": "JobIds",
-        "type": "array",
-    },
-
+    "jobids": {"title": "JobIds", "type": "array"},
     "machine": {
         "title": "Compute",
         "type": "object",
@@ -56,25 +47,21 @@ SCHEMA = {
             "secondary_networks": {
                 "type": "array",
                 "items": {"type": "string"},
-                "uniqueItems": True}
+                "uniqueItems": True,
+            },
         },
-        "required": [
-            "roles",
-            "cluster",
-            "primary_network"
-        ]
+        "required": ["roles", "cluster", "primary_network"],
     },
-
     "network": {
         "type": "object",
         "properties": {
             "id": {"type": "string"},
             "type": {"enum": NETWORK_TYPES},
             "roles": {"type": "array", "items": {"type": "string"}},
-            "site": {"type": "string"}
+            "site": {"type": "string"},
         },
-        "required": ["id", "type", "roles", "site"]
-    }
+        "required": ["id", "type", "roles", "site"],
+    },
 }
 """
 Additionnal notes
