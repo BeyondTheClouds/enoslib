@@ -32,23 +32,6 @@ class TestSSH(unittest.TestCase):
 
 
 class TestPlayOn(unittest.TestCase):
-    def test_no_gather(self):
-        p = play_on(pattern_hosts="pattern", gather_facts=False)
-        p.__exit__ = mock.MagicMock()
-        a = p.__enter__()
-        self.assertEqual({}, p.prior)
-        self.assertEqual([], p._tasks)
-
-    def test_gather(self):
-        p = play_on(pattern_hosts="pattern")
-        p.__exit__ = mock.MagicMock()
-        a = p.__enter__()
-        g = {
-            "hosts": "all",
-            "tasks": [{"name": "Gathering Facts", "setup": {"gather_subset": "all"}}],
-        }
-        self.assertDictEqual(g, p.prior)
-
     def test_modules(self):
         p = play_on(pattern_hosts="pattern")
         p.__exit__ = mock.MagicMock()
