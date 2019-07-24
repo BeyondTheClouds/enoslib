@@ -40,10 +40,23 @@ STATUS_FAILED = "FAILED"
 STATUS_UNREACHABLE = "UNREACHABLE"
 STATUS_SKIPPED = "SKIPPED"
 DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
+ANSIBLE_TOP_LEVEL = ["async", "become", "become_user", "loop", "poll"]
 
 AnsibleExecutionRecord = namedtuple(
     "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
 )
+
+
+def _split_args(**kwargs):
+    """Splits top level kwargs and module specific kwargs."""
+    top_args = {}
+    module_args = {}
+    for k, v in kwargs.items():
+        if k in ANSIBLE_TOP_LEVEL:
+            top_args.update({k: v})
+        else:
+            module_args.update({k: v})
+    return top_args, module_args
 
 
 def _load_defaults(
@@ -276,6 +289,17 @@ class play_on(object):
                 t.shell("which docker || (curl get.docker.com | sh)")
                 t.docker_container(name="nginx", state="started")
 
+        Module can be run asynchronously using the corresponding Ansible options
+        (see https://docs.ansible.com/ansible/latest/user_guide/playbooks_async.html).
+        Note that not all the modules support asynchronous execution.
+
+        .. code-block:: python
+
+
+        Note that the actual result isn't available in the result file but will be
+        available throug a file specified in the result object.
+
+
         Any ansible module can be called using the above way. You'll need to
         refer to the module reference documentation to find the corresponding
         kwargs to use. """
@@ -326,15 +350,19 @@ class play_on(object):
 
         def _f(**kwargs):
             display_name = kwargs.pop("display_name", "__calling__ %s" % module_name)
-            task = {}
-            task.update(**kwargs)
-            self._tasks.append({"name": display_name, module_name: task})
+            task = {"name": display_name}
+            top_args, module_args = _split_args(**kwargs)
+            task.update(top_args)
+            task.update({module_name: module_args})
+            self._tasks.append(task)
 
         def _shell_like(command, **kwargs):
             display_name = kwargs.pop("display_name", command)
             task = {"name": display_name, module_name: command}
-            if dict(**kwargs):
-                task.update(args=dict(**kwargs))
+            top_args, module_args = _split_args(**kwargs)
+            task.update(top_args)
+            if module_args:
+                task.update(args=module_args)
             self._tasks.append(task)
 
         if module_name in ["command", "shell", "raw"]:
@@ -363,7 +391,8 @@ def run_command(
         extra_vars (dict): extra_vars to use
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
-        kwargs: keywords argument to pass to the shell module
+        kwargs: keywords argument to pass to the shell module or as top level
+            args.
 
     Raises:
         :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
@@ -412,7 +441,17 @@ def run_command(
 
         result = run_command("control*", "ping -c 1
         {{hostvars['enos-1']['ansible_' + n1].ipv4.address}}", inventory)
-    """
+
+
+    Command can be run asynchronously using the corresponding Ansible options
+    (see https://docs.ansible.com/ansible/latest/user_guide/playbooks_async.html)
+
+    .. code-block:: python
+
+        result = run_command("date", roles=roles, async=20, poll=0)
+
+    Note that the actual result isn't available in the result file but will be
+    available throug a file specified in the result object. """
 
     def filter_results(results, status):
         _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
@@ -431,8 +470,10 @@ def run_command(
         return s
 
     task = {"name": COMMAND_NAME, "shell": command}
-    if kwargs:
-        task.update(args=kwargs)
+
+    top_args, module_args = _split_args(**kwargs)
+    task.update(top_args)
+    task.update(args=module_args)
 
     play_source = {"hosts": pattern_hosts, "tasks": [task]}
 
