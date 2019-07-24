@@ -35,9 +35,15 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Static(conf)
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
+
 # With an inventory
 result = run_command("date", pattern_hosts="control", inventory_path=inventory)
 print(json.dumps(result))
+
 # With roles
 result = run_command("date", pattern_hosts="control", roles=roles)
+print(json.dumps(result))
+
+# With roles and async
+result = run_command("date", pattern_hosts="control", roles=roles, async=100, poll=0)
 print(json.dumps(result))

@@ -35,8 +35,14 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-with play_on(pattern_hosts="all", roles=roles) as p:
+with play_on(roles=roles) as p:
     p.shell("date > /tmp/date")
 
 with open("/tmp/date") as f:
     print(f.readlines())
+
+
+# async
+with play_on(pattern_hosts="all", roles=roles) as p:
+    for i in range(10):
+        p.shell("sleep 10", async=100, poll=0)
