@@ -193,6 +193,7 @@ def run_play(
         List of all the results
     """
     # NOTE(msimonin): inventory could be infered from a host list (maybe)
+    logger.debug(play_source)
     results = []
     inventory, variable_manager, loader, options = _load_defaults(
         inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
@@ -348,7 +349,8 @@ def run_command(
     inventory_path=None,
     roles=None,
     extra_vars=None,
-    on_error_continue=False
+    on_error_continue=False,
+    **kwargs
 ):
     """Run a shell command on some remote hosts.
 
@@ -361,6 +363,7 @@ def run_command(
         extra_vars (dict): extra_vars to use
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
+        kwargs: keywords argument to pass to the shell module
 
     Raises:
         :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
@@ -427,10 +430,12 @@ def run_command(
         )
         return s
 
-    play_source = {
-        "hosts": pattern_hosts,
-        "tasks": [{"name": COMMAND_NAME, "shell": command}],
-    }
+    task = {"name": COMMAND_NAME, "shell": command}
+    if kwargs:
+        task.update(args=kwargs)
+
+    play_source = {"hosts": pattern_hosts, "tasks": [task]}
+
     results = run_play(
         play_source, inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
     )
