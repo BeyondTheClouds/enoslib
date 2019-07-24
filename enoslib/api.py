@@ -270,7 +270,7 @@ class play_on(object):
 
         .. code-block:: python
 
-            with actions_on("all", roles=roles) as t:
+            with actions_on(roles=roles) as t:
                 t.apt(name=["curl", "git"], state="present")
                 t.shell("which docker || (curl get.docker.com | sh)")
                 t.docker_container(name="nginx", state="started")
@@ -383,7 +383,7 @@ def run_command(
         enos-1
 
         # Python
-        result = run_command("control*", "date", inventory)
+        result = run_command("date", inventory)
 
         # Result
         {
@@ -490,7 +490,7 @@ def gather_facts(
         enos-1
 
         # Python
-        result = gather_facts("all", roles=roles)
+        result = gather_facts(roles=roles)
 
         # Result
         {
@@ -518,7 +518,7 @@ def gather_facts(
 
     play_source = {
         "hosts": pattern_hosts,
-        "tasks": [{"name": COMMAND, "setup": {"gather_subset": gather_subset}}],
+        "tasks": [{"name": COMMAND_NAME, "setup": {"gather_subset": gather_subset}}],
     }
     results = run_play(
         play_source,

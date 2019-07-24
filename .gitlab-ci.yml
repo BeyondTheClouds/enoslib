@@ -109,6 +109,17 @@ tasks:
   - pip install -e .
   - cd enoslib/tests/functionnal
   - python test_static_tasks.py
+
+gather_facts:
+  image: python:3.5
+  stage: functionnal
+  tags: [qlf-ci.inria.fr]
+  script:
+  - ip a
+  - pip install -e .
+  - cd enoslib/tests/functionnal
+  - python test_static_gather_facts.py
+
 #### Entering th release zone
 package:
   image: python:3.6
