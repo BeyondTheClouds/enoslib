@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.1.1
+-----
+
+* Catch-up changelog for 4.1.x
+
+
 4.1.0
 -----
 
