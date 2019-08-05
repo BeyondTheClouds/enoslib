@@ -1,0 +1,18 @@
+---
+- name: Gather facts
+  hosts: all
+  tasks:
+  - name: Gather facts on all hosts
+    setup: {}
+
+- name: Deploy Skydive agents
+  hosts: agents
+  become: yes
+  roles:
+  - skydive_agent
+
+- name: Deploy Skydive analyzers
+  hosts: analyzers
+  become: yes
+  roles:
+  - skydive_analyzer

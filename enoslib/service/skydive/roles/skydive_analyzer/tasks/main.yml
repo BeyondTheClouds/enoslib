@@ -1,0 +1,54 @@
+---
+- name: Set fabric facts
+  set_fact:
+    skydive_fabric: |
+      {% set comma = joiner(",") %}
+      [ {% for item in groups['agents'] -%}
+      {{ comma() }}"{{ skydive_fabric_tor_name | upper }}[Name={{ skydive_fabric_tor_name }}] -> {{ skydive_fabric_tor_name | upper }}_PORT{{ loop.index }}[Name=port{{ loop.index }}, MTU={{ skydive_fabric_tor_mtu }}]",
+      "{{ skydive_fabric_tor_name | upper }}_PORT{{ loop.index }} -> *[Type=host,Name={{ hostvars[item].ansible_hostname }}]/{{ skydive_fabric_default_interface }}"
+      {%- endfor %} ]
+  when: skydive_auto_fabric|bool and skydive_fabric is undefined
+
+- name: Determine analyzer IP
+  set_fact:
+    skydive_analyzer_ip: >-
+        {%- if skydive_listen_ip is defined -%}
+          {{ skydive_listen_ip }}
+        {%- elif skydive_nic is defined -%}
+          {{ hostvars[inventory_hostname][skydive_nic].ipv4.address }}
+        {%- else -%}
+          {{ hostvars[inventory_hostname].ansible_default_ipv4.address }}
+        {%- endif -%}
+  tags:
+    - config
+    - iptables
+
+- include_tasks: config.yml
+  tags:
+    - config
+
+- include_tasks: iptables.yml
+  when: skydive_iptables_rules | bool
+  tags:
+    - iptables
+
+- include_tasks: keystone.yml
+  when: skydive_auth_type == "keystone"
+  tags:
+    - keystone
+
+- include_tasks: container.yml
+  when: skydive_deployment_mode == "container"
+
+- include_tasks: package.yml
+  when: skydive_deployment_mode == "package"
+
+- include_tasks: binary.yml
+  when: skydive_deployment_mode == "binary"
+
+- include_role:
+    name: skydive_common
+    tasks_from: permissions
+
+- include_tasks: tests.yml
+  when: skydive_deployment_test | bool

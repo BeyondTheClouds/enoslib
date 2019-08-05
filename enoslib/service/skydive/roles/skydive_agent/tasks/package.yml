@@ -1,0 +1,11 @@
+---
+- name: Install skydive agent package
+  package:
+    name: skydive-agent
+    state: present
+
+- name: Start service
+  service:
+    name: skydive-agent
+    state: started
+    enabled: yes

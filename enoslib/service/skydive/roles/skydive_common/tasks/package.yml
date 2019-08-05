@@ -1,0 +1,45 @@
+---
+- name: Upgrade all packages
+  yum: name=* state=latest
+  when: ansible_os_family == 'RedHat'
+
+- name: Install opstools repository
+  package:
+    name: centos-release-opstools
+    state: present
+  when: ansible_distribution == 'CentOS' and skydive_package_location is not defined
+
+- name: Copy skydive packages
+  copy:
+    src: "{{ skydive_package_location | replace('file://', '') }}"
+    dest: /tmp
+    force: true
+    mode: 0755
+  when: skydive_package_location is defined
+
+- name: Move skydive packages
+  shell: "mv /tmp/*/*.rpm /tmp"
+  when: skydive_package_location is defined
+
+- name: Install createrepo
+  package:
+    name: createrepo
+    state: present
+  when: skydive_package_location is defined
+
+- name: Create local repository
+  shell: "createrepo /tmp"
+  when: skydive_package_location is defined
+
+- name: Add local repository
+  yum_repository:
+    name: local
+    description: Local Skydive repository
+    baseurl: "file:///tmp"
+    gpgcheck: no
+  when: skydive_package_location is defined
+
+- name: Install skydive package
+  package:
+    name: skydive
+    state: present

@@ -1,0 +1,54 @@
+---
+- name: Setup agent listen address for container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "agent.listen"
+    value: "0.0.0.0:{{ skydive_agent_port }}"
+  when: skydive_deployment_mode == "container"
+
+- name: Setup agent listen address for non container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "agent.listen"
+    value: "{{ skydive_agent_ip }}:{{ skydive_agent_port }}"
+  when: skydive_deployment_mode != "container"
+
+- name: Define cluster agent auth parameters
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "agent.auth.cluster.username"
+          value: "{{ skydive_cluster_username }}"
+        - key: "agent.auth.cluster.password"
+          value: "{{ skydive_cluster_password }}"
+    state: present
+  when: skydive_cluster_username is not none
+
+- name: Setup probes
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "agent.topology.probes"
+    value: "{{ skydive_topology_probes }}"
+    state: present
+
+- name: Define Neutron probe parameters
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "agent.topology.neutron.auth_url"
+          value: "{{ skydive_os_auth_url }}"
+        - key: "agent.topology.neutron.tenant_name"
+          value: "{{ skydive_os_service_tenant_name }}"
+        - key: "agent.topology.neutron.domain_name"
+          value: "{{ skydive_os_service_domain_name }}"
+        - key: "agent.topology.neutron.region_name"
+          value: "{{ skydive_os_service_region_name }}"
+        - key: "agent.topology.neutron.username"
+          value: "{{ skydive_os_service_username }}"
+        - key: "agent.topology.neutron.password"
+          value: "{{ skydive_os_service_password }}"
+        - key: "agent.topology.neutron.endpoint_type"
+          value: "{{ skydive_os_service_endpoint_type }}"
+        - key: "agent.topology.neutron.ssl_insecure"
+          value: "{{ skydive_os_service_insecure }}"
+    state: present

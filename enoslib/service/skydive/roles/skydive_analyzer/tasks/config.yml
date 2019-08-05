@@ -1,0 +1,134 @@
+---
+- name: Set fabric nodes
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: analyzer.topology.fabric
+    value: "{{ skydive_fabric }}"
+  when: skydive_fabric is defined
+
+- name: Setup Etcd mode embedded/external
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: etcd.embedded
+    value: "{{ skydive_etcd_embedded }}"
+
+- name: Setup analyzer listen address for container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "analyzer.listen"
+    value: "0.0.0.0:{{ skydive_analyzer_port }}"
+  when: skydive_deployment_mode == "container"
+
+- name: Setup analyzer listen address for non container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "analyzer.listen"
+    value: "{{ skydive_analyzer_ip }}:{{ skydive_analyzer_port }}"
+  when: skydive_deployment_mode != "container"
+
+- name: Setup Etcd listen addresses for container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict:
+    etcd.listen: "0.0.0.0:{{ skydive_etcd_port }}"
+    etcd.servers: "{{ skydive_etcd_scheme }}://localhost:{{ skydive_etcd_port }}"
+  when: skydive_deployment_mode == "container"
+
+- name: Setup Etcd listen address for non container mode
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "etcd.listen"
+    value: "{{ skydive_analyzer_ip }}:{{ skydive_etcd_port }}"
+  when: skydive_deployment_mode != "container"
+
+- name: Setup Etcd embedded server name
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "etcd.name"
+    value: "{{ ansible_hostname }}"
+  when: skydive_etcd_embedded | bool
+
+- name: Setup Etcd embedded servers list
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: etcd.servers
+    value: "{{ analyzers.split(',') | map('regex_replace', '([^:]*).+', skydive_etcd_scheme + '://\\1:' + (skydive_etcd_port | string)) | list }}"
+  when: (skydive_etcd_embedded | bool) and (analyzers.split(',') | list | length > 1)
+
+- name: Setup Etcd server list
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: etcd.servers
+    value: "{{ skydive_etcd_servers }}"
+  when: not (skydive_etcd_embedded | bool)
+
+- name: Setup Etcd peers list
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "{{ 'etcd.peers.' + hostvars[item[0]]['ansible_hostname'] }}"
+    value: "{{ skydive_etcd_scheme + '://' + (item[1] | regex_replace('([^:]*).+', '\\1:')) + ((skydive_etcd_port + 1) | string) }}"
+  with_together:
+    - "{{ groups['analyzers'] }}"
+    - "{{ analyzers.split(',') | list }}"
+  when: (skydive_etcd_embedded | bool) and (analyzers.split(',') | list | length > 1)
+
+- name: Define cluster analyzer auth parameters
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "analyzer.auth.cluster.backend"
+          value: "cluster"
+        - key: "analyzer.auth.cluster.username"
+          value: "{{ skydive_cluster_username }}"
+        - key: "analyzer.auth.cluster.password"
+          value: "{{ skydive_cluster_password }}"
+    state: present
+  when: skydive_cluster_username is not none
+
+- name: Define cluster auth users
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "auth.cluster.type"
+          value: "basic"
+        - key: "auth.cluster.users.{{ skydive_cluster_username }}"
+          value: "{{ skydive_cluster_password }}"
+    state: present
+  when: skydive_cluster_username is not none
+
+- name: Define API auth backend
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits: 
+      - key: "analyzer.auth.api.backend"
+        value: "api"
+    state: present
+  when: skydive_auth_type is not none
+
+- name: Define API basic auth user
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "auth.api.type"
+          value: "basic"
+        - key: "auth.api.users.{{ skydive_username }}"
+          value: "{{ skydive_password }}"
+    state: present
+  when: skydive_auth_type == "basic"
+
+- name: Define API keystone user authentication parameters
+  yedit:
+    src: "{{ skydive_config_file }}"
+    edits:
+        - key: "auth.api.type"
+          value: "keystone"
+        - key: "auth.api.auth_url"
+          value: "{{ skydive_os_auth_url }}"
+        - key: "auth.api.tenant_name"
+          value: "{{ skydive_auth_os_tenant_name }}"
+        - key: "auth.api.domain_name"
+          value: "{{ skydive_auth_os_domain_name }}"
+    state: present
+  when: skydive_auth_type == "keystone"

@@ -1,0 +1,32 @@
+---
+- name: Make the container image available
+  include_role:
+    name: skydive_common
+    tasks_from: container
+  vars:
+    skydive_docker_image: "{{ skydive_analyzer_docker_image }}"
+    skydive_service_docker_image_tag: "{{ skydive_analyzer_docker_image_tag }}"
+
+- name: Create systemd unit file
+  include_role:
+    name: skydive_common
+    tasks_from: systemd
+  vars:
+    service_name: skydive-analyzer
+    exec_start_pre: /usr/bin/{{ skydive_container_cli }} stop skydive-analyzer-{{ ansible_hostname }}
+    exec_start: |
+      /usr/bin/{{ skydive_container_cli }} run --rm \
+        {{ skydive_analyzer_docker_extra_env }} --name=skydive-analyzer-{{ ansible_hostname }} \
+        --net=host \
+        --user {{ skydive_sysuser_result.uid }}:{{ skydive_sysuser_result.group }} \
+        -v /etc/skydive/skydive.yml:/etc/skydive.yml \
+        -v /var/lib/skydive:/var/lib/skydive:Z \
+        -p {{ skydive_analyzer_port }}:{{ skydive_analyzer_port }} \
+        -p {{ skydive_analyzer_port }}:{{ skydive_analyzer_port }}/udp \
+        -p {{ skydive_etcd_port }}:{{ skydive_etcd_port }} \
+        -p {{ skydive_etcd_port + 1 }}:{{ skydive_etcd_port + 1 }} \
+        {{ skydive_docker_registry }}/{{ skydive_analyzer_docker_image }}:{{ skydive_analyzer_docker_image_tag or skydive_docker_image_tag }} \
+        {{ skydive_analyzer_docker_command }}
+    exec_stop_post: /usr/bin/{{ skydive_container_cli }} stop skydive-analyzer-{{ ansible_hostname }}
+    user: root
+    group: root

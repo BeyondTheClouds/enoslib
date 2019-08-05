@@ -1,0 +1,37 @@
+---
+- package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+     - unzip
+     - wget
+     - automake
+     - autoconf
+     - libtool
+- shell: |
+    mkdir -p /tmp/protoc
+    cd /tmp/protoc
+    wget https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip
+    unzip -o protoc-3.1.0-linux-x86_64.zip
+    chmod +x bin/protoc
+    mv bin/protoc /usr/bin/
+    chmod -R 755 include/google
+    rm -rf /usr/include/google
+    mv include/google /usr/include
+  when: ansible_architecture != "ppc64le"
+- shell: |
+    mkdir -p /tmp/protoc
+    cd /tmp/protoc
+    wget https://github.com/google/protobuf/archive/v3.1.0.tar.gz
+    tar xzf v3.1.0.tar.gz
+    cd protobuf-3.1.0
+    ./autogen.sh
+    ./configure --enable-static --disable-shared
+    chmod a+x ./src/protoc
+    mv ./src/protoc /usr/bin/
+    wget https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip
+    unzip -o protoc-3.1.0-linux-x86_64.zip
+    rm -rf /usr/include/google
+    chmod -R 755 include/google
+    mv -f include/google /usr/include
+  when: ansible_architecture == "ppc64le"

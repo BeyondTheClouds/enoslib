@@ -1,0 +1,60 @@
+---
+- name: Create Skydive system group
+  group:
+    name: "{{ skydive_sys_groupname }}"
+    state: present
+
+- name: Create Skydive system user
+  user:
+    name: "{{ skydive_sys_username }}"
+    group: "{{ skydive_sys_groupname }}"
+    shell: /sbin/nologin
+    home: /var/lib/skydive
+    append: yes
+    comment: "Skydive nologin User"
+    state: present
+  register: skydive_sysuser_result
+  become: yes
+
+- name: Ensures skydive configuration folder exists
+  file:
+    path: "{{ skydive_config_file | dirname }}"
+    state: directory
+
+- name: Create empty config file is needed
+  copy:
+    content: ""
+    dest: "{{ skydive_config_file }}"
+    mode: 0640
+    force: no
+
+- name: Set config file mode
+  file:
+    path: "{{ skydive_config_file }}"
+    mode: 0640
+
+- name: Set host ID
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: host_id
+    value: "{{ ansible_hostname }}"
+
+- name: Set analyzers list
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: analyzers
+    value: "{{ analyzers.split(',') }}"
+
+- name: Set flow protocol
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "flow.protocol"
+    value: "{{ skydive_flow_protocol }}"
+
+- name: Set extra config vars
+  yedit:
+    src: "{{ skydive_config_file }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict: "{{ skydive_extra_config }}"
+  when: skydive_extra_config is defined
