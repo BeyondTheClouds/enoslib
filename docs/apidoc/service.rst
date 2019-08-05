@@ -17,7 +17,7 @@ Docker Service Class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. automodule:: enoslib.service.docker
+.. automodule:: enoslib.service.docker.docker
     :members:
     :undoc-members:
     :show-inheritance:
@@ -30,14 +30,14 @@ Monitoring Service Class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. automodule:: enoslib.service.monitoring
+.. automodule:: enoslib.service.monitoring.monitoring
     :members:
     :undoc-members:
     :show-inheritance:
 
 
 Netem
-----------
+-----
 
 
 .. _netem:
@@ -46,7 +46,23 @@ Netem Service Class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. automodule:: enoslib.service.netem
+.. automodule:: enoslib.service.netem.netem
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Skydive
+-------
+
+
+.. _skydive:
+
+Skydive Service Class
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. automodule:: enoslib.service.skydive.skydive
     :members:
     :undoc-members:
     :show-inheritance:

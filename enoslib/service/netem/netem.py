@@ -9,7 +9,11 @@ from jsonschema import validate
 from enoslib.api import run_ansible
 from enoslib.constants import TMP_DIRNAME
 from enoslib.utils import _check_tmpdir
-from .service import Service, SERVICE_PATH
+from ..service import Service
+
+
+SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 
 logger = logging.getLogger(__name__)
 
@@ -324,6 +328,14 @@ class Netem(Service):
                 }
                 netem = Netem(tc, roles=roles)
                 netem.deploy()
+
+        Examples:
+
+            .. literalinclude:: examples/netem.py
+                :language: python
+                :linenos:
+
+
         """
         # 1) Retrieve the list of ips for all nodes (Ansible)
         # 2) Build all the constraints (Python)

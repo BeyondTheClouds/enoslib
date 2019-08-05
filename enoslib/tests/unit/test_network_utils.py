@@ -1,4 +1,4 @@
-from enoslib.service.netem import (
+from enoslib.service.netem.netem import (
     _build_ip_constraints,
     _expand_description,
     _generate_default_grp_constraints,
