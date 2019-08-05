@@ -4,7 +4,7 @@ from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import logging
-import os
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,10 +26,15 @@ roles, networks = provider.init()
 # generate an inventory compatible with ansible
 discover_networks(roles, networks)
 
-s = Skydive(analyzers=roles["control"], agents=roles["compute"])
+s = Skydive(analyzers=roles["control"],
+            agents=roles["compute"] + roles["control"])
 s.deploy()
+
+ui_address = roles["control"][0].extra["mynetwork_ip"]
+print("The UI is available at http://%s:8082" % ui_address)
+
 s.backup()
 s.destroy()
 
-# destroy the boxes
+destroy the boxes
 provider.destroy()

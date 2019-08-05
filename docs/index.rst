@@ -3,15 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to EnOSlib's documentation!
+Welcome to |enoslib|'s documentation!
 ===================================
 
-EnOSlib helps you deploy applications on various platforms. 
+|enoslib| helps you to drive you experiments on various infrastructures.
+To do so, most of your experiment logic is made *reusable* by |enoslib| (getting
+resources, launching remote actions, deploying side analysis stacks ...)
 
-It targets role based deployments and allows you to describe your operations
-using tasks.
-
-More pragmatically, with the EnOSlib, you can iterate on your application
+More pragmatically, with |enoslib|, you can iterate on your application
 deployment and experimental workflow locally before moving to a large testbed
 like Grid'5000, or Chameleon. It saves time and energy.
 
@@ -83,6 +82,9 @@ Now where {{ user }} can go from here depends on the needs:
 - Applying specific network constraints between the nodes of the reservation is
   also possible. {{ user }}'ll need to learn more about how enforcing the constraints
   -- see :ref:`[4] <netem>`.
+
+- Deploying a monitoring stack can be convenient to track some system metrics. |enoslib| offers
+  some services that can be used easily -- see :ref:`[5] <monitoring>` or :ref:`[6] <skydive>`.
 
 - Contributing to this project would be wonderful. {{ user }} doesn't need to do much,
   improving the documentation would be very helpful -- see :ref:`[5] <contributing>`.

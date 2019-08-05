@@ -4,7 +4,7 @@ from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
 import logging
-import os
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,6 +28,11 @@ discover_networks(roles, networks)
 
 m = Monitoring(collector=roles["control"], agent=roles["compute"], ui=roles["control"])
 m.deploy()
+
+ui_address = roles["control"][0].extra["mynetwork_ip"]
+print("The UI is available at http://%s:3000" % ui_address)
+print("user=admin, password=admin")
+
 m.backup()
 m.destroy()
 

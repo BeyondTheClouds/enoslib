@@ -29,6 +29,8 @@ Monitoring
 Monitoring Service Class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _monitoring:
+
 
 .. automodule:: enoslib.service.monitoring.monitoring
     :members:
@@ -38,7 +40,6 @@ Monitoring Service Class
 
 Netem
 -----
-
 
 .. _netem:
 
@@ -54,7 +55,6 @@ Netem Service Class
 
 Skydive
 -------
-
 
 .. _skydive:
 
