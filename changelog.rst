@@ -1,7 +1,13 @@
 Changelog
 ===========
 
+4.2.1
+-----
+
+* Fix changelog syntax
+
 4.2.0
+-----
 
 * Service: Add skydive service
 * Service: Internal refactoring
