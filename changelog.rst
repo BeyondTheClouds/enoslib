@@ -1,9 +1,10 @@
 Changelog
 ===========
 
-4.1.2
+4.2.0
 
-* TODO
+* Service: Add skydive service
+* Service: Internal refactoring
 
 4.1.1
 -----
