@@ -4,9 +4,9 @@
    contain the root `toctree` directive.
 
 Welcome to |enoslib|'s documentation!
-===================================
+=====================================
 
-|enoslib| helps you to drive you experiments on various infrastructures.
+|enoslib| helps you to drive your experiments on various infrastructures.
 To do so, most of your experiment logic is made *reusable* by |enoslib| (getting
 resources, launching remote actions, deploying side analysis stacks ...)
 

@@ -61,7 +61,7 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
        - Inventory can be used to feed an Ansible deployment (see the
          :ref:`Ansible integration<integration-with-ansible>`)
        - Note the extra variables concerning the network. They can be use in
-        your ansible playbooks to refer to a specific network.
+         your ansible playbooks to refer to a specific network.
 
 Programmatic way
 ****************

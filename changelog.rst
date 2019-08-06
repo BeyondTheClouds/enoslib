@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.2.2
+-----
+
+* Doc: Fix sphinx warnings
+
 4.2.1
 -----
 
@@ -25,8 +30,8 @@ Changelog
 * API: Introduce ``gather_facts`` function
 * Doc: Fix python3 for virtualenv on g5k
 * API: Allow top level and module level arguments to be passed
-       in ``run_command`` and ``play_on``
-  G5K: Use ring to cache API requests results
+  in ``run_command`` and ``play_on``
+* G5K: Use ring to cache API requests results
 * API: Support for ``raw`` module in ``play_on``
 * Black formatting is enforced
 

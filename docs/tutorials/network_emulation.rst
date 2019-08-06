@@ -1,4 +1,4 @@
-.. _network_emulation::
+.. _network_emulation:
 
 Network Emulation
 =================

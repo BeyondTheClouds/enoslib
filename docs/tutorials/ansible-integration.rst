@@ -87,7 +87,7 @@ Let's consider the following script:
 .. literalinclude:: ansible-integration/run_ansible.py
    :language: python
    :linenos:
-   :emphasize-lines: 30
+   :emphasize-lines: 28
 
 And the corresponding minimal playbook ``site.yml``:
 

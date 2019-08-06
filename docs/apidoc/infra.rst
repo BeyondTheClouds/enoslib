@@ -145,5 +145,5 @@ Chameleon(bare metal) Provider Class
 Chameleon(bare metal) schema
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. literalinclude:: ../../enoslib/infra/enos_chameleonbaremetal/schema.py
+.. literalinclude:: ../../enoslib/infra/enos_chameleonkvm/schema.py
 
