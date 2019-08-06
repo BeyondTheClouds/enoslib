@@ -17,7 +17,7 @@ EnOSlib is designed for experimentation purpose: benchmark in a controlled
 environment, academic validation ...
 
 EnosLib is developed in the context of the
-`Discovery <https://beyondtheclouds.github.io/>`__ initiative
+`Discovery <https://beyondtheclouds.github.io/>`_ initiative
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines
