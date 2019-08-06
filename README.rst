@@ -5,8 +5,8 @@ EnosLib
 
 Join us on gitter :  |Gitter|
 
-EnOSlib helps you to drive your experiments on various infrastructures.
-To do so, most of your experiment logic is made *reusable* by EnOSlib (gettin
+EnOSlib helps you to drive your experiments on various infrastructures. To do
+so, most of your experiment logic is made *reusable* by EnOSlib (getting
 resources, launching remote actions, deploying side analysis stacks ...)
 
 More pragmatically, with EnOSlib, you can iterate on your application
