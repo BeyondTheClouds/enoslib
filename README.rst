@@ -5,20 +5,31 @@ EnosLib
 
 Join us on gitter :  |Gitter|
 
-EnosLib is a library to
+|enoslib| helps you to drive your experiments on various infrastructures.
+To do so, most of your experiment logic is made *reusable* by |enoslib| (getting
+resources, launching remote actions, deploying side analysis stacks ...)
 
-- acquire resources from different infrastructure or testbeds
-- describe and run an experimentation workflow
+More pragmatically, with |enoslib|, you can iterate on your application
+deployment and experimental workflow locally before moving to a large testbed
+like Grid'5000, or Chameleon. It saves time and energy.
+
+EnOSlib is designed for experimentation purpose: benchmark in a controlled
+environment, academic validation ...
 
 EnosLib is developed in the context of the
 `Discovery <https://beyondtheclouds.github.io/>`__ initiative
 
+.. hint ::
 
-Links
-=====
+   The source code is available at
+   https://github.com/BeyondTheClouds/enoslib
 
-- Documentation - https://discovery.gitlabpages.inria.fr/enoslib/
-- Discovery - https://beyondtheclouds.github.io/
+
+.. hint ::
+
+   Cookiecutter template is available at
+   https://github.com/msimonin/cookiecutter-enoslib.git
+
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines

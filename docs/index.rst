@@ -6,27 +6,7 @@
 Welcome to |enoslib|'s documentation!
 =====================================
 
-|enoslib| helps you to drive your experiments on various infrastructures.
-To do so, most of your experiment logic is made *reusable* by |enoslib| (getting
-resources, launching remote actions, deploying side analysis stacks ...)
-
-More pragmatically, with |enoslib|, you can iterate on your application
-deployment and experimental workflow locally before moving to a large testbed
-like Grid'5000, or Chameleon. It saves time and energy.
-
-EnOSlib is designed for experimentation purpose: benchmark in a controlled
-environment, academic validation ...
-
-.. hint ::
-
-   The source code is available at
-   https://github.com/BeyondTheClouds/enoslib
-
-
-.. hint ::
-
-   Cookiecutter template is available at
-   https://github.com/msimonin/cookiecutter-enoslib.git
+.. include:: ../README.rst
 
 EnOSlib primer
 ==============
