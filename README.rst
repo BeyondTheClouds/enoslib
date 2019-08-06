@@ -5,18 +5,18 @@ EnosLib
 
 Join us on gitter :  |Gitter|
 
-|enoslib| helps you to drive your experiments on various infrastructures.
-To do so, most of your experiment logic is made *reusable* by |enoslib| (getting
+EnOSlib helps you to drive your experiments on various infrastructures.
+To do so, most of your experiment logic is made *reusable* by EnOSlib (gettin
 resources, launching remote actions, deploying side analysis stacks ...)
 
-More pragmatically, with |enoslib|, you can iterate on your application
+More pragmatically, with EnOSlib, you can iterate on your application
 deployment and experimental workflow locally before moving to a large testbed
 like Grid'5000, or Chameleon. It saves time and energy.
 
 EnOSlib is designed for experimentation purpose: benchmark in a controlled
 environment, academic validation ...
 
-EnosLib is developed in the context of the
+EnOSLib is developed in the context of the
 `Discovery <https://beyondtheclouds.github.io/>`_ initiative
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
