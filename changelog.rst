@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.2.3
+-----
+
+* Doc: Factorize readme and doc index
+
 4.2.2
 -----
 
