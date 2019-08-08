@@ -1,3 +1,5 @@
+import json
+
 from enoslib.api import play_on, run_ansible
 import os
 
@@ -8,12 +10,20 @@ SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 DEFAULT_VARS = {
     "skydive_listen_ip": "0.0.0.0",
     "skydive_deployment_mode": "binary",
-    "agent.topology.probes": ["docker"]
+    "agent.topology.probes": ["docker"],
+    # we'll inject our own topology
+    # there a skydive_fabric variable to do that
+    "skydive_auto_fabric": "no"
 }
 
 
 class Skydive(Service):
-    def __init__(self, *, analyzers=None, agents=None, extra_vars=None):
+    def __init__(self,
+                 *,
+                 analyzers=None,
+                 agents=None,
+                 networks=None,
+                 extra_vars=None):
         """Deploy Skydive (see http://skydive.network/).
 
         This assumes a debian/ubuntu base environment and aims at producing a
@@ -41,6 +51,7 @@ class Skydive(Service):
         self.agents = agents
         self.skydive = analyzers + agents
         self.roles = {}
+        self.networks = networks
         self.roles.update(analyzers=analyzers, agents=agents,
                           skydive=self.skydive)
 
@@ -48,6 +59,35 @@ class Skydive(Service):
         self.extra_vars.update(DEFAULT_VARS)
         if extra_vars is not None:
             self.extra_vars.update(extra_vars)
+
+        # build the network topology
+        self.fabric_opts = self.build_fabric()
+        if self.fabric_opts:
+            self.extra_vars.update(skydive_fabric=self.fabric_opts)
+
+    def build_fabric(self):
+
+        def fabric_for_role(network_role, desc):
+            fabric = []
+            for agent in self.agents:
+                device = agent.extra.get("%s_dev" % network_role)
+                if device is not None:
+                    local_port = "%s_%s" % (network_role, agent.address)
+                    infos = "cidr=%s, gateway=%s, dns=%s" % (desc["cidr"], desc["gateway"], desc["dns"])
+                    fabric.append("%s[%s] -> %s" % (network_role, infos , local_port))
+                    fabric.append("%s -> *[Type=host, Hostname=%s]/%s" % (local_port, agent.address, device))
+            return fabric
+
+        if self.networks is None:
+            return {}
+
+        fabric = []
+        for n in self.networks:
+            roles = n["roles"]
+            for role in roles:
+                fabric.extend(fabric_for_role(role, n))
+        return fabric
+
 
     def deploy(self):
         # Some requirements
