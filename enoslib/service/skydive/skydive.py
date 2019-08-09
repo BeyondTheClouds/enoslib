@@ -1,5 +1,3 @@
-import json
-
 from enoslib.api import play_on, run_ansible
 import os
 
@@ -13,17 +11,12 @@ DEFAULT_VARS = {
     "agent.topology.probes": ["docker"],
     # we'll inject our own topology
     # there a skydive_fabric variable to do that
-    "skydive_auto_fabric": "no"
+    "skydive_auto_fabric": "no",
 }
 
 
 class Skydive(Service):
-    def __init__(self,
-                 *,
-                 analyzers=None,
-                 agents=None,
-                 networks=None,
-                 extra_vars=None):
+    def __init__(self, *, analyzers=None, agents=None, networks=None, extra_vars=None):
         """Deploy Skydive (see http://skydive.network/).
 
         This assumes a debian/ubuntu base environment and aims at producing a
@@ -52,8 +45,7 @@ class Skydive(Service):
         self.skydive = analyzers + agents
         self.roles = {}
         self.networks = networks
-        self.roles.update(analyzers=analyzers, agents=agents,
-                          skydive=self.skydive)
+        self.roles.update(analyzers=analyzers, agents=agents, skydive=self.skydive)
 
         self.extra_vars = {}
         self.extra_vars.update(DEFAULT_VARS)
@@ -66,16 +58,23 @@ class Skydive(Service):
             self.extra_vars.update(skydive_fabric=self.fabric_opts)
 
     def build_fabric(self):
-
         def fabric_for_role(network_role, desc):
             fabric = []
             for agent in self.agents:
                 device = agent.extra.get("%s_dev" % network_role)
                 if device is not None:
-                    local_port = "%s_%s" % (network_role, agent.address)
-                    infos = "cidr=%s, gateway=%s, dns=%s" % (desc["cidr"], desc["gateway"], desc["dns"])
-                    fabric.append("%s[%s] -> %s" % (network_role, infos , local_port))
-                    fabric.append("%s -> *[Type=host, Hostname=%s]/%s" % (local_port, agent.address, device))
+                    infos = "cidr=%s, gateway=%s, dns=%s" % (
+                        desc["cidr"],
+                        desc["gateway"],
+                        desc["dns"],
+                    )
+                    infos = "%s, roles=%s" % (infos, "-".join(desc["roles"]))
+                    local_port = "%s-%s" % (network_role, int(len(fabric) / 2))
+                    fabric.append("%s[%s] -> %s" % (desc["cidr"], infos, local_port))
+                    fabric.append(
+                        "%s -> *[Type=host, Hostname=%s]/%s"
+                        % (local_port, agent.address, device)
+                    )
             return fabric
 
         if self.networks is None:
@@ -85,16 +84,17 @@ class Skydive(Service):
         for n in self.networks:
             roles = n["roles"]
             for role in roles:
+                # we use the first role to be able to get the associated device
                 fabric.extend(fabric_for_role(role, n))
+                break
         return fabric
-
 
     def deploy(self):
         # Some requirements
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.apt(
                 display_name="[Preinstall] Installing python-pip",
-                name="python-pip",
+                name=["python3", "python-pip", "python3-pip"],
                 state="present",
                 update_cache=True,
             )
