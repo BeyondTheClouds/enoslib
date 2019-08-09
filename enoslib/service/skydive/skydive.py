@@ -77,10 +77,10 @@ class Skydive(Service):
                     )
             return fabric
 
-        if self.networks is None:
-            return {}
-
         fabric = []
+        if self.networks is None:
+            return fabric
+
         for n in self.networks:
             roles = n["roles"]
             for role in roles:
