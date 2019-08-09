@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.2.4
+-----
+
+* Skydive: Fix topology discovery
+* Doc: Fix ``pattern_hosts`` kwargs
+
 4.2.3
 -----
 
