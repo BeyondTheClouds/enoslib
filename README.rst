@@ -1,7 +1,7 @@
 EnosLib
 =======
 
-|Build Status| |License| |Pypi| |Coverage|
+|Build Status| |License| |Pypi|
 
 Join us on gitter :  |Gitter|
 
