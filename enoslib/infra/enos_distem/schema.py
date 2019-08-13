@@ -20,6 +20,8 @@ SCHEMA = {
         "strategy": {"type": "string", "enum": STRATEGY},
         "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
         "working_dir": {"type": "string"},
+        ###
+        "force_deploy": {"type": "boolean"}
     },
     "additionalProperties": False,
     "required": ["resources"],

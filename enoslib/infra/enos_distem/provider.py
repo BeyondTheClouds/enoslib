@@ -14,7 +14,10 @@ from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import PLAYBOOK_PATH
+from .constants import (COORDINATOR_ROLE,
+                        FILE_DISTEMD_LOGS,
+                        PATH_DISTEMD_LOGS,
+                        PROVIDER_PATH)
 from ..provider import Provider
 
 logger = logging.getLogger(__name__)
@@ -95,6 +98,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
         walltime=distemong5k_conf.walltime,
         queue=distemong5k_conf.queue,
         job_type="deploy",
+        force_deploy=distemong5k_conf.force_deploy
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site
@@ -215,9 +219,37 @@ def write_file_providers(provider_names):
 
 
 def distem_bootstrap(roles):
-    # _user = g5k_api_utils.get_api_username()
-    _user = "msimonin"
-    import ipdb; ipdb.set_trace()
+    _user = g5k_api_utils.get_api_username()
+    # TODO: generate keys on the fly
+    keys_path = os.path.join(PROVIDER_PATH, "keys")
+    private = os.path.join(keys_path, "id_rsa")
+    public = os.path.join(keys_path, "id_rsa.pub")
+    with play_on(roles=roles) as p:
+        # p.copy(dest="/root/.ssh/id_rsa", src=private)
+        # p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
+
+        ## instal Distem from the debian package
+        p.apt_repository(repo="deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./",
+                         update_cache="no", state="present")
+        p.shell("apt-get update")
+        p.apt(name="distem",
+              state="present",
+              allow_unauthenticated="yes",
+              force="yes",
+              force_apt_get="yes" )
+
+    coordinator = roles[COORDINATOR_ROLE][0]
+    # kill coordinator on any nodes
+    with play_on(roles=roles) as p:
+        p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
+        p.wait_for(state="stopped", port=4567)
+        p.wait_for(state="stopped", port=4568)
+
+    with play_on(pattern_hosts=coordinator.alias, roles=roles) as p:
+        p.file(state="directory", dest=PATH_DISTEMD_LOGS)
+        p.shell("LANG=C distemd --verbose -d &>%s" % FILE_DISTEMD_LOGS)
+        p.wait_for(state="started", port=4567, timeout=60, ignore_errors=True)
+        p.wait_for(state="started", port=4568, timeout=60, ignore_errors=True)
 
 
 class Container(Host):
@@ -260,7 +292,7 @@ class Distem(Provider):
 
         distem_bootstrap(g5k_roles)
         # roles, networks = start_containers(self.provider_conf, g5k_subnets)
-        return roles, networks
+        # return roles, networks
 
     def destroy(self):
         pass

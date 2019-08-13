@@ -12,6 +12,7 @@ from .constants import (
     DEFAULT_SUBNET_TYPE,
     DEFAULT_WALLTIME,
     DEFAULT_WORKING_DIR,
+    DEFAULT_FORCE_DEPLOY,
     FLAVOURS,
 )
 from .schema import SCHEMA
@@ -33,6 +34,8 @@ class Configuration(BaseConfiguration):
         self.strategy = DEFAULT_STRATEGY
         self.subnet_type = DEFAULT_SUBNET_TYPE
         self.working_dir = DEFAULT_WORKING_DIR
+        ###
+        self.force_deploy = DEFAULT_FORCE_DEPLOY
 
         self._machine_cls = MachineConfiguration
         self._network_cls = str
