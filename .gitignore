@@ -1,5 +1,5 @@
 utest.xml
-enos_*
+/enos_*
 cachedir
 .vscode
 .vagrant
