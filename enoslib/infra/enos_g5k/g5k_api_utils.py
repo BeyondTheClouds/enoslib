@@ -464,6 +464,16 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
     gk.sites[site].vlans[str(vlan_id)].submit({"nodes": network_addresses})
 
 
+def get_api_username():
+    """Return username of client
+
+    Returns:
+        client's username
+    """
+    gk = get_api_client()
+    return gk.username
+
+
 @ring.disk(storage)
 def get_all_sites_obj():
     """Return the list of the sites.
