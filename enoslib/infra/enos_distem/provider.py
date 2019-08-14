@@ -17,6 +17,7 @@ import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import (COORDINATOR_ROLE,
                         FILE_DISTEMD_LOGS,
                         PATH_DISTEMD_LOGS,
+                        PLAYBOOK_PATH,
                         PROVIDER_PATH)
 from ..provider import Provider
 
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def start_containers(provider_conf, g5k_subnets):
-    """Starts virtualmachines on G5K.
+    """Starts containers on G5K.
 
     Args:
         provider_conf(Configuration):
@@ -56,7 +57,11 @@ def start_containers(provider_conf, g5k_subnets):
         extra.update(gateway_user=provider_conf.gateway_user)
 
     distemong5k_roles = _distribute(provider_conf.machines, g5k_subnets, extra=extra)
-
+    
+    print('XX')
+    print('distem_roles : %s' %distemong5k_roles)
+    print('provider_conf = %s'%provider_conf)
+    
     _start_containers(provider_conf, distemong5k_roles)
 
     return _to_hosts(distemong5k_roles), g5k_subnets
@@ -218,6 +223,14 @@ def write_file_providers(provider_names):
                     f.write(provid + "\n")
 
 
+def get_controller(roles):
+    roles_address=[]
+    for _, machines in roles.items():
+        for machine in machines:
+            roles_address.append(machine)
+    return(sorted(roles_address, key=lambda n: n.address)[0])
+
+
 def distem_bootstrap(roles):
     _user = g5k_api_utils.get_api_username()
     # TODO: generate keys on the fly
@@ -241,7 +254,7 @@ def distem_bootstrap(roles):
         # see below
         p.apt(name="tmux", state="present")
 
-    coordinator = roles[COORDINATOR_ROLE][0]
+    coordinator = get_controller(roles)
     # kill coordinator on any nodes
     with play_on(roles=roles) as p:
         p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
@@ -294,14 +307,8 @@ class Distem(Provider):
         g5k_roles, g5k_networks = g5k_provider.init()
         g5k_subnets = [n for n in g5k_networks if "__subnet__" in n["roles"]]
 
-        # we concretize the virtualmachines
-        for machine in self.provider_conf.machines:
-            pms = g5k_roles[machine.cookie]
-            machine.undercloud = pms
-
-        distem_bootstrap(g5k_roles)
-        # roles, networks = start_containers(self.provider_conf, g5k_subnets)
-        # return roles, networks
+        # distem_bootstrap(g5k_roles)
+        roles, networks = start_containers(self.provider_conf, g5k_subnets)
 
     def destroy(self):
         pass
