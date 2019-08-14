@@ -225,8 +225,9 @@ def distem_bootstrap(roles):
     private = os.path.join(keys_path, "id_rsa")
     public = os.path.join(keys_path, "id_rsa.pub")
     with play_on(roles=roles) as p:
-        # p.copy(dest="/root/.ssh/id_rsa", src=private)
-        # p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
+        p.copy(dest="/root/.ssh/id_rsa", src=private)
+        p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
+        p.lineinfile(path="/root/.ssh/authorized_keys", line=public, regexp=public)
 
         ## instal Distem from the debian package
         p.apt_repository(repo="deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./",
@@ -237,6 +238,8 @@ def distem_bootstrap(roles):
               allow_unauthenticated="yes",
               force="yes",
               force_apt_get="yes" )
+        # see below
+        p.apt(name="tmux", state="present")
 
     coordinator = roles[COORDINATOR_ROLE][0]
     # kill coordinator on any nodes
@@ -247,9 +250,13 @@ def distem_bootstrap(roles):
 
     with play_on(pattern_hosts=coordinator.alias, roles=roles) as p:
         p.file(state="directory", dest=PATH_DISTEMD_LOGS)
-        p.shell("LANG=C distemd --verbose -d &>%s" % FILE_DISTEMD_LOGS)
-        p.wait_for(state="started", port=4567, timeout=60, ignore_errors=True)
-        p.wait_for(state="started", port=4568, timeout=60, ignore_errors=True)
+        # nohup starts distem but 4568 is unreachable (and init-pnodes returns
+        # nil) The only thing I found is to start distem in a tmux session...
+        # this is weird because distem-bootstrap seems to start correctly
+        # distem over SSH without any trouble
+        p.shell("tmux new-session -d \"exec distemd --verbose -d\"")
+        p.wait_for(state="started", port=4567, timeout=10)
+        p.wait_for(state="started", port=4568, timeout=10)
 
 
 class Container(Host):
