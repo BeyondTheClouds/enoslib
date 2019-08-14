@@ -257,6 +257,8 @@ def distem_bootstrap(roles):
         p.shell("tmux new-session -d \"exec distemd --verbose -d\"")
         p.wait_for(state="started", port=4567, timeout=10)
         p.wait_for(state="started", port=4568, timeout=10)
+    with play_on(roles=roles) as p:
+        p.shell("distem --coordinator host=%s --init-pnode {{ inventory_hostname }}" %(coordinator.address))
 
 
 class Container(Host):
