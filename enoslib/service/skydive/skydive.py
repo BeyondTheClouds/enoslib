@@ -73,7 +73,7 @@ class Skydive(Service):
                     fabric.append("%s[%s] -> %s" % (desc["cidr"], infos, local_port))
                     fabric.append(
                         "%s -> *[Type=host, Hostname=%s]/%s"
-                        % (local_port, agent.address, device)
+                        % (local_port, agent.alias, device)
                     )
             return fabric
 
