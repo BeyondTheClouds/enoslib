@@ -9,6 +9,8 @@ from copy import deepcopy
 
 from netaddr import EUI, mac_unix_expanded
 
+from distem import Pip_Distem
+
 from enoslib.api import run_ansible, play_on
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
@@ -50,19 +52,45 @@ def start_containers(provider_conf, g5k_subnets):
             _roles[role] = [m.to_host() for m in machines]
         return _roles
 
+    '''
     extra = {}
     if provider_conf.gateway:
         extra.update(gateway=provider_conf.gateway)
     if provider_conf.gateway_user:
         extra.update(gateway_user=provider_conf.gateway_user)
 
-    distemong5k_roles = _distribute(provider_conf.machines, g5k_subnets, extra=extra)
+    for machine in provider_conf.machines:
+        machine.number # Nb de machine dans l'ordre du test
+        machine.undercloud # Host avec adresse, dans l'ordre
+        machine_roles : ['compute', '630d4b1d27e041cb966d9f417faf30e0']
+        machine_flavour_desc : {'core': 1, 'mem': 512}
+        machine_cluster : parapide
+
+    distem_roles : {'compute': [Host(container-compute-0, address=10.158.4.2)],
+        '77683856df864ecc8b4b5793b7b6de6d':
+        [Host(container-compute-0, address=10.158.4.2)],
+        'controller': [Host(container-controller-0, address=10.158.4.3),
+        Host(container-controller-1,address=10.158.4.4),
+        Host(container-controller-2, address=10.158.4.5),
+        Host(container-controller-3, address=10.158.4.6),
+        Host(container-controller-4, address=10.158.4.7)],
+        'ae6a4846338147dd971e02400821f49d':
+        [Host(container-controller-0, address=10.158.4.3),
+        Host(container-controller-1, address=10.158.4.4),
+        Host(container-controller-2, address=10.158.4.5),
+        Host(container-controller-3, address=10.158.4.6),
+        Host(container-controller-4, address=10.158.4.7)]}
+
+
+    distemong5k_roles = _distribute(provider_conf.machines, g5k_subnets)
+    '''
     
-    print('XX')
-    print('distem_roles : %s' %distemong5k_roles)
-    print('provider_conf = %s'%provider_conf)
-    
-    _start_containers(provider_conf, distemong5k_roles)
+    # Voir pour l'emplacement de l'image
+    # Voir pour les clefs - Créer de nouvelles ?
+    # Voir pour la valeur de retour de start_containers
+    # Non utilisation de _distribute (voir pour répartir tous les vnodes
+
+    _start_containers(provider_conf)
 
     return _to_hosts(distemong5k_roles), g5k_subnets
 
@@ -140,72 +168,54 @@ def _build_g5k_conf(distemong5k_conf):
     return _do_build_g5k_conf(distemong5k_conf, site)
 
 
-def _build_static_hash(roles, cookie):
-    md5 = hashlib.md5()
-    _roles = [r for r in roles if r != cookie]
-    for r in _roles:
-        md5.update(r.encode())
-    return md5.hexdigest()
-
-
+'''
 def _distribute(machines, g5k_subnets, extra=None):
     distemong5k_roles = defaultdict(list)
     euis = _mac_range(g5k_subnets)
-    static_hashes = {}
     for machine in machines:
         pms = machine.undercloud
         pms_it = itertools.cycle(pms)
+        roles_name = machine.roles[0]
         for idx in range(machine.number):
-            static_hash = _build_static_hash(machine.roles, machine.cookie)
-            static_hashes.setdefault(static_hash, 0)
-            static_hashes[static_hash] = static_hashes[static_hash] + 1
-            name = "vm-{}-{}-{}".format(static_hash, static_hashes[static_hash], idx)
+            name = "container-{}-{}".format(roles_name, idx)
             pm = next(pms_it)
             cont = Container(name, next(euis), machine.flavour_desc, pm, extra=extra)
 
             for role in machine.roles:
                 distemong5k_roles[role].append(cont)
     return dict(distemong5k_roles)
+'''
 
 
-def _index_by_host(roles):
-    containers_by_host = defaultdict(set)
-    for containers in roles.values():
-        for cont in containers:
-            host = cont.pm
-            # Two vms are equal if they have the same euis
-            containers_by_host[host.alias].add(cont)
-    # now serialize all the thing
-    conts_by_host = defaultdict(list)
-    for host, containers in containers_by_host.items():
-        for cont in containers:
-            conts_by_host[host].append(cont.to_dict())
+def _start_containers(provider_conf):
 
-    return dict(conts_by_host)
+    distem = Pip_Distem()
+    FSIMG = "file:///home/rolivo/distem_img/distem-fs-jessie.tar.gz"
+    PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
+    PUB_KEY = "%s.pub" % PRIV_KEY
 
+    private_key = open(os.path.expanduser(PRIV_KEY)).read()
+    public_key = open(os.path.expanduser(PUB_KEY)).read()
 
-def _start_containers(provider_conf, distemong5k_roles):
-    containers_by_host = _index_by_host(distemong5k_roles)
-
-    extra_vars = {
-        "vms": containers_by_host,
-        "base_image": provider_conf.image,
-        # push the g5k user in the env
-        "g5k_user": os.environ.get("USER"),
-        "working_dir": provider_conf.working_dir,
-        "strategy": provider_conf.strategy,
-        "enable_taktuk": provider_conf.enable_taktuk,
+    sshkeys = {
+        "public" : public_key,
+        "private" : private_key
     }
-    # pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
-    # generate_inventory(*g5k_init, pm_inventory_path)
-    # deploy virtual machines with ansible playbook
-    all_pms = []
+    nodelist = []
+
     for machine in provider_conf.machines:
-        all_pms.extend(machine.undercloud)
-    all_pms = {"all": all_pms}
-
-    run_ansible([PLAYBOOK_PATH], roles=all_pms, extra_vars=extra_vars)
-
+        pm = machine.undercloud[0]
+        roles_name = machine.roles[0]
+        nb = 0
+        for idx in range(machine.number):
+            name = "node-%s-%s"%(roles_name, idx)
+            nodelist.append(name)
+            create = distem.vnode_create(name,
+                        {'host': pm.address}, sshkeys)
+            fs = distem.vfilesystem_create(name,
+                                {'image': FSIMG})
+    sta = distem.vnodes_start(nodelist)
+    
 
 def find_address(roles):
     provider_names=set([])
@@ -223,7 +233,7 @@ def write_file_providers(provider_names):
                     f.write(provid + "\n")
 
 
-def get_controller(roles):
+def _get_controller(roles):
     roles_address=[]
     for _, machines in roles.items():
         for machine in machines:
@@ -254,7 +264,7 @@ def distem_bootstrap(roles):
         # see below
         p.apt(name="tmux", state="present")
 
-    coordinator = get_controller(roles)
+    coordinator = _get_controller(roles)
     # kill coordinator on any nodes
     with play_on(roles=roles) as p:
         p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
@@ -275,7 +285,7 @@ def distem_bootstrap(roles):
 
 
 class Container(Host):
-    """Internal data structure to manipulate virtual machines."""
+    """Internal data structure to manipulate containers"""
 
     def __init__(self, name, eui, flavour_desc, pm, extra=None):
         super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra)
@@ -307,7 +317,12 @@ class Distem(Provider):
         g5k_roles, g5k_networks = g5k_provider.init()
         g5k_subnets = [n for n in g5k_networks if "__subnet__" in n["roles"]]
 
-        # distem_bootstrap(g5k_roles)
+        # we concretize the virtualmachines
+        for machine in self.provider_conf.machines:
+            pms = g5k_roles[machine.cookie]
+            machine.undercloud = pms
+
+        distem_bootstrap(g5k_roles)
         roles, networks = start_containers(self.provider_conf, g5k_subnets)
 
     def destroy(self):
