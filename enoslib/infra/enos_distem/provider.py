@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from netaddr import EUI, mac_unix_expanded
 
-from distem import Pip_Distem
+from distem import Distem as Pip_Distem
 
 from enoslib.api import run_ansible, play_on
 from enoslib.host import Host
@@ -189,7 +189,7 @@ def _distribute(machines, g5k_subnets, extra=None):
 
 def _start_containers(provider_conf):
 
-    distem = Pip_Distem()
+    distem = Pip_Distem
     FSIMG = "file:///home/rolivo/distem_img/distem-fs-jessie.tar.gz"
     PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
     PUB_KEY = "%s.pub" % PRIV_KEY
