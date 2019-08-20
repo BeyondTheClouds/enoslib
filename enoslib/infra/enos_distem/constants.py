@@ -6,7 +6,7 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 ######
-DEFAULT_JOB_NAME = "EnOslib-vmong5k"
+DEFAULT_JOB_NAME = "EnOslib-distem"
 DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"
 DEFAULT_IMAGE = "/grid5000/virt-images/debian9-x64-base.qcow2"
@@ -29,9 +29,7 @@ DEFAULT_NETWORKS = ["enos_network"]
 
 DEFAULT_NUMBER = 1
 
-DEFAULT_WORKING_DIR = "/tmp/enos_vmong5k"
-
-DEFAULT_STRATEGY = "cow"
+DEFAULT_WORKING_DIR = "/tmp/enos_distem"
 
 DEFAULT_SUBNET_TYPE = SLASH_22
 

@@ -8,7 +8,6 @@ from .constants import (
     DEFAULT_NETWORKS,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
-    DEFAULT_STRATEGY,
     DEFAULT_SUBNET_TYPE,
     DEFAULT_WALLTIME,
     DEFAULT_WORKING_DIR,
@@ -24,14 +23,12 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.enable_taktuk = False
         self.gateway = None
         self.gateway_user = None
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE
         self.walltime = DEFAULT_WALLTIME
         self.image = DEFAULT_IMAGE
-        self.strategy = DEFAULT_STRATEGY
         self.subnet_type = DEFAULT_SUBNET_TYPE
         self.working_dir = DEFAULT_WORKING_DIR
         ###
