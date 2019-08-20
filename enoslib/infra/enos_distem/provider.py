@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-from ipaddress import IPv4Address
+from copy import deepcopy
 import hashlib
+from ipaddress import IPv4Address
 import itertools
 import logging
 import os
-from copy import deepcopy
-
-from netaddr import EUI, mac_unix_expanded
 
 import distem as d
+from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible, play_on
 from enoslib.host import Host
@@ -20,16 +19,19 @@ from .constants import (COORDINATOR_ROLE,
                         FILE_DISTEMD_LOGS,
                         PATH_DISTEMD_LOGS,
                         PLAYBOOK_PATH,
-                        PROVIDER_PATH)
+                        PROVIDER_PATH,
+                        SUBNET_NAME)
 from ..provider import Provider
+
 
 logger = logging.getLogger(__name__)
 
 
-def start_containers(provider_conf, g5k_subnets):
+def start_containers(g5k_roles, provider_conf, g5k_subnets):
     """Starts containers on G5K.
 
     Args:
+        g5k_roles (dict): physical machines to start the containers on.
         provider_conf(Configuration):
             :py:class:`enoslib.infra.enos_distem.configuraton.Configuration`
             This is the abstract description of your overcloud (VMs). Each
@@ -46,68 +48,16 @@ def start_containers(provider_conf, g5k_subnets):
 
     """
 
-    def _to_hosts(roles):
-        _roles = {}
-        for role, machines in roles.items():
-            _roles[role] = [m.to_host() for m in machines]
-        return _roles
-
-    '''
-    extra = {}
-    if provider_conf.gateway:
-        extra.update(gateway=provider_conf.gateway)
-    if provider_conf.gateway_user:
-        extra.update(gateway_user=provider_conf.gateway_user)
-
-    for machine in provider_conf.machines:
-        machine.number # Nb de machine dans l'ordre du test
-        machine.undercloud # Host avec adresse, dans l'ordre
-        machine_roles : ['compute', '630d4b1d27e041cb966d9f417faf30e0']
-        machine_flavour_desc : {'core': 1, 'mem': 512}
-        machine_cluster : parapide
-
-    distem_roles : {'compute': [Host(container-compute-0, address=10.158.4.2)],
-        '77683856df864ecc8b4b5793b7b6de6d':
-        [Host(container-compute-0, address=10.158.4.2)],
-        'controller': [Host(container-controller-0, address=10.158.4.3),
-        Host(container-controller-1,address=10.158.4.4),
-        Host(container-controller-2, address=10.158.4.5),
-        Host(container-controller-3, address=10.158.4.6),
-        Host(container-controller-4, address=10.158.4.7)],
-        'ae6a4846338147dd971e02400821f49d':
-        [Host(container-controller-0, address=10.158.4.3),
-        Host(container-controller-1, address=10.158.4.4),
-        Host(container-controller-2, address=10.158.4.5),
-        Host(container-controller-3, address=10.158.4.6),
-        Host(container-controller-4, address=10.158.4.7)]}
-
-
-    distemong5k_roles = _distribute(provider_conf.machines, g5k_subnets)
-    '''
-    
     # Voir pour l'emplacement de l'image
     # Voir pour les clefs - Créer de nouvelles ?
     # Voir pour la valeur de retour de start_containers
     # Non utilisation de _distribute (voir pour répartir tous les vnodes
+    coordinator = distem_bootstrap(g5k_roles)
 
-    _start_containers(provider_conf)
+    # For now we only consider a single subnet
+    distem_roles = _start_containers(coordinator, provider_conf, g5k_subnets[0])
 
-    return _to_hosts(distemong5k_roles), g5k_subnets
-
-
-def _get_subnet_ip(mac):
-    # This is the format allowed on G5K for subnets
-    address = ["10"] + [str(int(i, 2)) for i in mac.bits().split("-")[-3:]]
-    return IPv4Address(".".join(address))
-
-
-def _mac_range(g5k_subnets, step=1):
-    for g5k_subnet in g5k_subnets:
-        start = EUI(g5k_subnet["mac_start"])
-        stop = EUI(g5k_subnet["mac_end"])
-        for item in range(int(start) + 1, int(stop), step):
-            yield EUI(item, dialect=mac_unix_expanded)
-    raise StopIteration
+    return distem_roles, g5k_subnets
 
 
 def _get_host_cores(cluster):
@@ -168,29 +118,12 @@ def _build_g5k_conf(distemong5k_conf):
     return _do_build_g5k_conf(distemong5k_conf, site)
 
 
-'''
-def _distribute(machines, g5k_subnets, extra=None):
-    distemong5k_roles = defaultdict(list)
-    euis = _mac_range(g5k_subnets)
-    for machine in machines:
-        pms = machine.undercloud
-        pms_it = itertools.cycle(pms)
-        roles_name = machine.roles[0]
-        for idx in range(machine.number):
-            name = "container-{}-{}".format(roles_name, idx)
-            pm = next(pms_it)
-            cont = Container(name, next(euis), machine.flavour_desc, pm, extra=extra)
-
-            for role in machine.roles:
-                distemong5k_roles[role].append(cont)
-    return dict(distemong5k_roles)
-'''
-
-
-def _start_containers(provider_conf):
-
-    distem = Pip_Distem
-    FSIMG = "file:///home/rolivo/distem_img/distem-fs-jessie.tar.gz"
+def _start_containers(coordinator, provider_conf, g5k_subnet):
+    roles = defaultdict(list)
+    distem = d.Distem()
+    import ipdb; ipdb.set_trace()
+    # distem = d.Distem(serveraddr=coordinator.address)
+    FSIMG = "file:///home/msimonin/public/distem-fs-jessie.tar.gz"
     PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
     PUB_KEY = "%s.pub" % PRIV_KEY
 
@@ -201,44 +134,48 @@ def _start_containers(provider_conf):
         "public" : public_key,
         "private" : private_key
     }
-    nodelist = []
 
+    # handle external access to the containers
+    # Currently we need to jump through the coordinator
+    # NOTE(msimonin): is there a way in distem to make the vnode reachable from
+    # outside directly ? extra = {}
+    extra.update(gateway=coordinator.address)
+    extra.update(gateway_user="root")
+
+    distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
+    total = 0
     for machine in provider_conf.machines:
-        pm = machine.undercloud[0]
+        pms = machine.undercloud
+        pms_it = itertools.cycle(pms)
         roles_name = machine.roles[0]
-        nb = 0
         for idx in range(machine.number):
-            name = "node-%s-%s"%(roles_name, idx)
-            nodelist.append(name)
+            pm = next(pms_it)
+            name = "vnode-%s" % total
             create = distem.vnode_create(name,
-                        {'host': pm.address}, sshkeys)
+                        {"host": pm.address}, sshkeys)
             fs = distem.vfilesystem_create(name,
-                                {'image': FSIMG})
-    sta = distem.vnodes_start(nodelist)
-    
+                                {"image": FSIMG})
+            network = distem.viface_create(name,
+                                           "if0",
+                                           {"vnetwork": SUBNET_NAME, "default":  "true"})
+            result = distem.vnode_start(name)
+            for role in machine.roles:
+                # We have to remove the cidr suffix ...
+                roles[role].append(Host(network["address"].split("/")[0],
+                                   user="root",
+                                   keyfile=PRIV_KEY,
+                                   extra=extra))
+            total = total + 1
 
-def find_address(roles):
-    provider_names=set([])
-    for pnodes in roles:
-        hosts = roles[pnodes]
-        for host in hosts:
-            provider_names.add(host.address)
-    return provider_names
-
-
-def write_file_providers(provider_names):
-    with open('provider_names', "w"):
-            for provid in provider_names:
-                with open('provider_names', "a") as f:
-                    f.write(provid + "\n")
+    return dict(roles)
 
 
 def _get_controller(roles):
-    roles_address=[]
+    all_hosts = []
     for _, machines in roles.items():
         for machine in machines:
-            roles_address.append(machine)
-    return(sorted(roles_address, key=lambda n: n.address)[0])
+            all_hosts.append(machine)
+    return(sorted(all_hosts, key=lambda n: n.address)[0])
 
 
 def distem_bootstrap(roles):
@@ -283,6 +220,8 @@ def distem_bootstrap(roles):
     with play_on(roles=roles) as p:
         p.shell("distem --coordinator host=%s --init-pnode {{ inventory_hostname }}" %(coordinator.address))
 
+    return coordinator
+
 
 class Container(Host):
     """Internal data structure to manipulate containers"""
@@ -322,8 +261,8 @@ class Distem(Provider):
             pms = g5k_roles[machine.cookie]
             machine.undercloud = pms
 
-        distem_bootstrap(g5k_roles)
-        roles, networks = start_containers(self.provider_conf, g5k_subnets)
+        roles, networks = start_containers(g5k_roles, self.provider_conf, g5k_subnets)
+        return roles, networks
 
     def destroy(self):
         pass

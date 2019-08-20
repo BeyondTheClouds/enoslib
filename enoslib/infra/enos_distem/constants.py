@@ -38,3 +38,4 @@ DEFAULT_FORCE_DEPLOY = False
 COORDINATOR_ROLE = "coordinator"
 PATH_DISTEMD_LOGS = "/var/log/distem"
 FILE_DISTEMD_LOGS = os.path.join(PATH_DISTEMD_LOGS, "distemd-coord.log")
+SUBNET_NAME = "enoslib_distem_network"
