@@ -9,7 +9,7 @@ from copy import deepcopy
 
 from netaddr import EUI, mac_unix_expanded
 
-from distem import Distem as Pip_Distem
+import distem as d
 
 from enoslib.api import run_ansible, play_on
 from enoslib.host import Host
