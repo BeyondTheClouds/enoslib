@@ -10,7 +10,7 @@ import os
 import distem as d
 from netaddr import EUI, mac_unix_expanded
 
-from enoslib.api import run_ansible, play_on
+from enoslib.api import run_ansible, play_on, run_command
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -51,11 +51,12 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     # Voir pour l'emplacement de l'image
     # Voir pour les clefs - Créer de nouvelles ?
     # Voir pour la valeur de retour de start_containers
-    # Non utilisation de _distribute (voir pour répartir tous les vnodes
-    coordinator = distem_bootstrap(g5k_roles)
+    # Non utilisation de _distribute
+    distem = d.Distem()
+    coordinator = distem_bootstrap(g5k_roles, distem)
 
     # For now we only consider a single subnet
-    distem_roles = _start_containers(coordinator, provider_conf, g5k_subnets[0])
+    distem_roles = _start_containers(coordinator, provider_conf, g5k_subnets[0], distem)
 
     return distem_roles, g5k_subnets
 
@@ -118,12 +119,10 @@ def _build_g5k_conf(distemong5k_conf):
     return _do_build_g5k_conf(distemong5k_conf, site)
 
 
-def _start_containers(coordinator, provider_conf, g5k_subnet):
+def _start_containers(coordinator, provider_conf, g5k_subnet, distem):
     roles = defaultdict(list)
-    distem = d.Distem()
-    import ipdb; ipdb.set_trace()
-    # distem = d.Distem(serveraddr=coordinator.address)
-    FSIMG = "file:///home/msimonin/public/distem-fs-jessie.tar.gz"
+    # distem = d.Distem(serveraddr=coordinator)
+    FSIMG = "file:///home/rolivo/public/distem-fs-jessie.tar.gz"
     PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
     PUB_KEY = "%s.pub" % PRIV_KEY
 
@@ -139,7 +138,8 @@ def _start_containers(coordinator, provider_conf, g5k_subnet):
     # Currently we need to jump through the coordinator
     # NOTE(msimonin): is there a way in distem to make the vnode reachable from
     # outside directly ? extra = {}
-    extra.update(gateway=coordinator.address)
+    extra = {}
+    extra.update(gateway=coordinator)
     extra.update(gateway_user="root")
 
     distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
@@ -170,20 +170,23 @@ def _start_containers(coordinator, provider_conf, g5k_subnet):
     return dict(roles)
 
 
-def _get_controller(roles):
-    all_hosts = []
+def _get_all_hosts(roles):
+    all_hosts = set([])
     for _, machines in roles.items():
         for machine in machines:
-            all_hosts.append(machine)
-    return(sorted(all_hosts, key=lambda n: n.address)[0])
+            all_hosts.add(machine.address)
+    return(sorted(all_hosts, key=lambda n: n))
 
 
-def distem_bootstrap(roles):
+def distem_bootstrap(roles, distem):
     _user = g5k_api_utils.get_api_username()
     # TODO: generate keys on the fly
     keys_path = os.path.join(PROVIDER_PATH, "keys")
     private = os.path.join(keys_path, "id_rsa")
     public = os.path.join(keys_path, "id_rsa.pub")
+
+    coordinator = _get_all_hosts(roles)[0]
+
     with play_on(roles=roles) as p:
         p.copy(dest="/root/.ssh/id_rsa", src=private)
         p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
@@ -197,18 +200,18 @@ def distem_bootstrap(roles):
               state="present",
               allow_unauthenticated="yes",
               force="yes",
-              force_apt_get="yes" )
+              force_apt_get="yes")
         # see below
         p.apt(name="tmux", state="present")
 
-    coordinator = _get_controller(roles)
     # kill coordinator on any nodes
     with play_on(roles=roles) as p:
         p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)
 
-    with play_on(pattern_hosts=coordinator.alias, roles=roles) as p:
+    # Echec du run command ici
+    with play_on(pattern_hosts=coordinator, roles=roles) as p:
         p.file(state="directory", dest=PATH_DISTEMD_LOGS)
         # nohup starts distem but 4568 is unreachable (and init-pnodes returns
         # nil) The only thing I found is to start distem in a tmux session...
@@ -217,8 +220,9 @@ def distem_bootstrap(roles):
         p.shell("tmux new-session -d \"exec distemd --verbose -d\"")
         p.wait_for(state="started", port=4567, timeout=10)
         p.wait_for(state="started", port=4568, timeout=10)
-    with play_on(roles=roles) as p:
-        p.shell("distem --coordinator host=%s --init-pnode {{ inventory_hostname }}" %(coordinator.address))
+    
+    
+    distem.pnode_init(_get_all_hosts(roles))
 
     return coordinator
 
