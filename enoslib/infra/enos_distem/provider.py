@@ -52,11 +52,10 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     # Voir pour les clefs - Créer de nouvelles ?
     # Voir pour la valeur de retour de start_containers
     # Non utilisation de _distribute
-    distem = d.Distem()
-    coordinator = distem_bootstrap(g5k_roles, distem)
+    distem = distem_bootstrap(g5k_roles)
 
     # For now we only consider a single subnet
-    distem_roles = _start_containers(coordinator, provider_conf, g5k_subnets[0], distem)
+    distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem)
 
     return distem_roles, g5k_subnets
 
@@ -119,9 +118,8 @@ def _build_g5k_conf(distemong5k_conf):
     return _do_build_g5k_conf(distemong5k_conf, site)
 
 
-def _start_containers(coordinator, provider_conf, g5k_subnet, distem):
+def _start_containers(provider_conf, g5k_subnet, distem):
     roles = defaultdict(list)
-    # distem = d.Distem(serveraddr=coordinator)
     FSIMG = "file:///home/rolivo/public/distem-fs-jessie.tar.gz"
     PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
     PUB_KEY = "%s.pub" % PRIV_KEY
@@ -139,7 +137,7 @@ def _start_containers(coordinator, provider_conf, g5k_subnet, distem):
     # NOTE(msimonin): is there a way in distem to make the vnode reachable from
     # outside directly ? extra = {}
     extra = {}
-    extra.update(gateway=coordinator)
+    extra.update(gateway=distem.servaddr)
     extra.update(gateway_user="root")
 
     distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
@@ -178,7 +176,7 @@ def _get_all_hosts(roles):
     return(sorted(all_hosts, key=lambda n: n))
 
 
-def distem_bootstrap(roles, distem):
+def distem_bootstrap(roles):
     _user = g5k_api_utils.get_api_username()
     # TODO: generate keys on the fly
     keys_path = os.path.join(PROVIDER_PATH, "keys")
@@ -186,14 +184,22 @@ def distem_bootstrap(roles, distem):
     public = os.path.join(keys_path, "id_rsa.pub")
 
     coordinator = _get_all_hosts(roles)[0]
+    distem = d.Distem(coordinator)
+    got_pnodes = False
+
+    try:
+        got_pnodes = distem.pnodes_info()
+    except:
+        logger.error("No pnodes detected - Not critical")
 
     with play_on(roles=roles) as p:
         p.copy(dest="/root/.ssh/id_rsa", src=private)
         p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
         p.lineinfile(path="/root/.ssh/authorized_keys", line=public, regexp=public)
 
+        repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
         ## instal Distem from the debian package
-        p.apt_repository(repo="deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./",
+        p.apt_repository(repo=repo,
                          update_cache="no", state="present")
         p.shell("apt-get update")
         p.apt(name="distem",
@@ -203,14 +209,17 @@ def distem_bootstrap(roles, distem):
               force_apt_get="yes")
         # see below
         p.apt(name="tmux", state="present")
+        p.apt_repository(repo=repo,
+                         update_cache="no", state="absent")
 
-    # kill coordinator on any nodes
+    if got_pnodes:
+        distem.pnodes_quit()
+
     with play_on(roles=roles) as p:
         p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)
 
-    # Echec du run command ici
     with play_on(pattern_hosts=coordinator, roles=roles) as p:
         p.file(state="directory", dest=PATH_DISTEMD_LOGS)
         # nohup starts distem but 4568 is unreachable (and init-pnodes returns
@@ -224,7 +233,7 @@ def distem_bootstrap(roles, distem):
     
     distem.pnode_init(_get_all_hosts(roles))
 
-    return coordinator
+    return distem
 
 
 class Container(Host):
