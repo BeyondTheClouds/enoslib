@@ -51,7 +51,7 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     # Voir pour l'emplacement de l'image
     # Voir pour les clefs - Créer de nouvelles ?
     # Voir pour la valeur de retour de start_containers
-    # Non utilisation de _distribute
+
     distem = distem_bootstrap(g5k_roles)
 
     # For now we only consider a single subnet
@@ -137,8 +137,6 @@ def _start_containers(provider_conf, g5k_subnet, distem):
     # NOTE(msimonin): is there a way in distem to make the vnode reachable from
     # outside directly ? extra = {}
     extra = {}
-    extra.update(gateway=distem.servaddr)
-    extra.update(gateway_user="root")
 
     distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
     total = 0
@@ -195,7 +193,7 @@ def distem_bootstrap(roles):
     with play_on(roles=roles) as p:
         p.copy(dest="/root/.ssh/id_rsa", src=private)
         p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
-        p.lineinfile(path="/root/.ssh/authorized_keys", line=public, regexp=public)
+        p.lineinfile(path="/root/.ssh/authorized_keys", line=open(public).read())
 
         repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
         ## instal Distem from the debian package
