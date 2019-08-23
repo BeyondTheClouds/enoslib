@@ -284,7 +284,7 @@ class play_on(object):
 
         .. code-block:: python
 
-            with actions_on(roles=roles) as t:
+            with play_on(roles=roles) as t:
                 t.apt(name=["curl", "git"], state="present")
                 t.shell("which docker || (curl get.docker.com | sh)")
                 t.docker_container(name="nginx", state="started")
@@ -297,7 +297,7 @@ class play_on(object):
 
 
         Note that the actual result isn't available in the result file but will be
-        available throug a file specified in the result object.
+        available through a file specified in the result object.
 
 
         Any ansible module can be called using the above way. You'll need to
@@ -435,7 +435,7 @@ def run_command(
             'results': [...]
         }
 
-    If facts are gathers this is possible to use ansible templating
+    If facts are gathered it is possible to use ansible templating
 
     .. code-block:: python
 
@@ -451,7 +451,7 @@ def run_command(
         result = run_command("date", roles=roles, async=20, poll=0)
 
     Note that the actual result isn't available in the result file but will be
-    available throug a file specified in the result object. """
+    available through a file specified in the result object. """
 
     def filter_results(results, status):
         _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
