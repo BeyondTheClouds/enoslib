@@ -1,6 +1,17 @@
 Changelog
 ===========
 
+4.3.0
+-----
+
+* G5k: ``get_api_username`` to retrieve the current user login
+* Doc: fix ``play_on``
+
+4.2.5
+-----
+
+* Services: Add missing files in the wheel
+
 4.2.4
 -----
 
