@@ -3,14 +3,11 @@ import uuid
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_FLAVOUR,
-    DEFAULT_IMAGE,
     DEFAULT_JOB_NAME,
     DEFAULT_NETWORKS,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
-    DEFAULT_SUBNET_TYPE,
     DEFAULT_WALLTIME,
-    DEFAULT_WORKING_DIR,
     DEFAULT_FORCE_DEPLOY,
     FLAVOURS,
 )
@@ -23,14 +20,9 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.gateway = None
-        self.gateway_user = None
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE
         self.walltime = DEFAULT_WALLTIME
-        self.image = DEFAULT_IMAGE
-        self.subnet_type = DEFAULT_SUBNET_TYPE
-        self.working_dir = DEFAULT_WORKING_DIR
         ###
         self.force_deploy = DEFAULT_FORCE_DEPLOY
 
