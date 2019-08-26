@@ -111,7 +111,7 @@ def _build_g5k_conf(distemong5k_conf):
 
 def _start_containers(provider_conf, g5k_subnet, distem):
     roles = defaultdict(list)
-    PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
+    PRIV_KEY = os.path.join(os.getcwd(), "keys", "id_rsa"))
     PUB_KEY = "%s.pub" % PRIV_KEY
     FSIMG = provider_conf.image
 
@@ -171,29 +171,6 @@ def _get_all_hosts(roles):
 def write_ssh_keys(path):
     # Write ssh keys in path directory and return public and private paths
     key = rsa.generate_private_key(
-        backend=crypto_default_backend(),
-        public_exponent=65537,
-        key_size=2048
-        )
-    private_key = key.private_bytes(
-        crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.PKCS8,
-        crypto_serialization.NoEncryption()).decode('utf-8')
-    public_key = key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH,
-        crypto_serialization.PublicFormat.OpenSSH
-        ).decode('utf-8')
-
-    with open("%s/id_rsa.pub" % path, "w") as pub:
-        pub.write(public_key)
-    with open("%s/id_rsa" % path, "w") as priv:
-        priv.write(private_key)
-
-    return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
-
-
-    # Write ssh keys in `:PROVIDER_PATH/keys` and return public and private paths
-    key = rsa.generate_private_key(
                     backend=crypto_default_backend(),
                     public_exponent=65537,
                     key_size=2048
@@ -206,8 +183,8 @@ def write_ssh_keys(path):
                     crypto_serialization.Encoding.OpenSSH,
                     crypto_serialization.PublicFormat.OpenSSH
                      ).decode('utf-8')
-pub_path = os.path.join(path, "id_rsa.pub")
-priv_path = os.path.join(path, "id_rsa")
+    pub_path = os.path.join(path, "id_rsa.pub")
+    priv_path = os.path.join(path, "id_rsa")
     with open(pub_path, "w") as pub:
         pub.write(public_key)
     with open(priv_path, "w") as priv:
