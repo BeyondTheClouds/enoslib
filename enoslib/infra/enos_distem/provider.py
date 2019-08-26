@@ -15,7 +15,9 @@ import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import SUBNET_NAME
+from .constants import (
+                        SUBNET_NAME,
+                        PATH_DISTEMD_LOGS)
 from ..provider import Provider
 
 
@@ -204,6 +206,7 @@ def distem_bootstrap(roles, path_sshkeys):
 
     Args :
         roles (dict): physical machines to start containers on.
+        path_sshkeys (dict): ssh keys paths
 
     Return :
         distem (class): distem client
