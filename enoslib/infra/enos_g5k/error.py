@@ -29,3 +29,10 @@ class EnosG5kSynchronisationError(EnosError):
         super(EnosG5kSynchronisationError, self).__init__(
             "Unable to find a synchronised on %s" % sites
         )
+
+
+class EnosG5kWalltimeFormatError(EnosError):
+    def __init__(self, site, job_name):
+        super(EnosG5kWalltimeFormatError, self).__init__(
+            "Waltime must be specified in HH:MM:SS format"
+        )

@@ -13,7 +13,11 @@ import os
 import time
 import threading
 
-from .error import EnosG5kDuplicateJobsError, EnosG5kSynchronisationError
+from .error import (
+    EnosG5kDuplicateJobsError,
+    EnosG5kSynchronisationError,
+    EnosG5kWalltimeFormatError,
+)
 from .constants import (
     G5KMACPREFIX,
     KAVLAN_GLOBAL,
@@ -692,8 +696,10 @@ def _do_synchronise_jobs(walltime, machines):
     """
     offset = SYNCHRONISATION_OFFSET
     start = time.time() + offset
-    _t = time.strptime(walltime, "%H:%M:%S")
-    _walltime = _t.tm_hour * 3600 + _t.tm_min * 60 + _t.tm_sec
+    _t = walltime.split(":")
+    if len(_t) != 3:
+        raise EnosG5kWalltimeFormatError()
+    _walltime = int(_t[0]) * 3600 + int(_t[1]) * 60 + int(_t[2])
 
     # Compute the demand for each cluster
     demands = defaultdict(int)
