@@ -126,7 +126,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
     FSIMG = provider_conf.image
 
     sshkeys = {
-        "public": open(path_sshkeys['public']).read()
+        "public": open(path_sshkeys['public']).read(),
         "private": open(path_sshkeys['private']).read()
     }
 
