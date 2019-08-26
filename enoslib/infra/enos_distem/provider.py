@@ -12,6 +12,7 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from enoslib.api import play_on
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
+from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import SUBNET_NAME
@@ -190,6 +191,29 @@ def write_ssh_keys(path):
 
     return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
 
+
+    # Write ssh keys in `:PROVIDER_PATH/keys` and return public and private paths
+    key = rsa.generate_private_key(
+                    backend=crypto_default_backend(),
+                    public_exponent=65537,
+                    key_size=2048
+                    )
+    private_key = key.private_bytes(
+                    crypto_serialization.Encoding.PEM,
+                    crypto_serialization.PrivateFormat.PKCS8,
+                    crypto_serialization.NoEncryption()).decode('utf-8')
+    public_key = key.public_key().public_bytes(
+                    crypto_serialization.Encoding.OpenSSH,
+                    crypto_serialization.PublicFormat.OpenSSH
+                     ).decode('utf-8')
+
+    with open("%s/id_rsa.pub"%path, "w") as pub:
+        pub.write(public_key)
+    with open("%s/id_rsa"%path, "w") as priv:
+        priv.write(private_key)
+
+    return (os.path.join(path, "id_rsa.pub"),os.path.join(path, "id_rsa"))
+            
 
 def distem_bootstrap(roles):
     """Bootstrap distem on G5k nodes

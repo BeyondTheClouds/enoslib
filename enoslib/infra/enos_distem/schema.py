@@ -17,7 +17,7 @@ SCHEMA = {
         ###
         "force_deploy": {"type": "boolean"}
     },
-    "additionalProperties": False,
+    "additionalProperties": True,
     "required": ["resources", "image"],
     "resources": {
         "title": "Resource",

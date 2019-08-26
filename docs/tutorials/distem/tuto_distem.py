@@ -1,4 +1,4 @@
-from enoslib.api import run_command
+from enoslib.api import play_on
 from enoslib.infra.enos_distem.provider import Distem
 from enoslib.infra.enos_distem.configuration import Configuration
 
@@ -32,4 +32,6 @@ roles, networks = provider.init()
 
 print(roles)
 print(networks)
-run_command("date", roles=roles)
+
+with play_on(roles=roles,gather_facts=False) as p:
+    p.raw("date")
