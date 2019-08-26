@@ -82,6 +82,24 @@ VMonG5k Schema
 
 .. literalinclude:: ../../enoslib/infra/enos_vmong5k/schema.py
 
+Containers on Grid5000 (Distem)
+--------------------------------------
+
+Distem Provider Class
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: enoslib.infra.enos_distem.provider
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. _distem-schema:
+
+Distem Schema
+^^^^^^^^^^^^^^^
+
+.. literalinclude:: ../../enoslib/infra/enos_distem/schema.py
+
 Static
 ------
 

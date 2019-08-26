@@ -13,6 +13,7 @@ Tutorials
     vagrant
     grid5000
     vmong5k
+    distem
     chameleon
     static
     using-tasks

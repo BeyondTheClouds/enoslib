@@ -2,6 +2,9 @@ import os
 
 from enoslib.infra.enos_g5k.constants import SLASH_22
 
+
+PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
 ######
 DEFAULT_JOB_NAME = "EnOslib-distem"
 DEFAULT_QUEUE = "default"
@@ -26,5 +29,6 @@ DEFAULT_NETWORKS = ["enos_network"]
 DEFAULT_NUMBER = 1
 
 DEFAULT_FORCE_DEPLOY = False
-
+PATH_DISTEMD_LOGS = "/var/log/distem"
+FILE_DISTEMD_LOGS = os.path.join(PATH_DISTEMD_LOGS, "distemd-coord.log")
 SUBNET_NAME = "enoslib_distem_network"
