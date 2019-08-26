@@ -16,8 +16,11 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import (
+                        PROVIDER_PATH,
                         SUBNET_NAME,
-                        PATH_DISTEMD_LOGS)
+                        PATH_DISTEMD_LOGS
+                        )
+>>>>>>> 3f4de7f30f0d57f1a59816247e6c8be754340cd7
 from ..provider import Provider
 
 
@@ -44,6 +47,14 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         (roles, networks) tuple
 
     """
+    os.makedirs("%s/keys" % PROVIDER_PATH, mode=0o777, exist_ok=True)
+    current_dir = os.path.join(os.getcwd(), "keys")
+    public, private = write_ssh_keys(current_dir)
+    
+    keys_path = {
+        'public': public,
+        'private': private
+    }
 
     current_dir = os.path.join(os.getcwd(), "keys")
     public, private = write_ssh_keys(current_dir)
@@ -54,7 +65,6 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     }
 
     distem = distem_bootstrap(g5k_roles, keys_path)
-
 
     # For now we only consider a single subnet
     distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem, keys_path)
@@ -127,7 +137,6 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
     sshkeys = {
         "public": open(path_sshkeys['public']).read(),
         "private": open(path_sshkeys['private']).read()
-
     }
 
     # handle external access to the containers
@@ -199,7 +208,7 @@ def write_ssh_keys(path):
     with open(priv_path, "w") as priv:
         priv.write(private_key)
 
-    return (os.path.join(path, "id_rsa.pub"),os.path.join(path, "id_rsa"))
+    return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
             
 
 def distem_bootstrap(roles, path_sshkeys):
@@ -208,6 +217,7 @@ def distem_bootstrap(roles, path_sshkeys):
 
     Args :
         roles (dict): physical machines to start containers on.
+        path_sshkeys (dict): ssh keys paths
 
     Return :
         distem (class): distem client
@@ -267,7 +277,6 @@ def distem_bootstrap(roles, path_sshkeys):
     distem.pnode_init(_get_all_hosts(roles))
 
     return distem
-
 
 
 class Distem(Provider):
