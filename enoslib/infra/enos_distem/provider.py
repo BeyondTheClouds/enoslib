@@ -156,7 +156,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
                 # We have to remove the cidr suffix ...
                 roles[role].append(Host(network["address"].split("/")[0],
                                    user="root",
-                                   keyfile=PRIV_KEY,
+                                   keyfile=path_sshkeys['private'],
                                    extra=extra))
             total = total + 1
 
