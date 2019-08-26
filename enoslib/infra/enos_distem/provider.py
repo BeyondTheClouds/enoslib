@@ -209,7 +209,7 @@ def write_ssh_keys(path):
 
     with open("%s/id_rsa.pub"%path, "w") as pub:
         pub.write(public_key)
-    with open("%s/id_rsa"%path, "w") as priv:
+    with open(priv_path, "w") as priv:
         priv.write(private_key)
 
     return (os.path.join(path, "id_rsa.pub"),os.path.join(path, "id_rsa"))
