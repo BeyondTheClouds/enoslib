@@ -207,7 +207,7 @@ def write_ssh_keys(path):
                     crypto_serialization.PublicFormat.OpenSSH
                      ).decode('utf-8')
 
-    with open("%s/id_rsa.pub"%path, "w") as pub:
+    with open(pub_path, "w") as pub:
         pub.write(public_key)
     with open(priv_path, "w") as priv:
         priv.write(private_key)
