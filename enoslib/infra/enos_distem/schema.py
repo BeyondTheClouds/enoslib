@@ -10,21 +10,15 @@ SCHEMA = {
     "type": "object",
     "properties": {
         "resources": {"$ref": "#/resources"},
-        "enable_taktuk": {"type": "boolean"},
-        "gateway": {"type": "string"},
-        "gateway_user": {"type": "string"},
         "job_name": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
         "image": {"type": "string"},
-        "strategy": {"type": "string", "enum": STRATEGY},
-        "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
-        "working_dir": {"type": "string"},
         ###
         "force_deploy": {"type": "boolean"}
     },
     "additionalProperties": False,
-    "required": ["resources"],
+    "required": ["resources", "image"],
     "resources": {
         "title": "Resource",
         "type": "object",

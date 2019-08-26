@@ -16,8 +16,7 @@ inventory = os.path.join(os.getcwd(), "hosts")
 # claim the resources
 conf = Configuration.from_settings(job_name="wip-distem",
                                    force_deploy=FORCE,
-                                   gateway="access.grid5000.fr",
-                                   gateway_user="rolivo")\
+								   image="file:///home/rolivo/public/distem-fs-jessie.tar.gz")\
     .add_machine(roles=["compute"],
                  cluster="parapide",
                  number=1,
@@ -33,3 +32,4 @@ roles, networks = provider.init()
 
 print(roles)
 print(networks)
+run_command("date", roles=roles)

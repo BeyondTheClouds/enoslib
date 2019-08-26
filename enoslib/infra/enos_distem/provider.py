@@ -1,26 +1,20 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
-from copy import deepcopy
-import hashlib
-from ipaddress import IPv4Address
 import itertools
 import logging
 import os
 
 import distem as d
-from netaddr import EUI, mac_unix_expanded
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
-from enoslib.api import run_ansible, play_on, run_command
+from enoslib.api import play_on
 from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import (COORDINATOR_ROLE,
-                        FILE_DISTEMD_LOGS,
-                        PATH_DISTEMD_LOGS,
-                        PLAYBOOK_PATH,
-                        PROVIDER_PATH,
-                        SUBNET_NAME)
+from .constants import SUBNET_NAME
 from ..provider import Provider
 
 
@@ -34,10 +28,10 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         g5k_roles (dict): physical machines to start the containers on.
         provider_conf(Configuration):
             :py:class:`enoslib.infra.enos_distem.configuraton.Configuration`
-            This is the abstract description of your overcloud (VMs). Each
+            This is the abstract description of your overcloud (containers). Each
             configuration has a its undercloud attributes filled with the
             undercloud machines to use. Round Robin strategy to distribute the
-            VMs to the PMs will be used for each configuration. Mac addresses
+            containers to the PMs will be used for each configuration. Mac addresses
             will be generated according to the g5k_subnet parameter.
         g5k_subnets(list): The subnets to use. Each element is a serialization
             of
@@ -47,10 +41,6 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         (roles, networks) tuple
 
     """
-
-    # Voir pour l'emplacement de l'image
-    # Voir pour les clefs - Créer de nouvelles ?
-    # Voir pour la valeur de retour de start_containers
 
     distem = distem_bootstrap(g5k_roles)
 
@@ -89,7 +79,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
     subnet_roles = distemong5k_conf.networks
     subnet_roles.append("__subnet__")
     subnet = g5kconf.NetworkConfiguration(
-        roles=subnet_roles, id="subnet", type=distemong5k_conf.subnet_type, site=site
+        roles=subnet_roles, id="subnet", type=SLASH_22, site=site
     )
     # let's start by adding the networks
     g5k_conf.add_network_conf(prod_network).add_network_conf(subnet)
@@ -120,41 +110,44 @@ def _build_g5k_conf(distemong5k_conf):
 
 def _start_containers(provider_conf, g5k_subnet, distem):
     roles = defaultdict(list)
-    FSIMG = "file:///home/rolivo/public/distem-fs-jessie.tar.gz"
     PRIV_KEY = os.path.join(os.environ["HOME"], ".ssh", "id_rsa")
     PUB_KEY = "%s.pub" % PRIV_KEY
+    FSIMG = provider_conf.image
 
     private_key = open(os.path.expanduser(PRIV_KEY)).read()
     public_key = open(os.path.expanduser(PUB_KEY)).read()
 
     sshkeys = {
-        "public" : public_key,
-        "private" : private_key
+        "public": public_key,
+        "private": private_key
     }
 
     # handle external access to the containers
     # Currently we need to jump through the coordinator
     # NOTE(msimonin): is there a way in distem to make the vnode reachable from
     # outside directly ? extra = {}
-    extra = {}
+    extra = {
+        "gateway": distem.serveraddr,
+        "gateway_user": "root"
+        }
 
     distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
     total = 0
     for machine in provider_conf.machines:
         pms = machine.undercloud
         pms_it = itertools.cycle(pms)
-        roles_name = machine.roles[0]
         for idx in range(machine.number):
             pm = next(pms_it)
             name = "vnode-%s" % total
-            create = distem.vnode_create(name,
+            distem.vnode_create(name,
                         {"host": pm.address}, sshkeys)
-            fs = distem.vfilesystem_create(name,
+            distem.vfilesystem_create(name,
                                 {"image": FSIMG})
             network = distem.viface_create(name,
                                            "if0",
-                                           {"vnetwork": SUBNET_NAME, "default":  "true"})
-            result = distem.vnode_start(name)
+                                           {"vnetwork": SUBNET_NAME,
+                                           "default":  "true"})
+            distem.vnode_start(name)
             for role in machine.roles:
                 # We have to remove the cidr suffix ...
                 roles[role].append(Host(network["address"].split("/")[0],
@@ -174,29 +167,62 @@ def _get_all_hosts(roles):
     return(sorted(all_hosts, key=lambda n: n))
 
 
+def write_ssh_keys(path):
+    # Write ssh keys in path directory and return public and private paths
+    key = rsa.generate_private_key(
+        backend=crypto_default_backend(),
+        public_exponent=65537,
+        key_size=2048
+        )
+    private_key = key.private_bytes(
+        crypto_serialization.Encoding.PEM,
+        crypto_serialization.PrivateFormat.PKCS8,
+        crypto_serialization.NoEncryption()).decode('utf-8')
+    public_key = key.public_key().public_bytes(
+        crypto_serialization.Encoding.OpenSSH,
+        crypto_serialization.PublicFormat.OpenSSH
+        ).decode('utf-8')
+
+    with open("%s/id_rsa.pub" % path, "w") as pub:
+        pub.write(public_key)
+    with open("%s/id_rsa" % path, "w") as priv:
+        priv.write(private_key)
+
+    return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
+
+
 def distem_bootstrap(roles):
-    _user = g5k_api_utils.get_api_username()
-    # TODO: generate keys on the fly
-    keys_path = os.path.join(PROVIDER_PATH, "keys")
-    private = os.path.join(keys_path, "id_rsa")
-    public = os.path.join(keys_path, "id_rsa.pub")
+    """Bootstrap distem on G5k nodes
+
+
+    Args :
+        roles (dict): physical machines to start containers on.
+
+    Return :
+        distem (class): distem client
+    """
+
+    current_dir = os.getcwd()
+    public, private = write_ssh_keys(current_dir)
 
     coordinator = _get_all_hosts(roles)[0]
-    distem = d.Distem(coordinator)
+    distem = d.Distem(serveraddr=coordinator)
     got_pnodes = False
 
+    # check if a client is already running
     try:
         got_pnodes = distem.pnodes_info()
     except:
-        logger.error("No pnodes detected - Not critical")
+        logger.error("No pnodes detected - Not critical error")
 
     with play_on(roles=roles) as p:
+        # copy ssh keys for each node
         p.copy(dest="/root/.ssh/id_rsa", src=private)
         p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
         p.lineinfile(path="/root/.ssh/authorized_keys", line=open(public).read())
 
         repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
-        ## instal Distem from the debian package
+        # instal Distem from the debian package
         p.apt_repository(repo=repo,
                          update_cache="no", state="present")
         p.shell("apt-get update")
@@ -214,6 +240,7 @@ def distem_bootstrap(roles):
         distem.pnodes_quit()
 
     with play_on(roles=roles) as p:
+        # kill distem process for each node
         p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)
@@ -227,8 +254,7 @@ def distem_bootstrap(roles):
         p.shell("tmux new-session -d \"exec distemd --verbose -d\"")
         p.wait_for(state="started", port=4567, timeout=10)
         p.wait_for(state="started", port=4568, timeout=10)
-    
-    
+
     distem.pnode_init(_get_all_hosts(roles))
 
     return distem
