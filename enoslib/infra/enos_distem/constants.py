@@ -26,5 +26,6 @@ DEFAULT_NETWORKS = ["enos_network"]
 DEFAULT_NUMBER = 1
 
 DEFAULT_FORCE_DEPLOY = False
-
+PATH_DISTEMD_LOGS = "/var/log/distem"
+FILE_DISTEMD_LOGS = os.path.join(PATH_DISTEMD_LOGS, "distemd-coord.log")
 SUBNET_NAME = "enoslib_distem_network"
