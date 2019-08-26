@@ -43,10 +43,18 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
 
     """
 
-    distem = distem_bootstrap(g5k_roles)
+    current_dir = os.path.join(os.getcwd(), "keys")
+    public, private = write_ssh_keys(current_dir)
+    
+    keys_path = {
+        'public': public,
+        'private': private
+    }
+
+    distem = distem_bootstrap(g5k_roles, keys_path)
 
     # For now we only consider a single subnet
-    distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem)
+    distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem, keys_path)
 
     return distem_roles, g5k_subnets
 
@@ -109,18 +117,13 @@ def _build_g5k_conf(distemong5k_conf):
     return _do_build_g5k_conf(distemong5k_conf, site)
 
 
-def _start_containers(provider_conf, g5k_subnet, distem):
+def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
     roles = defaultdict(list)
-    PRIV_KEY = os.path.join(os.getcwd(), "keys", "id_rsa"))
-    PUB_KEY = "%s.pub" % PRIV_KEY
     FSIMG = provider_conf.image
 
-    private_key = open(os.path.expanduser(PRIV_KEY)).read()
-    public_key = open(os.path.expanduser(PUB_KEY)).read()
-
     sshkeys = {
-        "public": public_key,
-        "private": private_key
+        "public": open(path_sshkeys['public']).read()
+        "private": open(path_sshkeys['private']).read()
     }
 
     # handle external access to the containers
@@ -183,17 +186,19 @@ def write_ssh_keys(path):
                     crypto_serialization.Encoding.OpenSSH,
                     crypto_serialization.PublicFormat.OpenSSH
                      ).decode('utf-8')
+
     pub_path = os.path.join(path, "id_rsa.pub")
     priv_path = os.path.join(path, "id_rsa")
+
     with open(pub_path, "w") as pub:
         pub.write(public_key)
     with open(priv_path, "w") as priv:
         priv.write(private_key)
 
-    return (os.path.join(path, "id_rsa.pub"),os.path.join(path, "id_rsa"))
+    return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
             
 
-def distem_bootstrap(roles):
+def distem_bootstrap(roles, path_sshkeys):
     """Bootstrap distem on G5k nodes
 
 
@@ -203,9 +208,6 @@ def distem_bootstrap(roles):
     Return :
         distem (class): distem client
     """
-
-    current_dir = os.getcwd()
-    public, private = write_ssh_keys(current_dir)
 
     coordinator = _get_all_hosts(roles)[0]
     distem = d.Distem(serveraddr=coordinator)
@@ -219,9 +221,9 @@ def distem_bootstrap(roles):
 
     with play_on(roles=roles) as p:
         # copy ssh keys for each node
-        p.copy(dest="/root/.ssh/id_rsa", src=private)
-        p.copy(dest="/root/.ssh/id_rsa.pub", src=public)
-        p.lineinfile(path="/root/.ssh/authorized_keys", line=open(public).read())
+        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'])
+        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'])
+        p.lineinfile(path="/root/.ssh/authorized_keys", line=open(path_sshkeys['public']).read())
 
         repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
         # instal Distem from the debian package
@@ -260,30 +262,6 @@ def distem_bootstrap(roles):
     distem.pnode_init(_get_all_hosts(roles))
 
     return distem
-
-
-class Container(Host):
-    """Internal data structure to manipulate containers"""
-
-    def __init__(self, name, eui, flavour_desc, pm, extra=None):
-        super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra)
-        self.core = flavour_desc["core"]
-        # libvirt uses kiB by default
-        self.mem = int(flavour_desc["mem"]) * 1024
-        self.eui = eui
-        self.pm = pm
-        self.user = "root"
-
-    def to_dict(self):
-        d = super().to_dict()
-        d.update(core=self.core, mem=self.mem, eui=str(self.eui), pm=self.pm.to_dict())
-        return d
-
-    def __hash__(self):
-        return int(self.eui)
-
-    def __eq__(self, other):
-        return int(self.eui) == int(other.eui)
 
 
 class Distem(Provider):
