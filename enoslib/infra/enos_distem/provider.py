@@ -16,7 +16,6 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import (
-                        PROVIDER_PATH,
                         SUBNET_NAME,
                         PATH_DISTEMD_LOGS
                         )
