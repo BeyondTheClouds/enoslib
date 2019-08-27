@@ -229,8 +229,8 @@ def distem_bootstrap(roles, path_sshkeys):
 
     with play_on(roles=roles) as p:
         # copy ssh keys for each node
-        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'])
-        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'])
+        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'], mode='600')
+        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'], mode='600')
         p.lineinfile(path="/root/.ssh/authorized_keys",
                     line=open(path_sshkeys['public']).read())
 
