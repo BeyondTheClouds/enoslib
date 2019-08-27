@@ -6,6 +6,10 @@ Provider::Distem
 This tutorial leverages the ``Distem`` provider: a provider that creates
 containers for you on Grid'5000.
 
+.. note::
+
+    More details on : http://distem.gforge.inria.fr/
+
 
 .. hint::
 
