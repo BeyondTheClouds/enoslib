@@ -16,7 +16,6 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .constants import (
-                        PROVIDER_PATH,
                         SUBNET_NAME,
                         PATH_DISTEMD_LOGS
                         )
@@ -46,14 +45,15 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         (roles, networks) tuple
 
     """
-    os.makedirs("%s/keys" % PROVIDER_PATH, mode=0o777, exist_ok=True)
     current_dir = os.path.join(os.getcwd(), "keys")
+    os.makedirs("%s" % current_dir, exist_ok=True)
     public, private = write_ssh_keys(current_dir)
     
     keys_path = {
         'public': public,
         'private': private
     }
+
 
     distem = distem_bootstrap(g5k_roles, keys_path)
 
@@ -199,6 +199,9 @@ def write_ssh_keys(path):
     with open(priv_path, "w") as priv:
         priv.write(private_key)
 
+    os.chmod(pub_path, 0o600)
+    os.chmod(priv_path, 0o600)
+
     return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
             
 
@@ -226,9 +229,10 @@ def distem_bootstrap(roles, path_sshkeys):
 
     with play_on(roles=roles) as p:
         # copy ssh keys for each node
-        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'])
-        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'])
-        p.lineinfile(path="/root/.ssh/authorized_keys", line=open(path_sshkeys['public']).read())
+        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'], mode='600')
+        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'], mode='600')
+        p.lineinfile(path="/root/.ssh/authorized_keys",
+                    line=open(path_sshkeys['public']).read())
 
         repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
         # instal Distem from the debian package
