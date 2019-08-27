@@ -46,7 +46,7 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         (roles, networks) tuple
 
     """
-    os.makedirs("%s/keys" % PROVIDER_PATH, mode=0o777, exist_ok=True)
+    os.makedirs("%s/keys" % PROVIDER_PATH, mode=0o600, exist_ok=True)
     current_dir = os.path.join(os.getcwd(), "keys")
     public, private = write_ssh_keys(current_dir)
     
@@ -55,13 +55,6 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         'private': private
     }
 
-    current_dir = os.path.join(os.getcwd(), "keys")
-    public, private = write_ssh_keys(current_dir)
-    
-    keys_path = {
-        'public': public,
-        'private': private
-    }
 
     distem = distem_bootstrap(g5k_roles, keys_path)
 
