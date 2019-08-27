@@ -1,6 +1,16 @@
 Changelog
 ===========
 
+4.4.1
+-----
+
+* Catch up changelog
+
+4.4.0
+-----
+
+* New provider: Distem
+
 4.3.1
 -----
 
