@@ -17,7 +17,8 @@ SCHEMA = {
         ###
         "force_deploy": {"type": "boolean"}
     },
-    "additionalProperties": True,
+    "additionalProperties": False,
+
     "required": ["resources", "image"],
     "resources": {
         "title": "Resource",
@@ -41,6 +42,7 @@ SCHEMA = {
             "undercloud": {"type": "array", "items": {"type": "object"}},
         },
         "required": ["roles"],
+        "oneOf": [{"required": ["flavour"]}, {"required": ["flavour_desc"]}],
         "additionalProperties": False,
     },
     "flavour_desc": {
