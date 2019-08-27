@@ -46,8 +46,8 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
         (roles, networks) tuple
 
     """
-    os.makedirs("%s/keys" % PROVIDER_PATH, mode=0o600, exist_ok=True)
     current_dir = os.path.join(os.getcwd(), "keys")
+    os.makedirs("%s" % current_dir, mode=0o777, exist_ok=True)
     public, private = write_ssh_keys(current_dir)
     
     keys_path = {
@@ -199,6 +199,9 @@ def write_ssh_keys(path):
         pub.write(public_key)
     with open(priv_path, "w") as priv:
         priv.write(private_key)
+
+    os.chmod(pub_path, 0o600)
+    os.chmod(priv_path, 0o600)
 
     return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
             
