@@ -1,7 +1,5 @@
 import os
 
-from enoslib.infra.enos_g5k.constants import SLASH_22
-
 
 PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 

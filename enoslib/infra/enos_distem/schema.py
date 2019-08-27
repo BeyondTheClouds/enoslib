@@ -1,7 +1,7 @@
 from .constants import FLAVOURS
 
 
-from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
+from enoslib.infra.enos_g5k.constants import QUEUE_TYPES
 
 
 STRATEGY = ["copy", "cow"]
@@ -15,10 +15,9 @@ SCHEMA = {
         "walltime": {"type": "string"},
         "image": {"type": "string"},
         ###
-        "force_deploy": {"type": "boolean"}
+        "force_deploy": {"type": "boolean"},
     },
     "additionalProperties": False,
-
     "required": ["resources", "image"],
     "resources": {
         "title": "Resource",

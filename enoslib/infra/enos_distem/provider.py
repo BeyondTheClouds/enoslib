@@ -15,10 +15,7 @@ import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import (
-                        SUBNET_NAME,
-                        PATH_DISTEMD_LOGS
-                        )
+from .constants import SUBNET_NAME, PATH_DISTEMD_LOGS
 from ..provider import Provider
 
 
@@ -48,12 +45,8 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     current_dir = os.path.join(os.getcwd(), "keys")
     os.makedirs("%s" % current_dir, exist_ok=True)
     public, private = write_ssh_keys(current_dir)
-    
-    keys_path = {
-        'public': public,
-        'private': private
-    }
 
+    keys_path = {"public": public, "private": private}
 
     distem = distem_bootstrap(g5k_roles, keys_path)
 
@@ -84,7 +77,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
         walltime=distemong5k_conf.walltime,
         queue=distemong5k_conf.queue,
         job_type="deploy",
-        force_deploy=distemong5k_conf.force_deploy
+        force_deploy=distemong5k_conf.force_deploy,
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site
@@ -126,18 +119,15 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
     FSIMG = provider_conf.image
 
     sshkeys = {
-        "public": open(path_sshkeys['public']).read(),
-        "private": open(path_sshkeys['private']).read()
+        "public": open(path_sshkeys["public"]).read(),
+        "private": open(path_sshkeys["private"]).read(),
     }
 
     # handle external access to the containers
     # Currently we need to jump through the coordinator
     # NOTE(msimonin): is there a way in distem to make the vnode reachable from
     # outside directly ? extra = {}
-    extra = {
-        "gateway": distem.serveraddr,
-        "gateway_user": "root"
-        }
+    extra = {"gateway": distem.serveraddr, "gateway_user": "root"}
 
     distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
     total = 0
@@ -147,21 +137,22 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
         for idx in range(machine.number):
             pm = next(pms_it)
             name = "vnode-%s" % total
-            distem.vnode_create(name,
-                        {"host": pm.address}, sshkeys)
-            distem.vfilesystem_create(name,
-                                {"image": FSIMG})
-            network = distem.viface_create(name,
-                                           "if0",
-                                           {"vnetwork": SUBNET_NAME,
-                                           "default":  "true"})
+            distem.vnode_create(name, {"host": pm.address}, sshkeys)
+            distem.vfilesystem_create(name, {"image": FSIMG})
+            network = distem.viface_create(
+                name, "if0", {"vnetwork": SUBNET_NAME, "default": "true"}
+            )
             distem.vnode_start(name)
             for role in machine.roles:
                 # We have to remove the cidr suffix ...
-                roles[role].append(Host(network["address"].split("/")[0],
-                                   user="root",
-                                   keyfile=path_sshkeys['private'],
-                                   extra=extra))
+                roles[role].append(
+                    Host(
+                        network["address"].split("/")[0],
+                        user="root",
+                        keyfile=path_sshkeys["private"],
+                        extra=extra,
+                    )
+                )
             total = total + 1
 
     return dict(roles)
@@ -172,24 +163,27 @@ def _get_all_hosts(roles):
     for _, machines in roles.items():
         for machine in machines:
             all_hosts.add(machine.address)
-    return(sorted(all_hosts, key=lambda n: n))
+    return sorted(all_hosts, key=lambda n: n)
 
 
 def write_ssh_keys(path):
     # Write ssh keys in path directory and return public and private paths
     key = rsa.generate_private_key(
-                    backend=crypto_default_backend(),
-                    public_exponent=65537,
-                    key_size=2048
-                    )
+        backend=crypto_default_backend(), public_exponent=65537, key_size=2048
+    )
     private_key = key.private_bytes(
-                    crypto_serialization.Encoding.PEM,
-                    crypto_serialization.PrivateFormat.PKCS8,
-                    crypto_serialization.NoEncryption()).decode('utf-8')
-    public_key = key.public_key().public_bytes(
-                    crypto_serialization.Encoding.OpenSSH,
-                    crypto_serialization.PublicFormat.OpenSSH
-                     ).decode('utf-8')
+        crypto_serialization.Encoding.PEM,
+        crypto_serialization.PrivateFormat.PKCS8,
+        crypto_serialization.NoEncryption(),
+    ).decode("utf-8")
+    public_key = (
+        key.public_key()
+        .public_bytes(
+            crypto_serialization.Encoding.OpenSSH,
+            crypto_serialization.PublicFormat.OpenSSH,
+        )
+        .decode("utf-8")
+    )
 
     pub_path = os.path.join(path, "id_rsa.pub")
     priv_path = os.path.join(path, "id_rsa")
@@ -203,7 +197,7 @@ def write_ssh_keys(path):
     os.chmod(priv_path, 0o600)
 
     return (os.path.join(path, "id_rsa.pub"), os.path.join(path, "id_rsa"))
-            
+
 
 def distem_bootstrap(roles, path_sshkeys):
     """Bootstrap distem on G5k nodes
@@ -224,37 +218,43 @@ def distem_bootstrap(roles, path_sshkeys):
     # check if a client is already running
     try:
         got_pnodes = distem.pnodes_info()
-    except:
+    except Exception:
         logger.error("No pnodes detected - Not critical error")
 
     with play_on(roles=roles) as p:
         # copy ssh keys for each node
-        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys['private'], mode='600')
-        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys['public'], mode='600')
-        p.lineinfile(path="/root/.ssh/authorized_keys",
-                    line=open(path_sshkeys['public']).read())
+        p.copy(dest="/root/.ssh/id_rsa", src=path_sshkeys["private"], mode="600")
+        p.copy(dest="/root/.ssh/id_rsa.pub", src=path_sshkeys["public"], mode="600")
+        p.lineinfile(
+            path="/root/.ssh/authorized_keys", line=open(path_sshkeys["public"]).read()
+        )
 
         repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
         # instal Distem from the debian package
-        p.apt_repository(repo=repo,
-                         update_cache="no", state="present")
+        p.apt_repository(repo=repo, update_cache="no", state="present")
         p.shell("apt-get update")
-        p.apt(name="distem",
-              state="present",
-              allow_unauthenticated="yes",
-              force="yes",
-              force_apt_get="yes")
+        p.apt(
+            name="distem",
+            state="present",
+            allow_unauthenticated="yes",
+            force="yes",
+            force_apt_get="yes",
+        )
         # see below
         p.apt(name="tmux", state="present")
-        p.apt_repository(repo=repo,
-                         update_cache="no", state="absent")
+        p.apt_repository(repo=repo, update_cache="no", state="absent")
 
     if got_pnodes:
         distem.pnodes_quit()
 
     with play_on(roles=roles) as p:
         # kill distem process for each node
-        p.shell("kill -9 `ps aux|grep \"distemd\"|grep -v grep|sed \"s/ \{1,\}/ /g\"|cut -f 2 -d\" \"` || true")
+        kill_cmd = []
+        kill_cmd.append("kill -9 `ps aux|grep \"distemd\"")
+        kill_cmd.append("grep -v grep")
+        kill_cmd.append("sed \"s/ \\{1,\\}/ /g\"")
+        kill_cmd.append("cut -f 2 -d\" \"`")
+        p.shell("|".join(kill_cmd) + "|| true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)
 
@@ -264,7 +264,7 @@ def distem_bootstrap(roles, path_sshkeys):
         # nil) The only thing I found is to start distem in a tmux session...
         # this is weird because distem-bootstrap seems to start correctly
         # distem over SSH without any trouble
-        p.shell("tmux new-session -d \"exec distemd --verbose -d\"")
+        p.shell('tmux new-session -d "exec distemd --verbose -d"')
         p.wait_for(state="started", port=4567, timeout=10)
         p.wait_for(state="started", port=4568, timeout=10)
 
