@@ -20,7 +20,6 @@ from .constants import (
                         SUBNET_NAME,
                         PATH_DISTEMD_LOGS
                         )
->>>>>>> 3f4de7f30f0d57f1a59816247e6c8be754340cd7
 from ..provider import Provider
 
 
@@ -169,8 +168,8 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
                 # We have to remove the cidr suffix ...
                 roles[role].append(Host(network["address"].split("/")[0],
                                    user="root",
-                                   keyfile=path_sshkeys['private']),
-                                   extra=extra)
+                                   keyfile=path_sshkeys['private'],
+                                   extra=extra))
             total = total + 1
 
     return dict(roles)
