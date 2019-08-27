@@ -46,7 +46,7 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
 
     """
     current_dir = os.path.join(os.getcwd(), "keys")
-    os.makedirs("%s" % current_dir, mode=0o777, exist_ok=True)
+    os.makedirs("%s" % current_dir, exist_ok=True)
     public, private = write_ssh_keys(current_dir)
     
     keys_path = {
