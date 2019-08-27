@@ -40,7 +40,7 @@ STATUS_FAILED = "FAILED"
 STATUS_UNREACHABLE = "UNREACHABLE"
 STATUS_SKIPPED = "SKIPPED"
 DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
-ANSIBLE_TOP_LEVEL = ["async", "become", "become_user", "loop", "poll"]
+ANSIBLE_TOP_LEVEL = ["async", "become", "become_user", "loop", "poll", "ignore_errors"]
 
 AnsibleExecutionRecord = namedtuple(
     "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
