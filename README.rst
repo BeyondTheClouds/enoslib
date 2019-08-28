@@ -3,7 +3,7 @@ EnosLib
 
 |Build Status| |License| |Pypi|
 
-Join us on gitter :  |Gitter|
+* Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
 
 EnOSlib helps you to drive your experiments on various infrastructures. To do
 so, most of your experiment logic is made *reusable* by EnOSlib (getting
