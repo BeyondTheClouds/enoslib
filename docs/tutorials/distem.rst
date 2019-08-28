@@ -40,3 +40,4 @@ EnOSlib bootsraps distem server and agents on your nodes and start the container
     - the distem coordinator runs one of your node (randomly picked)
     - one SSH keypair is generated for the inter-nodes connectivity and the vnodes external access
     - EnOSlib SSH connection to the vnodes are tunneled through the coordinator node (make sure to do the same if you want to SSH manually)
+    - One single network (slash_22) is currently supported
