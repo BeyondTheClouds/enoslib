@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.4.2
+-----
+
+* Doc: update distem tutorial
+
 4.4.1
 -----
 
