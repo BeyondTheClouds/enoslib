@@ -5,18 +5,21 @@ EnosLib
 
 * Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
 
-EnOSlib helps you to drive your experiments on various infrastructures. To do
-so, most of your experiment logic is made *reusable* by EnOSlib (getting
-resources, launching remote actions, deploying side analysis stacks ...)
+EnOSlib is a library to help you with your experiments. The main parts of your
+experiment logic is made **reusable** by the following EnOSlib building blocks:
 
-More pragmatically, with EnOSlib, you can iterate on your application
-deployment and experimental workflow locally before moving to a large testbed
-like Grid'5000, or Chameleon. It saves time and energy.
+- **Reusable infrastructure configuration**: The provider abstraction allows you to
+  run your experiment on different environments (locally with Vagrant, Grid'5000,
+  Chameleon and more)
+- **Reusable software provisioning**: In order to configure your nodes, EnOSlib
+  exposes different APIs with different level of expressivity
+- **Reusable experiment facilities**: Tasks help you to organize your
+  experimentation workflow.
 
 EnOSlib is designed for experimentation purpose: benchmark in a controlled
 environment, academic validation ...
 
-EnOSLib is developed in the context of the
+EnOSLib has been initially developed in the context of the
 `Discovery <https://beyondtheclouds.github.io/>`_ initiative
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
