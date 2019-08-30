@@ -34,10 +34,13 @@ We express this using the Distem provider:
    :language: python
    :linenos:
 
+.. note::
+    You can customize your virtual environment as explained in :
+    http://distem.gforge.inria.fr/faq.html#how-to-customize-your-virtual-environment
 
 EnOSlib bootsraps distem server and agents on your nodes and start the container for you. In particular:
 
-    - the distem coordinator runs one of your node (randomly picked)
+    - the distem coordinator runs on one of your node (randomly picked)
     - one SSH keypair is generated for the inter-nodes connectivity and the vnodes external access
     - EnOSlib SSH connection to the vnodes are tunneled through the coordinator node (make sure to do the same if you want to SSH manually)
     - One single network (slash_22) is currently supported
