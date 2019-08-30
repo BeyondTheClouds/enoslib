@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.4.3
+-----
+
+* Doc: Doc updates (readme and distem)
+
 4.4.2
 -----
 
