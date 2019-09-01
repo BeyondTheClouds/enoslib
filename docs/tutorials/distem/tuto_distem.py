@@ -1,4 +1,4 @@
-from enoslib.api import play_on
+from enoslib.api import play_on, discover_networks
 from enoslib.infra.enos_distem.provider import Distem
 from enoslib.infra.enos_distem.configuration import Configuration
 
@@ -16,12 +16,12 @@ inventory = os.path.join(os.getcwd(), "hosts")
 # claim the resources
 conf = Configuration.from_settings(job_name="wip-distem",
                                    force_deploy=FORCE,
-                                   image="file:///home/rolivo/public/distem-fs-jessie.tar.gz")\
-    .add_machine(roles=["compute"],
+                                   image="file:///home/msimonin/public/distem-stretch.tgz")\
+    .add_machine(roles=["server"],
                  cluster="parapluie",
-                 number=50,
+                 number=1,
                  flavour="tiny")\
-    .add_machine(roles=["controller"],
+    .add_machine(roles=["client"],
                  cluster="parapide",
                  number=1,
                  flavour="tiny")\
@@ -35,10 +35,33 @@ print(networks)
 gateway = networks[0]['gateway']
 print("Gateway : %s" % gateway)
 
-# Instlall python on each vnode
+# Install python on each vnode so that Ansible works
 with play_on(roles=roles,gather_facts=False) as p:
     # change netmask address for each vnode
-    p.raw("ifconfig if0 $(hostname -i | cut -d' ' -f 3) netmask 255.252.0.0")
+    p.raw("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
     p.raw("route add default gw %s dev if0" % gateway)
     p.raw("apt update && apt install -y python3")
+    p.raw("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
+
+discover_networks(roles, networks)
+
+# Experimentation logic starts here
+with play_on(roles=roles) as p:
+    # flent requires python3, so we default python to python3
+    p.apt_repository(repo="deb http://deb.debian.org/debian stretch main contrib non-free",
+                     state="present")
+    p.apt(name=["flent", "netperf", "python3-setuptools"],
+          state="present")
+
+with play_on(pattern_hosts="server", roles=roles) as p:
+    p.shell("nohup netperf &")
+
+with play_on(pattern_hosts="client", roles=roles) as p:
+    p.shell("flent rrul -p all_scaled "
+            + "-l 60 "
+            + "-H {{ hostvars[groups['server'][0]].inventory_hostname }} "
+            + "-t 'bufferbloat test' "
+            + "-o result.png")
+    p.fetch(src="result.png",
+            dest="result")
 
