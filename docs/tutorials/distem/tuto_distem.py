@@ -37,7 +37,8 @@ print("Gateway : %s" % gateway)
 
 # Install python on each vnode so that Ansible works
 with play_on(roles=roles,gather_facts=False) as p:
-    # change netmask address for each vnode
+    # We first need internet connectivity
+    # Netmask for a subnet in g5k is a /14 netmask
     p.raw("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
     p.raw("route add default gw %s dev if0" % gateway)
     p.raw("apt update && apt install -y python3")
