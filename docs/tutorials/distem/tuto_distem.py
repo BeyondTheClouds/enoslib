@@ -20,11 +20,11 @@ conf = Configuration.from_settings(job_name="wip-distem",
     .add_machine(roles=["server"],
                  cluster="parapluie",
                  number=1,
-                 flavour="tiny")\
+                 flavour="large")\
     .add_machine(roles=["client"],
                  cluster="parapide",
                  number=1,
-                 flavour="tiny")\
+                 flavour="large")\
     .finalize()
 provider = Distem(conf)
 
@@ -35,14 +35,11 @@ print(networks)
 gateway = networks[0]['gateway']
 print("Gateway : %s" % gateway)
 
-# Install python on each vnode so that Ansible works
 with play_on(roles=roles,gather_facts=False) as p:
     # We first need internet connectivity
     # Netmask for a subnet in g5k is a /14 netmask
-    p.raw("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
-    p.raw("route add default gw %s dev if0" % gateway)
-    p.raw("apt update && apt install -y python3")
-    p.raw("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
+    p.shell("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
+    p.shell("route add default gw %s dev if0" % gateway)
 
 discover_networks(roles, networks)
 
