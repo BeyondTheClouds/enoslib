@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.4.4
+-----
+
+* Doc: distem makes use of stretch image by default
+
 4.4.3
 -----
 
