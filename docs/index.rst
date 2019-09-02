@@ -52,7 +52,7 @@ The experimentation logic can remain the same. Thus, one can write the following
 Now where {{ user }} can go from here depends on the needs:
 
 - Moving to another provider is possible. {{ user }} only needs to learn about the specific object for
-  this configuration -- e.g see :ref:`[1] <vmong5k>`.
+  this configuration -- e.g see :ref:`[1a] <vmong5k>`, :ref:`[1b] <distem>`.
 
 - Refactoring the code, providing a command line interface could be also nice.
   After all its just python code -- see :ref:`[2] <tasks>`.
