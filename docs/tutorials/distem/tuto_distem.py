@@ -18,11 +18,11 @@ conf = Configuration.from_settings(job_name="wip-distem",
                                    force_deploy=FORCE,
                                    image="file:///home/msimonin/public/distem-stretch.tgz")\
     .add_machine(roles=["server"],
-                 cluster="parapluie",
+                 cluster="paravance",
                  number=1,
                  flavour="large")\
     .add_machine(roles=["client"],
-                 cluster="parapide",
+                 cluster="paravance",
                  number=1,
                  flavour="large")\
     .finalize()
@@ -35,13 +35,14 @@ print(networks)
 gateway = networks[0]['gateway']
 print("Gateway : %s" % gateway)
 
+discover_networks(roles, networks)
+
 with play_on(roles=roles,gather_facts=False) as p:
     # We first need internet connectivity
     # Netmask for a subnet in g5k is a /14 netmask
     p.shell("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
     p.shell("route add default gw %s dev if0" % gateway)
 
-discover_networks(roles, networks)
 
 # Experimentation logic starts here
 with play_on(roles=roles) as p:
