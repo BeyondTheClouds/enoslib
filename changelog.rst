@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.4.5
+-----
+
+* Doc: some fixes
+* VMonG5k: change gateway description
+
 4.4.4
 -----
 
