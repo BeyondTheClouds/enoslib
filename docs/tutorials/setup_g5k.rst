@@ -35,7 +35,7 @@ With the above you can access the Grid'5000 API from you local machine aswell.
 External access
 ---------------
 
-If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine) you can refer to the following.
+If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine) you can refer to the following. You can jump this section if you work from inside Grid'5000.
 
 SSH external access
 ~~~~~~~~~~~~~~~~~~~
@@ -55,7 +55,7 @@ SSH external access
 Accessing HTTP services inside Grid'5000
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to control you experiment from the outide of Grid'5000 (e.g from your local machine). For instance the Distem provider is starting a web server to handle the client requests. In order to access it propertly externally you can either 
+If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine). For instance the Distem provider is starting a web server to handle the client requests. In order to access it propertly externally you drom your local machine can either 
 
 - Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
 - Solution 2: create a socks tunnel from your local machine to Grid'5000

@@ -16,15 +16,17 @@ virtual machines for you on Grid'5000.
 
 To accesss your virtual machines from your local machine, see below.
 
-.. warning::
 
-    Latest qcow images offered by Grid'5000 seems `to not working properly<https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10855>`_.
-    You can specify an alternate image to use by setting the ``image`` key in the configuration as in the following examples.
     
 
 
 Basic example
 -------------
+
+.. warning::
+
+    Latest qcow images offered by Grid'5000 seem `to not work properly <https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10855>`_.
+    You can specify an alternate image to use by setting the ``image`` key in the configuration as in the following examples.
 
 We'll imagine a system that requires 100 compute machines and 3 controller machines.
 We express this using the ~VmonG5K~ provider:
