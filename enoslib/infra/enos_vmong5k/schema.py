@@ -11,8 +11,7 @@ SCHEMA = {
     "properties": {
         "resources": {"$ref": "#/resources"},
         "enable_taktuk": {"type": "boolean"},
-        "gateway": {"type": "string"},
-        "gateway_user": {"type": "string"},
+        "gateway": {"type": "boolean"},
         "job_name": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},

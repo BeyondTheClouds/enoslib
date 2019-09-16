@@ -47,9 +47,8 @@ def start_virtualmachines(provider_conf, g5k_subnets):
 
     extra = {}
     if provider_conf.gateway:
-        extra.update(gateway=provider_conf.gateway)
-    if provider_conf.gateway_user:
-        extra.update(gateway_user=provider_conf.gateway_user)
+        extra.update(gateway="access.grid5000.fr")
+        extra.update(gateway_user=g5k_api_utils.get_api_username())
 
     vmong5k_roles = _distribute(provider_conf.machines, g5k_subnets, extra=extra)
 

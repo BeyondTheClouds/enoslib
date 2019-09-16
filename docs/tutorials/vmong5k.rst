@@ -16,6 +16,12 @@ virtual machines for you on Grid'5000.
 
 To accesss your virtual machines from your local machine, see below.
 
+.. warning::
+
+    Latest qcow images offered by Grid'5000 seems `to not working properly<https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10855>`_.
+    You can specify an alternate image to use by setting the ``image`` key in the configuration as in the following examples.
+    
+
 
 Basic example
 -------------
@@ -73,13 +79,13 @@ This is mandatory if you deployed from your local machine.
 
 - Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
 - Solution 2: Add the following in your configuration force Ansible to
-  jump through a gateway:
+  jump through a gateway (``access.grid5000.fr``):
 
 ::
 
    Configuration.from_settings(...
-                               gateway=access.grid5000.fr,
-                               gateway_user=<g5k_login>
+                               gateway=True
+                               ...
                               )
 
 Controlling the virtual machines placement
