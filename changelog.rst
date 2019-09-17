@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.4.6
+-----
+
+* Dependencies: upgrade python-grid5000 to 0.1.0+
+
 4.4.5
 -----
 
