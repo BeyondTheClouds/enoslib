@@ -1,11 +1,11 @@
 Changelog
 ===========
 
-4.4.6
+4.5.0
 -----
 
 * Dependencies: upgrade python-grid5000 to 0.1.0+
-* VMonG5K: use g5k api username instead of USER environment variable
+* VMonG5K/API break: use g5k api username instead of USER environment variable
 * VMonG5K: make the provider idempotent
 
 4.4.5
