@@ -5,6 +5,7 @@ Changelog
 -----
 
 * Dependencies: upgrade python-grid5000 to 0.1.0+
+* VMonG5K: use g5k api username instead of USER environment variable
 
 4.4.5
 -----

@@ -180,7 +180,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles):
         "vms": vms_by_host,
         "base_image": provider_conf.image,
         # push the g5k user in the env
-        "g5k_user": os.environ.get("USER"),
+        "g5k_user": g5k_api_utils.get_api_username(),
         "working_dir": provider_conf.working_dir,
         "strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
