@@ -24,6 +24,7 @@ class Configuration(BaseConfiguration):
     def __init__(self):
         super().__init__()
         self.enable_taktuk = False
+        self.force_deploy = False
         self.gateway = False
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE

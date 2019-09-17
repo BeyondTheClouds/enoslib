@@ -1,0 +1,36 @@
+---
+- name: Destroy all running vms and associated disks
+  hosts: all
+  tasks:
+
+  - name: list only running VMs
+    virt:
+      command: list_vms
+      state: running
+    register: running_vms
+
+  - name: Unregister existing virtual machines (vm -0 / 1)
+    virt:
+      name: "{{ item }}"
+      command: undefine
+    ignore_errors: yes
+    loop: "{{ running_vms.list_vms }}"
+    become: yes
+    become_user: "{{ g5k_user }}"
+
+  - name: Destroy running virtual machines (vm -1 / 1)
+    virt:
+      name: "{{ item }}"
+      state: destroyed
+    ignore_errors: yes
+    loop: "{{ running_vms.list_vms }}"
+    become: yes
+    become_user: "{{ g5k_user }}"
+
+  - name: Remove the working directory
+    file:
+      path: "{{ working_dir }}"
+      state: absent
+      mode: 0711
+    become: yes
+    become_user: "{{ g5k_user }}"

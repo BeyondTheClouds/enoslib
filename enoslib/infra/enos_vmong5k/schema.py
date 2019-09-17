@@ -11,6 +11,7 @@ SCHEMA = {
     "properties": {
         "resources": {"$ref": "#/resources"},
         "enable_taktuk": {"type": "boolean"},
+        "force_deploy": {"type": "boolean"},
         "gateway": {"type": "boolean"},
         "job_name": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},

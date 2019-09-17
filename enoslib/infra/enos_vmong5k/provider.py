@@ -4,7 +4,6 @@ from ipaddress import IPv4Address
 import hashlib
 import itertools
 import logging
-import os
 
 from netaddr import EUI, mac_unix_expanded
 
@@ -13,13 +12,13 @@ from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import PLAYBOOK_PATH
+from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH
 from ..provider import Provider
 
 logger = logging.getLogger(__name__)
 
 
-def start_virtualmachines(provider_conf, g5k_subnets):
+def start_virtualmachines(provider_conf, g5k_subnets, force_deploy=False):
     """Starts virtualmachines on G5K.
 
     Args:
@@ -33,6 +32,8 @@ def start_virtualmachines(provider_conf, g5k_subnets):
         g5k_subnets(list): The subnets to use. Each element is a serialization
             of
             :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
+        force_deploy (boolean): controls whether the virtualmachines should be
+            restarted from scratch
 
     Returns:
         (roles, networks) tuple
@@ -52,7 +53,7 @@ def start_virtualmachines(provider_conf, g5k_subnets):
 
     vmong5k_roles = _distribute(provider_conf.machines, g5k_subnets, extra=extra)
 
-    _start_virtualmachines(provider_conf, vmong5k_roles)
+    _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=force_deploy)
 
     return _to_hosts(vmong5k_roles), g5k_subnets
 
@@ -173,7 +174,7 @@ def _index_by_host(roles):
     return dict(vms_by_host)
 
 
-def _start_virtualmachines(provider_conf, vmong5k_roles):
+def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
     vms_by_host = _index_by_host(vmong5k_roles)
 
     extra_vars = {
@@ -182,7 +183,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles):
         # push the g5k user in the env
         "g5k_user": g5k_api_utils.get_api_username(),
         "working_dir": provider_conf.working_dir,
-        "strategy": provider_conf.strategy,
+        "_strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
     }
     # pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
@@ -192,6 +193,9 @@ def _start_virtualmachines(provider_conf, vmong5k_roles):
     for machine in provider_conf.machines:
         all_pms.extend(machine.undercloud)
     all_pms = {"all": all_pms}
+
+    if force_deploy:
+        run_ansible([DESTROY_PLAYBOOK_PATH], roles=all_pms, extra_vars=extra_vars)
 
     run_ansible([PLAYBOOK_PATH], roles=all_pms, extra_vars=extra_vars)
 
@@ -224,6 +228,8 @@ class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 
     def init(self, force_deploy=False):
+        _force_deploy = self.provider_conf.force_deploy
+        self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
@@ -234,7 +240,11 @@ class VMonG5k(Provider):
             pms = g5k_roles[machine.cookie]
             machine.undercloud = pms
 
-        roles, networks = start_virtualmachines(self.provider_conf, g5k_subnets)
+        roles, networks = start_virtualmachines(
+            self.provider_conf,
+            g5k_subnets,
+            force_deploy=self.provider_conf.force_deploy,
+        )
         return roles, networks
 
     def destroy(self):

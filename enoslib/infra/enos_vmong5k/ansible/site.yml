@@ -15,54 +15,19 @@
         groups: libvirt
         append: yes
 
-    - name: Destroy running virtual machines (vm -1 / 1)
+    - name: list only running VMs
       virt:
-        name: "{{ item.alias }}"
-        state: destroyed
-      ignore_errors: yes
-      with_items: "{{ vms[inventory_hostname] }}"
-      become: yes
-      become_user: "{{ g5k_user }}"
+        command: list_vms
+        state: running
+      register: running_vms
 
-    - name: Unregister existing virtual machines (vm -0 / 1)
-      virt:
-        name: "{{ item.alias }}"
-        command: undefine
-      ignore_errors: yes
-      with_items: "{{ vms[inventory_hostname] }}"
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-    - name: Remove the working directory
-      file:
-        path: "{{ working_dir }}"
-        state: absent
-        mode: 0711
-      become: yes
-      become_user: "{{ g5k_user }}"
+    - debug: var=running_vms.list_vms
 
     - name: Create the working directory
       file:
         path: "{{ working_dir }}"
         state: directory
         mode: 0711
-        recurse: true
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-    - name: Removing previous cloud init data
-      file:
-        path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
-        state: absent
-      loop: "{{ vms[inventory_hostname] }}"
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-    - name: Removing previous cloud init data iso
-      file:
-        path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}.iso"
-        state: absent
-      loop: "{{ vms[inventory_hostname] }}"
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -71,6 +36,7 @@
         path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
         state: directory
       loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -79,6 +45,7 @@
         src: meta-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/meta-data"
       loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -87,6 +54,7 @@
         src: user-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/user-data"
       loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -97,6 +65,7 @@
         && 
         genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data
       loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -133,21 +102,16 @@
       become_user: "{{ g5k_user }}"
       when: not enable_taktuk | bool 
 
-    - name: Removing previous disk
-      file:
-        path: "{{ working_dir }}/{{ item.alias }}"
-        state: absent
-      with_items: "{{ vms[inventory_hostname] }}"
-      become: yes
-      become_user: "{{ g5k_user }}"
-
     - name: Applying COW strategy for the image
       shell: |
         qemu-img create -f qcow2 -o backing_file={{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
         # I know ...
         chmod 777 {{ working_dir }}/{{ item.alias }}
-      with_items: "{{ vms[inventory_hostname] }}"
-      when: strategy == "cow"
+      loop: "{{ vms[inventory_hostname] }}"
+      when: 
+        - _strategy == "cow"
+        - item.alias not in running_vms.list_vms
+  
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -156,8 +120,10 @@
         cp {{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
         # I know ...
         chmod 777 {{ working_dir }}/{{ item.alias }}
-      with_items: "{{ vms[inventory_hostname] }}"
-      when: strategy == "copy"
+      loop: "{{ vms[inventory_hostname] }}"
+      when: 
+        - _strategy == "copy"
+        - item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -166,7 +132,8 @@
         name: "{{ item.alias }}"
         command: define
         xml: "{{ lookup('template', 'domain.xml.j2') }}"
-      with_items: "{{ vms[inventory_hostname] }}"
+      loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"
 
@@ -174,6 +141,7 @@
       virt:
         name: "{{ item.alias }}"
         state: running
-      with_items: "{{ vms[inventory_hostname] }}"
+      loop: "{{ vms[inventory_hostname] }}"
+      when: item.alias not in running_vms.list_vms
       become: yes
       become_user: "{{ g5k_user }}"

@@ -8,8 +8,9 @@ DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"
 DEFAULT_IMAGE = "/grid5000/virt-images/debian9-x64-base.qcow2"
 PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "site.yml")
 
+PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "site.yml")
+DESTROY_PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "destroy.yml")
 
 #: Sizes of the machines available for the configuration
 FLAVOURS = {
