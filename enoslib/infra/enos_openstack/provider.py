@@ -287,7 +287,7 @@ def check_servers(
         logger.info("[nova]: Reusing existing servers : %s", servers)
         return servers
     elif len(servers) > 0 and len(servers) < wanted:
-        raise Exception("Only %s/%s servers found" % (servers, wanted))
+        raise Exception("Only %s/%s servers found" % (len(servers), wanted))
 
     # starting the servers
     total = 0
