@@ -1,4 +1,4 @@
-from enoslib.api import discover_networks, play_on
+from enoslib.api import discover_networks, play_on, gather_facts
 from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal
 from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration
 
@@ -37,9 +37,10 @@ discover_networks(roles, networks)
 # Experimentation logic starts here
 with play_on(roles=roles) as p:
     # flent requires python3, so we default python to python3
-    p.apt_repository(repo="deb http://deb.debian.org/debian stretch main contrib non-free",
-                     state="present")
-    p.apt(name=["flent", "netperf", "python3-setuptools"],
+    p.apt_repository(repo="deb http://deb.debian.org/debian stretch main    contrib non-free",
+                     state="absent")
+    p.apt(name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
+          allow_unauthenticated=True,
           state="present")
 
 with play_on(pattern_hosts="server", roles=roles) as p:
@@ -48,7 +49,7 @@ with play_on(pattern_hosts="server", roles=roles) as p:
 with play_on(pattern_hosts="client", roles=roles) as p:
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].inventory_hostname }} "
+            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",

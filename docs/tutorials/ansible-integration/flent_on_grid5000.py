@@ -11,16 +11,16 @@ logging.basicConfig(level=logging.DEBUG)
 network = NetworkConfiguration(id="n1",
                                type="kavlan",
                                roles=["mynetwork"],
-                               site="rennes")
+                               site="nancy")
 conf = Configuration.from_settings(job_name="flent_on",
                                   env_name="debian9-x64-std")\
                     .add_network_conf(network)\
                     .add_machine(roles=["server"],
-                                 cluster="parapluie",
+                                 cluster="grisou",
                                  nodes=1,
                                  primary_network=network)\
                     .add_machine(roles=["client"],
-                                 cluster="parapluie",
+                                 cluster="grisou",
                                  nodes=1,
                                  primary_network=network)\
                     .finalize()
@@ -33,7 +33,7 @@ with play_on(roles=roles) as p:
     p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
     p.apt_repository(repo="deb http://deb.debian.org/debian stretch main contrib non-free",
                      state="present")
-    p.apt(name=["flent", "netperf", "python3-setuptools"],
+    p.apt(name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
           state="present")
 
 with play_on(pattern_hosts="server", roles=roles) as p:
@@ -42,7 +42,7 @@ with play_on(pattern_hosts="server", roles=roles) as p:
 with play_on(pattern_hosts="client", roles=roles) as p:
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].inventory_hostname }} "
+            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }}"
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",
