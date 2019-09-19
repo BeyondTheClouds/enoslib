@@ -1,0 +1,7 @@
+{% if vars['reportingDB_addresses'] is defined %}
+[reportingDB]
+urls = [ {{ vars['reportingDB_addresses'] | map('to_json') | join(",") }} ]
+{% endif %}
+
+[targets]
+urls = [ {{ vars['target_addresses'] | map('to_json') | join(",") }} ]

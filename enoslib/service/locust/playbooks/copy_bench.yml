@@ -1,0 +1,8 @@
+---
+-   hosts: all
+    tasks: 
+    -   name: Copy benchmarking dir
+        copy:
+            src: "{{src_dir}}"
+            dest: "{{dest_dir}}"
+            mode: u=rw,g=r,o=r
