@@ -4,6 +4,7 @@ from .constants import (
     DEFAULT_BOX,
     DEFAULT_FLAVOUR,
     DEFAULT_USER,
+    DEFAULT_NAME_PREFIX,
     FLAVOURS,
 )
 from .schema import SCHEMA
@@ -20,6 +21,7 @@ class Configuration(BaseConfiguration):
         self.backend = DEFAULT_BACKEND
         self.user = DEFAULT_USER
         self.box = DEFAULT_BOX
+        self.name_prefix = DEFAULT_NAME_PREFIX
         self.config_extra = ""
 
         self._machine_cls = MachineConfiguration
@@ -36,7 +38,7 @@ class Configuration(BaseConfiguration):
         _networks = _resources["networks"]
         self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
         self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
-        for key in ["backend", "user", "box", "config_extra"]:
+        for key in ["backend", "user", "box", "name_prefix", "config_extra"]:
             value = dictionnary.get(key)
             if value is not None:
                 setattr(self, key, value)
@@ -50,6 +52,7 @@ class Configuration(BaseConfiguration):
             backend=self.backend,
             user=self.user,
             box=self.box,
+            name_prefix=self.name_prefix,
             config_extra=self.config_extra,
             resources={
                 "machines": [m.to_dict() for m in self.machines],
@@ -60,9 +63,11 @@ class Configuration(BaseConfiguration):
 
 
 class MachineConfiguration:
-    def __init__(self, *, roles=None, flavour=None, flavour_desc=None, number=1):
+    def __init__(self, *, roles=None, flavour=None,
+                 flavour_desc=None, number=1, name_prefix=""):
 
         self.roles = roles
+        self.name_prefix = name_prefix
 
         # Internally we keep the flavour_desc as reference not a descriptor
         self.flavour = flavour
@@ -90,15 +95,17 @@ class MachineConfiguration:
         flavour_desc = dictionnary.get("flavour_desc")
         if flavour_desc is not None:
             kwargs.update(flavour_desc=flavour_desc)
-        number = dictionnary.get("number")
-        if number is not None:
-            kwargs.update(number=number)
+        number = dictionnary.get("number", 1)
+        kwargs.update(number=number)
+        name_prefix = dictionnary.get("name_prefix", "")
+        kwargs.update(name_prefix=name_prefix)
 
         return cls(**kwargs)
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc, number=self.number)
+        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
+                 number=self.number, name_prefix=self.name_prefix)
         return d
 
 

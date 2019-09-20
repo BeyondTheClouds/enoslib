@@ -31,3 +31,6 @@ DEFAULT_NETWORKS = ["enos_network"]
 
 
 DEFAULT_NUMBER = 1
+
+
+DEFAULT_NAME_PREFIX = "enos"

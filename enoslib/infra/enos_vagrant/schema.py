@@ -10,6 +10,7 @@ SCHEMA = {
         "box": {"type": "string"},
         "user": {"type": "string"},
         "resources": {"$ref": "#/resources"},
+        "name_prefix": {"type": "string"},
         "config_extra": {"type": "string"},
     },
     "additionalProperties": False,
@@ -34,6 +35,7 @@ SCHEMA = {
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
             "number": {"type": "number"},
+            "name_prefix": {"type": "string"},
             "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
             "flavour_desc": {"$ref": "#/flavour_desc"},
         },
