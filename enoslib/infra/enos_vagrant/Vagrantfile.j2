@@ -14,17 +14,18 @@ Vagrant.configure(2) do |config|
     {% for ip in machine.ips %}
     my.vm.network :private_network, ip: "{{ ip }}", auto_config: true
     {% endfor %}
-
+{% if provider_conf.backend  == 'virtualbox' %}
     my.vm.provider :virtualbox do |vb|
       vb.cpus={{ machine.cpu }}
       vb.memory={{ machine.mem }}
     end
-
+{% elif provider_conf.backend == 'libvirt' %}
     my.vm.provider :libvirt do |lv|
       lv.cpus={{ machine.cpu }}
       lv.memory={{ machine.mem }}
       lv.nested = true
     end
+{% endif %}
   end
   {% endfor %}
 end
