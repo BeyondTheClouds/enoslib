@@ -43,6 +43,19 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
         Machine roles and network roles are transparent to the |enoslib|. The
         semantic is left to the application using it.
 
+- Additionally, there is the key ``config_extra``. It enables customized
+  expressions of the ``config`` variable in a Vagrant description. For example,
+  in order to add a synchronised folder in the virtual machine the key may be
+  set as follows:
+
+    .. code-block:: yaml
+
+        config_extra: |
+          config.vm.synced_folder ".",
+                                  "/vagrant",
+                                  owner: "vagrant",
+                                  group: "vagrant"
+
 - You can launch the script using :
 
     .. code-block:: bash
