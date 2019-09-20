@@ -20,6 +20,7 @@ class Configuration(BaseConfiguration):
         self.backend = DEFAULT_BACKEND
         self.user = DEFAULT_USER
         self.box = DEFAULT_BOX
+        self.config_extra = ""
 
         self._machine_cls = MachineConfiguration
         self._network_cls = NetworkConfiguration
@@ -35,7 +36,7 @@ class Configuration(BaseConfiguration):
         _networks = _resources["networks"]
         self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
         self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
-        for key in ["backend", "user", "box"]:
+        for key in ["backend", "user", "box", "config_extra"]:
             value = dictionnary.get(key)
             if value is not None:
                 setattr(self, key, value)
@@ -49,6 +50,7 @@ class Configuration(BaseConfiguration):
             backend=self.backend,
             user=self.user,
             box=self.box,
+            config_extra=self.config_extra,
             resources={
                 "machines": [m.to_dict() for m in self.machines],
                 "networks": [n.to_dict() for n in self.networks],
