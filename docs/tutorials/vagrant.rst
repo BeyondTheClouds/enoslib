@@ -43,18 +43,43 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
         Machine roles and network roles are transparent to the |enoslib|. The
         semantic is left to the application using it.
 
-- Additionally, there is the key ``config_extra``. It enables customized
-  expressions of the ``config`` variable in a Vagrant description. For example,
-  in order to add a synchronised folder in the virtual machine the key may be
-  set as follows:
+- Additionally, there are two keys to personalize the vagrant configuration:
 
-    .. code-block:: yaml
+  1. The key ``config_extra`` enables customized expressions of the ``config``
+     variable in a Vagrant description. For example, in order to add a
+     synchronised folder in the virtual machine the key may be set as follows:
+
+     .. code-block:: yaml
 
         config_extra: |
           config.vm.synced_folder ".",
-                                  "/vagrant",
-                                  owner: "vagrant",
-                                  group: "vagrant"
+                                   "/vagrant",
+                                   owner: "vagrant",
+                                   group: "vagrant"
+  2. The key ``name_prefix`` changes the default prefix of virtual machines'
+     names. This key can be set as a global attribute at the root level or it
+     can be set at group level along side the description fo a ``machine``. For
+     example, the following combination is possible:
+
+     .. code-block:: yaml
+
+        vagrant:
+          backend: libvirt
+          box: generic/ubuntu1804
+          name_prefix: vm
+        resources:
+          machines:
+            - roles: [CloudOne]
+              name_prefix: CloudOne
+            - roles: [CloudTwo]
+              flavour: large
+              number: 1
+
+
+     .. note::
+
+        When ``name_prefix`` is set and there is only one machine in the group
+        (default behaviour) any counter is append to the name of the machine.
 
 - You can launch the script using :
 
