@@ -10,6 +10,7 @@ SCHEMA = {
         "box": {"type": "string"},
         "user": {"type": "string"},
         "resources": {"$ref": "#/resources"},
+        "config_extra": {"type": "string"},
     },
     "additionalProperties": False,
     "required": ["resources"],
