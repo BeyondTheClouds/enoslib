@@ -1,6 +1,14 @@
 Changelog
 ===========
 
+4.6.0
+-----
+
+* Chameleon: minor fixes, support for the primer example
+* Vagrant: customized name and config is now supported
+* Locust/service: initial version (locust.io)
+* G5k: support for arbitrary SSH key
+
 4.5.0
 -----
 
