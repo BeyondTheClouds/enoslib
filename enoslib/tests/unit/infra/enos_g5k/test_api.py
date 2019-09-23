@@ -1,7 +1,9 @@
 import mock
 import os
 
-from enoslib.infra.enos_g5k.api import Resources, DEFAULT_ENV_NAME
+from enoslib.infra.enos_g5k.api import (Resources, 
+                                        DEFAULT_ENV_NAME, 
+                                        DEFAULT_SSH_KEYFILE)
 import enoslib.infra.enos_g5k.api as api
 from enoslib.infra.enos_g5k import utils, g5k_api_utils
 from enoslib.infra.enos_g5k.constants import PROD, KAVLAN
@@ -51,9 +53,33 @@ class TestDeploy(EnosTest):
         api._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
-        r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME})
+        r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME, 
+                                                         "key": DEFAULT_SSH_KEYFILE})
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
+
+    def test_prod_alt_key(self):
+        site = "rennes"
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        r = Resources(
+            {   
+                "key": "test_key",
+                "resources": {
+                    "machines": [{"_c_nodes": nodes, "primary_network": "network1"}],
+                    "networks": [{"type": PROD, "id": "network1", "site": site}],
+                }
+            }
+        )
+        deployed = set(nodes)
+        undeployed = set()
+        api._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
+        r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+        r.deploy()
+        r.driver.deploy.assert_called_with(site, nodes, {"env_name": DEFAULT_ENV_NAME, 
+                                                         "key": "test_key"})
+        self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
+        self.assertCountEqual(undeployed, r.c_resources["machines"][0]["_c_undeployed"])
+
 
     def test_vlan(self):
         site = "rennes"
@@ -81,7 +107,9 @@ class TestDeploy(EnosTest):
         r.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         r.deploy()
         r.driver.deploy.assert_called_with(
-            site, nodes, {"env_name": DEFAULT_ENV_NAME, "vlan": "4"}
+            site, nodes, {"env_name": DEFAULT_ENV_NAME, 
+                          "vlan": "4", "key": DEFAULT_SSH_KEYFILE,
+                          "key": DEFAULT_SSH_KEYFILE}
         )
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])
         self.assertCountEqual(deployed, r.c_resources["machines"][0]["_c_deployed"])

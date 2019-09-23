@@ -17,7 +17,7 @@ from enoslib.infra.utils import pick_things, mk_pools
 logger = logging.getLogger(__name__)
 
 
-def dhcp_interfaces(c_resources):
+def dhcp_interfaces(c_resources, conn_params):
     # TODO(msimonin) add a filter
     machines = c_resources["machines"]
     for desc in machines:
@@ -26,16 +26,20 @@ def dhcp_interfaces(c_resources):
         ifconfig = ["ip link set %s up" % nic for nic in nics_list]
         dhcp = ["dhclient %s" % nic for nic in nics_list]
         cmd = "%s ; %s" % (";".join(ifconfig), ";".join(dhcp))
-        remote.exec_command_on_nodes(desc["_c_ssh_nodes"], cmd, cmd)
+        remote.exec_command_on_nodes(
+            desc["_c_ssh_nodes"], cmd, cmd, conn_params=conn_params
+        )
 
 
-def grant_root_access(c_resources):
+def grant_root_access(c_resources, conn_params):
     machines = c_resources["machines"]
     for desc in machines:
         cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         cmd = "|".join(cmd)
-        remote.exec_command_on_nodes(desc["_c_nodes"], cmd, cmd, conn_params={})
+        remote.exec_command_on_nodes(
+            desc["_c_nodes"], cmd, cmd, conn_params=conn_params
+        )
 
 
 def is_prod(network, networks):

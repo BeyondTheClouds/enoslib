@@ -25,7 +25,6 @@ from .constants import (
     KAVLAN_LOCAL,
     KAVLAN,
     SYNCHRONISATION_OFFSET,
-    DEFAULT_SSH_KEYFILE,
     NATURE_PROD,
     MAX_DEPLOY,
 )

@@ -2,11 +2,15 @@
 
 import copy
 from itertools import groupby
+import logging
 
-from .remote import get_execo_remote, DEFAULT_CONN_PARAMS
+from .remote import get_execo_remote
 from .driver import get_driver
 from .constants import DEFAULT_ENV_NAME, DEFAULT_SSH_KEYFILE, JOB_TYPE_DEPLOY, PROD
 import enoslib.infra.enos_g5k.utils as utils
+
+
+logger = logging.getLogger(__name__)
 
 
 def _translate_vlan(primary_network, networks, nodes, reverse=False):
@@ -27,13 +31,13 @@ def _translate_vlan(primary_network, networks, nodes, reverse=False):
     return [translate(node, vlan_id) for node in nodes]
 
 
-def _check_deployed_nodes(nodes):
+def _check_deployed_nodes(nodes, conn_params):
     """This is borrowed from execo."""
     deployed = []
     undeployed = []
     cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
 
-    deployed_check = get_execo_remote(cmd, nodes, DEFAULT_CONN_PARAMS)
+    deployed_check = get_execo_remote(cmd, nodes, conn_params)
 
     for p in deployed_check.processes:
         p.nolog_exit_code = True
@@ -48,6 +52,7 @@ def _check_deployed_nodes(nodes):
         else:
             undeployed.append(p.host.address)
 
+    logger.debug("check_deployed_nodes = %s, %s" % (deployed, undeployed))
     return deployed, undeployed
 
 
@@ -83,6 +88,13 @@ class Resources:
         self.c_resources = copy.deepcopy(self.configuration["resources"])
         self.driver = get_driver(configuration)
 
+        # execo connection params for routines configuration and checks
+        # the priv key path is built from the public key path by removing the
+        # .pub suffix...
+        self.key_path = self.configuration.get("key", DEFAULT_SSH_KEYFILE)
+        priv_key = self.key_path.replace(".pub", "")
+        self.root_conn_params = {"user": "root", "keyfile": priv_key}
+
     def launch(self):
         self.reserve()
         if self.configuration.get("job_type") == JOB_TYPE_DEPLOY:
@@ -108,7 +120,7 @@ class Resources:
             return site, net
 
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
-        key_path = self.configuration.get("key", DEFAULT_SSH_KEYFILE)
+        key_path = self.key_path
         force_deploy = self.configuration.get("force_deploy", False)
 
         machines = self.c_resources["machines"]
@@ -133,7 +145,8 @@ class Resources:
             deployed, undeployed = [], nodes
             if not force_deploy:
                 deployed, undeployed = _check_deployed_nodes(
-                    _translate_vlan(primary_network, networks, nodes)
+                    _translate_vlan(primary_network, networks, nodes),
+                    self.root_conn_params,
                 )
                 deployed = _translate_vlan(
                     primary_network, networks, deployed, reverse=True
@@ -157,11 +170,13 @@ class Resources:
         dhcp = self.configuration.get("dhcp", False)
         utils.mount_nics(self.c_resources)
         if dhcp:
-            utils.dhcp_interfaces(self.c_resources)
+            utils.dhcp_interfaces(self.c_resources, self.root_conn_params)
         return self.c_resources
 
     def grant_root_access(self):
-        utils.grant_root_access(self.c_resources)
+        user_conn_params = copy.deepcopy(self.root_conn_params)
+        user_conn_params.update(user=self.driver.get_user())
+        utils.grant_root_access(self.c_resources, user_conn_params)
 
     def get_networks(self):
         """Get the networks assoiated with the resource description.

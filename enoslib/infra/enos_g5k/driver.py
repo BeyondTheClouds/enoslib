@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 import logging
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
+    get_api_username,
     grid_deploy,
     grid_destroy_from_name,
     grid_destroy_from_ids,
@@ -68,6 +69,9 @@ class Driver:
     @abstractmethod
     def deploy(self, site, nodes, force_deploy, options):
         pass
+
+    def get_user(self):
+        return get_api_username()
 
 
 class OargridStaticDriver(Driver):
