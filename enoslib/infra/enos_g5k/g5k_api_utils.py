@@ -12,6 +12,7 @@ from netaddr import IPAddress, IPNetwork, IPSet
 import os
 import time
 import threading
+from pathlib import Path
 
 from .error import (
     EnosG5kDuplicateJobsError,
@@ -437,7 +438,10 @@ def grid_deploy(site, nodes, options):
 
     environment = options.pop("env_name")
     options.update(environment=environment)
-    key_path = DEFAULT_SSH_KEYFILE
+    key_path = Path(options.get("key")).expanduser().resolve()
+    if not key_path.is_file():
+        raise Exception("The public key file %s is not correct." % key_path)
+    logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
     options.update(key=key_path.read_text())
     return _deploy(site, [], nodes, 0, options)
 

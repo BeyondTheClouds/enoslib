@@ -6,6 +6,7 @@ from .constants import (
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
+    DEFAULT_SSH_KEYFILE,
 )
 from .schema import SCHEMA
 
@@ -21,7 +22,7 @@ class Configuration(BaseConfiguration):
         self.env_name = DEFAULT_ENV_NAME
         self.job_name = DEFAULT_JOB_NAME
         self.job_type = DEFAULT_JOB_TYPE
-        self.key = None
+        self.key = DEFAULT_SSH_KEYFILE
         self.oargrid_jobids = None
         self.queue = DEFAULT_QUEUE
         self.reservation = None
