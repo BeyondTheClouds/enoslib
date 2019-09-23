@@ -38,8 +38,8 @@ provider = G5k(conf)
 roles, networks = provider.init()
 
 # Retrieving subnet
-subnet = [n for n in networks if "my_subnet" in n["roles"]]
-logging.info(subnet)
+subnets = [n for n in networks if "my_subnet" in n["roles"]]
+logging.info(subnets)
 # This returns the subnet information
 # {
 #    'roles': ['my_subnet'],
@@ -63,6 +63,6 @@ virt_conf.add_machine(roles=["vmcontrol"],
          .finalize()
 
 # Start them
-vmroles, networks =start_virtualmachines(virt_conf, subnet[0])
+vmroles, networks =start_virtualmachines(virt_conf, subnets)
 print(vmroles)
 print(networks)
