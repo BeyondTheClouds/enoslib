@@ -5,7 +5,7 @@ from itertools import groupby
 
 from .remote import get_execo_remote, DEFAULT_CONN_PARAMS
 from .driver import get_driver
-from .constants import DEFAULT_ENV_NAME, JOB_TYPE_DEPLOY, PROD
+from .constants import DEFAULT_ENV_NAME, DEFAULT_SSH_KEYFILE, JOB_TYPE_DEPLOY, PROD
 import enoslib.infra.enos_g5k.utils as utils
 
 
@@ -108,6 +108,7 @@ class Resources:
             return site, net
 
         env_name = self.configuration.get("env_name", DEFAULT_ENV_NAME)
+        key_path = self.configuration.get("key", DEFAULT_SSH_KEYFILE)
         force_deploy = self.configuration.get("force_deploy", False)
 
         machines = self.c_resources["machines"]
@@ -122,6 +123,7 @@ class Resources:
             # flatten
             nodes = sum(nodes, [])
             options = {"env_name": env_name}
+            options.update({"key": key_path})
 
             net = utils.lookup_networks(primary_network, networks)
             if net["type"] != PROD:
