@@ -11,9 +11,8 @@ logging.basicConfig(level=logging.DEBUG)
 inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
-conf = Configuration.from_settings(job_name="tuto-vmong5k",
-                                   image="/grid5000/virt-images/debian9-x64-nfs-2019040916.qcow2")\
-    .add_machine(roles=["compute"],
+conf = Configuration.from_settings(job_name="tuto-vmong5k")\
+        .add_machine(roles=["compute"],
                  cluster="grisou",
                  number=100,
                  flavour="tiny")\

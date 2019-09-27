@@ -6,7 +6,8 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 DEFAULT_JOB_NAME = "EnOslib-vmong5k"
 DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"
-DEFAULT_IMAGE = "/grid5000/virt-images/debian9-x64-base.qcow2"
+# See  https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10855
+DEFAULT_IMAGE = "/grid5000/virt-images/debian10-x64-nfs.qcow2"
 PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "site.yml")

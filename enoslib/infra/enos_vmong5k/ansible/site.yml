@@ -3,18 +3,19 @@
   hosts: all
   vars:
     pubkey: "{{lookup('file', '~/.ssh/id_rsa.pub')}}"
+  # NOTE(msimonin): quick fix for buster
+  # The libvirt runtime dir (e.g with the socket) will be created in the home 
+  # dir instead of in /run/user/$UID
+  environment: 
+    XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
+
   tasks:
-    - name: Enable nested virtualization
-      shell: |
-        modprobe -r kvm_intel
-        modprobe kvm_intel nested=1
+    # - name: Enable nested virtualization
+    #   shell: |
+    #     modprobe -r kvm_intel
+    #     modprobe kvm_intel nested=1
 
-    - name: Add g5k_user to libvirt group
-      user:
-        name: "{{ g5k_user }}"
-        groups: libvirt
-        append: yes
-
+      
     - name: list only running VMs
       virt:
         command: list_vms
@@ -28,36 +29,46 @@
         path: "{{ working_dir }}"
         state: directory
         mode: 0711
-      become: yes
-      become_user: "{{ g5k_user }}"
 
+    - name: Create the libvirt image directory
+      file:
+        path: "/var/lib/libvirt/images/enos_vmong5k"
+        state: directory
+      
+    - name: Bind mount image directory 
+      mount:
+        src: "{{ working_dir }}"
+        path: "/var/lib/libvirt/images/enos_vmong5k"
+        opts: bind
+        state: mounted
+        fstype: none
+        
+    - name: Restart libvirt
+      service:
+        name: libvirtd
+        state: restarted
+    
     - name: Creating cloud init data directory
       file:
         path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
         state: directory
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
+      
     - name: Generate meta-data for cloud-init
       template:
         src: meta-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/meta-data"
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
+      
     - name: Generate g5k_user data for cloud-init
       template:
         src: user-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/user-data"
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
+      
     #  Create one iso per vm
     - name: Create the iso for cloud-init
       shell: > 
@@ -66,10 +77,8 @@
         genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-      #    - name: Copy base image
+      
+            #    - name: Copy base image
       # shell: > 
       #  ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
       #  || 
@@ -89,8 +98,6 @@
         ||
         {{ taktuk_command }}
       run_once: yes
-      become: yes
-      become_user: "{{ g5k_user }}"
       when: enable_taktuk | bool 
 
     - name: Copy (regular copy) the base image
@@ -98,8 +105,6 @@
         ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
         ||
         cp  {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2 
-      become: yes
-      become_user: "{{ g5k_user }}"
       when: not enable_taktuk | bool 
 
     - name: Applying COW strategy for the image
@@ -111,10 +116,7 @@
       when: 
         - _strategy == "cow"
         - item.alias not in running_vms.list_vms
-  
-      become: yes
-      become_user: "{{ g5k_user }}"
-
+      
     - name: Applying COPY strategy for the image
       shell: |
         cp {{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
@@ -124,24 +126,15 @@
       when: 
         - _strategy == "copy"
         - item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-    - name: Define virtual machines (vm 0 / 1)
-      virt:
-        name: "{{ item.alias }}"
-        command: define
-        xml: "{{ lookup('template', 'domain.xml.j2') }}"
+      
+    - name: Dump xml domain files
+      template:
+        dest: "{{ working_dir }}/{{ item.alias }}.xml"
+        src: domain.xml.j2
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"
-
-    - name: Launch virtual machines (vm 1 / 1)
-      virt:
-        name: "{{ item.alias }}"
-        state: running
+      
+    - name: Start virtual machines
+      shell: "virsh create {{  working_dir }}/{{ item.alias }}.xml"
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      become: yes
-      become_user: "{{ g5k_user }}"

@@ -10,14 +10,14 @@ provider_conf = {
     "resources": {
         "machines": [{
             "roles": ["control"],
-            "cluster": "paravance",
+            "cluster": "grisou",
             "nodes": 1,
             "primary_network": "n1",
             "secondary_networks": ["n2"]
         },{
 
             "roles": ["control", "compute"],
-            "cluster": "parasilo",
+            "cluster": "grisou",
             "nodes": 1,
             "primary_network": "n1",
             "secondary_networks": ["n2"]
@@ -26,12 +26,12 @@ provider_conf = {
             "id": "n1",
             "type": "kavlan",
             "roles": ["my_network"],
-            "site": "rennes",
+            "site": "nancy",
          }, {
             "id": "n2",
             "type": "kavlan",
             "roles": ["my_second_network"],
-            "site": "rennes",
+            "site": "nancy",
          }]
     }
 }
@@ -45,4 +45,4 @@ provider = G5k(conf)
 roles, networks = provider.init()
 
 # destroy the reservation
-provider.destroy()
+# provider.destroy()
