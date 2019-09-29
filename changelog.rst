@@ -1,6 +1,16 @@
 Changelog
 ===========
 
+5.0.0
+-----
+
+* G5k: Default to Debian10
+* Vagrant: Defaut to Debian10
+* VMonG5k: 
+    - Default to Debian10
+    - Activate VLC console (fix an issue with newest G5K virt images...)
+    - Run VMs as root
+
 4.6.0
 -----
 
