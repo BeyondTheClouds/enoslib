@@ -12,7 +12,6 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "backend": "libvirt",
-    "box": "generic/debian9",
     "resources": {
         "machines": [{
             "roles": ["control"],

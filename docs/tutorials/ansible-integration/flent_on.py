@@ -9,8 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # The conf let us define the resources wanted.
 # This is provider specific
-conf = Configuration.from_settings(backend="libvirt",
-                                   box="generic/debian9")\
+conf = Configuration.from_settings(backend="libvirt")\
                     .add_machine(roles=["server"],
                                  flavour="tiny",
                                  number=1)\
@@ -47,7 +46,7 @@ with play_on(pattern_hosts="server", roles=roles) as p:
 with play_on(pattern_hosts="client", roles=roles) as p:
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }}"
+            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",
