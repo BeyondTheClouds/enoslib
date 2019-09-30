@@ -25,7 +25,7 @@ Basic example
 -------------
 
 The following reserve 2 nodes on the chameleon baremetal infrastructure.
-Prior to the execution you must source your openrc file:
+Prior to the execution you must source your openrc file.
 
 .. code-block:: bash
 
@@ -45,3 +45,8 @@ in the following.
 
    Similarly to other provider the configuration can be generated
    programmatically instead of using a dict.
+
+
+The result of the above code is the following:
+
+.. image:: chameleon/result.png

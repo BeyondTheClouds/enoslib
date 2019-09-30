@@ -1,4 +1,4 @@
-from enoslib.api import discover_networks, play_on, gather_facts
+from enoslib.api import discover_networks, play_on
 from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal
 from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration
 
@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "key_name": "enos_matt",
+    "lease_name": "mylease",
     "resources": {
         "machines": [{
             "roles": ["server"],
