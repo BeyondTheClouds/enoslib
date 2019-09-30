@@ -265,7 +265,8 @@ class play_on(object):
         roles=None,
         extra_vars=None,
         on_error_continue=False,
-        gather_facts=True
+        gather_facts=True,
+        priors=None
     ):
         """Constructor.
 
@@ -308,10 +309,14 @@ class play_on(object):
         self.roles = roles
         self.extra_vars = extra_vars
         self.on_error_continue = on_error_continue
+        self.priors = priors if priors is not None else []
 
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context
         self._tasks = []
+        if self.priors:
+            for prior in self.priors:
+                self._tasks.extend(prior._tasks)
 
         # Handle gather_facts
         self.gather_facts = gather_facts
@@ -368,6 +373,22 @@ class play_on(object):
         if module_name in ["command", "shell", "raw"]:
             return _shell_like
         return _f
+
+
+# can be used as prior
+python3 = play_on(roles={})
+python3.shell(
+"""
+(python --version | grep --regexp " 3.*") || (
+    apt update && apt install python3 &&
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 1)
+""")
+python3.apt(
+    display_name="Installing python-setuptools",
+    name="python3-pip",
+    state="present",
+    update_cache=True,
+)
 
 
 def run_command(

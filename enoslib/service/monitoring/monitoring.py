@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-from enoslib.api import play_on
+from enoslib.api import play_on, python3
 from ..service import Service
 
 
@@ -16,7 +16,14 @@ def _to_abs(path):
 
 class Monitoring(Service):
     def __init__(
-        self, *, collector=None, agent=None, ui=None, network=None, agent_conf=None
+        self,
+        *,
+        collector=None,
+        agent=None,
+        ui=None,
+        network=None,
+        agent_conf=None,
+        remote_working_dir="/builds/monitoring",
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
@@ -58,6 +65,11 @@ class Monitoring(Service):
             self.agent_conf = "telegraf.conf.j2"
         else:
             self.agent_conf = _to_abs(agent_conf)
+        self.remote_working_dir = remote_working_dir
+        self.remote_telegraf_conf = os.path.join(
+            self.remote_working_dir, "telegraf.conf"
+        )
+        self.remote_influxdata = os.path.join(self.remote_working_dir, "influxdb-data")
 
     def deploy(self):
         """Deploy the monitoring stack"""
@@ -65,13 +77,7 @@ class Monitoring(Service):
             return
 
         # Some requirements
-        with play_on(pattern_hosts="all", roles=self._roles) as p:
-            p.apt(
-                display_name="Installing python-setuptools",
-                name="python-pip",
-                state="present",
-                update_cache=True,
-            )
+        with play_on(pattern_hosts="all", roles=self._roles, priors=[python3]) as p:
             p.pip(display_name="Installing python-docker", name="docker")
             p.shell(
                 "which docker || (curl -sSL https://get.docker.com/ | sh)",
@@ -79,8 +85,16 @@ class Monitoring(Service):
             )
 
         # Deploy the collector
-        with play_on(pattern_hosts="collector", roles=self._roles) as p:
+        if self.network is not None:
+            # This assumes that `discover_network` has been run before
+            collector_address = self.collector[0].extra[self.network + "_ip"]
+        else:
+            # NOTE(msimonin): ping on docker bridge address for ci testing
+            collector_address = "172.17.0.1"
+        extra_vars = {"collector_address": collector_address}
+        _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
+        with play_on(pattern_hosts="collector", roles=self._roles) as p:
             p.docker_container(
                 display_name="Installing",
                 name="influxdb",
@@ -88,11 +102,11 @@ class Monitoring(Service):
                 detach=True,
                 network_mode="host",
                 state="started",
-                volumes=["/influxdb-data:/var/lib/influxdb"],
+                volumes=[f"{self.remote_influxdata}:/var/lib/influxdb"],
             )
             p.wait_for(
                 display_name="Waiting for InfluxDB to be ready",
-                host="localhost",
+                host=collector_address,
                 port="8086",
                 state="started",
                 delay=2,
@@ -100,24 +114,19 @@ class Monitoring(Service):
             )
 
         # Deploy the agents
-        _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-        if self.network is not None:
-            # This assumes that `discover_network` has been run before
-            collector_address = self.collector[0].extra[self.network + "_ip"]
-        else:
-            collector_address = self.collector[0].address
-        extra_vars = {"collector_address": collector_address}
+
         with play_on(
             pattern_hosts="agent", roles=self._roles, extra_vars=extra_vars
         ) as p:
+            p.file(path=self.remote_working_dir, state="directory")
             p.template(
                 display_name="Generating the configuration file",
                 src=os.path.join(_path, self.agent_conf),
-                dest="/telegraf.conf",
+                dest=self.remote_telegraf_conf,
             )
 
             volumes = [
-                "/telegraf.conf:/etc/telegraf/telegraf.conf",
+                f"{self.remote_telegraf_conf}:/etc/telegraf/telegraf.conf",
                 "/sys:/rootfs/sys:ro",
                 "/proc:/rootfs/proc:ro",
                 "/var/run/docker.sock:/var/run/docker.sock:ro",
@@ -133,7 +142,16 @@ class Monitoring(Service):
                 volumes=volumes,
                 env={"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"},
             )
+
         # Deploy the UI
+        ui_address = None
+        if self.network is not None:
+            # This assumes that `discover_network` has been run before
+            ui_address = self.ui[0].extra[self.network + "_ip"]
+        else:
+            # NOTE(msimonin): ping on docker bridge address for ci testing
+            ui_address = "172.17.0.1"
+
         with play_on(pattern_hosts="ui", roles=self._roles) as p:
             p.docker_container(
                 display_name="Installing Grafana",
@@ -145,7 +163,8 @@ class Monitoring(Service):
             )
             p.wait_for(
                 display_name="Waiting for grafana to be ready",
-                host="localhost",
+                # NOTE(msimonin): ping on docker bridge address for ci testing
+                host=ui_address,
                 port=3000,
                 state="started",
                 delay=2,
@@ -177,11 +196,7 @@ class Monitoring(Service):
                 state="absent",
                 force_kill=True,
             )
-            p.docker_volume(
-                display_name="Destroying associated volumes",
-                name="influxdb-data",
-                state="absent",
-            )
+            p.file(path=f"{self.remote_influxdata}", state="absent")
 
     def backup(self, backup_dir=None):
         """Backup the monitoring stack.
@@ -203,19 +218,26 @@ class Monitoring(Service):
         _backup_dir = _check_path(backup_dir)
 
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
+            backup_path = os.path.join(self.remote_working_dir, "influxdb-data.tar.gz")
             p.docker_container(
                 display_name="Stopping InfluxDB", name="influxdb", state="stopped"
             )
             p.archive(
                 display_name="Archiving the data volume",
-                path="/influxdb-data",
-                dest="/influxdb-data.tar.gz",
+                path=f"{self.remote_influxdata}",
+                dest=backup_path,
             )
 
             p.fetch(
                 display_name="Fetching the data volume",
-                src="/influxdb-data.tar.gz",
+                src=backup_path,
                 dest=str(Path(_backup_dir, "influxdb-data.tar.gz")),
                 flat=True,
             )
-            p.shell("docker start influxdb", display_name="Restarting InfluxDB")
+
+            p.docker_container(
+                display_name="Restarting InfluxDB",
+                name="influxdb",
+                state="started",
+                force_kill=True,
+            )

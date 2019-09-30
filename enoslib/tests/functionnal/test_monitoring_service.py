@@ -1,12 +1,13 @@
+import logging
+import os
+
 from enoslib.api import discover_networks
-from enoslib.service.monitoring import Monitoring
+from enoslib.service import Monitoring
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
-import os
 
-# Dummy functionnal test running inside a docker container
-
+logging.basicConfig(level=logging.DEBUG)
 provider_conf = {
     "resources": {
         "machines": [
@@ -35,9 +36,13 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Static(conf)
 
 roles, networks = provider.init()
+
 discover_networks(roles, networks)
 
 m = Monitoring(collector=roles["control"],
                agent=roles["control"],
                ui=roles["control"])
 m.deploy()
+m.backup()
+# test whether the backup is ok...
+m.destroy()

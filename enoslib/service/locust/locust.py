@@ -55,7 +55,6 @@ class Locust(Service):
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.shell(
                 "pkill locust",
-                display_name="Running locust (%s) on master..." % (file_name),
             )
 
     def run_with_ui(self, expe_dir, file_name, port="8089"):
