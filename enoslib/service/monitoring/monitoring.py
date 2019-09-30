@@ -118,7 +118,7 @@ class Monitoring(Service):
 
             volumes = [
                 "/telegraf.conf:/etc/telegraf/telegraf.conf",
-                "sys:/rootfs/sys:ro",
+                "/sys:/rootfs/sys:ro",
                 "/proc:/rootfs/proc:ro",
                 "/var/run/docker.sock:/var/run/docker.sock:ro",
             ]
