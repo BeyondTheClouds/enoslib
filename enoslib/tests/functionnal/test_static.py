@@ -5,7 +5,12 @@ from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration as StaticConf
 from enoslib.service import Netem
 
+import logging
 import os
+
+
+logging.basicConfig(level=logging.DEBUG)
+
 
 provider_conf = {
     "resources": {

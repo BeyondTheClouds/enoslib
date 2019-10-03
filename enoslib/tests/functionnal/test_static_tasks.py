@@ -5,6 +5,11 @@ from enoslib.task import enostask
 
 # Dummy functionnal test running inside a docker container
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+
 provider_conf = {
     "resources": {
         "machines": [

@@ -132,7 +132,7 @@ service_monitoring:
   - update-alternatives --install /usr/bin/python python /usr/bin/python3 1
   - pip3 install -e .
   - cd enoslib/tests/functionnal
-  - python3 test_monitoring_service.py% 
+  - python3 test_monitoring_service.py
 
 #### Entering th release zone
 package:

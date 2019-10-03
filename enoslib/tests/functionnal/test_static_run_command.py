@@ -2,10 +2,13 @@ from enoslib.api import generate_inventory, run_command
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
+import logging
 import json
 import os
 
 # Dummy functionnal test running inside a docker container
+logging.basicConfig(level=logging.DEBUG)
+
 
 provider_conf = {
     "resources": {
@@ -45,5 +48,5 @@ result = run_command("date", pattern_hosts="control", roles=roles)
 print(json.dumps(result))
 
 # With roles and async
-result = run_command("date", pattern_hosts="control", roles=roles, async=100, poll=0)
+result = run_command("date", pattern_hosts="control", roles=roles, asynch=100, poll=0)
 print(json.dumps(result))

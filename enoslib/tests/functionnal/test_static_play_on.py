@@ -2,9 +2,13 @@ from enoslib.api import play_on
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
+import logging
 import os
 
 # Dummy functionnal test running inside a docker container
+
+logging.basicConfig(level=logging.DEBUG)
+
 
 provider_conf = {
     "resources": {
@@ -45,4 +49,4 @@ with open("/tmp/date") as f:
 # async
 with play_on(pattern_hosts="all", roles=roles) as p:
     for i in range(10):
-        p.shell("sleep 10", async=100, poll=0)
+        p.shell("sleep 10", asynch=100, poll=0)

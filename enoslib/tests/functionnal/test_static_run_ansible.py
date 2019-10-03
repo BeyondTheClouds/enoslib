@@ -3,9 +3,11 @@ from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
 import json
+import logging
 import os
 
 # Dummy functionnal test running inside a docker container
+logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
     "resources": {

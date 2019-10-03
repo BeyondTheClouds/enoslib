@@ -40,7 +40,22 @@ STATUS_FAILED = "FAILED"
 STATUS_UNREACHABLE = "UNREACHABLE"
 STATUS_SKIPPED = "SKIPPED"
 DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
-ANSIBLE_TOP_LEVEL = ["async", "become", "become_user", "loop", "poll", "ignore_errors"]
+# The following translate the keywords passed in the play_on tasks to
+# actual ansible keywords. We do that because async became a reserved keyword
+# in python3.7 so on can't write :
+# with play_on() as p
+#   p.shell(..., async=100)
+# But rather will need to write (with an h!)
+# with play_on() as p
+#   p.shell(..., asynch=100)
+ANSIBLE_TOP_LEVEL = {
+    "asynch": "async",
+    "become": "become",
+    "become_user": "become_user",
+    "loop": "loop",
+    "poll": "poll",
+    "ignore_errors": "ignore_errors",
+}
 
 AnsibleExecutionRecord = namedtuple(
     "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
@@ -52,8 +67,8 @@ def _split_args(**kwargs):
     top_args = {}
     module_args = {}
     for k, v in kwargs.items():
-        if k in ANSIBLE_TOP_LEVEL:
-            top_args.update({k: v})
+        if k in ANSIBLE_TOP_LEVEL.keys():
+            top_args.update({ANSIBLE_TOP_LEVEL[k]: v})
         else:
             module_args.update({k: v})
     return top_args, module_args
@@ -378,11 +393,12 @@ class play_on(object):
 # can be used as prior
 python3 = play_on(roles={})
 python3.shell(
-"""
+    """
 (python --version | grep --regexp " 3.*") || (
     apt update && apt install python3 &&
     update-alternatives --install /usr/bin/python python /usr/bin/python3 1)
-""")
+"""
+)
 python3.apt(
     display_name="Installing python-setuptools",
     name="python3-pip",
