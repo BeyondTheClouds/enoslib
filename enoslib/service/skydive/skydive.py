@@ -1,4 +1,4 @@
-from enoslib.api import play_on, run_ansible
+from enoslib.api import play_on, run_ansible, python3, docker
 import os
 
 from ..service import Service
@@ -7,7 +7,7 @@ SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 DEFAULT_VARS = {
     "skydive_listen_ip": "0.0.0.0",
-    "skydive_deployment_mode": "binary",
+    "skydive_deployment_mode": "container",
     "agent.topology.probes": ["docker"],
     # we'll inject our own topology
     # there a skydive_fabric variable to do that
@@ -16,7 +16,15 @@ DEFAULT_VARS = {
 
 
 class Skydive(Service):
-    def __init__(self, *, analyzers=None, agents=None, networks=None, extra_vars=None):
+    def __init__(
+        self,
+        *,
+        analyzers=None,
+        agents=None,
+        networks=None,
+        extra_vars=None,
+        priors=[python3, docker]
+    ):
         """Deploy Skydive (see http://skydive.network/).
 
         This assumes a debian/ubuntu base environment and aims at producing a
@@ -45,6 +53,7 @@ class Skydive(Service):
         self.skydive = analyzers + agents
         self.roles = {}
         self.networks = networks
+        self.priors = priors
         self.roles.update(analyzers=analyzers, agents=agents, skydive=self.skydive)
 
         self.extra_vars = {}
@@ -91,13 +100,7 @@ class Skydive(Service):
 
     def deploy(self):
         # Some requirements
-        with play_on(pattern_hosts="all", roles=self.roles) as p:
-            p.apt(
-                display_name="[Preinstall] Installing python-pip",
-                name=["python3", "python-pip", "python3-pip"],
-                state="present",
-                update_cache=True,
-            )
+        with play_on(pattern_hosts="all", roles=self.roles, priors=self.priors) as p:
             p.pip(display_name="[Preinstall] Installing pyyaml", name="pyyaml")
         _playbook = os.path.join(SERVICE_PATH, "skydive", "skydive.yml")
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)

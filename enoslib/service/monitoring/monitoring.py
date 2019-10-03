@@ -24,6 +24,7 @@ class Monitoring(Service):
         network=None,
         agent_conf=None,
         remote_working_dir="/builds/monitoring",
+        priors=[python3]
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
@@ -45,6 +46,7 @@ class Monitoring(Service):
                            the address attribute of :py:class:`enoslib.Host` of
                            the collector (the first on currently)
             agent_conf (str): path to an alternative configuration file
+            prior (): priors to apply
 
 
         Examples:
@@ -70,6 +72,7 @@ class Monitoring(Service):
             self.remote_working_dir, "telegraf.conf"
         )
         self.remote_influxdata = os.path.join(self.remote_working_dir, "influxdb-data")
+        self.priors = priors
 
     def deploy(self):
         """Deploy the monitoring stack"""
@@ -77,7 +80,7 @@ class Monitoring(Service):
             return
 
         # Some requirements
-        with play_on(pattern_hosts="all", roles=self._roles, priors=[python3]) as p:
+        with play_on(pattern_hosts="all", roles=self._roles, priors=self.priors) as p:
             p.pip(display_name="Installing python-docker", name="docker")
             p.shell(
                 "which docker || (curl -sSL https://get.docker.com/ | sh)",

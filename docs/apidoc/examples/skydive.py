@@ -36,5 +36,5 @@ print("The UI is available at http://%s:8082" % ui_address)
 s.backup()
 s.destroy()
 
-destroy the boxes
+# destroy the boxes
 provider.destroy()

@@ -134,6 +134,7 @@ service_monitoring:
   - cd enoslib/tests/functionnal
   - python3 test_monitoring_service.py
 
+
 #### Entering th release zone
 package:
   image: python:3.7

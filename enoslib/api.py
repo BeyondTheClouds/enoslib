@@ -406,6 +406,9 @@ python3.apt(
     update_cache=True,
 )
 
+docker = play_on(roles={})
+docker.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
+
 
 def run_command(
     command,

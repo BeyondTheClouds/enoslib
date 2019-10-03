@@ -5,7 +5,7 @@ Info
 ----
 
 From: https://github.com/skydive-project/skydive
-Current: 43305aeec97e23d4969a17ebc89067f9c84c0f07
+Current: 7fd3526f3839404d9982a7b1316503a05bdaa645
 License consideration: https://www.apache.org/licenses/GPL-compatibility.html
 
 Update
