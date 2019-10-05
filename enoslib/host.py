@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 import copy
+from dataclasses import dataclass, field, InitVar
+from typing import Dict, Optional
 
 
+@dataclass
 class Host(object):
-    def __init__(
-        self, address, *, alias=None, user=None, keyfile=None, port=None, extra=None
-    ):
-        self.address = address
+    address: str
+    alias: InitVar[str] = field(default=None, init=True)
+    user: Optional[str] = None
+    keyfile: Optional[str] = None
+    port: Optional[int] = None
+    extra: InitVar[Dict] = field(default=dict(), init=True)
+
+    def __post_init__(self, alias, extra):
         self.alias = alias
-        if self.alias is None:
-            self.alias = address
-        self.user = user
-        self.keyfile = keyfile
-        self.port = port
+        if alias is None:
+            self.alias = self.address
         self.extra = extra or {}
 
     def to_dict(self):
@@ -34,10 +38,6 @@ class Host(object):
             port=self.port,
             extra=self.extra,
         )
-
-    def __repr__(self):
-        args = [self.alias, "address=%s" % self.address]
-        return "Host(%s)" % ", ".join(args)
 
     def __str__(self):
         args = [
