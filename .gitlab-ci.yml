@@ -68,7 +68,7 @@ doc:
     paths:
     - docs/_build/html
 
-run_command:
+run_command37:
   image: python:3.7
   stage: functionnal
   tags: [qlf-ci.inria.fr]
@@ -78,6 +78,17 @@ run_command:
   - cd enoslib/tests/functionnal
   - python test_static_run_command.py
   - cat hosts
+
+run_command36:
+  image: python:3.6
+  stage: functionnal
+  tags: [qlf-ci.inria.fr]
+  script:
+  - ip a
+  - pip install -e .
+  - cd enoslib/tests/functionnal
+  - python test_static_run_command.py
+  - cat hosts 
 
 run_ansible:
   image: python:3.7
