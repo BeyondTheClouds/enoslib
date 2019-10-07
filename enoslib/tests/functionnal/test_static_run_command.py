@@ -1,4 +1,4 @@
-from enoslib.api import generate_inventory, run_command
+from enoslib.api import generate_inventory, run_command, run
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
@@ -49,4 +49,12 @@ print(json.dumps(result))
 
 # With roles and async
 result = run_command("date", pattern_hosts="control", roles=roles, asynch=100, poll=0)
+print(json.dumps(result))
+
+# With run and hosts
+result = run("date", roles["control"])
+print(json.dumps(result))
+
+# With run and hosts and async
+result = run("date", roles["control"], asynch=100, poll=0)
 print(json.dumps(result))
