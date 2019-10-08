@@ -8,3 +8,4 @@ sphinx-rtd-theme>=0.2.4
 
 # quick fix socks support
 requests[socks]
+mypy

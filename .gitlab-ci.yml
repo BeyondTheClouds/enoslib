@@ -37,6 +37,15 @@ pep8:
   - pip install tox
   - tox -e pep8
 
+typecheck:
+  image: python:3.6
+  stage: test
+  allow_failure: true
+  tags: [qlf-ci.inria.fr]
+  script:
+  - pip install tox
+  - tox -e typecheck
+
 python3.6_sonar:
   image: python:3.7-stretch
   stage: test
