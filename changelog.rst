@@ -1,12 +1,22 @@
 Changelog
 ===========
 
-5.0.0
+4.8.0
+-----
+
+* Enforce python3.6+ everywhere
+* Add more functionnal tests
+* Api: ``play_on`` accepts a ``priors`` parameters
+* Add ``run`` command for simplicity sake
+* ``enoslib.host.Host`` is now a dataclass
+* Typecheck enabled in CI
+
+4.7.0
 -----
 
 * G5k: Default to Debian10
 * Vagrant: Defaut to Debian10
-* VMonG5k: 
+* VMonG5k:
     - Default to Debian10
     - Activate VLC console (fix an issue with newest G5K virt images...)
     - Run VMs as root
