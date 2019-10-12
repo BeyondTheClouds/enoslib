@@ -46,7 +46,7 @@ _api_client = None
 
 # Poor man's cache (for now)
 _cache_lock = threading.RLock()
-cache : Dict[Any, Any]= {}
+cache: Dict[Any, Any] = {}
 
 
 class Client(Grid5000):
