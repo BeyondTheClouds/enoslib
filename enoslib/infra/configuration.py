@@ -1,5 +1,5 @@
 import jsonschema
-
+from typing import Dict, Optional, Any
 
 class BaseConfiguration:
     """Base class for all the provider configuration object.
@@ -8,7 +8,7 @@ class BaseConfiguration:
     """
 
     # Setting this is defered to the inherited classes
-    _SCHEMA = None
+    _SCHEMA: Optional[Dict[Any, Any]]= None
 
     def __init__(self):
         # A configuration has a least these two

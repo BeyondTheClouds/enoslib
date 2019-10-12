@@ -27,15 +27,6 @@ class TestDeploy(EnosTest):
             self.assertCountEqual([1, 2], deployed)
             self.assertCountEqual([], undeployed)
 
-    def test_deploy_2_deploy(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[([1], [2]), ([2], [])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], [1, 2], 0, {})
-            self.assertCountEqual([1, 2], deployed)
-            self.assertCountEqual([], undeployed)
-
     def test_deploy_3_deploy(self):
         with patch(
             "enoslib.infra.enos_g5k.g5k_api_utils.deploy",

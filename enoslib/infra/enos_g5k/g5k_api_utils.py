@@ -12,6 +12,7 @@ from netaddr import IPAddress, IPNetwork, IPSet
 import os
 import time
 import threading
+from typing import Dict, Any
 from pathlib import Path
 
 from .error import (
@@ -45,7 +46,7 @@ _api_client = None
 
 # Poor man's cache (for now)
 _cache_lock = threading.RLock()
-cache = {}
+cache : Dict[Any, Any]= {}
 
 
 class Client(Grid5000):
