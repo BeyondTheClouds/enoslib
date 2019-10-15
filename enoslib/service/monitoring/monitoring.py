@@ -88,13 +88,6 @@ class Monitoring(Service):
             )
 
         # Deploy the collector
-        if self.network is not None:
-            # This assumes that `discover_network` has been run before
-            collector_address = self.collector[0].extra[self.network + "_ip"]
-        else:
-            # NOTE(msimonin): ping on docker bridge address for ci testing
-            collector_address = "172.17.0.1"
-        extra_vars = {"collector_address": collector_address}
         _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
@@ -109,7 +102,9 @@ class Monitoring(Service):
             )
             p.wait_for(
                 display_name="Waiting for InfluxDB to be ready",
-                host=collector_address,
+                # I don't have better solution yet
+                # The ci requirements are a bit annoying...
+                host="172.17.0.1",
                 port="8086",
                 state="started",
                 delay=2,
@@ -117,7 +112,13 @@ class Monitoring(Service):
             )
 
         # Deploy the agents
+        if self.network is not None:
+            # This assumes that `discover_network` has been run before
+            collector_address = self.collector[0].extra[self.network + "_ip"]
+        else:
+            collector_address = self.collector[0].address
 
+        extra_vars = {"collector_address": collector_address}
         with play_on(
             pattern_hosts="agent", roles=self._roles, extra_vars=extra_vars
         ) as p:
