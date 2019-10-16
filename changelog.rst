@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.8.1
+-----
+
+* Service/Monitoring: fix collector_address for telegraf agents
+
 4.8.0
 -----
 
