@@ -232,12 +232,12 @@ class VMonG5k(Provider):
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
-        g5k_roles, g5k_networks = g5k_provider.init()
-        g5k_subnets = [n for n in g5k_networks if "__subnet__" in n["roles"]]
+        self.g5k_roles, self.g5k_networks = g5k_provider.init()
+        g5k_subnets = [n for n in self.g5k_networks if "__subnet__" in n["roles"]]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:
-            pms = g5k_roles[machine.cookie]
+            pms = self.g5k_roles[machine.cookie]
             machine.undercloud = pms
 
         roles, networks = start_virtualmachines(
@@ -246,6 +246,10 @@ class VMonG5k(Provider):
             force_deploy=self.provider_conf.force_deploy,
         )
         return roles, networks
+
+    def undercloud(self):
+        """Gets the undercloud information (bare-metal machines).""" 
+        return self.g5k_roles, self.g5k_networks
 
     def destroy(self):
         pass

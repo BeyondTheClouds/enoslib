@@ -6,16 +6,15 @@
   # NOTE(msimonin): quick fix for buster
   # The libvirt runtime dir (e.g with the socket) will be created in the home 
   # dir instead of in /run/user/$UID
-  environment: 
-    XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
+  # environment: 
+  #   XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
 
   tasks:
-    # - name: Enable nested virtualization
-    #   shell: |
-    #     modprobe -r kvm_intel
-    #     modprobe kvm_intel nested=1
+    - name: Enable nested virtualization
+      shell: |
+        modprobe -r kvm_intel
+        modprobe kvm_intel nested=1
 
-      
     - name: list only running VMs
       virt:
         command: list_vms
