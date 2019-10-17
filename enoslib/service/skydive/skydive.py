@@ -39,6 +39,8 @@ class Skydive(Service):
                               skydive analyzers will be installed
             agents (list): list of :py:class:`enoslib.Host` where the agent will
                            be installed
+            networks (list): list of networks as returned by a provider. This is
+                             visually see them in the interface
             extra_vars (dict): extra variables to pass to the deployment
 
         Examples:
