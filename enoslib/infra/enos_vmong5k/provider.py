@@ -248,7 +248,7 @@ class VMonG5k(Provider):
         return roles, networks
 
     def undercloud(self):
-        """Gets the undercloud information (bare-metal machines).""" 
+        """Gets the undercloud information (bare-metal machines)."""
         return self.g5k_roles, self.g5k_networks
 
     def destroy(self):
