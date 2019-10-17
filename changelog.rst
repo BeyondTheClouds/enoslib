@@ -1,6 +1,13 @@
 Changelog
 ===========
 
+4.8.2
+-----
+
+* VMonG5K: some cleaning
+* Host: copy the passed extra dict
+* Skydive: fix docstring
+
 4.8.1
 -----
 
