@@ -11,13 +11,16 @@ class Host(object):
     user: Optional[str] = None
     keyfile: Optional[str] = None
     port: Optional[int] = None
-    extra: InitVar[Dict] = field(default=dict(), init=True)
+    extra: InitVar[Dict] = field(default=None, init=True)
 
     def __post_init__(self, alias, extra):
         self.alias = alias
         if alias is None:
             self.alias = self.address
-        self.extra = extra or {}
+        if extra is not None:
+            self.extra = copy.deepcopy(extra)
+        else:
+            self.extra = {}
 
     def to_dict(self):
         return copy.deepcopy(self.__dict__)
