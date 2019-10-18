@@ -280,7 +280,7 @@ def grid_reload_from_name(job_name):
     for site in [s for s in sites if s.uid not in gk.excluded_site]:
         logger.info("Reloading %s from %s" % (job_name, site.uid))
         _jobs = site.jobs.list(
-            name=job_name, state="waiting,launching,running", user=gk.username
+            name=job_name, state="waiting,launching,running", user=get_api_username()
         )
         if len(_jobs) == 1:
             logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
@@ -479,7 +479,12 @@ def get_api_username():
         client's username
     """
     gk = get_api_client()
-    return gk.username
+    username = gk.username
+    # Anonymous connections happen on g5k frontend
+    # In this case we default to the user set in the environment
+    if username is None:
+        username = os.environ.get("USER")
+    return username
 
 
 @ring.disk(storage)
