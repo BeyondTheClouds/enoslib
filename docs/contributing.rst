@@ -5,5 +5,5 @@ Contributing
 
 Feel free to
 
-- join us on gitter: https://gitter.im/BeyondTheClouds/enoslib
+- join us on gitter: https://framateam.org/enoslib
 - interact on the issue tracker: https://gitlab.inria.fr/discovery/enoslib/issues 

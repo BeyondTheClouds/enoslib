@@ -4,6 +4,8 @@ EnosLib
 |Build Status| |License| |Pypi|
 
 * Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
+* Source: https://gitlab.inria.fr/discovery/enoslib
+* Chat: https://framateam.org/enoslib
 
 EnOSlib is a library to help you with your experiments. The main parts of your
 experiment logic is made **reusable** by the following EnOSlib building blocks:

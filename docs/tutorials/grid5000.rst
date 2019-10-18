@@ -1,5 +1,6 @@
+*******************
 Provider::Grid'5000
-===================
+*******************
 
 This tutorial illustrates the use of EnOSlib to interact with Grid'5000. For a
 full description of the API and the available options, please refer to the API
@@ -13,14 +14,14 @@ documentation of the Grid'5000 provider.
 
 
 Basic example
--------------
+=============
 
 We'll implement a basic workflow where 2 nodes are reserved and 2 roles are
 described. Nodes are here put in a dedicated vlan.
 
 
 Build the configuration from a dictionnary
-******************************************
+------------------------------------------
 
 
 .. literalinclude:: grid5000/tuto_grid5000.py
@@ -47,7 +48,7 @@ Build the configuration from a dictionnary
          network description that should map what is available on the platform.
 
 Build the configuration programmatically
-****************************************
+----------------------------------------
 
 The above script can be rewritten using the programmatc API.
 
@@ -62,26 +63,29 @@ The above script can be rewritten using the programmatc API.
 
 
 Subnet reservation
-------------------
+==================
+
 
 This shows how to deal with a subnet reservation
 
 Build the configuration from a dictionnary
-******************************************
+------------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_subnet.py
     :language: python
     :linenos:
 
 Build the configuration programmatically
-****************************************
+----------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_subnet_p.py
     :language: python
     :linenos:
 
+
 Non deploy reservation
-----------------------
+======================
+
 
 The following shows how to deal with a non deploy reservation. Root ssh access
 will be granted to the nodes. For this purpose you must have a
@@ -91,14 +95,14 @@ step). This is particularly interesting if your deployment does't require more
 than one network interface.
 
 Build the configuration from a dictionnary
-******************************************
+------------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
     :language: python
     :linenos:
 
 Build the configuration programmatically
-****************************************
+----------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy_p.py
     :language: python
@@ -106,7 +110,8 @@ Build the configuration programmatically
 
 
 Start Virtual Machines on nodes
--------------------------------
+===============================
+
 
 .. hint::
   Note that it is now possible to use the ``VMonG5k`` provider directly. This
