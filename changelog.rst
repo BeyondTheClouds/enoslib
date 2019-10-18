@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.8.3
+-----
+
+* G5K/api: job_reload_from_name fix for anonymous user
+* Doc: some cleaning, advertise mattermost channel
+
 4.8.2
 -----
 
