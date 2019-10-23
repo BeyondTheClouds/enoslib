@@ -62,6 +62,51 @@ The above script can be rewritten using the programmatc API.
    machine to configure the first interface of the Grid'5000 nodes.
 
 
+Using a custom environment
+==========================
+
+First, the description file of your environment should use resolvable URIs for the kadeploy3 server. 
+An example of such description is the following
+
+.. code-block:: yaml
+
+    # myimage.desc and myimage.tgz are both located in
+    # the public subdirectory of rennes site of the user {{ login }}
+    ---
+    name: ubuntu1804-x64-min
+    version: 2019052116
+    description: ubuntu 18.04 (bionic) - min
+    author: support-staff@list.grid5000.fr
+    visibility: public
+    destructive: false
+    os: linux
+    image:
+    file: https://api.grid5000.fr/sid/sites/rennes/public/{{ login }}/myimage.tgz
+    kind: tar
+    compression: gzip
+    postinstalls:
+    - archive: server:///grid5000/postinstalls/g5k-postinstall.tgz
+    compression: gzip
+    script: g5k-postinstall --net netplan
+    boot:
+    kernel: "/vmlinuz"
+    initrd: "/initrd.img"
+    filesystem: ext4
+    partition_type: 131
+    multipart: false
+
+Then in the configuration of the Grid'5000 provider you can specidy the following:
+
+.. code-block:: yaml
+
+    job_name: test_myimage
+    ...
+    env_name: https://api.grid5000.fr/sid/sites/rennes/public/{{ login }}/myimage.desc
+    ...
+    resources:
+    ...
+
+
 Subnet reservation
 ==================
 
