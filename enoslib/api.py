@@ -4,6 +4,7 @@ import copy
 import logging
 import os
 import tempfile
+from typing import Any, List, Mapping, Optional, Union
 import time
 import json
 import yaml
@@ -31,6 +32,7 @@ from enoslib.errors import (
     EnosUnreachableHostsError,
     EnosSSHNotReady,
 )
+from enoslib.types import Roles
 
 logger = logging.getLogger(__name__)
 
@@ -275,50 +277,59 @@ class play_on(object):
     def __init__(
         self,
         *,
-        pattern_hosts="all",
-        inventory_path=None,
-        roles=None,
-        extra_vars=None,
-        on_error_continue=False,
-        gather_facts=True,
-        priors=None
+        pattern_hosts: str = "all",
+        inventory_path: Optional[str] = None,
+        roles: Optional[Roles] = None,
+        extra_vars: Optional[Mapping[Any, Any]] = None,
+        on_error_continue: bool = False,
+        gather_facts: Union[str, bool] = True,
+        priors: Optional[List["play_on"]] = None
     ):
         """Constructor.
 
         Args:
-            pattern_hosts (str): pattern to describe ansible hosts to target.
+            pattern_hosts: pattern to describe ansible hosts to target.
                 see https://docs.ansible.com/ansible/latest/intro_patterns.html
-            inventory_path (str): inventory to use
-            roles (dict): equivalent to the inventory, but in memory
-            extra_vars (dict): extra_vars to use
-            on_error_continue(bool): Don't throw any exception in case a host
+            inventory_path: inventory to use
+            roles: roles as returned by :py:meth:`enoslib.infra.provider.Provider.init`
+            extra_vars: extra_vars to use
+            on_error_continue: don't throw any exception in case a host
                 is unreachable or the playbooks run with errors
-            gather_facts (bool): Whether the facts of all hosts in roles (or
-                the inventory file) must be collected.
-
-        Example:
-
-        .. code-block:: python
-
-            with play_on(roles=roles) as t:
-                t.apt(name=["curl", "git"], state="present")
-                t.shell("which docker || (curl get.docker.com | sh)")
-                t.docker_container(name="nginx", state="started")
-
-        Module can be run asynchronously using the corresponding Ansible options
-        (see https://docs.ansible.com/ansible/latest/user_guide/playbooks_async.html).
-        Note that not all the modules support asynchronous execution.
-
-        .. code-block:: python
+            gather_facts: controls how the facts will be gathered.
+                - True    -> Gathers facts of :py:attr:`pattern_hosts` hosts.
+                - False   -> Does not gather facts.
+                - pattern -> Gathers facts of `pattern` hosts.
+            priors: tasks in each prior will be prepended in the playbook
 
 
-        Note that the actual result isn't available in the result file but will be
-        available through a file specified in the result object.
+        Examples:
 
+            - Minimal snippet:
 
-        Any ansible module can be called using the above way. You'll need to
-        refer to the module reference documentation to find the corresponding
-        kwargs to use. """
+                .. code-block:: python
+
+                    with play_on(roles=roles) as t:
+                        t.apt(name=["curl", "git"], state="present")
+                        t.shell("which docker || (curl get.docker.com | sh)")
+                        t.docker_container(name="nginx", state="started")
+
+            - Complete example with fact_gathering
+
+                .. literalinclude:: examples/run_play_on.py
+                    :language: python
+                    :linenos:
+
+        Hint
+            - Module can be run asynchronously using the corresponding Ansible options
+              Note that not all the modules support asynchronous execution.
+
+            - Note that the actual result isn't available in the result file but will
+              be available through a file specified in the result object.
+
+            - Any ansible module can be called using the above way. You'll need to
+              refer to the module reference documentation to find the corresponding
+              kwargs to use.
+        """
         self.pattern_hosts = pattern_hosts
         self.inventory_path = inventory_path
         self.roles = roles
@@ -328,7 +339,7 @@ class play_on(object):
 
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context
-        self._tasks = []
+        self._tasks: List[Mapping[Any, Any]] = []
         if self.priors:
             for prior in self.priors:
                 self._tasks.extend(prior._tasks)
@@ -340,19 +351,23 @@ class play_on(object):
         return self
 
     def __exit__(self, *args):
-        play_source = {
-            # we force the fact gathering on all hosts
-            # There'll be some performance impact if caching isn't enable.
-            "hosts": self.pattern_hosts,
-            "tasks": self._tasks,
-        }
-        if not self.gather_facts:
+        gather_source = {"hosts": [], "gather_facts": False, "tasks": []}
+        play_source = {"hosts": self.pattern_hosts, "tasks": self._tasks}
+
+        if isinstance(self.gather_facts, str):
+            gather_source.update(hosts=self.gather_facts, gather_facts=True)
+        elif self.gather_facts:
+            gather_source.update(hosts=self.pattern_hosts, gather_facts=True)
+        else:
+            gather_source.update(gather_facts=False)
             play_source.update(gather_facts=False)
-        logger.debug(play_source)
+
+        playbook = [gather_source, play_source]
+        logger.debug(playbook)
 
         # Generate a playbook and run it
         with tempfile.NamedTemporaryFile("w", buffering=1, dir=os.getcwd()) as _pb:
-            content = yaml.dump([play_source])
+            content = yaml.dump(playbook)
             _pb.write(content)
             logger.debug("Generated playbook")
             logger.debug(content)
