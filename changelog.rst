@@ -1,6 +1,13 @@
 Changelog
 ===========
 
+4.8.4
+----
+* Doc: Handling of G5k custom images
+* Host: Implementation of the __hash__() function
+* API: ``play_on`` offers new strategies to gather Ansible facts
+* type: Type definitions for Host, Role and Network
+
 4.8.3
 -----
 
@@ -501,7 +508,7 @@ Warning breaking changes:
 * Add reset network
 
 
-0.0.6 
+0.0.6
 ------
 
 * add `min` keyword in machine descipriotn on for G5K
@@ -531,7 +538,7 @@ Warning breaking changes:
 * Add dummy functionnal tests
 * Add network emulation
 
-0.0.2 
+0.0.2
 ------
 
 * Add fake interface creation option un check_network
