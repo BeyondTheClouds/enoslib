@@ -1,26 +1,34 @@
 # -*- coding: utf-8 -*-
 import copy
-from dataclasses import dataclass, field, InitVar
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Host(object):
+    '''Abstract unit of computation.
+
+    A Host is anything EnosLib can SSH to and run shell commands on.
+    It is an abstraction notion of unit of computation that can be
+    bound to bare-metal machines, virtual machines, or containers.
+
+    '''
     address: str
-    alias: InitVar[str] = field(default=None, init=True)
+    alias: Optional[str] = field(default=None)
     user: Optional[str] = None
     keyfile: Optional[str] = None
     port: Optional[int] = None
-    extra: InitVar[Dict] = field(default=None, init=True)
+    # Two Hosts have the same hash if we can SSH on each of them in
+    # the same manner (don't consider extra info in `__hash__()` that
+    # are added, e.g., by enoslib.api.discover_networks).
+    extra: Dict = field(default_factory=dict, hash=False)
 
-    def __post_init__(self, alias, extra):
-        self.alias = alias
-        if alias is None:
+    def __post_init__(self):
+        if not self.alias:
             self.alias = self.address
-        if extra is not None:
-            self.extra = copy.deepcopy(extra)
-        else:
-            self.extra = {}
+
+        if self.extra:
+            self.extra = copy.deepcopy(self.extra)
 
     def to_dict(self):
         return copy.deepcopy(self.__dict__)
