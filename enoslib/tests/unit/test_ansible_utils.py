@@ -203,3 +203,52 @@ class TestUpdateHosts(EnosTest):
             self.assertTrue("network2" not in host.extra)
             self.assertTrue("network2_dev" not in host.extra)
             self.assertTrue("network2_ip" not in host.extra)
+
+
+class TestEqHosts(EnosTest):
+    @staticmethod
+    def _make_host(extra={}):
+        return Host(address="1.2.3.4",
+                    alias="foo",
+                    user="foo",
+                    keyfile="file://foo.id_rsa",
+                    port=22,
+                    extra=extra)
+
+    def test__hash(self):
+        self.assertEqual(
+            Host("1.2.3.4").__hash__(), Host("1.2.3.4").__hash__(),
+            'Hosts have the same hash because we can '
+            'SSH on each of them in the same manner')
+
+        self.assertNotEqual(
+            Host("1.2.3.4").__hash__(), Host("1.2.3.5").__hash__(),
+            'Hosts should not have the same hash because we '
+            'cannot SSH on each of them in the same manner')
+
+        h1 = TestEqHosts._make_host()
+        h2 = TestEqHosts._make_host(extra={"extra_ip": "5.6.7.8"})
+        self.assertEqual(
+            h1.__hash__(), h2.__hash__(),
+            'Hosts have the same hash because we can '
+            'SSH on each of them in the same manner '
+            '(we do not look at `extra` for SSH)')
+
+    def test__extra(self):
+        extra1 = {"extra_ip": "5.6.7.8"}
+        extra2 = {"extra_ip": "5.6.7.8"}
+
+        h1 = TestEqHosts._make_host(extra1)
+        h2 = TestEqHosts._make_host(extra1)
+        self.assertEqual(h1, h2)
+
+        h1 = TestEqHosts._make_host(extra1)
+        h2 = TestEqHosts._make_host(extra2)
+        self.assertEqual(
+            h1, h2,
+            'Hosts with an extra object with the same values are equivalent')
+
+        h1 = TestEqHosts._make_host(extra1)
+        extra1.update(extra_ip="1.2.3.4")
+        h2 = TestEqHosts._make_host(extra1)
+        self.assertNotEqual(h1, h2, 'Extra is not shared across Hosts')
