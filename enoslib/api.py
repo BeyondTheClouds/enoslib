@@ -32,7 +32,7 @@ from enoslib.errors import (
     EnosUnreachableHostsError,
     EnosSSHNotReady,
 )
-from enoslib.types import RolesT
+from enoslib.types import Roles
 
 logger = logging.getLogger(__name__)
 
@@ -279,10 +279,10 @@ class play_on(object):
         *,
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
-        roles: Optional[RolesT] = None,
+        roles: Optional[Roles] = None,
         extra_vars: Optional[Mapping[Any, Any]] = None,
         on_error_continue: bool = False,
-        gather_facts: Union[str, bool] = False,
+        gather_facts: Union[str, bool] = True,
         priors: Optional[List["play_on"]] = None
     ):
         """Constructor.
@@ -296,10 +296,9 @@ class play_on(object):
             on_error_continue: don't throw any exception in case a host
                 is unreachable or the playbooks run with errors
             gather_facts: controls how the facts will be gathered.
-                - True  -> facts are gathered accordingly for hosts that match
-                           pattern_hosts
-                - False -> No fact is gathered
-                - other -> facts are gathered for hosts that match other
+                - True    -> Gathers facts of :py:attr:`pattern_hosts` hosts.
+                - False   -> Does not gather facts.
+                - pattern -> Gathers facts of `pattern` hosts.
             priors: tasks in each prior will be prepended in the playbook
 
 

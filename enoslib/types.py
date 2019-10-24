@@ -1,12 +1,11 @@
+# -*- coding: utf-8 -*-
 from typing import Any, Dict, MutableMapping, List, Tuple
 
 from .host import Host
 
 
-class BaseConfigurationT:
-    pass
-
-
-NetworksT = List[Dict[Any, Any]]
-RolesT = MutableMapping[str, List[Host]]
-RolesNetworksT = Tuple[RolesT, NetworksT]
+Network = Dict[Any, Any]
+Networks = List[Network]
+Role = str
+Roles = MutableMapping[Role, List[Host]]
+RolesNetworks = Tuple[Roles, Networks]
