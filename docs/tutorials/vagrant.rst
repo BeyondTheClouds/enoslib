@@ -63,10 +63,10 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
 
      .. code-block:: yaml
 
-        vagrant:
-          backend: libvirt
-          box: generic/ubuntu1804
-          name_prefix: vm
+        backend: libvirt
+        box: generic/ubuntu1804
+        name_prefix: vm
+
         resources:
           machines:
             - roles: [CloudOne]
