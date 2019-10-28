@@ -250,10 +250,10 @@ def distem_bootstrap(roles, path_sshkeys):
     with play_on(roles=roles) as p:
         # kill distem process for each node
         kill_cmd = []
-        kill_cmd.append("kill -9 `ps aux|grep \"distemd\"")
+        kill_cmd.append('kill -9 `ps aux|grep "distemd"')
         kill_cmd.append("grep -v grep")
-        kill_cmd.append("sed \"s/ \\{1,\\}/ /g\"")
-        kill_cmd.append("cut -f 2 -d\" \"`")
+        kill_cmd.append('sed "s/ \\{1,\\}/ /g"')
+        kill_cmd.append('cut -f 2 -d" "`')
         p.shell("|".join(kill_cmd) + "|| true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)

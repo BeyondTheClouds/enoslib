@@ -24,7 +24,7 @@ class Monitoring(Service):
         network=None,
         agent_conf=None,
         remote_working_dir="/builds/monitoring",
-        priors=[__python3__, __default_python3__, __docker__]
+        priors=[__python3__, __default_python3__, __docker__],
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 

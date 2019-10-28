@@ -39,9 +39,7 @@ roles, networks = provider.init()
 
 discover_networks(roles, networks)
 
-m = Monitoring(collector=roles["control"],
-               agent=roles["control"],
-               ui=roles["control"])
+m = Monitoring(collector=roles["control"], agent=roles["control"], ui=roles["control"])
 m.deploy()
 m.backup()
 # test whether the backup is ok...

@@ -6,13 +6,14 @@ from typing import Dict, Optional
 
 @dataclass(unsafe_hash=True)
 class Host(object):
-    '''Abstract unit of computation.
+    """Abstract unit of computation.
 
     A Host is anything EnosLib can SSH to and run shell commands on.
     It is an abstraction notion of unit of computation that can be
     bound to bare-metal machines, virtual machines, or containers.
 
-    '''
+    """
+
     address: str
     alias: Optional[str] = field(default=None)
     user: Optional[str] = None

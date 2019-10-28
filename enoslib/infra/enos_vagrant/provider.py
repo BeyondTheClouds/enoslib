@@ -45,8 +45,11 @@ class Enos_vagrant(Provider):
         vagrant_roles = {}
         global_prefix = self.provider_conf.name_prefix or DEFAULT_NAME_PREFIX
         for counter, machine in enumerate(machines):
-            prefix = machine.name_prefix \
-                if machine.name_prefix else f"{global_prefix}-{counter}"
+            prefix = (
+                machine.name_prefix
+                if machine.name_prefix
+                else f"{global_prefix}-{counter}"
+            )
             for index in range(machine.number):
                 suffix = f"-{index + 1}" if machine.number > 1 else ""
                 vagrant_machine = {

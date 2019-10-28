@@ -53,9 +53,7 @@ class Locust(Service):
         Stop locust
         """
         with play_on(pattern_hosts="all", roles=self.roles) as p:
-            p.shell(
-                "pkill locust",
-            )
+            p.shell("pkill locust")
 
     def run_with_ui(self, expe_dir, file_name, port="8089"):
         """Run locust with its web user interface.
@@ -68,24 +66,28 @@ class Locust(Service):
         self.__copy_experiment(expe_dir, file_name)
         with play_on(pattern_hosts="master", roles=self.roles) as p:
             p.shell(
-                ("nohup locust "
+                (
+                    "nohup locust "
                     "-f /tmp/%s "
                     "--master "
                     "--host=%s "
                     "-P %s "
-                    "--logfile=/tmp/locust.log &")
+                    "--logfile=/tmp/locust.log &"
+                )
                 % (file_name, self.master_ip, port),
                 display_name="Running locust (%s) on master..." % (file_name),
             )
 
         with play_on(pattern_hosts="agent", roles=self.roles) as p:
             p.shell(
-                ("nohup locust "
+                (
+                    "nohup locust "
                     "-f /tmp/%s "
                     "--slave "
                     "--master-host=%s "
                     "--host=%s "
-                    "--logfile=/tmp/locust.log &")
+                    "--logfile=/tmp/locust.log &"
+                )
                 % (file_name, self.master_ip, self.master_ip),
                 display_name="Running locust (%s) on agents (master at %s)..."
                 % (file_name, self.master_ip),
@@ -108,7 +110,8 @@ class Locust(Service):
         self.__copy_experiment(expe_dir, file_name)
         with play_on(pattern_hosts="master", roles=self.roles) as p:
             p.shell(
-                ("nohup locust "
+                (
+                    "nohup locust "
                     "-f /tmp/%s "
                     "--master "
                     "--host=%s "
@@ -116,19 +119,22 @@ class Locust(Service):
                     "--no-web "
                     "-c %s "
                     "-r %s "
-                    "--run-time %s &")
+                    "--run-time %s &"
+                )
                 % (file_name, self.master_ip, nb_clients, hatch_rate, time),
                 display_name="Running locust (%s) on master..." % (file_name),
             )
 
         with play_on(pattern_hosts="agent", roles=self.roles) as p:
             p.shell(
-                ("nohup locust "
+                (
+                    "nohup locust "
                     "-f /tmp/%s "
                     "--slave "
                     "--master-host=%s "
                     "--host=%s "
-                    "--logfile=/tmp/locust.log &")
+                    "--logfile=/tmp/locust.log &"
+                )
                 % (file_name, self.master_ip, self.master_ip),
                 display_name="Running locust (%s) on agents (master at %s)..."
                 % (file_name, self.master_ip),

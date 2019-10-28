@@ -1,8 +1,10 @@
-from enoslib.api import (play_on,
-                         run_ansible,
-                         __python3__,
-                         __default_python3__,
-                         __docker__)
+from enoslib.api import (
+    play_on,
+    run_ansible,
+    __python3__,
+    __default_python3__,
+    __docker__,
+)
 import os
 
 from ..service import Service

@@ -40,7 +40,6 @@ roles, networks = provider.init()
 
 discover_networks(roles, networks)
 
-m = Skydive(analyzers=roles["control"],
-            agents=roles["control"])
+m = Skydive(analyzers=roles["control"], agents=roles["control"])
 
 m.deploy()
