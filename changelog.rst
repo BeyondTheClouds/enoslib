@@ -1,8 +1,18 @@
 Changelog
 ===========
 
+
+4.8.5
+-----
+
+* Api: Introduce ``ensure_python[2,3]`` to make sure python[2,3]
+  is there and make it the default version (optionally)
+* Api: ``wait_ssh`` now uses the raw module
+* Api: rename some prior with a double underscore (e.g. ``__python3__``)
+
 4.8.4
-----
+-----
+
 * Doc: Handling of G5k custom images
 * Host: Implementation of the __hash__() function
 * API: ``play_on`` offers new strategies to gather Ansible facts
