@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-from enoslib.api import play_on, __python3__
+from enoslib.api import play_on, __python3__, __default_python3__, __docker__
 from ..service import Service
 
 
@@ -24,7 +24,7 @@ class Monitoring(Service):
         network=None,
         agent_conf=None,
         remote_working_dir="/builds/monitoring",
-        priors=[__python3__]
+        priors=[__python3__, __default_python3__, __docker__]
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
@@ -82,10 +82,6 @@ class Monitoring(Service):
         # Some requirements
         with play_on(pattern_hosts="all", roles=self._roles, priors=self.priors) as p:
             p.pip(display_name="Installing python-docker", name="docker")
-            p.shell(
-                "which docker || (curl -sSL https://get.docker.com/ | sh)",
-                display_name="Installing docker",
-            )
 
         # Deploy the collector
         _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))

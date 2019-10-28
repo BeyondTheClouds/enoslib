@@ -1,4 +1,8 @@
-from enoslib.api import play_on, run_ansible, __python3__, __docker__
+from enoslib.api import (play_on,
+                         run_ansible,
+                         __python3__,
+                         __default_python3__,
+                         __docker__)
 import os
 
 from ..service import Service
@@ -23,7 +27,7 @@ class Skydive(Service):
         agents=None,
         networks=None,
         extra_vars=None,
-        priors=[__python3__, __docker__]
+        priors=[__python3__, __default_python3__, __docker__]
     ):
         """Deploy Skydive (see http://skydive.network/).
 

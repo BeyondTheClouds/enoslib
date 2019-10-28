@@ -410,30 +410,58 @@ __python3__ = play_on(roles={})
 __python3__.raw(
     """
 (python --version | grep --regexp " 3.*") || (
-    apt update && apt install python3 &&
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 1)
+    apt update && apt install -y python3 python3-pip)
 """
 )
-__python3__.apt(
-    display_name="Installing python-setuptools",
-    name="python3-pip",
-    state="present",
-    update_cache=True,
+__default_python3__ = play_on(roles={})
+__default_python3__.raw(
+    "update-alternatives --install /usr/bin/python python /usr/bin/python3 1"
 )
+
+
+__python2__ = play_on(roles={})
+__python2__.raw(
+    """
+(python --version | grep --regexp " 2.*") || (
+    apt update && apt install -y python python-pip)
+"""
+)
+__default_python2__ = play_on(roles={})
+__default_python2__.raw(
+    "update-alternatives --install /usr/bin/python python /usr/bin/python2 1"
+)
+
 
 __docker__ = play_on(roles={})
 __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 
-def ensure_python3(**kwargs):
+def ensure_python3(make_default=True, **kwargs):
     """Make sure python3 is installed on the remote nodes and is the default.
 
     It inherits the argument of :py:class:`enoslib.api.play_on`.
     """
     kwargs.pop("priors", None)
     kwargs.pop("gather_facts", None)
-    with play_on(priors=[__python3__], gather_facts=False, **kwargs) as p:
-        p.shell("hostname", display_name="Ensure python3 is ready")
+    priors = [__python3__]
+    if make_default:
+        priors.append(__default_python3__)
+    with play_on(priors=priors, gather_facts=False, **kwargs) as p:
+        p.raw("hostname")
+
+
+def ensure_python2(make_default=True, **kwargs):
+    """Make sure python is installed on the remote nodes and is the default.
+
+    It inherits the argument of :py:class:`enoslib.api.play_on`.
+    """
+    kwargs.pop("priors", None)
+    kwargs.pop("gather_facts", None)
+    priors = [__python2__]
+    if make_default:
+        priors.append(__default_python2__)
+    with play_on(priors=priors, gather_facts=False, **kwargs) as p:
+        p.raw("hostname")
 
 
 def run_command(
