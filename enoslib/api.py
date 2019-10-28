@@ -841,27 +841,22 @@ def generate_inventory(
             f.write(_generate_inventory(roles))
 
 
-def wait_ssh(roles, retries=100, interval=30):
+def wait_ssh(roles: Roles, retries: int = 100, interval: int = 30) -> None:
     """Wait for all the machines to be ssh-reachable
 
     Let ansible initiates a communication and retries if needed.
 
     Args:
-        inventory (string): path to the inventoy file to test
-        retries (int): Number of time we'll be retrying an SSH connection
-        interval (int): Interval to wait in seconds between two retries
+        roles: Roles to wait for
+        retries: Number of time we'll be retrying an SSH connection
+        interval: Interval to wait in seconds between two retries
     """
-    utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
-    options = {"enos_action": "ping"}
-
     for i in range(0, retries):
         try:
-            run_ansible(
-                [utils_playbook],
-                roles=roles,
-                extra_vars=options,
-                on_error_continue=False,
-            )
+            with play_on(roles=roles, gather_facts=False, on_error_continue=False) as p:
+                # We use the raw module because we can't assumed at this point that
+                # python is installed
+                p.raw("hostname")
             break
         except EnosUnreachableHostsError as e:
             logger.info("Hosts unreachable: %s " % e.hosts)
