@@ -407,7 +407,7 @@ class play_on(object):
 
 # can be used as prior
 __python3__ = play_on(roles={})
-__python3__.shell(
+__python3__.raw(
     """
 (python --version | grep --regexp " 3.*") || (
     apt update && apt install python3 &&
