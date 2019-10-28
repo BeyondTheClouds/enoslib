@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-from enoslib.api import play_on, python3
+from enoslib.api import play_on, __python3__
 from ..service import Service
 
 
@@ -24,7 +24,7 @@ class Monitoring(Service):
         network=None,
         agent_conf=None,
         remote_working_dir="/builds/monitoring",
-        priors=[python3]
+        priors=[__python3__]
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 

@@ -406,23 +406,34 @@ class play_on(object):
 
 
 # can be used as prior
-python3 = play_on(roles={})
-python3.shell(
+__python3__ = play_on(roles={})
+__python3__.shell(
     """
 (python --version | grep --regexp " 3.*") || (
     apt update && apt install python3 &&
     update-alternatives --install /usr/bin/python python /usr/bin/python3 1)
 """
 )
-python3.apt(
+__python3__.apt(
     display_name="Installing python-setuptools",
     name="python3-pip",
     state="present",
     update_cache=True,
 )
 
-docker = play_on(roles={})
-docker.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
+__docker__ = play_on(roles={})
+__docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
+
+
+def ensure_python3(**kwargs):
+    """Make sure python3 is installed on the remote nodes and is the default.
+
+    It inherits the argument of :py:class:`enoslib.api.play_on`.
+    """
+    kwargs.pop("priors", None)
+    kwargs.pop("gather_facts", None)
+    with play_on(priors=[__python3__], gather_facts=False, **kwargs) as p:
+        p.shell("hostname", display_name="Ensure python3 is ready")
 
 
 def run_command(
