@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import os
 
@@ -169,6 +170,27 @@ class Monitoring(Service):
                 state="started",
                 delay=2,
                 timeout=120,
+            )
+            p.uri(
+                display_name="Add InfluxDB in Grafana",
+                url=f"http://{ui_address}:3000/api/datasources",
+                user="admin",
+                password="admin",
+                force_basic_auth=True,
+                body_format="json",
+                method="POST",
+                # 409 means: already added
+                status_code=[200, 409],
+                body=json.dumps(
+                    {
+                        "name": "telegraf",
+                        "type": "influxdb",
+                        "url": f"http://{collector_address}:8086",
+                        "access": "proxy",
+                        "database": "telegraf",
+                        "isDefault": True,
+                    }
+                ),
             )
 
     def destroy(self):
