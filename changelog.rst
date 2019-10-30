@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.8.6
+-----
+
+* Api/play_on: don't gather facts twice
+* VMonG5k: 🐎 enable virtio for network device 🐎
+* Service/monitoring: add the influxdb datasource automatically
 
 4.8.5
 -----
