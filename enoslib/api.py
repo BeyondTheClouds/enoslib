@@ -351,18 +351,23 @@ class play_on(object):
         return self
 
     def __exit__(self, *args):
-        gather_source = {"hosts": [], "gather_facts": False, "tasks": []}
-        play_source = {"hosts": self.pattern_hosts, "tasks": self._tasks}
+        gather_source = dict(hosts=[],
+                             gather_facts=False,
+                             tasks=[])
+        play_source = dict(hosts=self.pattern_hosts,
+                          tasks=self._tasks,
+                          gather_facts=False)
 
         if isinstance(self.gather_facts, str):
             gather_source.update(hosts=self.gather_facts, gather_facts=True)
+            playbook = [gather_source, play_source]
         elif self.gather_facts:
             gather_source.update(hosts=self.pattern_hosts, gather_facts=True)
+            playbook = [gather_source, play_source]
         else:
             gather_source.update(gather_facts=False)
-            play_source.update(gather_facts=False)
+            playbook = [play_source]
 
-        playbook = [gather_source, play_source]
         logger.debug(playbook)
 
         # Generate a playbook and run it
