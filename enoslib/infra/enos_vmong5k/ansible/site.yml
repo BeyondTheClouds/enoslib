@@ -4,9 +4,9 @@
   vars:
     pubkey: "{{lookup('file', '~/.ssh/id_rsa.pub')}}"
   # NOTE(msimonin): quick fix for buster
-  # The libvirt runtime dir (e.g with the socket) will be created in the home 
+  # The libvirt runtime dir (e.g with the socket) will be created in the home
   # dir instead of in /run/user/$UID
-  # environment: 
+  # environment:
   #   XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
 
   tasks:
@@ -33,54 +33,54 @@
       file:
         path: "/var/lib/libvirt/images/enos_vmong5k"
         state: directory
-      
-    - name: Bind mount image directory 
+
+    - name: Bind mount image directory
       mount:
         src: "{{ working_dir }}"
         path: "/var/lib/libvirt/images/enos_vmong5k"
         opts: bind
         state: mounted
         fstype: none
-        
+
     - name: Restart libvirt
       service:
         name: libvirtd
         state: restarted
-    
+
     - name: Creating cloud init data directory
       file:
         path: "{{ working_dir }}/cloud-init-data-{{ item.alias }}"
         state: directory
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      
+
     - name: Generate meta-data for cloud-init
       template:
         src: meta-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/meta-data"
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      
+
     - name: Generate g5k_user data for cloud-init
       template:
         src: user-data.j2
         dest: "{{ working_dir }}/cloud-init-data-{{ item.alias }}/user-data"
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      
+
     #  Create one iso per vm
     - name: Create the iso for cloud-init
-      shell: > 
-        cd {{ working_dir }} 
-        && 
+      shell: >
+        cd {{ working_dir }}
+        &&
         genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      
+
             #    - name: Copy base image
-      # shell: > 
-      #  ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
-      #  || 
+      # shell: >
+      #  ls {{ working_dir }}/enos_vmong5k-base-image.qcow2
+      #  ||
       #  cp {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
       # become: yes
       # become_user: "{{ g5k_user }}"
@@ -93,18 +93,18 @@
 
     - name: Copy (using taktuk) the base image
       shell: >
-        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2
         ||
         {{ taktuk_command }}
       run_once: yes
-      when: enable_taktuk | bool 
+      when: enable_taktuk | bool
 
     - name: Copy (regular copy) the base image
       shell: >
-        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2 
+        ls {{ working_dir }}/enos_vmong5k-base-image.qcow2
         ||
-        cp  {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2 
-      when: not enable_taktuk | bool 
+        cp  {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
+      when: not enable_taktuk | bool
 
     - name: Applying COW strategy for the image
       shell: |
@@ -112,27 +112,27 @@
         # I know ...
         chmod 777 {{ working_dir }}/{{ item.alias }}
       loop: "{{ vms[inventory_hostname] }}"
-      when: 
+      when:
         - _strategy == "cow"
         - item.alias not in running_vms.list_vms
-      
+
     - name: Applying COPY strategy for the image
       shell: |
         cp {{ working_dir}}/enos_vmong5k-base-image.qcow2 {{ working_dir }}/{{ item.alias }}
         # I know ...
         chmod 777 {{ working_dir }}/{{ item.alias }}
       loop: "{{ vms[inventory_hostname] }}"
-      when: 
+      when:
         - _strategy == "copy"
         - item.alias not in running_vms.list_vms
-      
+
     - name: Dump xml domain files
       template:
         dest: "{{ working_dir }}/{{ item.alias }}.xml"
         src: domain.xml.j2
       loop: "{{ vms[inventory_hostname] }}"
       when: item.alias not in running_vms.list_vms
-      
+
     - name: Start virtual machines
       shell: "virsh create {{  working_dir }}/{{ item.alias }}.xml"
       loop: "{{ vms[inventory_hostname] }}"
