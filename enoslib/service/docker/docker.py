@@ -90,6 +90,7 @@ class Docker(Service):
         # TODO: use a decorator for this purpose
         if registry_opts:
             validate(instance=registry_opts, schema=self.SCHEMA)
+
         self.agent = agent if agent else []
         self.registry_opts = registry_opts if registry_opts else REGISTRY_OPTS
         if self.registry_opts["type"] == "none":
@@ -101,9 +102,7 @@ class Docker(Service):
             self.registry = [_registry]
             self.registry_opts["type"] = "internal"
             self.registry_opts["ip"] = _registry.address
-            if self.registry_opts.get("port") is not None:
-                self.registry_opts["port"] = self.registry_opts["port"]
-            else:
+            if self.registry_opts.get("port") is None:
                 self.registry_opts["port"] = 5000
 
         self.bind_volumes = bind_volumes
