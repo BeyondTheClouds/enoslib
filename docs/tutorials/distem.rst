@@ -1,7 +1,8 @@
 .. _distem:
 
+****************
 Provider::Distem
-================
+****************
 
 This tutorial leverages the ``Distem`` provider: a provider that creates
 containers for you on Grid'5000.
@@ -19,7 +20,7 @@ containers for you on Grid'5000.
 
 
 Basic example
--------------
+=============
 
 We'll imagine a system that requires 50 compute machines and 1 controller machines.
 We express this using the Distem provider:
@@ -27,7 +28,7 @@ We express this using the Distem provider:
 .. hint::
 
    - If you don't have any image :
-   
+
    - $) wget 'http://public.nancy.grid5000.fr/~msimonin/public/distem-stretch.tar.gz' -P /home/public
 
 .. literalinclude:: distem/tuto_distem.py

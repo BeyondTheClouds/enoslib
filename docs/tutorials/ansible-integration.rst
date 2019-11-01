@@ -1,7 +1,8 @@
 .. _integration-with-ansible:
 
+***************************
 Executing commands on nodes
-===========================
+***************************
 
 |enoslib| uses internally Ansible to perform some predefined tasks (e.g network
 emulation). The APIs allowing this are exposed so that anyone can use them.
@@ -17,7 +18,7 @@ User can thus :
 
 
 Run a single command on nodes and gather results
-------------------------------------------------
+================================================
 
 Let's consider the following script :
 
@@ -30,7 +31,7 @@ Let's consider the following script :
 
     - (mandatory)the actual command to run
 
-    - the host pattern (see 
+    - the host pattern (see
       https://docs.ansible.com/ansible/latest/intro_patterns.html)
       This allow to further filter on which nodes the command will be run.
 
@@ -54,10 +55,10 @@ Let's consider the following script :
 
 
 Run a set of actions on nodes
------------------------------
+=============================
 
 Using python exclusively
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Let's consider the following script:
 
@@ -76,7 +77,7 @@ Currently, top-level keywords (e.g register, loop aren't supported).
 
 
 Using a yaml playbook
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 In addition to run custom command on nodes, |enoslib| can trigger predefined
 playbook stored in your filesystem. This let you to use Ansible DSL to describe
@@ -120,8 +121,8 @@ What you should see at the end is:
     enos-1                     : ok=2    changed=0    unreachable=0    failed=0
 
 
-What's next
------------
+What's next ?
+=============
 
 If you aren't familiar with Ansible, we encourage you to go through the `Ansible
 documentation <https://docs.ansible.com/ansible/latest/index.html>`_, write your own playbooks, or integrate one existing from

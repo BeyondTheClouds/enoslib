@@ -1,5 +1,5 @@
 Installation
-------------
+============
 
 On Grid'5000, you can go with a virtualenv :
 
@@ -13,7 +13,7 @@ On Grid'5000, you can go with a virtualenv :
 
 
 Configuration
--------------
+=============
 
 Since `python-grid5000 <https://pypi.org/project/python-grid5000/>`_ is used
 behind the scene, the configuration is read from a configuration file located in
@@ -33,12 +33,12 @@ With the above you can access the Grid'5000 API from you local machine aswell.
 
 
 External access
-^^^^^^^^^^^^^^^
+---------------
 
 If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine) you can refer to the following. You can jump this section if you work from inside Grid'5000.
 
 SSH external access
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 - Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
 - Solution 2: configure you ``~/.ssh/config`` properly:
@@ -53,7 +53,7 @@ SSH external access
 
 
 Accessing HTTP services inside Grid'5000
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine). For instance the Distem provider is starting a web server to handle the client requests. In order to access it propertly externally you drom your local machine can either
 

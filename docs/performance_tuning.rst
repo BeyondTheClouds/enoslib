@@ -1,7 +1,8 @@
 .. _performance_tuning:
 
+******************
 Performance tuning
-==================
+******************
 
 
 This page is about tricks to speed up the deployment time.

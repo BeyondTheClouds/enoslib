@@ -1,8 +1,9 @@
+************
 Service APIs
-=============
+************
 
 Base Service Class
--------------------
+==================
 
 .. automodule:: enoslib.service.service
     :members:
@@ -11,10 +12,10 @@ Base Service Class
 
 
 Docker
-----------
+======
 
 Docker Service Class
-^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 
 .. automodule:: enoslib.service.docker.docker
@@ -24,10 +25,10 @@ Docker Service Class
 
 
 Monitoring
-----------
+==========
 
 Monitoring Service Class
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 .. _monitoring:
 
@@ -38,13 +39,13 @@ Monitoring Service Class
     :show-inheritance:
 
 
-Netem
------
+Network Emulation (Netem)
+=========================
 
 .. _netem:
 
 Netem Service Class
-^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------
 
 
 .. automodule:: enoslib.service.netem.netem
@@ -54,12 +55,12 @@ Netem Service Class
 
 
 Skydive
--------
+=======
 
 .. _skydive:
 
 Skydive Service Class
-^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 
 .. automodule:: enoslib.service.skydive.skydive

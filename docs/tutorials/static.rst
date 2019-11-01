@@ -1,7 +1,8 @@
 .. _static:
 
+****************
 Provider::Static
-=================
+****************
 
 The static provider of |enoslib| lets you use a bunch of resources of you own.
 For instance you have a bunch of Raspberry Pis and would like to run some
@@ -13,7 +14,7 @@ experiments on them.
    For a complete schema reference see :ref:`static-schema`
 
 Basic example
--------------
+=============
 
 Assuming that you have two machines and a network, you can describe your
 infrastructure like the following:
@@ -25,7 +26,7 @@ infrastructure like the following:
 More generally, you'll have to describe exhaustively what you have.
 
 Advanced usage: combining |enoslib| projects
----------------------------------------------
+============================================
 
 Let's assume you want have access to two |enoslib| projects and you are using
 Grid'5000. You can use both projects using a single reservation by leveraging

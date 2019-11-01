@@ -33,15 +33,22 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
    :language: python
    :linenos:
 
-- Lines 5-18 describe the wanted resources. Here we want two machines. Each
-  machine will be given some roles (``control`` and/or ``compute``). These two
-  nodes will have one network card configured using the same network whose role
-  is ``n1``.
+- The configuration is specified and passed to the provider.
+  Here we want two machines. Each machine will be given some
+  roles (``control`` and/or ``compute``). These two nodes will
+  have one network card configured using the same network whose
+  role is ``n1``.
 
     .. note::
 
         Machine roles and network roles are transparent to the |enoslib|. The
         semantic is left to the application using it.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_vagrant.py
 
 - Additionally, there are two keys to personalize the vagrant configuration:
 
@@ -80,12 +87,6 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
 
         When ``name_prefix`` is set and there is only one machine in the group
         (default behaviour) any counter is append to the name of the machine.
-
-- You can launch the script using :
-
-    .. code-block:: bash
-
-        $ python tuto_vagrant.py
 
 Programmatic way
 ****************

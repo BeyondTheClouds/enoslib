@@ -1,7 +1,8 @@
 .. _vmong5k:
 
+*****************
 Provider::VMonG5K
-=================
+*****************
 
 This tutorial leverages the ``VmonG5k`` provider: a provider that provisions
 virtual machines for you on Grid'5000.
@@ -18,7 +19,7 @@ To accesss your virtual machines from your local machine, see below.
 
 
 Basic example
--------------
+=============
 
 We'll imagine a system that requires 100 compute machines and 3 controller machines.
 We express this using the ~VmonG5K~ provider:
@@ -59,7 +60,7 @@ Notes
 
 
 |enoslib| primer using VMonG5k
-------------------------------
+==============================
 
 .. literalinclude:: ansible-integration/flent_on_vmong5k.py
    :language: python
@@ -67,7 +68,7 @@ Notes
 
 
 SSH external access to the virtual machines
--------------------------------------------
+===========================================
 
 This is mandatory if you deployed from your local machine.
 
@@ -83,7 +84,7 @@ This is mandatory if you deployed from your local machine.
                               )
 
 Controlling the virtual machines placement
-------------------------------------------
+==========================================
 
 
 .. literalinclude:: ./vmong5k/tuto_placement.py

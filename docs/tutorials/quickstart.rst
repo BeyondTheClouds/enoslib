@@ -1,5 +1,6 @@
+*****************
 Project bootstrap
-=================
+*****************
 
 EnOSlib project can be a single python file but sometimes it's better to
 structure a bit more your experimental framework. In this direction, we're doing
@@ -17,7 +18,7 @@ This includes:
 
 
 Bootstrap a new project
------------------------
+=======================
 
 Install the latest Cookiecutter if you haven't installed it yet (this requires
 Cookiecutter 1.4.0 or higher)::
@@ -40,7 +41,7 @@ You'll be asked for some information::
 
 
 Using the new project
----------------------
+=====================
 
 Within a virtualenv you can do::
 
