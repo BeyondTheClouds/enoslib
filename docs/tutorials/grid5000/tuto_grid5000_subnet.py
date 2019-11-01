@@ -8,34 +8,29 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "resources": {
-        "machines": [{
-            "roles": ["control"],
-            "cluster": "parapluie",
-            "nodes": 1,
-            "primary_network": "n1",
-            "secondary_networks": []
-        }],
+        "machines": [
+            {
+                "roles": ["control"],
+                "cluster": "parapluie",
+                "nodes": 1,
+                "primary_network": "n1",
+                "secondary_networks": [],
+            }
+        ],
         "networks": [
-          {
-            "id": "n1",
-            "type": "prod",
-            "roles": ["my_network"],
-            "site": "rennes"
-          },
-          {
-            "id": "not_linked_to_any_machine",
-            "type": "slash_22",
-            "roles": ["my_subnet"],
-            "site": "rennes",
-         }]
+            {"id": "n1", "type": "prod", "roles": ["my_network"], "site": "rennes"},
+            {
+                "id": "not_linked_to_any_machine",
+                "type": "slash_22",
+                "roles": ["my_subnet"],
+                "site": "rennes",
+            },
+        ],
     }
 }
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
-
 # claim the resources
-conf = Configuratin.from_dictionnary(provider_conf)
+conf = Configuration.from_dictionnary(provider_conf)
 provider = G5k(conf)
 roles, networks = provider.init()
 
@@ -52,7 +47,7 @@ logging.info(subnet)
 #    'gateway': '10.159.255.254'
 #    'mac_end': '00:16:3E:9E:03:FE',
 #    'mac_start': '00:16:3E:9E:00:01',
-# } 
+# }
 
 # destroy the reservation
 provider.destroy()

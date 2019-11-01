@@ -34,19 +34,6 @@ Build the configuration from a dictionnary
 
         $ python tuto_grid5000.py
 
-
-- The content of the generated inventory should looks like the following:
-
-    .. literalinclude:: grid5000/hosts
-     :language: python
-
-  .. note::
-
-       - Inventory can be used to feed an Ansible deployment (see the
-         :ref:`Ansible integration<integration-with-ansible>`)
-       - Compared to the vagrant provider, Grid'5000 requires a more precise
-         network description that should map what is available on the platform.
-
 Build the configuration programmatically
 ----------------------------------------
 
@@ -65,7 +52,7 @@ The above script can be rewritten using the programmatc API.
 Using a custom environment
 ==========================
 
-First, the description file of your environment should use resolvable URIs for the kadeploy3 server. 
+First, the description file of your environment should use resolvable URIs for the kadeploy3 server.
 An example of such description is the following
 
 .. code-block:: yaml

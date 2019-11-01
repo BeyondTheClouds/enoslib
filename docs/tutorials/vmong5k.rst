@@ -4,7 +4,7 @@ Provider::VMonG5K
 =================
 
 This tutorial leverages the ``VmonG5k`` provider: a provider that provisions
-virtual machines for you on Grid'5000. 
+virtual machines for you on Grid'5000.
 
 
 .. hint::
@@ -15,9 +15,6 @@ virtual machines for you on Grid'5000.
 
 
 To accesss your virtual machines from your local machine, see below.
-
-
-    
 
 
 Basic example

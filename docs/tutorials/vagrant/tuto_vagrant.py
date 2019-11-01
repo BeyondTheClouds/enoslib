@@ -1,4 +1,3 @@
-from enoslib.api import discover_networks
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration
 
@@ -25,11 +24,8 @@ provider_conf = {
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
-
-# decorate hosts with network information
-discover_networks(roles, networks)
-
 print(roles)
+print(networks)
 
 # destroy the boxes
 provider.destroy()

@@ -1,38 +1,48 @@
-from enoslib.api import generate_inventory
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
 import enoslib.infra.enos_vmong5k.configuration as vmconf
-from enoslib.infra.enos_g5k.configuration import (Configuration,
-                                                  NetworkConfiguration)
+from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
 
 import logging
 import os
 
+
 logging.basicConfig(level=logging.INFO)
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
 
-# claim the resources
-conf = Configuration.from_settings(job_type="allow_classic_ssh")
-prod_network = NetworkConfiguration(id="n1",
-                                    type="prod",
-                                    roles=["my_network"],
-                                    site="rennes")
-conf.add_network_conf(prod_network)\
-    .add_network(id="not_linked_to_any_machine",
-                 type="slash_22",
-                 roles=["my_subnet"],
-                 site="rennes")\
-    .add_machine(roles=["control"],
-                 cluster="parapluie",
-                 nodes=1,
-                 primary_network=prod_network)\
-    .add_machine(roles=["compute"],
-                 cluster="parasilo",
-                 nodes=1,
-                 primary_network=prod_network)\
+prod_network = NetworkConfiguration(
+    id="n1",
+    type="prod",
+    roles=["my_network"],
+    site="rennes"
+)
+
+
+conf = (
+    Configuration
+    .from_settings(job_type="allow_classic_ssh")
+    .add_network_conf(prod_network)
+    .add_network(
+        id="not_linked_to_any_machine",
+        type="slash_22",
+        roles=["my_subnet"],
+        site="rennes",
+    )
+    .add_machine(
+        roles=["control"],
+        cluster="parapluie",
+        nodes=1,
+        primary_network=prod_network
+    )
+    .add_machine(
+        roles=["compute"],
+        cluster="parasilo",
+        nodes=1,
+        primary_network=prod_network
+    )
     .finalize()
+)
+
 
 provider = G5k(conf)
 roles, networks = provider.init()
@@ -53,16 +63,22 @@ logging.info(subnets)
 # }
 
 # We describe the VMs types and placement in the following
-virt_conf = vmconf.Configuration.from_settings()
-virt_conf.add_machine(roles=["vmcontrol"],
-                      number=1,
-                      undercloud=roles["control"])\
-         .add_machine(roles=["vmcompute"],
-                     number=3,
-                     undercloud=roles["compute"])\
-         .finalize()
+virt_conf = (
+    Configuration
+    .from_settings()
+    .add_machine(
+        roles=["vmcontrol"],
+        number=1,
+        undercloud=roles["control"]
+    )
+    .add_machine(
+        roles=["vmcompute"],
+        number=3,
+        undercloud=roles["compute"])
+    .finalize()
+)
 
 # Start them
-vmroles, networks =start_virtualmachines(virt_conf, subnets)
+vmroles, networks = start_virtualmachines(virt_conf, subnets)
 print(vmroles)
 print(networks)

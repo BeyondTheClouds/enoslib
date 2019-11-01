@@ -7,15 +7,24 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-conf = Configuration.from_settings(job_name="flent_on",
-                                   gateway=True)\
-                    .add_machine(roles=["server"],
-                                 cluster="paravance",
-                                 number=1)\
-                    .add_machine(roles=["client"],
-                                 cluster="paravance",
-                                 number=1)\
-                    .finalize()
+conf = (
+    Configuration
+    .from_settings(
+        job_name="flent_on",
+        gateway=True
+    )
+    .add_machine(
+        roles=["server"],
+        cluster="paravance",
+        number=1
+    )
+    .add_machine(
+        roles=["client"],
+        cluster="paravance",
+        number=1
+    )
+    .finalize()
+)
 
 provider = VMonG5k(conf)
 

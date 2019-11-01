@@ -87,20 +87,6 @@ The following ``tuto_vagrant.py`` implements the desired workflow.
 
         $ python tuto_vagrant.py
 
-
-- The content of the generated inventory should look like the following:
-
-    .. literalinclude:: vagrant/hosts
-     :language: python
-
-
-    .. note::
-
-       - Inventory can be used to feed an Ansible deployment (see the
-         :ref:`Ansible integration<integration-with-ansible>`)
-       - Note the extra variables concerning the network. They can be use in
-         your ansible playbooks to refer to a specific network.
-
 Programmatic way
 ****************
 

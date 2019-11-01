@@ -10,12 +10,12 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "backend": "libvirt",
-        "resources": {
+    "resources": {
         "machines": [{
             "roles": ["control"],
             "flavour": "tiny",
             "number": 1,
-        },{
+        }, {
             "roles": ["compute"],
             "flavour": "tiny",
             "number": 1,

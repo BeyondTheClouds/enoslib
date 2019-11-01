@@ -8,36 +8,33 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "resources": {
-        "machines": [{
-            "roles": ["control"],
-            "cluster": "grisou",
-            "nodes": 1,
-            "primary_network": "n1",
-            "secondary_networks": ["n2"]
-        },{
-
-            "roles": ["control", "compute"],
-            "cluster": "grisou",
-            "nodes": 1,
-            "primary_network": "n1",
-            "secondary_networks": ["n2"]
-        }],
-        "networks": [{
-            "id": "n1",
-            "type": "kavlan",
-            "roles": ["my_network"],
-            "site": "nancy",
-         }, {
-            "id": "n2",
-            "type": "kavlan",
-            "roles": ["my_second_network"],
-            "site": "nancy",
-         }]
+        "machines": [
+            {
+                "roles": ["control"],
+                "cluster": "grisou",
+                "nodes": 1,
+                "primary_network": "n1",
+                "secondary_networks": ["n2"],
+            },
+            {
+                "roles": ["control", "compute"],
+                "cluster": "grisou",
+                "nodes": 1,
+                "primary_network": "n1",
+                "secondary_networks": ["n2"],
+            },
+        ],
+        "networks": [
+            {"id": "n1", "type": "kavlan", "roles": ["my_network"], "site": "nancy"},
+            {
+                "id": "n2",
+                "type": "kavlan",
+                "roles": ["my_second_network"],
+                "site": "nancy",
+            },
+        ],
     }
 }
-
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 conf = Configuration.from_dictionnary(provider_conf)
@@ -45,4 +42,4 @@ provider = G5k(conf)
 roles, networks = provider.init()
 
 # destroy the reservation
-# provider.destroy()
+provider.destroy()

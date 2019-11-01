@@ -7,25 +7,32 @@ import os
 
 
 FORCE = False
-
 logging.basicConfig(level=logging.DEBUG)
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
-conf = Configuration.from_settings(job_name="wip-distem",
-                                   force_deploy=FORCE,
-                                   image="file:///home/msimonin/public/distem-stretch.tgz")\
-    .add_machine(roles=["server"],
-                 cluster="paravance",
-                 number=1,
-                 flavour="large")\
-    .add_machine(roles=["client"],
-                 cluster="paravance",
-                 number=1,
-                 flavour="large")\
+conf = (
+    Configuration
+    .from_settings(
+        job_name="wip-distem",
+        force_deploy=FORCE,
+        image="file:///home/msimonin/public/distem-stretch.tgz"
+    )
+    .add_machine(
+        roles=["server"],
+        cluster="paravance",
+        number=1,
+        flavour="large"
+    )
+    .add_machine(
+        roles=["client"],
+        cluster="paravance",
+        number=1,
+        flavour="large"
+    )
     .finalize()
+)
+
 provider = Distem(conf)
 
 roles, networks = provider.init()
@@ -37,7 +44,7 @@ print("Gateway : %s" % gateway)
 
 discover_networks(roles, networks)
 
-with play_on(roles=roles,gather_facts=False) as p:
+with play_on(roles=roles, gather_facts=False) as p:
     # We first need internet connectivity
     # Netmask for a subnet in g5k is a /14 netmask
     p.shell("ifconfig if0 $(hostname -I) netmask 255.252.0.0")
@@ -63,4 +70,3 @@ with play_on(pattern_hosts="client", roles=roles) as p:
             + "-o result.png")
     p.fetch(src="result.png",
             dest="result")
-

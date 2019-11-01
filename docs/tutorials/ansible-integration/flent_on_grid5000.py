@@ -8,21 +8,31 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-network = NetworkConfiguration(id="n1",
-                               type="kavlan",
-                               roles=["mynetwork"],
-                               site="rennes")
-conf = Configuration.from_settings(job_name="flent_on")\
-                    .add_network_conf(network)\
-                    .add_machine(roles=["server"],
-                                 cluster="parapluie",
-                                 nodes=1,
-                                 primary_network=network)\
-                    .add_machine(roles=["client"],
-                                 cluster="parapluie",
-                                 nodes=1,
-                                 primary_network=network)\
-                    .finalize()
+network = NetworkConfiguration(
+    id="n1",
+    type="kavlan",
+    roles=["mynetwork"],
+    site="rennes"
+)
+
+conf = (
+    Configuration
+    .from_settings(job_name="flent_on")
+    .add_network_conf(network)
+    .add_machine(
+        roles=["server"],
+        cluster="parapluie",
+        nodes=1,
+        primary_network=network
+    )
+    .add_machine(
+        roles=["client"],
+        cluster="parapluie",
+        nodes=1,
+        primary_network=network
+    )
+    .finalize()
+)
 
 provider = G5k(conf)
 roles, networks = provider.init()

@@ -9,16 +9,24 @@ logging.basicConfig(level=logging.DEBUG)
 
 # The conf let us define the resources wanted.
 # This is provider specific
-conf = Configuration.from_settings(backend="libvirt")\
-                    .add_machine(roles=["server"],
-                                 flavour="tiny",
-                                 number=1)\
-                    .add_machine(roles=["client"],
-                                 flavour="tiny",
-                                 number=1)\
-                    .add_network(roles=["mynetwork"],
-                                 cidr="192.168.42.0/24")\
-                    .finalize()
+conf = (
+    Configuration
+    .from_settings(backend="libvirt")
+    .add_machine(
+        roles=["server"],
+        flavour="tiny",
+        number=1
+    )
+    .add_machine(
+        roles=["client"],
+        flavour="tiny",
+        number=1
+    )
+    .add_network(
+        roles=["mynetwork"],
+        cidr="192.168.42.0/24")
+    .finalize()
+)
 
 provider = Enos_vagrant(conf)
 

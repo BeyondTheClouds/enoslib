@@ -17,7 +17,7 @@ provider_conf = {
             "roles": ["control"],
             "flavour": "tiny",
             "number": 1,
-        },{
+        }, {
             "roles": ["compute"],
             "flavour": "tiny",
             "number": 1,
