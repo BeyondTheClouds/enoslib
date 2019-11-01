@@ -1,6 +1,13 @@
 Changelog
 ===========
 
+
+4.8.7
+-----
+
+* Doc: clean and use continuation line
+* Service/docker: remove useless statement
+
 4.8.6
 -----
 
