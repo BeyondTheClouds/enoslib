@@ -57,9 +57,7 @@ python3.6_sonar:
     refs:
     - master
   script:
-  - pip install tox
-  # allow failures to publish reports
-  - tox -e py36 pep8 || true
+  - pip install -e .
   - apt update
   - apt install -y wget unzip openjdk-8-jre
   - pip install pylint
