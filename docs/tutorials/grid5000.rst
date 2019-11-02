@@ -49,6 +49,13 @@ The above script can be rewritten using the programmatc API.
    machine to configure the first interface of the Grid'5000 nodes.
 
 
+Using the secondary interfaces
+==============================
+
+.. literalinclude:: grid5000/tuto_grid5000_secondary.py
+   :language: python
+   :linenos:
+
 Using a custom environment
 ==========================
 
