@@ -2,6 +2,9 @@
 Project bootstrap
 *****************
 
+.. contents::
+   :depth: 2
+
 EnOSlib project can be a single python file but sometimes it's better to
 structure a bit more your experimental framework. In this direction, we're doing
 our best to maintain a project template that you can use.

@@ -2,6 +2,11 @@ Changelog
 ===========
 
 
+4.8.8
+-----
+
+* Doc: Add content for quick access
+
 4.8.7
 -----
 

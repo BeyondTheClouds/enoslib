@@ -2,6 +2,9 @@
 Provider::Chameleon
 *******************
 
+.. contents::
+   :depth: 2
+
 This tutorial will let you get started using |enoslib| and Chameleon. This will
 present you the bare minimum to install the library with the required dependencies.
 

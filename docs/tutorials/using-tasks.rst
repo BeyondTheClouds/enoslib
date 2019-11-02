@@ -1,7 +1,11 @@
 .. _tasks:
 
+*******************
 Using the Tasks API
-===================
+*******************
+
+.. contents::
+   :depth: 2
 
 In this tutorial, you will learn how to organize your code into tasks and
 integrate it with a command line interface.
@@ -13,7 +17,7 @@ For the sake of illustration, let's consider the following scenario:
 - Validate those network constraints
 
 Installation
-------------
+============
 
 .. code-block:: bash
 
@@ -24,7 +28,7 @@ Installation
   It's a good practice to use a virtualenv or python version manager like `pyenv`_.
 
 Using the API
--------------
+=============
 
 The following ``enos.py`` implements the desired workflow.
 
@@ -78,7 +82,7 @@ The following ``enos.py`` implements the desired workflow.
      :emphasize-lines: 2
 
 Using tasks
------------
+===========
 
 
 .. literalinclude:: using-tasks/step2.py
@@ -101,7 +105,7 @@ Using tasks
 
 
 Integrating with a command line parser
---------------------------------------
+======================================
 
 Let's integrate our tasks with a command line parser. Here we choose `click`_.
 First ensure that it is installed:

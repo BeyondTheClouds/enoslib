@@ -4,6 +4,9 @@
 Provider::Distem
 ****************
 
+.. contents::
+   :depth: 2
+
 This tutorial leverages the ``Distem`` provider: a provider that creates
 containers for you on Grid'5000.
 

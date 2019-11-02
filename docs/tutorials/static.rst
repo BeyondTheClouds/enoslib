@@ -4,6 +4,9 @@
 Provider::Static
 ****************
 
+.. contents::
+   :depth: 2
+
 The static provider of |enoslib| lets you use a bunch of resources of you own.
 For instance you have a bunch of Raspberry Pis and would like to run some
 experiments on them.

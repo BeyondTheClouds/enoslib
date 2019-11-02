@@ -1,6 +1,9 @@
 Provider::Vagrant
 =================
 
+.. contents::
+   :depth: 2
+
 This tutorial will let you get started using |enoslib| and vagrant. This will
 present you the bare minimum to start some machines and distribute them into
 the desired roles.
