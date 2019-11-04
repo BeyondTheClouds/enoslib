@@ -20,4 +20,5 @@ Tutorials
     using-tasks
     ansible-integration
     network_emulation
+    parameters_exploration
     quickstart
