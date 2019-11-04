@@ -6,6 +6,7 @@ Changelog
 -----
 
 * Doc: Add content for quick access
+* Doc: Add parameters sweeper tutorial
 
 4.8.7
 -----
