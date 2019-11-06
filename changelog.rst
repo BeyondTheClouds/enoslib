@@ -1,6 +1,10 @@
 Changelog
 ===========
 
+4.8.9
+-----
+
+* Service/netem: fix validate when network is partitioned
 
 4.8.8
 -----

@@ -12,6 +12,7 @@
 
 - name: Get the latencies between all the nodes
   shell: "fping -C 10 -q -s -e -f /tmp/hosts 2>/tmp/result"
+  ignore_errors: yes
 
 - name: Fetching the results
   fetch:
