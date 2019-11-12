@@ -2,10 +2,12 @@
 - name: Destroy all running vms and associated disks
   hosts: all
   # NOTE(msimonin): quick fix for buster
-  # The libvirt runtime dir (e.g with the socket) will be created in the home 
+  # The libvirt runtime dir (e.g with the socket) will be created in the home
   # dir instead of in /run/user/$UID
-  environment: 
-    XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
+  # environment:
+  #   XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
+  vars:
+    libvirt_dir: /var/lib/libvirt/images/enos_vmong5k
   tasks:
 
   - name: list only running VMs
@@ -26,7 +28,7 @@
 
   - name: Unmount a mounted volume
     mount:
-      path: /var/lib/libvirt/images/enos_vmong5k
+      path: "{{ libvirt_dir }}"
       state: unmounted
 
   - name: Remove the working directory
