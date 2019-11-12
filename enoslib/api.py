@@ -351,12 +351,10 @@ class play_on(object):
         return self
 
     def __exit__(self, *args):
-        gather_source = dict(hosts=[],
-                             gather_facts=False,
-                             tasks=[])
-        play_source = dict(hosts=self.pattern_hosts,
-                          tasks=self._tasks,
-                          gather_facts=False)
+        gather_source = dict(hosts=[], gather_facts=False, tasks=[])
+        play_source = dict(
+            hosts=self.pattern_hosts, tasks=self._tasks, gather_facts=False
+        )
 
         if isinstance(self.gather_facts, str):
             gather_source.update(hosts=self.gather_facts, gather_facts=True)
