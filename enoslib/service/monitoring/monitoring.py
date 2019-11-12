@@ -15,6 +15,11 @@ def _to_abs(path):
     return _path
 
 
+DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
+
+DEFAULT_COLLECTOR_ENV = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
+
+
 class Monitoring(Service):
     def __init__(
         self,
@@ -25,6 +30,9 @@ class Monitoring(Service):
         network=None,
         agent_conf=None,
         remote_working_dir="/builds/monitoring",
+        collector_env=None,
+        agent_env=None,
+        ui_env=None,
         priors=[__python3__, __default_python3__, __docker__],
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
@@ -47,6 +55,12 @@ class Monitoring(Service):
                            the address attribute of :py:class:`enoslib.Host` of
                            the collector (the first on currently)
             agent_conf (str): path to an alternative configuration file
+            collector_env (dict): environment variables to pass in the collector
+                                  process environment
+            agent_env (dict): environment variables to pass in the agent process
+                              envionment
+            ui_env (dict): environment variables to pass in the ui process
+                           environment
             prior (): priors to apply
 
 
@@ -73,6 +87,15 @@ class Monitoring(Service):
             self.remote_working_dir, "telegraf.conf"
         )
         self.remote_influxdata = os.path.join(self.remote_working_dir, "influxdb-data")
+
+        self.collector_env = DEFAULT_COLLECTOR_ENV
+        collector_env = {} if not collector_env else collector_env
+        self.collector_env.update(collector_env)
+        self.agent_env = {} if not agent_env else agent_env
+        self.ui_env = DEFAULT_UI_ENV
+        ui_env = {} if not ui_env else ui_env
+        self.ui_env.update(ui_env)
+
         self.priors = priors
 
     def deploy(self):
@@ -87,6 +110,8 @@ class Monitoring(Service):
         # Deploy the collector
         _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
+        # Handle port customisation
+        _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
         with play_on(pattern_hosts="collector", roles=self._roles) as p:
             p.docker_container(
                 display_name="Installing",
@@ -95,6 +120,8 @@ class Monitoring(Service):
                 detach=True,
                 network_mode="host",
                 state="started",
+                recreate="yes",
+                env=self.collector_env,
                 volumes=[f"{self.remote_influxdata}:/var/lib/influxdb"],
             )
             p.wait_for(
@@ -102,7 +129,7 @@ class Monitoring(Service):
                 # I don't have better solution yet
                 # The ci requirements are a bit annoying...
                 host="172.17.0.1",
-                port="8086",
+                port=collector_port,
                 state="started",
                 delay=2,
                 timeout=120,
@@ -132,16 +159,18 @@ class Monitoring(Service):
                 "/proc:/rootfs/proc:ro",
                 "/var/run/docker.sock:/var/run/docker.sock:ro",
             ]
-
+            env = {"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"}
+            env.update(self.agent_env)
             p.docker_container(
                 display_name="Installing Telegraf",
                 name="telegraf",
                 image="telegraf",
                 detach=True,
                 state="started",
+                recreate="yes",
                 network_mode="host",
                 volumes=volumes,
-                env={"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"},
+                env=env,
             )
 
         # Deploy the UI
@@ -153,6 +182,8 @@ class Monitoring(Service):
             # NOTE(msimonin): ping on docker bridge address for ci testing
             ui_address = "172.17.0.1"
 
+        # Handle port customisation
+        ui_port = self.ui_env["GF_SERVER_HTTP_PORT"]
         with play_on(pattern_hosts="ui", roles=self._roles) as p:
             p.docker_container(
                 display_name="Installing Grafana",
@@ -160,20 +191,22 @@ class Monitoring(Service):
                 image="grafana/grafana",
                 detach=True,
                 network_mode="host",
+                env=self.ui_env,
+                recreate="yes",
                 state="started",
             )
             p.wait_for(
                 display_name="Waiting for grafana to be ready",
                 # NOTE(msimonin): ping on docker bridge address for ci testing
                 host=ui_address,
-                port=3000,
+                port=ui_port,
                 state="started",
                 delay=2,
                 timeout=120,
             )
             p.uri(
                 display_name="Add InfluxDB in Grafana",
-                url=f"http://{ui_address}:3000/api/datasources",
+                url=f"http://{ui_address}:{ui_port}/api/datasources",
                 user="admin",
                 password="admin",
                 force_basic_auth=True,
@@ -185,7 +218,7 @@ class Monitoring(Service):
                     {
                         "name": "telegraf",
                         "type": "influxdb",
-                        "url": f"http://{collector_address}:8086",
+                        "url": f"http://{collector_address}:{collector_port}",
                         "access": "proxy",
                         "database": "telegraf",
                         "isDefault": True,
