@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+4.8.10
+------
+
+* Service/monitoring: allow for some customisations
+* VMonG5K: use the libvirt directory for all the operations
+
 4.8.9
 -----
 
