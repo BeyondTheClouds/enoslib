@@ -1,14 +1,15 @@
+***********
 They use it
-============
+***********
 
 Publications / White papers:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+============================
 
 - **Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
   EnosStack: A LAMP-like stack for the experimenter. INFOCOM WKSHPS 2018 - IEEE
   International Conference on Computer Communications, Apr 2018, Honolulu,
   United States. IEEE, pp.336-341**
-  
+
 - V. Marangozova-Martin, A. El Rheddane and N. De Palma, "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
   doi: 10.1109/TPDS.2019.2907950
   keywords: {Containers;Storms;Measurement;Elasticity;Data models;Proposals;Computational modeling;stream processing;multi-level elasticity;Apache Storm},
@@ -26,7 +27,7 @@ Publications / White papers:
 
 
 Projects
-~~~~~~~~
+========
 
 - **EnOS**: Deploy and benchmark OpenStack
 
@@ -54,3 +55,8 @@ Projects
 - **kenan**: Benchmark OpenStack communication bus in various network topologies
 
   Link: https://gitlab.inria.fr/discovery/kenan
+
+
+- **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
+  
+  Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
