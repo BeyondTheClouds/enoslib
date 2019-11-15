@@ -55,3 +55,8 @@ Projects
 - **kenan**: Benchmark OpenStack communication bus in various network topologies
 
   Link: https://gitlab.inria.fr/discovery/kenan
+
+
+- **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
+  
+  Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
