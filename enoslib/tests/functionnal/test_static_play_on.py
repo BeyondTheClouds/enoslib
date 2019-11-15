@@ -42,6 +42,9 @@ roles, networks = provider.init()
 with play_on(roles=roles) as p:
     p.shell("date > /tmp/date")
 
+with play_on(roles=roles) as p:
+    p.shell(["ls", "date", ])
+
 with open("/tmp/date") as f:
     print(f.readlines())
 

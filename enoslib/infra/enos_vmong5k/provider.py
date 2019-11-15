@@ -160,22 +160,24 @@ def _distribute(machines, g5k_subnets, extra=None):
 
 def _index_by_host(roles):
     virtual_machines_by_host = defaultdict(set)
+    pms = set()
     for vms in roles.values():
         for virtual_machine in vms:
             host = virtual_machine.pm
             # Two vms are equal if they have the same euis
             virtual_machines_by_host[host.alias].add(virtual_machine)
+            pms.add(host)
     # now serialize all the thing
     vms_by_host = defaultdict(list)
     for host, vms in virtual_machines_by_host.items():
         for virtual_machine in vms:
             vms_by_host[host].append(virtual_machine.to_dict())
 
-    return dict(vms_by_host)
+    return dict(vms_by_host), pms
 
 
 def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
-    vms_by_host = _index_by_host(vmong5k_roles)
+    vms_by_host, pms = _index_by_host(vmong5k_roles)
 
     extra_vars = {
         "vms": vms_by_host,
@@ -186,13 +188,10 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
         "_strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
     }
-    # pm_inventory_path = os.path.join(os.getcwd(), "pm_hosts")
-    # generate_inventory(*g5k_init, pm_inventory_path)
-    # deploy virtual machines with ansible playbook
-    all_pms = []
-    for machine in provider_conf.machines:
-        all_pms.extend(machine.undercloud)
-    all_pms = {"all": all_pms}
+
+    # Take into account only the pms that will host the vms
+    # this might happen when #pms > #vms
+    all_pms = {"all": pms}
 
     if force_deploy:
         run_ansible([DESTROY_PLAYBOOK_PATH], roles=all_pms, extra_vars=extra_vars)

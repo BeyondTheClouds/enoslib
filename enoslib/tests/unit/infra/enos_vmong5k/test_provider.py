@@ -101,6 +101,31 @@ class TestDistribute(EnosTest):
         self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 2), vm.eui)
         self.assertEqual(host1, vm.pm)
 
+    def test_distribute_1_vm_2_hosts(self):
+        """both hosts should appears in the vm_roles."""
+        host0 = Host("paravance-1")
+        host1 = Host("paravance-2")
+        machine = MachineConfiguration(
+            roles=["r1"], flavour="tiny", undercloud=[host0, host1], number=2
+        )
+        machines = [machine]
+
+        g5k_subnet = {
+            "mac_start": EUI("00:16:3E:9E:44:00"),
+            "mac_end": EUI("00:16:3E:9E:47:FE"),
+        }
+
+        vmong5k_roles = _distribute(machines, [g5k_subnet])
+        self.assertEqual(2, len(vmong5k_roles["r1"]))
+        vm = vmong5k_roles["r1"][0]
+        # we skip the first mac
+        self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 1), vm.eui)
+        self.assertEqual(host0, vm.pm)
+
+        vm = vmong5k_roles["r1"][1]
+        self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 2), vm.eui)
+        self.assertEqual(host1, vm.pm)
+
 
 class TestIndexByHost(EnosTest):
     def test_index_by_host(self):
