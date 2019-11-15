@@ -30,6 +30,6 @@ l = Locust(master=roles["master"],
             network="r1")
 
 l.deploy()
-l.run_with_ui('expe', 'expe/locustfile.py')
+l.run_with_ui('expe')
 ui_address = roles["master"][0].extra["r1_ip"]
 print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)

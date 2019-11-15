@@ -23,6 +23,19 @@ Docker Service Class
     :undoc-members:
     :show-inheritance:
 
+Locust (Load generation)
+========================
+
+Locust Service Class
+------------------------
+
+.. _monitoring:
+
+
+.. automodule:: enoslib.service.locust.locust
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 Monitoring
 ==========

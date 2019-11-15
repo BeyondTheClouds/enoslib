@@ -129,9 +129,9 @@ class Locust(Service):
             locustfile: path (relative or absolute) to the main locustfile
             nb_clients: total number of clients to spawn
             hatch_rate: number of clients to spawn per second
-            time: time of the experiment. e.g 300s, 20m, 3h, 1h30m, etc.
+            run_time: time of the experiment. e.g 300s, 20m, 3h, 1h30m, etc.
             density: number of locust slave to run per agent node
-            env: environment to pass to the execution
+            environment: environment to pass to the execution
         """
 
         if environment is None:
