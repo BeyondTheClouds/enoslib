@@ -58,5 +58,5 @@ Projects
 
 
 - **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
-  
+
   Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks

@@ -29,9 +29,6 @@ Locust (Load generation)
 Locust Service Class
 ------------------------
 
-.. _monitoring:
-
-
 .. automodule:: enoslib.service.locust.locust
     :members:
     :undoc-members:

@@ -1,6 +1,14 @@
 Changelog
 ===========
 
+4.8.11
+------
+
+* VMonG5K: Don't fail if #pms > #vms
+* Doc: add madeus-openstack-benchmarks
+* Service/locust: review, add a density option that controls
+  the number of slave to start. Enable the documentation.
+
 4.8.10
 ------
 

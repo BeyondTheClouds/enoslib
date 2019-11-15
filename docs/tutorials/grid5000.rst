@@ -13,6 +13,12 @@ documentation of the Grid'5000 provider.
 
    For a complete schema reference see :ref:`grid5000-schema`
 
+.. hint::
+
+    |enoslib| has also a dedicated tutorial at https://msimonin.gitlabpages.inria.fr/enoslib-tutorials/
+    It illustrates the use of |enoslib| in the Grid'5000 context.
+
+
 .. include:: ./setup_g5k.rst
 
 
