@@ -63,8 +63,9 @@ class Configuration(BaseConfiguration):
 
 
 class MachineConfiguration:
-    def __init__(self, *, roles=None, flavour=None,
-                 flavour_desc=None, number=1, name_prefix=""):
+    def __init__(
+        self, *, roles=None, flavour=None, flavour_desc=None, number=1, name_prefix=""
+    ):
 
         self.roles = roles
         self.name_prefix = name_prefix
@@ -104,8 +105,12 @@ class MachineConfiguration:
 
     def to_dict(self):
         d = {}
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
-                 number=self.number, name_prefix=self.name_prefix)
+        d.update(
+            roles=self.roles,
+            flavour_desc=self.flavour_desc,
+            number=self.number,
+            name_prefix=self.name_prefix,
+        )
         return d
 
 

@@ -57,7 +57,7 @@ ANSIBLE_TOP_LEVEL = {
     "loop": "loop",
     "poll": "poll",
     "ignore_errors": "ignore_errors",
-    "environment": "environment"
+    "environment": "environment",
 }
 
 AnsibleExecutionRecord = namedtuple(

@@ -9,12 +9,14 @@ CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Locust(Service):
-    def __init__(self,
-                 master: Optional[List[Host]] = None,
-                 agents: Optional[List[Host]] = None,
-                 network: Optional[str] = None,
-                 remote_working_dir: str = "/builds/locust",
-                 priors: List[play_on] = [__python3__, __default_python3__]):
+    def __init__(
+        self,
+        master: Optional[List[Host]] = None,
+        agents: Optional[List[Host]] = None,
+        network: Optional[str] = None,
+        remote_working_dir: str = "/builds/locust",
+        priors: List[play_on] = [__python3__, __default_python3__],
+    ):
         """Deploy a distributed Locust (see locust.io)
 
         This aims at deploying a distributed locust for load testing. Locust
@@ -60,11 +62,13 @@ class Locust(Service):
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.shell("if pgrep locust; then pkill locust; fi")
 
-    def run_with_ui(self,
-                    expe_dir: str,
-                    locustfile: str = "locustfile.py",
-                    density: int = 1,
-                    environment: Optional[Dict] = None):
+    def run_with_ui(
+        self,
+        expe_dir: str,
+        locustfile: str = "locustfile.py",
+        density: int = 1,
+        environment: Optional[Dict] = None,
+    ):
         """Run locust with its web user interface.
 
         Args:
@@ -101,17 +105,21 @@ class Locust(Service):
                         f"--logfile={self.remote_working_dir}/locust-slave-{i}.log &"
                     ),
                     environment=environment,
-                    display_name=f"Running locust ({locustpath}) on agents (master at {self.master_ip})..."
+                    display_name=(
+                        f"Running({locustpath}) on agents"
+                        f"(master at {self.master_ip})..."
+                    ),
                 )
 
-    def run_headless(self,
-                     expe_dir: str,
-                     locustfile: Optional[str] = "locustfile.py",
-                     nb_clients: int = 1,
-                     hatch_rate: int = 1,
-                     run_time: str = "60s",
-                     density: int = 1,
-                     environment: Optional[Dict] = None
+    def run_headless(
+        self,
+        expe_dir: str,
+        locustfile: str = "locustfile.py",
+        nb_clients: int = 1,
+        hatch_rate: int = 1,
+        run_time: str = "60s",
+        density: int = 1,
+        environment: Optional[Dict] = None,
     ):
         """Run locust headless
         (see https://docs.locust.io/en/stable/running-locust-without-web-ui.html)
@@ -159,7 +167,10 @@ class Locust(Service):
                         f"--logfile={self.remote_working_dir}/locust-slave-{i}.log &"
                     ),
                     environment=environment,
-                    display_name=f"Running locust ({locustpath}) on agents (master at {self.master_ip})..."
+                    display_name=(
+                        f"Running locust ({locustpath})"
+                        f"on agents (master at {self.master_ip})..."
+                    ),
                 )
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
