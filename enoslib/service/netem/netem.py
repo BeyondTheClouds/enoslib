@@ -168,7 +168,8 @@ def _gen_devices(
         devices: list of the devices to extract the names from
 
     If the device is a physical one return it
-    If the device is a "virtual" one (e.g bridge) returns the corresponding physical ones.
+    If the device is a "virtual" one (e.g bridge) returns the
+    corresponding physical ones.
     """
     for device in enos_devices:
         # get the device caracteristic
