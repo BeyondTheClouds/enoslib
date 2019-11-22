@@ -2,6 +2,7 @@ import copy
 import logging
 import re
 import os
+from typing import Dict, List, Generator
 import yaml
 
 from jsonschema import validate
@@ -158,11 +159,34 @@ def _build_grp_constraints(roles, network_constraints):
     return constraints
 
 
+def _gen_devices(
+    all_devices: List[Dict], enos_devices: List[str]
+) -> Generator[str, None, None]:
+    """Get the name of the physical device attached to this device.
+
+    Args:
+        devices: list of the devices to extract the names from
+
+    If the device is a physical one return it
+    If the device is a "virtual" one (e.g bridge) returns the corresponding physical ones.
+    """
+    for device in enos_devices:
+        # get the device caracteristic
+        _device = [d for d in all_devices if d["device"] == device][0]
+        if _device["type"] == "bridge":
+            for interface in _device["interfaces"]:
+                _d = [d for d in all_devices if d["device"] == interface]
+                yield _d[0]
+        else:
+            yield _device
+
+
 def _build_ip_constraints(roles, ips, constraints):
     """Generate the constraints at the ip/device level.
     Those constraints are those used by ansible to enforce tc/netem rules.
     """
     local_ips = copy.deepcopy(ips)
+    ip_constraints = {}
     for constraint in constraints:
         gsrc = constraint["src"]
         gdst = constraint["dst"]
@@ -171,19 +195,30 @@ def _build_ip_constraints(roles, ips, constraints):
         gloss = constraint["loss"]
         for s in roles[gsrc]:
             # one possible source
-            # Get all the active devices for this source
-            active_devices = filter(
-                lambda x: x["active"], local_ips[s.alias]["devices"]
-            )
-            # Get only the devices specified in the network constraint
+            local_devices = []
             if "network" in constraint:
-                active_devices = filter(
+                # Get only the devices specified in the network constraint
+                local_devices = filter(
                     lambda x: x["device"] == s.extra[constraint["network"]],
-                    active_devices,
+                    local_ips[s.alias]["devices"],
                 )
-            # Get only the name of the active devices
-            sdevices = map(lambda x: x["device"], active_devices)
-            for sdevice in sdevices:
+            else:
+                # Get all the active devices for this source
+                local_devices = _gen_devices(
+                    local_ips[s.alias]["devices"], local_ips[s.alias]["enos_devices"]
+                )
+
+            for sdevice in local_devices:
+                ip_constraints.setdefault(s.alias, {})
+                ip_constraints[s.alias].setdefault("devices", [])
+                # don't add a new device if it still there for the corresponding node
+                check = [
+                    d
+                    for d in ip_constraints[s.alias]["devices"]
+                    if d["device"] == sdevice["device"]
+                ]
+                if not check:
+                    ip_constraints[s.alias]["devices"].append(sdevice)
                 # one possible device
                 for d in roles[gdst]:
                     # one possible destination
@@ -191,17 +226,20 @@ def _build_ip_constraints(roles, ips, constraints):
                     # Let's keep docker bridge out of this
                     dallips = filter(lambda x: x != "172.17.0.1", dallips)
                     for dip in dallips:
-                        local_ips[s.alias].setdefault("tc", []).append(
+                        ip_constraints[s.alias].setdefault("tc", []).append(
                             {
+                                # source identifies the inventory hostname
+                                # used by ansible
                                 "source": s.alias,
+                                # Below is used for setting the right tc rules
                                 "target": dip,
-                                "device": sdevice,
+                                "device": sdevice["device"],
                                 "delay": gdelay,
                                 "rate": grate,
                                 "loss": gloss,
                             }
                         )
-    return local_ips
+    return ip_constraints
 
 
 class Netem(Service):
