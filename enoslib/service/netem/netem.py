@@ -161,7 +161,7 @@ def _build_grp_constraints(roles, network_constraints):
 
 def _gen_devices(
     all_devices: List[Dict], enos_devices: List[str]
-) -> Generator[str, None, None]:
+) -> Generator[Dict, None, None]:
     """Get the name of the physical device attached to this device.
 
     Args:
