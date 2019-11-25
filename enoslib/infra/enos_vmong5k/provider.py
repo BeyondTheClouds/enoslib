@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from ipaddress import IPv4Address
-import hashlib
 import itertools
 import logging
+from operator import itemgetter
+from typing import Dict, List, Mapping
 
 from netaddr import EUI, mac_unix_expanded
 
@@ -12,46 +13,70 @@ from enoslib.host import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
+from enoslib.types import Networks, Roles, RolesNetworks
+from .configuration import Configuration
 from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH
 from ..provider import Provider
 
 logger = logging.getLogger(__name__)
 
 
-def start_virtualmachines(provider_conf, g5k_subnets, force_deploy=False):
+def start_virtualmachines(
+    provider_conf: Configuration,
+    g5k_subnets: Networks,
+    skip: int = 0,
+    force_deploy: bool = False,
+) -> RolesNetworks:
     """Starts virtualmachines on G5K.
 
+    This first distributes the virtual machine according to the undercloud
+    attributes of the configuration, assign them IPs and start them.
+    It is idempotent.
+
     Args:
-        provider_conf(Configuration):
-            :py:class:`enoslib.infra.enos_vmong5k.configuraton.Configuration`
-            This is the abstract description of your overcloud (VMs). Each
-            configuration has a its undercloud attributes filled with the
-            undercloud machines to use. Round Robin strategy to distribute the
-            VMs to the PMs will be used for each configuration. Mac addresses
-            will be generated according to the g5k_subnet parameter.
-        g5k_subnets(list): The subnets to use. Each element is a serialization
+        provider_conf: This is the abstract description of your overcloud (VMs).
+            Each configuration must have its undercloud attributes filled with the
+            undercloud machines to use. Round Robin strategy to distribute the VMs
+            to the PMs will be used for each configuration. Mac addresses will be
+            generated according to the g5k_subnet parameter.
+        g5k_subnets: The subnets to use. Each element is a serialization
             of
             :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
-        force_deploy (boolean): controls whether the virtualmachines should be
-            restarted from scratch
+        skip: number of addresses to skip when distributing them to the virtual
+              machines. This can be useful when starting incrementally the
+              virtual machines to avoid overlaping ip assignements between iterations.
+        force_deploy (boolean): controls whether the virtual machines should be
+            restarted from scratch.
+
+    Examples:
+
+        .. literalinclude:: ./examples/grid5000/tuto_grid5000_p_virt.py
+            :language: python
+            :linenos:
+
+        .. literalinclude:: ./examples/grid5000/tuto_grid5000_p_virt_batch.py
+            :language: python
+            :linenos:
 
     Returns:
         (roles, networks) tuple
 
     """
 
-    def _to_hosts(roles):
+    def _to_hosts(roles: Mapping[str, List[VirtualMachine]]) -> Roles:
         _roles = {}
         for role, machines in roles.items():
             _roles[role] = [m.to_host() for m in machines]
         return _roles
 
-    extra = {}
+    extra: Dict = {}
     if provider_conf.gateway:
         extra.update(gateway="access.grid5000.fr")
         extra.update(gateway_user=g5k_api_utils.get_api_username())
 
-    vmong5k_roles = _distribute(provider_conf.machines, g5k_subnets, extra=extra)
+    vmong5k_roles = _distribute(
+        provider_conf.machines, g5k_subnets, skip=skip, extra=extra
+    )
 
     _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=force_deploy)
 
@@ -64,12 +89,21 @@ def _get_subnet_ip(mac):
     return IPv4Address(".".join(address))
 
 
-def _mac_range(g5k_subnets, step=1):
-    for g5k_subnet in g5k_subnets:
+def _mac_range(g5k_subnets, skip=0, step=1):
+    skipped = 0
+    # be a bit defensive here by making sure the addresses sequence is
+    # outputed deterministically
+    _g5k_subnets = sorted(g5k_subnets, key=itemgetter("mac_start"))
+    for g5k_subnet in _g5k_subnets:
         start = EUI(g5k_subnet["mac_start"])
         stop = EUI(g5k_subnet["mac_end"])
+        # we always skip the first one as this could not be a regular address
+        # e.g 10.158.0.0
         for item in range(int(start) + 1, int(stop), step):
-            yield EUI(item, dialect=mac_unix_expanded)
+            if skipped < skip:
+                skipped = skipped + 1
+            else:
+                yield EUI(item, dialect=mac_unix_expanded)
     raise StopIteration
 
 
@@ -130,28 +164,18 @@ def _build_g5k_conf(vmong5k_conf):
     return _do_build_g5k_conf(vmong5k_conf, site)
 
 
-def _build_static_hash(roles, cookie):
-    md5 = hashlib.md5()
-    _roles = [r for r in roles if r != cookie]
-    for r in _roles:
-        md5.update(r.encode())
-    return md5.hexdigest()
-
-
-def _distribute(machines, g5k_subnets, extra=None):
+def _distribute(machines, g5k_subnets, skip=0, extra=None):
     vmong5k_roles = defaultdict(list)
-    euis = _mac_range(g5k_subnets)
-    static_hashes = {}
+    euis = _mac_range(g5k_subnets, skip=skip)
     for machine in machines:
         pms = machine.undercloud
         pms_it = itertools.cycle(pms)
-        for idx in range(machine.number):
-            static_hash = _build_static_hash(machine.roles, machine.cookie)
-            static_hashes.setdefault(static_hash, 0)
-            static_hashes[static_hash] = static_hashes[static_hash] + 1
-            name = "vm-{}-{}-{}".format(static_hash, static_hashes[static_hash], idx)
+        for _ in range(machine.number):
+            eui = next(euis)
+            descriptor = "-".join(str(_get_subnet_ip(eui)).split(".")[1:])
+            name = f"virtual-{descriptor}"
             pm = next(pms_it)
-            vm = VirtualMachine(name, next(euis), machine.flavour_desc, pm, extra=extra)
+            vm = VirtualMachine(name, eui, machine.flavour_desc, pm, extra=extra)
 
             for role in machine.roles:
                 vmong5k_roles[role].append(vm)

@@ -4,7 +4,6 @@ from netaddr import EUI
 from enoslib.host import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 from enoslib.infra.enos_vmong5k.provider import (
-    _build_static_hash,
     _do_build_g5k_conf,
     _distribute,
     _index_by_host,
@@ -57,6 +56,23 @@ class TestDistribute(EnosTest):
         self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 1), vm.eui)
         self.assertEqual(host, vm.pm)
 
+    def test_distribute_minimal_skip(self):
+
+        host = Host("paravance-1")
+        machine = MachineConfiguration(
+            roles=["r1"], flavour="tiny", undercloud=[host], number=1
+        )
+        machines = [machine]
+
+        g5k_subnet = {"mac_start": "00:16:3E:9E:44:00", "mac_end": "00:16:3E:9E:47:FE"}
+
+        vmong5k_roles = _distribute(machines, [g5k_subnet], skip=10)
+        self.assertEqual(1, len(vmong5k_roles["r1"]))
+        vm = vmong5k_roles["r1"][0]
+        # we skip the first mac + 10 more
+        self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 11), vm.eui)
+        self.assertEqual(host, vm.pm)
+
     def test_distribute_2_vms_1_host(self):
         host = Host("paravance-1")
         machine = MachineConfiguration(
@@ -100,13 +116,3 @@ class TestDistribute(EnosTest):
         vm = vmong5k_roles["r1"][1]
         self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 2), vm.eui)
         self.assertEqual(host1, vm.pm)
-
-
-class TestBuildStaticHash(EnosTest):
-    def test_build_static_hash(self):
-        import hashlib
-
-        md5 = hashlib.md5()
-        md5.update("1".encode())
-        md5.update("2".encode())
-        self.assertEqual(md5.hexdigest(), _build_static_hash(["1", "2", "3"], "3"))

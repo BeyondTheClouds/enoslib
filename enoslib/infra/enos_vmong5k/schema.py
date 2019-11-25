@@ -17,6 +17,7 @@ SCHEMA = {
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
         "image": {"type": "string"},
+        "skip": {"type": "number"},
         "strategy": {"type": "string", "enum": STRATEGY},
         "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
         "working_dir": {"type": "string"},

@@ -30,6 +30,7 @@ class Configuration(BaseConfiguration):
         self.queue = DEFAULT_QUEUE
         self.walltime = DEFAULT_WALLTIME
         self.image = DEFAULT_IMAGE
+        self.skip = 0
         self.strategy = DEFAULT_STRATEGY
         self.subnet_type = DEFAULT_SUBNET_TYPE
         self.working_dir = DEFAULT_WORKING_DIR

@@ -6,33 +6,49 @@
   # dir instead of in /run/user/$UID
   # environment:
   #   XDG_RUNTIME_DIR: "/tmp/{{ g5k_user }}-runtime-dir"
+
   vars:
     libvirt_dir: /var/lib/libvirt/images/enos_vmong5k
   tasks:
 
   - name: list only running VMs
-    shell: virsh list --uuid
+    shell: virsh list --name
     register: running_vms
 
   - debug: var=running_vms
 
+  - set_fact:
+      aliases : "{{ vms[inventory_hostname] | map(attribute='alias') | list }}"
+
+  ## - debug: var=aliases
+
   - name: Destroy running virtual machines (vm -1 / 1)
     shell: "virsh destroy {{ item }}"
-    ignore_errors: yes
     loop: "{{ running_vms.stdout_lines }}"
+    when: item in aliases
+
+  - name: list only running VMs
+    shell: virsh list --name
+    register: running_vms
+
+  - debug: var=running_vms
 
   - name: Unmount a mounted volume
     mount:
       path: "{{ working_dir }}"
       state: unmounted
+    when: running_vms.stdout_lines | length == 0
 
   - name: Unmount a mounted volume
     mount:
       path: "{{ libvirt_dir }}"
       state: unmounted
+    when: running_vms.stdout_lines | length == 0
 
   - name: Remove the working directory
     file:
       path: "{{ working_dir }}"
       state: absent
       mode: 0711
+    when: "{{ running_vms.stdout_lines | length == 0 }}"
+

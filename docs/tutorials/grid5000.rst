@@ -168,6 +168,6 @@ Start Virtual Machines on nodes
   machines are started on specific nodes of your reservation.
 
 
-.. literalinclude:: grid5000/tuto_grid5000_p_virt.py
+.. literalinclude:: ../apidoc/examples/grid5000/tuto_grid5000_p_virt.py
     :language: python
     :linenos:
