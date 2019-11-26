@@ -32,7 +32,7 @@ from enoslib.errors import (
     EnosUnreachableHostsError,
     EnosSSHNotReady,
 )
-from enoslib.types import Roles
+from enoslib.types import Roles, Networks
 
 logger = logging.getLogger(__name__)
 
@@ -765,11 +765,15 @@ def run_ansible(
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def discover_networks(roles, networks, fake_interfaces=None, fake_networks=None):
+def discover_networks(
+    roles: Roles,
+    networks: Networks,
+    fake_interfaces: List[str] = None,
+    fake_networks: List[str] = None,
+) -> Roles:
     """Checks the network interfaces on the nodes.
 
     This enables to auto-discover the mapping interface name <-> network role.
-    Beware, this has a side effect on each Host in roles.
 
     Args:
         roles (dict): role->hosts mapping as returned by
@@ -778,7 +782,7 @@ def discover_networks(roles, networks, fake_interfaces=None, fake_networks=None)
             :py:meth:`enoslib.infra.provider.Provider.init`
         fake_interfaces (list): names of optionnal dummy interfaces to create
         fake_networks (list): names of the roles to associate with the fake
-            interfaces. Like reguilar network interfaces, the mapping will be
+            interfaces. Like regular network interfaces, the mapping will be
             added to the host vars. Internally this will be zipped with the
             fake_interfaces to produce the mapping.
 
@@ -836,7 +840,7 @@ def discover_networks(roles, networks, fake_interfaces=None, fake_networks=None)
     # Finally update the env with this information
     # generate the extra_mapping for the fake interfaces
     extra_mapping = dict(zip(fake_networks, fake_interfaces))
-    _update_hosts(roles, facts, extra_mapping=extra_mapping)
+    return _update_hosts(roles, facts, extra_mapping=extra_mapping)
 
 
 def generate_inventory(
@@ -874,14 +878,14 @@ def generate_inventory(
         f.write(_generate_inventory(roles))
 
     if check_networks:
-        discover_networks(
+        _roles = discover_networks(
             roles,
             networks,
             fake_interfaces=fake_interfaces,
             fake_networks=fake_networks,
         )
         with open(inventory_path, "w") as f:
-            f.write(_generate_inventory(roles))
+            f.write(_generate_inventory(_roles))
 
 
 def wait_ssh(roles: Roles, retries: int = 100, interval: int = 30) -> None:
@@ -924,8 +928,9 @@ def _update_hosts(roles, facts, extra_mapping=None):
     # NOTE(msimonin): due to the deserialization
     # between phases, hosts in rsc are unique instance so we need to update
     # every single host in every single role
+    _roles = copy.deepcopy(roles)
     extra_mapping = extra_mapping or {}
-    for hosts in roles.values():
+    for hosts in _roles.values():
         for host in hosts:
             networks = facts[host.alias]["networks"]
             enos_devices = []
@@ -958,6 +963,7 @@ def _update_hosts(roles, facts, extra_mapping=None):
 
             # Add the list of devices in used by Enos
             host.extra.update({"enos_devices": enos_devices})
+    return _roles
 
 
 def _map_device_on_host_networks(provider_nets, devices):

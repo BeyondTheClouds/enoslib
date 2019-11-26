@@ -36,11 +36,10 @@ tc = {
 @enostask(new=True)
 def up(force=True, env=None, **kwargs):
     "Starts a new experiment"
-    inventory = os.path.join(os.getcwd(), "hosts")
     conf = Configuration.from_dictionnary(provider_conf)
     provider = Enos_vagrant(conf)
     roles, networks = provider.init()
-    discover_networks(roles, networks)
+    roles = discover_networks(roles, networks)
     env["roles"] = roles
     env["networks"] = networks
 

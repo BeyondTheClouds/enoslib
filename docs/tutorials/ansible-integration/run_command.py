@@ -28,7 +28,7 @@ provider_conf = {
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 result = run_command("date",
                      pattern_hosts="control*",
                      roles=roles)

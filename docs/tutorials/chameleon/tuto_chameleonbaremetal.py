@@ -33,7 +33,7 @@ provider = Chameleonbaremetal(conf)
 
 roles, networks = provider.init()
 
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 # Experimentation logic starts here
 with play_on(roles=roles) as p:

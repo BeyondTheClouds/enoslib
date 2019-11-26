@@ -135,8 +135,8 @@ class TestUpdateHosts(EnosTest):
             },
         }
 
-        _update_hosts(rsc, facts)
-        for host in gen_rsc(rsc):
+        roles = _update_hosts(rsc, facts)
+        for host in gen_rsc(roles):
             self.assertEqual("eth0", host.extra["network1"])
             self.assertEqual("eth0", host.extra["network1_dev"])
             self.assertEqual("eth1", host.extra["network2"])
@@ -165,8 +165,8 @@ class TestUpdateHosts(EnosTest):
             },
         }
 
-        _update_hosts(rsc, facts)
-        for host in gen_rsc(rsc):
+        roles = _update_hosts(rsc, facts)
+        for host in gen_rsc(roles):
             if host.alias == "foo":
                 self.assertEqual("eth0", host.extra["network1"])
                 self.assertEqual("eth0", host.extra["network1_dev"])
@@ -195,8 +195,8 @@ class TestUpdateHosts(EnosTest):
             }
         }
 
-        _update_hosts(rsc, facts)
-        for host in gen_rsc(rsc):
+        roles = _update_hosts(rsc, facts)
+        for host in gen_rsc(roles):
             self.assertEqual("eth0", host.extra["network1"])
             self.assertEqual("eth0", host.extra["network1_dev"])
             self.assertEqual("1.2.3.1", host.extra["network1_ip"])

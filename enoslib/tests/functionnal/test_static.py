@@ -48,7 +48,7 @@ resources["networks"] = networks
 
 provider = Static(StaticConf.from_dictionnary({"resources": resources}))
 roles, networks = provider.init()
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 netem = Netem(tc, roles=roles)
 netem.deploy()
 netem.validate()

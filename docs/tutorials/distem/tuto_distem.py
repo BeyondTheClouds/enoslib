@@ -42,7 +42,7 @@ print(networks)
 gateway = networks[0]['gateway']
 print("Gateway : %s" % gateway)
 
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 with play_on(roles=roles, gather_facts=False) as p:
     # We first need internet connectivity

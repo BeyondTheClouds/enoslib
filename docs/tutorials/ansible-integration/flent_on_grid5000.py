@@ -36,7 +36,7 @@ conf = (
 
 provider = G5k(conf)
 roles, networks = provider.init()
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 with play_on(roles=roles) as p:
     # flent requires python3, so we default python to python3
     p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")

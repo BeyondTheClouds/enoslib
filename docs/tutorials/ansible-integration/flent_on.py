@@ -37,7 +37,7 @@ roles, networks = provider.init()
 
 # Add some specific knowledge to the returned roles (e.g on the server the ip
 # for mynetwork is 192.168.42.254)
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 # Experimentation logic starts here
 with play_on(roles=roles) as p:

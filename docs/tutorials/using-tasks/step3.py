@@ -44,11 +44,10 @@ def cli():
 @enostask(new=True)
 def up(force, env=None, **kwargs):
     """Starts a new experiment using vagrant"""
-    inventory = os.path.join(os.getcwd(), "hosts")
     conf = Configuration.from_dictionnary(provider_conf)
     provider = Enos_vagrant(conf)
     roles, networks = provider.init(force_deploy=force)
-    discover_networks(roles, networks)
+    roles = discover_networks(roles, networks)
     env["roles"] = roles
     env["networks"] = networks
 
