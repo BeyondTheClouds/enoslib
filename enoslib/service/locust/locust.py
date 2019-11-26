@@ -95,7 +95,7 @@ class Locust(Service):
             )
 
         with play_on(pattern_hosts="agent", roles=self.roles) as p:
-            for i in [density]:
+            for i in range(density):
                 p.shell(
                     (
                         "nohup locust "
