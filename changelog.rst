@@ -1,6 +1,18 @@
 Changelog
 ===========
 
+4.8.13
+------
+
+* Doc: Add a ref
+* Service/locust: Fix density option
+* Service/Netem: support for bridged networks
+
+4.8.12
+------
+
+* Doc: Simplify network emulation example
+
 4.8.11
 ------
 
