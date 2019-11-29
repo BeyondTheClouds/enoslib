@@ -15,6 +15,10 @@ Publications / White papers:
   keywords: {Containers;Storms;Measurement;Elasticity;Data models;Proposals;Computational modeling;stream processing;multi-level elasticity;Apache Storm},
   URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8675450&isnumber=4359390
 
+- Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
+  Split and migrate: Resource-driven placement and discovery of microservices at the edge.
+  23rd International Conference on Principles of Distributed Systems, OPODIS '19, December 17-19, 2019, Neuchâtel, Switzerland.
+
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
   CloudCom 2018 - 10th IEEE International Conference on Cloud Computing
