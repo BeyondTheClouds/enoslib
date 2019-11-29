@@ -1,12 +1,13 @@
 Changelog
 ===========
 
-4.8.13
+4.9.0
 ------
 
 * Doc: Add a ref
 * Service/locust: Fix density option
 * Service/Netem: support for bridged networks
+* Api/BREAKING: `discover_networks` doesn't have side effects anymore on the hosts.
 
 4.8.12
 ------
