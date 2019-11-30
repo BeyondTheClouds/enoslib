@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+4.9.1
+-----
+
+* Fix: include the missing BREAKING change of 4.9.0
+
 4.9.0
 ------
 
