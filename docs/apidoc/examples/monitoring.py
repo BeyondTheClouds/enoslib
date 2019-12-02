@@ -37,7 +37,6 @@ roles, networks = provider.init()
 discover_networks(roles, networks)
 
 m = Monitoring(collector=roles["control"], agent=roles["compute"], ui=roles["control"])
-import ipdb; ipdb.set_trace()
 m.deploy()
 
 ui_address = roles["control"][0].extra["my_network_ip"]
