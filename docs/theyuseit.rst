@@ -9,24 +9,33 @@ Publications / White papers:
   EnosStack: A LAMP-like stack for the experimenter. In the proceedings of the IEEE
   International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
 
+
 - V. Marangozova-Martin, A. El Rheddane and N. De Palma, "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
   URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8675450&isnumber=4359390
 
+
 - Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
-  Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the 
+  Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the
   23rd International Conference on Principles of Distributed Systems (OPODIS), Neuchâtel, Switzerland, December 2019.
+
+- Saingre, Dimitri and Ledoux, Thomas and Menaud, Jean-Marc.
+  BCTMark - Vers un outil pour l’évaluation des performances et du coût énergétique des technologies blockchain.
+  In proceedings of COMPAS 2019 - Conférence d’informatique en Parallélisme, Architecture et Système, Jun 2019, Anglet, France.
 
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
   In proceedings of the 10th IEEE International Conference on Cloud Computing
-  Technology and Science (CloudCom), Nicosia, Cyprus, December 2018, 
+  Technology and Science (CloudCom), Nicosia, Cyprus, December 2018,
+
 
 - Santoro, Daniele et al. Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
   In the proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
 
+
 - Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lebre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
   Evaluations of OpenStack. In the proceedings of the 17th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid), Madrid, Spain, May 2017.
+
 
 Projects
 ========
