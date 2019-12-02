@@ -25,6 +25,9 @@ Publications / White papers:
   Technology and Science, Dec 2018, Nicosia, Cyprus. IEEE, pp.40-47,
   〈10.1109/CloudCom2018.2018.00023〉. 〈hal-01891567〉
 
+- Santoro, Daniele et al. “Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.”
+  2017 IEEE International Conference on Cloud Computing Technology and Science (CloudCom) (2017): n. pag. Crossref. Web.
+
 - Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lèbre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
   Evaluations of OpenStack. CCGrid 2017: 544-548
