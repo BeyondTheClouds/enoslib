@@ -1,6 +1,16 @@
 Changelog
 ===========
 
+4.9.3
+-----
+
+* Doc: some fixes
+
+4.9.2
+-----
+
+* Doc: add some refs in they-use-it.rst
+
 4.9.1
 -----
 
