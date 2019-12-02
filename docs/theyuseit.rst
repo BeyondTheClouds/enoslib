@@ -5,33 +5,28 @@ They use it
 Publications / White papers:
 ============================
 
-- **Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
-  EnosStack: A LAMP-like stack for the experimenter. INFOCOM WKSHPS 2018 - IEEE
-  International Conference on Computer Communications, Apr 2018, Honolulu,
-  United States. IEEE, pp.336-341**
+- Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
+  EnosStack: A LAMP-like stack for the experimenter. In the proceedings of the IEEE
+  International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
 
 - V. Marangozova-Martin, A. El Rheddane and N. De Palma, "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
-  doi: 10.1109/TPDS.2019.2907950
-  keywords: {Containers;Storms;Measurement;Elasticity;Data models;Proposals;Computational modeling;stream processing;multi-level elasticity;Apache Storm},
   URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8675450&isnumber=4359390
 
 - Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
-  Split and migrate: Resource-driven placement and discovery of microservices at the edge.
-  23rd International Conference on Principles of Distributed Systems, OPODIS '19, December 17-19, 2019, Neuchâtel, Switzerland.
+  Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the 
+  23rd International Conference on Principles of Distributed Systems (OPODIS), Neuchâtel, Switzerland, December 2019.
 
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
-  CloudCom 2018 - 10th IEEE International Conference on Cloud Computing
-  Technology and Science, Dec 2018, Nicosia, Cyprus. IEEE, pp.40-47,
-  〈10.1109/CloudCom2018.2018.00023〉. 〈hal-01891567〉
+  In proceedings of the 10th IEEE International Conference on Cloud Computing
+  Technology and Science (CloudCom), Nicosia, Cyprus, December 2018, 
 
-- Santoro, Daniele et al. “Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.”
-  2017 IEEE International Conference on Cloud Computing Technology and Science (CloudCom) (2017)
+- Santoro, Daniele et al. Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
+  In the proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
 
-- Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lèbre,
+- Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lebre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
-  Evaluations of OpenStack. CCGrid 2017: 544-548
-
+  Evaluations of OpenStack. In the proceedings of the 17th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid), Madrid, Spain, May 2017.
 
 Projects
 ========
