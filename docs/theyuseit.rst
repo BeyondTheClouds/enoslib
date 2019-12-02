@@ -26,7 +26,7 @@ Publications / White papers:
   〈10.1109/CloudCom2018.2018.00023〉. 〈hal-01891567〉
 
 - Santoro, Daniele et al. “Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.”
-  2017 IEEE International Conference on Cloud Computing Technology and Science (CloudCom) (2017): n. pag. Crossref. Web.
+  2017 IEEE International Conference on Cloud Computing Technology and Science (CloudCom) (2017)
 
 - Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lèbre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
@@ -40,6 +40,9 @@ Projects
 
   Link: https://github.com/BeyondTheClouds/enos
 
+- **OpenStack tutorial**:
+
+    Link: https://doc.ilabt.imec.be/ilabt/virtualwall/tutorials/openstack.html
 
 - **Juice**: Deploy and benchmark keystone over various database backends
 
