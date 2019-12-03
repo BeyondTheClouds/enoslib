@@ -4,7 +4,7 @@ Changelog
 4.9.3
 -----
 
-* Doc: some fixes
+* Doc: some fixes / add a ref
 
 4.9.2
 -----
