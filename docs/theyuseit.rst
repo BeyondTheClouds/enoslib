@@ -81,6 +81,6 @@ Projects
 Miscellaneous
 =============
 
-- OpenStack on the Virtual Wall - Tutorial from the Interuniversitair Micro-Electronica 
+- OpenStack on the Virtual Wall - Tutorial from the Interuniversitair Micro-Electronica Centrum
 
   Link: https://doc.ilabt.imec.be/ilabt/virtualwall/tutorials/openstack.html
