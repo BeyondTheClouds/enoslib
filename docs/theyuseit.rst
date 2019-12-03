@@ -23,16 +23,16 @@ Publications
   Technology and Science (CloudCom), Nicosia, Cyprus, December 2018,
 
 - Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
-  EnosStack: A LAMP-like stack for the experimenter. In the proceedings of the IEEE
+  EnosStack: A LAMP-like stack for the experimenter. In proceedings of the IEEE
   International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
 
 - Daniele Santoro, Daniel Zozin, Daniele Pizzolli, Francesco de Pellegrini, Silvio Cretti. 
   Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
-  In the proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
+  In proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
 
 - Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lebre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
-  Evaluations of OpenStack. In the proceedings of the 17th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid), Madrid, Spain, May 2017.
+  Evaluations of OpenStack. In proceedings of the 17th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (CCGrid), Madrid, Spain, May 2017.
 
 
 Projects
