@@ -40,42 +40,42 @@ Projects
 
 - **EnOS**: Deploy and benchmark OpenStack
 
-    Link: https://github.com/BeyondTheClouds/enos
+  Link: https://github.com/BeyondTheClouds/enos
 
 
 - **OpenStack tutorial**:
 
-    Link: https://doc.ilabt.imec.be/ilabt/virtualwall/tutorials/openstack.html
+  Link: https://doc.ilabt.imec.be/ilabt/virtualwall/tutorials/openstack.html
 
 
 - **Juice**: Deploy and benchmark keystone over various database backends
 
-    Link: https://github.com/Marie-Donnie/juice
+  Link: https://github.com/Marie-Donnie/juice
 
 
 - **vm-overcommit-xp**: Deploy virtual-machines and measure their respective time shares.
 
-    Link: https://gitlab.inria.fr/qledilav/vm-overcommit-exp
+  Link: https://gitlab.inria.fr/qledilav/vm-overcommit-exp
 
 
 - **enos-kubernetes**: Deploy Kubernetes
 
-    Link: https://gitlab.inria.fr/msimonin/enos-kubernetes
+  Link: https://gitlab.inria.fr/msimonin/enos-kubernetes
 
 
 - **ombt-orchestrator**: Benchmark communication bus in various network topologies
 
-    Link: https://github.com/msimonin/ombt-orchestrator
+  Link: https://github.com/msimonin/ombt-orchestrator
 
 
 - **kenan**: Virtual machine placement over baremetal infrastructures
 
-    Link: https://gitlab.inria.fr/discovery/kenan
+  Link: https://gitlab.inria.fr/discovery/kenan
 
 
 - **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
 
-    Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
+  Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
     
 
 Miscellaneous
