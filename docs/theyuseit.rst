@@ -2,35 +2,33 @@
 They use it
 ***********
 
-Publications / White papers:
-============================
+Publications
+============
 
-- Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
-  EnosStack: A LAMP-like stack for the experimenter. In the proceedings of the IEEE
-  International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
-
-
-- V. Marangozova-Martin, A. El Rheddane and N. De Palma, "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
-  URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8675450&isnumber=4359390
-
-
+- Vania Marangozova-Martin, Noël de Palma, Ahmed El Rheddane. 
+  "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
+  Vol. 30, No. 10, 2019. DOI: 10.1109/TPDS.2019.2907950
+  
 - Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
   Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the
   23rd International Conference on Principles of Distributed Systems (OPODIS), Neuchâtel, Switzerland, December 2019.
 
-- Saingre, Dimitri and Ledoux, Thomas and Menaud, Jean-Marc.
+- Dimitri Saingre, Thomas Ledoux, Jean-Marc Menaud.
   BCTMark - Vers un outil pour l’évaluation des performances et du coût énergétique des technologies blockchain.
-  In proceedings of COMPAS 2019 - Conférence d’informatique en Parallélisme, Architecture et Système, Jun 2019, Anglet, France.
+  In proceedings of the  Conférence d’informatique en Parallélisme, Architecture et Système (COMPAS), Anglet, France, Jun 2019.
 
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
   In proceedings of the 10th IEEE International Conference on Cloud Computing
   Technology and Science (CloudCom), Nicosia, Cyprus, December 2018,
 
+- Ronan-Alexandre Cherrueau, Matthieu Simonin, Alexandre Van Kempen.
+  EnosStack: A LAMP-like stack for the experimenter. In the proceedings of the IEEE
+  International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
 
-- Santoro, Daniele et al. Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
+- Daniele Santoro, Daniel Zozin, Daniele Pizzolli, Francesco de Pellegrini, Silvio Cretti. 
+  Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
   In the proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
-
 
 - Ronan-Alexandre Cherrueau, Dimitri Pertin, Anthony Simonet, Adrien Lebre,
   Matthieu Simonin: Toward a Holistic Framework for Conducting Scientific
@@ -70,7 +68,7 @@ Projects
     Link: https://github.com/msimonin/ombt-orchestrator
 
 
-- **kenan**: Benchmark OpenStack communication bus in various network topologies
+- **kenan**: Virtual machine placement over baremetal infrastructures
 
     Link: https://gitlab.inria.fr/discovery/kenan
 
@@ -78,3 +76,11 @@ Projects
 - **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
 
     Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
+    
+
+Miscellaneous
+=============
+
+- OpenStack on the Virtual Wall - Tutorial from the Interuniversitair Micro-Electronica 
+
+  Link: https://doc.ilabt.imec.be/ilabt/virtualwall/tutorials/openstack.html
