@@ -2,8 +2,8 @@ Changelog
 ===========
 
 
-4.9.5
------
+4.10.0
+------
 
 * Service/dstat: add a new dstat monitoring
 * Doc: some fixes (comply with the discover_networks)
