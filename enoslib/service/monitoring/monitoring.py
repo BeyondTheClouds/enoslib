@@ -4,15 +4,7 @@ import os
 
 from enoslib.api import play_on, __python3__, __default_python3__, __docker__
 from ..service import Service
-
-
-def _to_abs(path):
-    """Make sure the path is absolute."""
-    _path = Path(path)
-    if not _path.is_absolute():
-        # prepend the cwd
-        _path = Path(Path.cwd(), _path)
-    return _path
+from ..utils import _check_path, _to_abs
 
 
 DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
@@ -259,14 +251,6 @@ class Monitoring(Service):
         Args:
             backup_dir (str): path of the backup directory to use.
         """
-
-        def _check_path(backup_dir):
-            """Make sur the backup_dir is created somewhere."""
-            backup_path = _to_abs(backup_dir)
-            # make sure it exists
-            backup_path.mkdir(parents=True, exist_ok=True)
-            return backup_path
-
         if backup_dir is None:
             backup_dir = Path.cwd()
 
