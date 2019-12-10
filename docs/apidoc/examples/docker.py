@@ -24,7 +24,7 @@ provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 docker = Docker(registry=roles["control"], agent=roles["compute"])
 docker.deploy()

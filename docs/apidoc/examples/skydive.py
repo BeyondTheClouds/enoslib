@@ -24,7 +24,7 @@ provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 s = Skydive(analyzers=roles["control"],
             agents=roles["compute"] + roles["control"])
