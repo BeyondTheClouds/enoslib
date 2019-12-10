@@ -1,16 +1,12 @@
-from enoslib.api import generate_inventory, discover_networks
+from enoslib.api import discover_networks
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import (Configuration,
                                                   NetworkConfiguration)
 from enoslib.service import Monitoring
 
 import logging
-import os
 
 logging.basicConfig(level=logging.INFO)
-
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
 
 # claim the resources
 conf = Configuration.from_settings(job_type="allow_classic_ssh",
@@ -33,8 +29,7 @@ conf.add_network_conf(network)\
 provider = G5k(conf)
 roles, networks = provider.init()
 
-# generate an inventory compatible with ansible
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 m = Monitoring(collector=roles["control"], agent=roles["compute"], ui=roles["control"])
 m.deploy()

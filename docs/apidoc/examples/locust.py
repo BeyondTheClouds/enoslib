@@ -23,7 +23,7 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 
-discover_networks(roles, networks)
+roles = discover_networks(roles, networks)
 
 l = Locust(master=roles["master"],
             agents=roles["agent"],
