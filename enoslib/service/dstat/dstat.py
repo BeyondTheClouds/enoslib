@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import List
+from typing import List, Optional
 
 from enoslib.api import play_on, __python3__, __default_python3__
 from enoslib.types import Host
@@ -77,7 +77,7 @@ class Dstat(Service):
             kill_cmd.append('cut -f 2 -d" "`')
             p.shell("|".join(kill_cmd) + "|| true")
 
-    def backup(self, backup_dir: str = None):
+    def backup(self, backup_dir: Optional[str] = None):
         """Backup the dstat monitoring stack.
 
         This fetches all the remote dstat csv files under the backup_dir.
@@ -86,9 +86,11 @@ class Dstat(Service):
             backup_dir (str): path of the backup directory to use.
         """
         if backup_dir is None:
-            backup_dir = Path.cwd()
+            _backup_dir = Path.cwd()
+        else:
+            _backup_dir = Path(backup_dir)
 
-        _backup_dir = _check_path(backup_dir)
+        _backup_dir = _check_path(_backup_dir)
 
         with play_on(roles=self._roles) as p:
             backup_path = os.path.join(self.remote_working_dir, OUTPUT_FILE)
