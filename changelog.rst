@@ -5,6 +5,7 @@ Changelog
 ------
 
 * Service/dstat: doc
+* service/monitoring: typecheck
 
 
 4.10.0
