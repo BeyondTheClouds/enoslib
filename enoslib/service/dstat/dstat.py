@@ -26,10 +26,13 @@ class Dstat(Service):
         quick way to deploy a simple monitoring stack based on dstat on your nodes.
         It's opinionated out of the box but allow for some convenient customizations.
 
+        dstat metrics are dumped into a csv file by default (-o option) and
+        retrieved when backuping.
+
 
         Args:
             nodes: the nodes to install dstat on
-            options: options to pass to dstat
+            options: options to pass to dstat.
             priors : priors to apply
 
 
@@ -62,7 +65,8 @@ class Dstat(Service):
     def destroy(self):
         """Destroy the dtsat monitoring stack.
 
-        This destroys all the container and associated volumes.
+        This kills the dstat processes on the nodes.
+        Metric files survive to destroy.
         """
         """Stop locust."""
         with play_on(roles=self._roles) as p:
@@ -73,8 +77,10 @@ class Dstat(Service):
             kill_cmd.append('cut -f 2 -d" "`')
             p.shell("|".join(kill_cmd) + "|| true")
 
-    def backup(self, backup_dir=None):
+    def backup(self, backup_dir: str = None):
         """Backup the dstat monitoring stack.
+
+        This fetches all the remote dstat csv files under the backup_dir.
 
         Args:
             backup_dir (str): path of the backup directory to use.

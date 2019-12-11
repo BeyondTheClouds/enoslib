@@ -23,6 +23,18 @@ Docker Service Class
     :undoc-members:
     :show-inheritance:
 
+Dstat (monitoring)
+==================
+
+Dstat Service Class
+--------------------
+
+
+.. automodule:: enoslib.service.dstat.dstat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Locust (Load generation)
 ========================
 
