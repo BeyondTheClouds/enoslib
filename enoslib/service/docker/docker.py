@@ -6,7 +6,7 @@ from enoslib.api import run_ansible
 from ..service import Service
 
 
-REGISTRY_OPTS = {"type": "internal"}
+REGISTRY_OPTS = {"type": "none"}
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
@@ -44,7 +44,7 @@ class Docker(Service):
         agent=None,
         registry=None,
         registry_opts=None,
-        bind_volumes="/tmp/docker/volumes"
+        bind_var_docker=None
     ):
 
         """Deploy docker agents on the nodes and registry cache(optionnal)
@@ -81,8 +81,8 @@ class Docker(Service):
                 registry will be installed.
             registry_opts (dict): registry options. The dictionnary must comply
                 with the schema.
-            bind_volumes (str): If set the default volume directory
-                (/var/lib/docker/volumes) will be bind mounted in this
+            bind_var_docker (str): If set the default docker state directory
+                (/var/lib/docker/) will be bind mounted in this
                 directory. The rationale is that on Grid'5000, there isn't much
                 disk space on /var/lib by default. Set it to False to disable
                 the fallback to the default location.
@@ -105,15 +105,16 @@ class Docker(Service):
             if self.registry_opts.get("port") is None:
                 self.registry_opts["port"] = 5000
 
-        self.bind_volumes = bind_volumes
+        self.bind_var_docker = bind_var_docker
         self._roles = {"agent": self.agent, "registry": self.registry}
 
     def deploy(self):
         """Deploy docker and optionnaly a docker registry cache."""
         _playbook = os.path.join(SERVICE_PATH, "docker.yml")
         extra_vars = {"registry": self.registry_opts, "enos_action": "deploy"}
-        if self.bind_volumes:
-            extra_vars.update(bind_volumes=self.bind_volumes)
+        if self.bind_var_docker:
+            # In the Ansible playbook, undefined means no binding
+            extra_vars.update(bind_var_docker=self.bind_var_docker)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):

@@ -6,30 +6,35 @@
     state: present
     update_cache: yes
 
+- name: fix "No module named ssl_match_hostname" issue
+  apt:
+    name: python-backports.ssl-match-hostname
+    state: present
+
 - name: Installing docker python bindings
   pip:
     name: docker
     state: present
 
-- name: Creating docker volume directory in /tmp
+- name: Creating docker state directory
   file:
     path: "{{ item }}"
     state: directory
   loop:
-    - "{{ bind_volumes }}"
-    - /var/lib/docker/volumes
+    - "{{ bind_var_docker }}"
+    - /var/lib/docker
   when:
-    - bind_volumes is defined
+    - bind_var_docker is defined
 
 - name: Bind mount the docker volume directory
   mount:
-    path: /var/lib/docker/volumes
-    src: /tmp/docker/volumes
+    path: /var/lib/docker
+    src: "{{ bind_var_docker }}"
     opts: bind
     state: mounted
     fstype: none
   when:
-    - bind_volumes is defined
+    - bind_var_docker is defined
 
 - name: Installing docker
   shell: which docker || (curl -sSL https://get.docker.com/ | sh)
