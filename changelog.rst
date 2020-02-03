@@ -1,6 +1,15 @@
 Changelog
 ===========
 
+4.11.0
+------
+
+* Service/docker:
+    - Allow to mount the whole docker dir elsewhere
+      (e.g in /tmp/docker instead of /var/lib/docker)
+    - Default to registry:None, meaning that this will
+      deploy independent docker daemons
+
 4.10.1
 ------
 
