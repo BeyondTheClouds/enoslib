@@ -78,6 +78,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
         queue=distemong5k_conf.queue,
         job_type="deploy",
         force_deploy=distemong5k_conf.force_deploy,
+        env_name="debian9-x64-nfs"
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site

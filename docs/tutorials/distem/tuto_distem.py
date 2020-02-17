@@ -6,7 +6,9 @@ import logging
 import os
 
 
-FORCE = False
+FORCE = True
+CLUSTER = "parapluie"
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -14,19 +16,19 @@ logging.basicConfig(level=logging.DEBUG)
 conf = (
     Configuration
     .from_settings(
-        job_name="wip-distem",
+        job_name="distem",
         force_deploy=FORCE,
         image="file:///home/msimonin/public/distem-stretch.tgz"
     )
     .add_machine(
         roles=["server"],
-        cluster="paravance",
+        cluster=CLUSTER,
         number=1,
         flavour="large"
     )
     .add_machine(
         roles=["client"],
-        cluster="paravance",
+        cluster=CLUSTER,
         number=1,
         flavour="large"
     )
