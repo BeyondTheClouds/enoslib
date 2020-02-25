@@ -98,7 +98,7 @@ test_static_run_command$debian10$: &debian10
   tags: [qlf-ci.inria.fr]
   script:
   - env
-  - apt update 
+  - apt update
   - apt install -y python3 python3-pip iproute2
   - ip a
   - update-alternatives --install /usr/bin/python python /usr/bin/python3 1
@@ -121,10 +121,13 @@ test_monitoring_service$debian10$:
 test_static_tasks$debian10$:
   <<: *debian10
 
+test_dask$debian10$:
+  <<: *debian10
+
 
 ## debian latest
 #-----------------------------------------------
-test_static_run_command$debian$: &debian 
+test_static_run_command$debian$: &debian
   <<: *debian10
   image: debian:latest
 
@@ -143,10 +146,12 @@ test_monitoring_service$debian$:
 test_static_tasks$debian$:
   <<: *debian
 
+test_dask$debian$:
+  <<: *debian
 
 ## ubuntu 1804
 #-----------------------------------------------
-test_static_run_command$ubuntu1804$: &ubuntu1804 
+test_static_run_command$ubuntu1804$: &ubuntu1804
   <<: *debian10
   image: ubuntu:18.04
 
@@ -165,10 +170,12 @@ test_monitoring_service$ubuntu1804$:
 test_static_tasks$ubuntu1804$:
   <<: *ubuntu1804
 
+test_dask$ubuntu1804$:
+  <<: *ubuntu1804
 
 ## ubuntu latest
 #-----------------------------------------------
-test_static_run_command$ubuntu$: &ubuntu 
+test_static_run_command$ubuntu$: &ubuntu
   <<: *debian10
   image: ubuntu:latest
 
@@ -185,6 +192,9 @@ test_monitoring_service$ubuntu$:
   <<: *ubuntu
 
 test_static_tasks$ubuntu$:
+  <<: *ubuntu
+
+test_dask$ubuntu$:
   <<: *ubuntu
 
 ###############################################################################
