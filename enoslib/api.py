@@ -10,6 +10,9 @@ import json
 import yaml
 
 
+# These two imports are 2.9
+from ansible.module_utils.common.collections import ImmutableDict
+from ansible import context
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 
@@ -99,39 +102,17 @@ def _load_defaults(
         variable_manager.safe_basedir = True
 
     if extra_vars:
-        variable_manager.extra_vars = extra_vars
+        # 2.9: we hack this, normally extra_vars are loaded from the
+        # context.CLIARGS.extra_vars that can be loaded from the cli, or a file,..
+        # self._extra_vars = load_extra_vars(loader=self._loader)
+        # in variable manager constructor
+        variable_manager._extra_vars = extra_vars
 
     # NOTE(msimonin): The ansible api is "low level" in the
     # sense that we are redefining here all the default values
     # that are usually enforce by ansible called from the cli
-    Options = namedtuple(
-        "Options",
-        [
-            "listtags",
-            "listtasks",
-            "listhosts",
-            "syntax",
-            "connection",
-            "module_path",
-            "forks",
-            "private_key_file",
-            "ssh_common_args",
-            "ssh_extra_args",
-            "sftp_extra_args",
-            "scp_extra_args",
-            "become",
-            "become_method",
-            "become_user",
-            "remote_user",
-            "verbosity",
-            "check",
-            "tags",
-            "diff",
-            "basedir",
-        ],
-    )
-
-    options = Options(
+    context.CLIARGS = ImmutableDict(
+        start_at_task=None,
         listtags=False,
         listtasks=False,
         listhosts=False,
@@ -155,7 +136,7 @@ def _load_defaults(
         basedir=basedir,
     )
 
-    return inventory, variable_manager, loader, options
+    return inventory, variable_manager, loader
 
 
 class _MyCallback(CallbackModule):
@@ -226,7 +207,7 @@ def run_play(
     # NOTE(msimonin): inventory could be infered from a host list (maybe)
     logger.debug(play_source)
     results = []
-    inventory, variable_manager, loader, options = _load_defaults(
+    inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
     )
     callback = _MyCallback(results)
@@ -235,7 +216,6 @@ def run_play(
         inventory=inventory,
         variable_manager=variable_manager,
         loader=loader,
-        options=options,
         passwords=passwords,
         stdout_callback=callback,
     )
@@ -412,23 +392,28 @@ class play_on(object):
 # can be used as prior
 __python3__ = play_on(roles={})
 __python3__.raw(
-    """
-(python --version | grep --regexp " 3.*") || (
-    apt update && apt install -y python3 python3-pip)
-"""
+    (
+        "(python --version | grep --regexp ' 3.*')"
+        "||"
+        "(apt update && apt install -y python3 python3-pip)"
+    ),
+    display_name="Install python3"
 )
 __default_python3__ = play_on(roles={})
 __default_python3__.raw(
-    "update-alternatives --install /usr/bin/python python /usr/bin/python3 1"
+    "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
+    display_name="Making python3 the default python interpreter"
 )
 
 
 __python2__ = play_on(roles={})
 __python2__.raw(
-    """
-(python --version | grep --regexp " 2.*") || (
-    apt update && apt install -y python python-pip)
-"""
+    (
+        "(python --version | grep --regexp ' 2.*')"
+        "||"
+        "(apt update && apt install -y python python-pip)"
+    ),
+    display_name="Install python2"
 )
 __default_python2__ = play_on(roles={})
 __default_python2__.raw(
@@ -718,7 +703,7 @@ def run_ansible(
             unreachable (through ssh) and ``on_error_continue==False``
     """
 
-    inventory, variable_manager, loader, options = _load_defaults(
+    inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path,
         roles=roles,
         extra_vars=extra_vars,
@@ -733,7 +718,6 @@ def run_ansible(
             inventory=inventory,
             variable_manager=variable_manager,
             loader=loader,
-            options=options,
             passwords=passwords,
         )
 

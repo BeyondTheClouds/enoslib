@@ -10,11 +10,11 @@ provider_conf = {
     "resources": {
         "machines": [{
             "roles": ["control1"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
         },{
             "roles": ["control2"],
-            "flavor": "tiny",
+            "flavour": "tiny",
             "number": 1,
         }],
         "networks": [{"roles": ["rn1"], "cidr": "172.16.0.1/16"}]

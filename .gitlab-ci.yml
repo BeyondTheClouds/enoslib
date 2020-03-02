@@ -29,6 +29,14 @@ python3.7:
   - tox -e py37
   coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
 
+python3.8:
+  image: python:3.8
+  stage: test
+  tags: [qlf-ci.inria.fr]
+  script:
+  - pip install tox
+  - tox -e py38
+
 pep8:
   image: python:3.7
   stage: test

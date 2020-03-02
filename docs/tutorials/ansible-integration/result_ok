@@ -1,10 +1,10 @@
 {
-  "enos-1": {
-    "stderr": "",
-    "stdout": "Mon Dec 10 03:29:10 PST 2018"
-  },
   "enos-0": {
-    "stderr": "",
-    "stdout": "Mon Dec 10 03:29:10 PST 2018"
+    "stdout": "Fri Feb 28 21:57:51 UTC 2020",
+    "stderr": ""
+  },
+  "enos-1": {
+    "stdout": "Fri Feb 28 21:57:51 UTC 2020",
+    "stderr": ""
   }
 }
