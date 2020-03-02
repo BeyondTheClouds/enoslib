@@ -132,6 +132,9 @@ test_static_tasks$debian10$:
 test_dask$debian10$:
   <<: *debian10
 
+test_discover_networks$debian10$:
+  <<: *debian10
+
 
 ## debian latest
 #-----------------------------------------------
