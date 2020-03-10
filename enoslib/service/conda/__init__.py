@@ -1,4 +1,4 @@
-from .conda import (
+from .conda import (  # noqa
     Conda,
     Dask,
     conda_run_command,
