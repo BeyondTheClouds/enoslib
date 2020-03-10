@@ -4,7 +4,7 @@ import copy
 import logging
 import os
 import tempfile
-from typing import Any, List, Mapping, Optional, Union
+from typing import Any, List, MutableMapping, Mapping, Optional, Union
 import time
 import json
 import yaml
@@ -57,6 +57,7 @@ ANSIBLE_TOP_LEVEL = {
     "asynch": "async",
     "become": "become",
     "become_user": "become_user",
+    "become_method": "become_method",
     "loop": "loop",
     "poll": "poll",
     "ignore_errors": "ignore_errors",
@@ -151,6 +152,8 @@ class _MyCallback(CallbackModule):
         self.display_ok_hosts = True
         self.display_skipped_hosts = True
         self.display_failed_stderr = True
+        # since 2.9
+        self.set_option("show_per_host_start", True)
 
     def _store(self, result, status):
         record = AnsibleExecutionRecord(
@@ -204,8 +207,8 @@ def run_play(
     Returns:
         List of all the results
     """
-    # NOTE(msimonin): inventory could be infered from a host list (maybe)
     logger.debug(play_source)
+    print(extra_vars)
     results = []
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
@@ -261,10 +264,11 @@ class play_on(object):
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
         roles: Optional[Roles] = None,
-        extra_vars: Optional[Mapping[Any, Any]] = None,
+        extra_vars: Optional[MutableMapping[Any, Any]] = None,
         on_error_continue: bool = False,
         gather_facts: Union[str, bool] = True,
-        priors: Optional[List["play_on"]] = None
+        priors: Optional[List["play_on"]] = None,
+        run_as: Optional[str] = None,
     ):
         """Constructor.
 
@@ -281,6 +285,8 @@ class play_on(object):
                 - False   -> Does not gather facts.
                 - pattern -> Gathers facts of `pattern` hosts.
             priors: tasks in each prior will be prepended in the playbook
+            run_as: A shortcut that injects become and become_user to each task.
+                    become* at the task level has the precedence over this parameter
 
 
         Examples:
@@ -314,9 +320,15 @@ class play_on(object):
         self.pattern_hosts = pattern_hosts
         self.inventory_path = inventory_path
         self.roles = roles
-        self.extra_vars = extra_vars
+        self.extra_vars = extra_vars if extra_vars is not None else {}
         self.on_error_continue = on_error_continue
         self.priors = priors if priors is not None else []
+
+        # Handle modification of task level kwargs
+        if run_as is not None:
+            self.kwds = dict(become=True, become_user=run_as)
+        else:
+            self.kwds = {}
 
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context
@@ -370,7 +382,9 @@ class play_on(object):
         def _f(**kwargs):
             display_name = kwargs.pop("display_name", "__calling__ %s" % module_name)
             task = {"name": display_name}
-            top_args, module_args = _split_args(**kwargs)
+            _kwds = copy.copy(self.kwds)
+            _kwds.update(kwargs)
+            top_args, module_args = _split_args(**_kwds)
             task.update(top_args)
             task.update({module_name: module_args})
             self._tasks.append(task)
@@ -378,7 +392,9 @@ class play_on(object):
         def _shell_like(command, **kwargs):
             display_name = kwargs.pop("display_name", command)
             task = {"name": display_name, module_name: command}
-            top_args, module_args = _split_args(**kwargs)
+            _kwds = copy.copy(self.kwds)
+            _kwds.update(kwargs)
+            top_args, module_args = _split_args(**_kwds)
             task.update(top_args)
             if module_args:
                 task.update(args=module_args)
@@ -454,14 +470,15 @@ def ensure_python2(make_default=True, **kwargs):
 
 
 def run_command(
-    command,
+    command: str,
     *,
-    pattern_hosts="all",
-    inventory_path=None,
-    roles=None,
-    extra_vars=None,
-    on_error_continue=False,
-    **kwargs
+    pattern_hosts: str = "all",
+    inventory_path: Optional[str] = None,
+    roles: Optional[Roles] = None,
+    extra_vars: Optional[Mapping] = None,
+    on_error_continue: bool = False,
+    run_as: Optional[str] = None,
+    **kwargs: Any
 ):
     """Run a shell command on some remote hosts.
 
@@ -474,6 +491,10 @@ def run_command(
         extra_vars (dict): extra_vars to use
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
+        run_as(str): run the command as this user.
+            This is equivalent to passing become=yes and become_user=user but
+            become_method can be passed to modify the priviledge escalation
+            method. (default to sudo).
         kwargs: keywords argument to pass to the shell module or as top level
             args.
 
@@ -551,6 +572,10 @@ def run_command(
             ]
         )
         return s
+
+    if run_as is not None:
+        # run_as is a shortcut
+        kwargs.update(become=True, become_user=run_as)
 
     task = {"name": COMMAND_NAME, "shell": command}
 

@@ -1,15 +1,25 @@
-from typing import List, Optional
+import copy
+from textwrap import dedent as _d
+from typing import List, Optional, Any
+import os
 
-from enoslib.api import play_on
+from enoslib.api import play_on, run_command
 from ..service import Service
 from enoslib.types import Host
+
 
 import yaml
 
 INSTALLER_URL = "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+WRAPPER_PREFIX = "/opt/enoslib_conda"
+CONDA_PREFIX = "/opt/conda"
 
 
-def _get_env_name(env_file):
+def conda_wrapper(env_name: str):
+    return f"{WRAPPER_PREFIX}/bin/{env_name}"
+
+
+def _get_env_name(env_file: str):
     env_name = ""
     with open(env_file, "r") as f:
         env = yaml.load(f)
@@ -17,7 +27,7 @@ def _get_env_name(env_file):
     return env_name
 
 
-def shell_in_conda(p: play_on, cmd: str, **kwargs):
+def shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
     """Make sure conda is initialized before launching the shell command.
 
     Implementation-wise this will source /opt/conda/etc/profile.d/conda.sh
@@ -25,11 +35,66 @@ def shell_in_conda(p: play_on, cmd: str, **kwargs):
     """
     p.shell(
         (
-            "source /opt/conda/etc/profile.d/conda.sh;"
+            f"which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh;"
             f"{cmd}"
         ),
         **kwargs
     )
+
+
+def create_wrapper_script(p: play_on, env_name: str):
+    """Create a wrapper script for Ansible.
+
+    This can be used as an python interpreter and
+    let the execution be contained, somehow, in a conda env.
+    """
+    p.file(state="directory", dest=os.path.dirname(conda_wrapper(env_name)))
+    p.copy(dest=conda_wrapper(env_name),
+           content=_d(f"""#!/bin/bash -l
+            set -ex
+            which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh
+            conda activate {env_name}
+            python3 $@
+            """),
+            mode="0755"
+    )
+
+
+def _inject_wrapper_script(env_name, **kwargs):
+    kwds = copy.deepcopy(kwargs)
+    kwds.pop("run_as", None)
+    kwds.pop("become", None)
+    with play_on(**kwds) as p:
+        create_wrapper_script(p, env_name)
+
+
+def conda_run_command(
+    command: str,
+    env_name: str,
+    **kwargs: Any
+):
+    """Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
+
+    Args:
+        command: The command to run
+        env_name: An existing env_name in which the command will be run
+    """
+    # should run as root
+    _inject_wrapper_script(env_name, **kwargs)
+    extra_vars = kwargs.pop("extra_vars", {})
+    extra_vars.update(ansible_python_interpreter=conda_wrapper(env_name))
+    # we are now ready to run this
+    return run_command(command,
+                       extra_vars=extra_vars,
+                       **kwargs)
+
+
+class conda_play_on(play_on):
+    def __init__(self, env_name: str, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.conda_env = env_name
+        self.extra_vars.update(ansible_python_interpreter=conda_wrapper(env_name))
+        _inject_wrapper_script(env_name, **kwargs)
 
 
 class Conda(Service):
@@ -46,6 +111,13 @@ class Conda(Service):
 
         Args:
             nodes: The list of the nodes to install conda on.
+
+        Examples:
+
+            .. literalinclude:: examples/conda.py
+                :language: python
+                :linenos:
+
         """
         self.nodes = nodes
         self._roles = {"nodes": self.nodes}
@@ -68,33 +140,27 @@ class Conda(Service):
             p.apt(name="wget", state="present")
             p.shell(
                 (
-                    "ls /opt/conda/bin/conda || "
+                    f"which conda || ls {CONDA_PREFIX}/bin/conda || "
                     f"(wget --quiet {INSTALLER_URL} -O ~/miniconda.sh && "
-                    "/bin/bash ~/miniconda.sh -b -p /opt/conda && "
+                    f"/bin/bash ~/miniconda.sh -b -p {CONDA_PREFIX} && "
                     "rm ~/miniconda.sh)"
                 )
             )
-            # Make sure bash session loads the conda environment
-            # Note that on the CI, this isn't sufficient since we're using
-            # local connection
-            p.lineinfile(
-                path="/root/.bashrc",
-                line="source /opt/conda/etc/profile.d/conda.sh",
-                state="present")
 
             # Install the env if any and leave
             # Don't reinstall if it already exists
             if env_file is not None:
                 # look for the env_name
                 _env_name = _get_env_name(env_file)
-                p.copy(src=env_file, dest="requirements.yml")
+                p.copy(src=env_file, dest="environment.yml")
                 shell_in_conda(p,
                     (
                         f"(conda env list | grep '^{_env_name}') || "
-                        "conda env create -f requirements.yml"
+                        "conda env create -f environment.yml"
                     ),
                     executable="/bin/bash"
                 )
+                create_wrapper_script(p, _env_name)
                 return
 
             # Install packages if any
@@ -103,11 +169,13 @@ class Conda(Service):
                     p,
                     f"conda create --yes --name={env_name} {' '.join(packages)}",
                     executable="/bin/bash")
+                create_wrapper_script(p, env_name)
             if env_name is None and len(packages) > 0:
                 shell_in_conda(
                     p,
                     f"conda create --yes {' '.join(packages)}",
                     executable="/bin/bash")
+                create_wrapper_script(p, env_name)
 
     def destroy(self):
         """Not implemented."""
