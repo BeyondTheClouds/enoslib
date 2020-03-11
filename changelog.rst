@@ -5,10 +5,10 @@ Changelog
 -----
 
 * Upgrade Ansible to 2.9 (python 3.8 now supported)
-* Service/conda: new service to control remote conda environments
-  * introduce ``conda_run_command`` (resp.``conda_play_on``) that
-    wraps ``api.run_command`` (resp. ``api.play_on) and launch commands
-    (resp. modules) in the context of an conda environment.
+* Service/conda: new service to control remote conda environments.
+  Introduce `conda_run_command` (resp. `conda_play_on`) that
+  wraps `api.run_command` (resp. `api.play_on`) and launch commands
+  (resp. modules) in the context of an conda environment.
 * Service/dask: deploy a Dask cluster (use the Conda service)
 
 4.11.0
