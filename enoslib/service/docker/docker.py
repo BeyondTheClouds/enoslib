@@ -39,12 +39,7 @@ class Docker(Service):
     }
 
     def __init__(
-        self,
-        *,
-        agent=None,
-        registry=None,
-        registry_opts=None,
-        bind_var_docker=None
+        self, *, agent=None, registry=None, registry_opts=None, bind_var_docker=None
     ):
 
         """Deploy docker agents on the nodes and registry cache(optionnal)

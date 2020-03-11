@@ -39,7 +39,7 @@ from enoslib.types import Roles, Networks
 
 logger = logging.getLogger(__name__)
 
-COMMAND_NAME = u"enoslib_adhoc_command"
+COMMAND_NAME = "enoslib_adhoc_command"
 STATUS_OK = "OK"
 STATUS_FAILED = "FAILED"
 STATUS_UNREACHABLE = "UNREACHABLE"
@@ -187,7 +187,7 @@ def run_play(
     inventory_path=None,
     roles=None,
     extra_vars=None,
-    on_error_continue=False
+    on_error_continue=False,
 ):
     """Run a play.
 
@@ -413,12 +413,12 @@ __python3__.raw(
         "||"
         "(apt update && apt install -y python3 python3-pip)"
     ),
-    display_name="Install python3"
+    display_name="Install python3",
 )
 __default_python3__ = play_on(roles={})
 __default_python3__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
-    display_name="Making python3 the default python interpreter"
+    display_name="Making python3 the default python interpreter",
 )
 
 
@@ -429,7 +429,7 @@ __python2__.raw(
         "||"
         "(apt update && apt install -y python python-pip)"
     ),
-    display_name="Install python2"
+    display_name="Install python2",
 )
 __default_python2__ = play_on(roles={})
 __default_python2__.raw(
@@ -478,7 +478,7 @@ def run_command(
     extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ):
     """Run a shell command on some remote hosts.
 
@@ -604,7 +604,7 @@ def run(command, hosts, extra_vars=None, on_error_continue=False, **kwargs):
         roles={"all": hosts},
         extra_vars=extra_vars,
         on_error_continue=on_error_continue,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -615,7 +615,7 @@ def gather_facts(
     inventory_path=None,
     roles=None,
     extra_vars=None,
-    on_error_continue=False
+    on_error_continue=False,
 ):
     """Gather facts about hosts.
 

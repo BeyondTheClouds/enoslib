@@ -39,8 +39,7 @@ roles, networks = provider.init()
 
 roles = discover_networks(roles, networks)
 
-m = Dask(scheduler=roles["control"][0],
-         worker=roles["control"])
+m = Dask(scheduler=roles["control"][0], worker=roles["control"])
 m.deploy()
 m.backup()
 m.destroy()

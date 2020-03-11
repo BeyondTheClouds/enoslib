@@ -34,11 +34,8 @@ def shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
     prior to the shell commands cmd.
     """
     p.shell(
-        (
-            f"which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh;"
-            f"{cmd}"
-        ),
-        **kwargs
+        (f"which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh;" f"{cmd}"),
+        **kwargs,
     )
 
 
@@ -49,14 +46,17 @@ def create_wrapper_script(p: play_on, env_name: str):
     let the execution be contained, somehow, in a conda env.
     """
     p.file(state="directory", dest=os.path.dirname(conda_wrapper(env_name)))
-    p.copy(dest=conda_wrapper(env_name),
-           content=_d(f"""#!/bin/bash -l
+    p.copy(
+        dest=conda_wrapper(env_name),
+        content=_d(
+            f"""#!/bin/bash -l
             set -ex
             which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh
             conda activate {env_name}
             python3 $@
-            """),
-            mode="0755"
+            """
+        ),
+        mode="0755",
     )
 
 
@@ -68,11 +68,7 @@ def _inject_wrapper_script(env_name, **kwargs):
         create_wrapper_script(p, env_name)
 
 
-def conda_run_command(
-    command: str,
-    env_name: str,
-    **kwargs: Any
-):
+def conda_run_command(command: str, env_name: str, **kwargs: Any):
     """Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
 
     Args:
@@ -84,9 +80,7 @@ def conda_run_command(
     extra_vars = kwargs.pop("extra_vars", {})
     extra_vars.update(ansible_python_interpreter=conda_wrapper(env_name))
     # we are now ready to run this
-    return run_command(command,
-                       extra_vars=extra_vars,
-                       **kwargs)
+    return run_command(command, extra_vars=extra_vars, **kwargs)
 
 
 class conda_play_on(play_on):
@@ -99,9 +93,7 @@ class conda_play_on(play_on):
 
 class Conda(Service):
     def __init__(
-        self,
-        *,
-        nodes: List[Host],
+        self, *, nodes: List[Host],
     ):
 
         """Manage Conda on your nodes.
@@ -122,10 +114,12 @@ class Conda(Service):
         self.nodes = nodes
         self._roles = {"nodes": self.nodes}
 
-    def deploy(self,
-               env_file: Optional[str] = None,
-               env_name: str = "",
-               packages: Optional[List[str]] = None):
+    def deploy(
+        self,
+        env_file: Optional[str] = None,
+        env_name: str = "",
+        packages: Optional[List[str]] = None,
+    ):
         """Deploy a conda environment.
 
         Args:
@@ -153,12 +147,13 @@ class Conda(Service):
                 # look for the env_name
                 _env_name = _get_env_name(env_file)
                 p.copy(src=env_file, dest="environment.yml")
-                shell_in_conda(p,
+                shell_in_conda(
+                    p,
                     (
                         f"(conda env list | grep '^{_env_name}') || "
                         "conda env create -f environment.yml"
                     ),
-                    executable="/bin/bash"
+                    executable="/bin/bash",
                 )
                 create_wrapper_script(p, _env_name)
                 return
@@ -168,13 +163,15 @@ class Conda(Service):
                 shell_in_conda(
                     p,
                     f"conda create --yes --name={env_name} {' '.join(packages)}",
-                    executable="/bin/bash")
+                    executable="/bin/bash",
+                )
                 create_wrapper_script(p, env_name)
             if env_name is None and len(packages) > 0:
                 shell_in_conda(
                     p,
                     f"conda create --yes {' '.join(packages)}",
-                    executable="/bin/bash")
+                    executable="/bin/bash",
+                )
                 create_wrapper_script(p, env_name)
 
     def destroy(self):
@@ -187,10 +184,9 @@ class Conda(Service):
 
 
 class Dask(Service):
-
-    def __init__(self, scheduler: Host,
-                 worker: List[Host],
-                 env_file: Optional[str] = None):
+    def __init__(
+        self, scheduler: Host, worker: List[Host], env_file: Optional[str] = None
+    ):
         """ Initializes a Dask cluster on the nodes.
 
         Args:
@@ -226,34 +222,40 @@ class Dask(Service):
             p.apt(name="tmux", state="present")
 
         with play_on(pattern_hosts="scheduler", roles=self.roles) as p:
-            shell_in_conda(p,
+            shell_in_conda(
+                p,
                 (
                     "(tmux ls | grep dask-scheduler) ||"
                     f"( conda activate {self.env_name} &&"
                     "tmux new-session -s dask-scheduler -d 'exec dask-scheduler' )"
                 ),
                 executable="/bin/bash",
-                display_name="Starting the dask scheduler"
+                display_name="Starting the dask scheduler",
             )
         s = self.scheduler.address
         cmd = f"tmux new-session -s dask-worker -d 'exec dask-worker tcp://{s}:8786'"
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
-            shell_in_conda(p,
+            shell_in_conda(
+                p,
                 (
                     "(tmux ls | grep dask-worker) ||"
                     f"( conda activate {self.env_name} &&"
                     f"{cmd} )"
                 ),
                 executable="/bin/bash",
-                display_name="Starting the dask worker"
+                display_name="Starting the dask worker",
             )
 
     def destroy(self):
         with play_on(pattern_hosts="scheduler", roles=self.roles) as p:
-            p.shell("tmux kill-session -t dask-scheduler || true",
+            p.shell(
+                "tmux kill-session -t dask-scheduler || true",
                 executable="/bin/bash",
-                display_name="Killing the dask scheduler")
+                display_name="Killing the dask scheduler",
+            )
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
-            p.shell("tmux kill-session -t dask-worker || true",
+            p.shell(
+                "tmux kill-session -t dask-worker || true",
                 executable="/bin/bash",
-                display_name="Killing the dask worker ")
+                display_name="Killing the dask worker ",
+            )

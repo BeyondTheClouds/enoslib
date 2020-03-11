@@ -280,10 +280,7 @@ class TestMergeConstraints(EnosTest):
 class TestBuildIpConstraints(EnosTest):
     def test_build_ip_constraints(self):
         # role distribution
-        rsc = {
-            "grp1": [Host("node1")],
-            "grp2": [Host("node2")]
-        }
+        rsc = {"grp1": [Host("node1")], "grp2": [Host("node2")]}
         # ips informations
         ips = {
             "node1": {
@@ -292,7 +289,7 @@ class TestBuildIpConstraints(EnosTest):
                     {"device": "eth0", "active": True, "type": "ether"},
                     {"device": "eth1", "active": True, "type": "ether"},
                 ],
-                "enos_devices": ["eth0", "eth1"]
+                "enos_devices": ["eth0", "eth1"],
             },
             "node2": {
                 "all_ipv4_addresses": ["ip21", "ip21"],
@@ -300,7 +297,7 @@ class TestBuildIpConstraints(EnosTest):
                     {"device": "eth0", "active": True, "type": "ether"},
                     {"device": "eth1", "active": True, "type": "ether"},
                 ],
-                "enos_devices": ["eth0", "eth1"]
+                "enos_devices": ["eth0", "eth1"],
             },
         }
         # the constraints
@@ -320,31 +317,37 @@ class TestBuildIpConstraints(EnosTest):
         # one rule per dest ip and source device
         self.assertEqual(2 * 2, len(tcs))
 
-
     def test_build_ip_constraints_bridge(self):
         # role distribution
-        rsc = {
-            "grp1": [Host("node1")],
-            "grp2": [Host("node2")]
-        }
+        rsc = {"grp1": [Host("node1")], "grp2": [Host("node2")]}
         # ips informations
         ips = {
             "node1": {
                 "all_ipv4_addresses": ["ip11", "ip12"],
                 "devices": [
                     {"device": "eth0", "active": True, "type": "ether"},
-                    {"device": "br0", "active": True, "type": "bridge", "interfaces": ["eth0"]},
+                    {
+                        "device": "br0",
+                        "active": True,
+                        "type": "bridge",
+                        "interfaces": ["eth0"],
+                    },
                 ],
-                "enos_devices": ["br0"]
+                "enos_devices": ["br0"],
             },
             "node2": {
                 "all_ipv4_addresses": ["ip21", "ip22"],
                 "devices": [
                     {"device": "eth0", "active": True, "type": "ether"},
-                    {"device": "br0", "active": True, "type": "bridge", "interfaces": ["eth0"]},
+                    {
+                        "device": "br0",
+                        "active": True,
+                        "type": "bridge",
+                        "interfaces": ["eth0"],
+                    },
                 ],
-                "enos_devices": ["br0"]
-            }
+                "enos_devices": ["br0"],
+            },
         }
         # the constraints
         constraint = {
