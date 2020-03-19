@@ -55,6 +55,10 @@ Notes
   images disks will be stored. The default is to store everything in the temp
   folder of the physical nodes.
 
+* You might be interested in adding ``wait_ssh(roles)`` (from ``enoslib.api``) just after ``init()``
+  to make sure SSH is up and running on all VMs. Otherwise you might get an _unreachable_ error from
+  SSH.
+
 
 .. warning::
 
