@@ -56,7 +56,7 @@ Notes
   folder of the physical nodes.
 
 * You might be interested in adding ``wait_ssh(roles)`` (from ``enoslib.api``) just after ``init()``
-  to make sure SSH is up and running on all VMs. Otherwise you might get an _unreachable_ error from
+  to make sure SSH is up and running on all VMs. Otherwise you might get an *unreachable* error from
   SSH.
 
 
@@ -97,3 +97,47 @@ Controlling the virtual machines placement
 .. literalinclude:: ./vmong5k/tuto_placement.py
    :language: python
    :linenos:
+
+
+Changing resource size of virtual machines
+==========================================
+
+As for the CPU and memory resources, you can simply change the name of the
+flavour (available flavours are listed `here <https://gitlab.inria.fr/discovery\
+/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L17-24>`_), or 
+create your own flavour with ``flavour_desc``. It should look something like:
+
+.. code-block:: python
+
+    my_flavour = {
+        "title": "My Flavour",
+        "type": "object",
+        "properties": {"core": {"type": 2}, "mem": {"type": 4}},
+        "required": ["core", "mem"],
+        "additionalProperties": False,
+    }
+
+As for the disk resource, the virtual machine image needs to be resized. To do
+so, you will need to get the *qcow2* file, put it in your public folder, and
+resize it. Location of the file is shown `here <https://gitlab.inria.fr/discovery/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L10>`_.
+
+.. code-block:: bash
+
+    cp /grid5000/virt-images/debian10-x64-nfs.qcow2 $HOME/public/original.qcow2
+    cd $HOME/public
+    qemu-img info original.qcow2  # check the size (should be 10GB)
+    qemu-img resize original.qcow2 +30G
+    # at this stage, image is resized at 40GB but not the partition
+    virt-resize --expand /dev/sda1 original.qcow2 my-image.qcow2
+    rm original.qcow2
+    # now you can check the size of each partition (/dev/sda1 should be almost 40GB)
+    virt-filesystems –long -h –all -a my-image.qcow2
+
+Finally, you need to tell EnosLib to use this file with:
+
+::
+
+   Configuration.from_settings(...
+                               image="/home/<username>/public/my-image.qcow2",
+                               ...
+                              )
