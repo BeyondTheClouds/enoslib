@@ -10,6 +10,9 @@ Changelog
   wraps `api.run_command` (resp. `api.play_on`) and launch commands
   (resp. modules) in the context of an conda environment.
 * Service/dask: deploy a Dask cluster (use the Conda service)
+* VMonG5K:
+    - allow to attach an extra disk to the virtual machines
+    - improve documentation.
 
 4.11.0
 ------
