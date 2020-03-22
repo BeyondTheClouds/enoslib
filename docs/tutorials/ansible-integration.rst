@@ -28,7 +28,7 @@ Let's consider the following script :
 .. literalinclude:: ansible-integration/run_command.py
    :language: python
    :linenos:
-   :emphasize-lines: 32
+   :emphasize-lines: 32-34
 
 - :py:func:`~enoslib.api.run_command` takes at least 3 parameters :
 
@@ -68,7 +68,7 @@ Let's consider the following script:
 .. literalinclude:: ansible-integration/flent_on.py
    :language: python
    :linenos:
-   :emphasize-lines: 24-40
+   :emphasize-lines: 43-49
 
 In this example each ``play_on`` block run a playbook generated from the ansible
 module calls made.
@@ -76,7 +76,6 @@ Any ansible module can be called here, the exact keyword arguments to pass
 depend on each module and you'll need to refer to the ansible modules
 documentation (e.g
 https://docs.ansible.com/ansible/latest/modules/apt_module.html).
-Currently, top-level keywords (e.g register, loop aren't supported).
 
 
 Using a yaml playbook

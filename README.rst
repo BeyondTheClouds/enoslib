@@ -14,7 +14,10 @@ experiment logic is made **reusable** by the following EnOSlib building blocks:
   run your experiment on different environments (locally with Vagrant, Grid'5000,
   Chameleon and more)
 - **Reusable software provisioning**: In order to configure your nodes, EnOSlib
-  exposes different APIs with different level of expressivity
+  exposes different APIs with different level of expressivity.
+  For instance EnOSlib's modules let you run remote atomic actions safely on remote
+  hosts while EnOSlib's services can deploy complex software stacks with few lines
+  of code.
 - **Reusable experiment facilities**: Tasks help you to organize your
   experimentation workflow.
 
