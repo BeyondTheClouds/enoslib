@@ -7,20 +7,48 @@ from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
 STRATEGY = ["copy", "cow"]
 
 SCHEMA = {
+    "description": "VMonG5k schema.",
     "type": "object",
     "properties": {
         "resources": {"$ref": "#/resources"},
-        "enable_taktuk": {"type": "boolean"},
-        "force_deploy": {"type": "boolean"},
-        "gateway": {"type": "boolean"},
-        "job_name": {"type": "string"},
-        "queue": {"type": "string", "enum": QUEUE_TYPES},
-        "walltime": {"type": "string"},
-        "image": {"type": "string"},
-        "skip": {"type": "number"},
-        "strategy": {"type": "string", "enum": STRATEGY},
-        "subnet_type": {"type": "string", "enum": SUBNET_TYPES},
-        "working_dir": {"type": "string"},
+        "enable_taktuk": {
+            "type": "boolean",
+            "description": "Copy the base image on remote hosts using taktuk",
+        },
+        "force_deploy": {
+            "type": "boolean",
+            "description": "Remove and restart all virtual machines",
+        },
+        "gateway": {
+            "type": "boolean",
+            "description": "Enable access to virtual machines from outside Grid'5000",
+        },
+        "job_name": {"type": "string", "description": "Sets the job name"},
+        "queue": {
+            "type": "string",
+            "enum": QUEUE_TYPES,
+            "description": "Grid'5000 queue to use",
+        },
+        "walltime": {"type": "string", "description": "Job duration"},
+        "image": {
+            "type": "string",
+            "description": "Path to the base image on the reserved nodes",
+        },
+        "skip": {"type": "number", "description": "Skip this number of IPs"},
+        "strategy": {
+            "type": "string",
+            "enum": STRATEGY,
+            "description": "Base image strategy (cow, copy)",
+        },
+        "subnet_type": {
+            "type": "string",
+            "enum": SUBNET_TYPES,
+            "description": "Subnet type to use (/16, /22)",
+        },
+        "working_dir": {
+            "type": "string",
+            "description": "Remote directory that hold the image",
+        },
     },
     "additionalProperties": False,
     "required": ["resources"],
@@ -35,23 +63,51 @@ SCHEMA = {
         "required": ["machines", "networks"],
     },
     "machine": {
+        "description": "Machine description",
         "title": "Compute",
         "type": "object",
         "properties": {
-            "roles": {"type": "array", "items": {"type": "string"}},
-            "number": {"type": "number"},
-            "flavour": {"type": "string", "enum": list(FLAVOURS.keys())},
-            "flavour_desc": {"$ref": "#/flavour_desc"},
-            "cluster": {"type": "string"},
-            "undercloud": {"type": "array", "items": {"type": "object"}},
+            "roles": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "EnOSlib's roles",
+            },
+            "number": {"type": "number", "description": "Number of machines to start"},
+            "flavour": {
+                "type": "string",
+                "enum": list(FLAVOURS.keys()),
+                "description": "Predefined flavour name",
+            },
+            "flavour_desc": {
+                "$ref": "#/flavour_desc",
+                "description": "Custom flavour description",
+            },
+            "cluster": {
+                "type": "string",
+                "description": "Grid'5000 cluster for the undercloud",
+            },
+            "undercloud": {
+                "type": "array",
+                "items": {"type": "object"},
+                "description": "(optional)List of Host where the VM should be started.",
+            },
+            "extra_devices": {
+                "type": "string",
+                "description": "Libvirt XML description for extra devices (e.g disks).",
+            },
         },
         "required": ["roles"],
         "additionalProperties": False,
     },
     "flavour_desc": {
+        "description": "Custom flavour for a virtual machine.",
         "title": "Flavour",
         "type": "object",
-        "properties": {"core": {"type": "number"}, "mem": {"type": "number"}},
+        "properties": {
+            "core": {"type": "number", "description": "number of cores"},
+            "mem": {"type": "number", "description": "memory size in MB"},
+            "disk": {"type": "number", "description": "disk size in GB"},
+        },
         "required": ["core", "mem"],
         "additionalProperties": False,
     },

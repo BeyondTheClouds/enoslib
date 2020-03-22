@@ -1,5 +1,6 @@
 import uuid
 
+from enoslib.host import Host
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_FLAVOUR,
@@ -90,7 +91,8 @@ class MachineConfiguration:
         flavour=None,
         flavour_desc=None,
         number=DEFAULT_NUMBER,
-        undercloud=None
+        undercloud=None,
+        extra_devices=""
     ):
         self.roles = roles
 
@@ -107,7 +109,6 @@ class MachineConfiguration:
             self.flavour_desc = FLAVOURS[self.flavour]
 
         self.number = number
-        self.number = number
         self.cluster = cluster
 
         # a cookie to identify uniquely the group of machine this is used when
@@ -117,6 +118,7 @@ class MachineConfiguration:
 
         #
         self.undercloud = undercloud if undercloud else []
+        self.extra_devices = extra_devices
 
     @classmethod
     def from_dictionnary(cls, dictionnary):
@@ -145,6 +147,9 @@ class MachineConfiguration:
             undercloud = [Host.from_dict(h) for h in undercloud]
             kwargs.update(undercloud=undercloud)
 
+        extra_devices = dictionnary.get("extra_devices")
+        kwargs.update(extra_devices=extra_devices)
+
         return cls(**kwargs)
 
     def to_dict(self):
@@ -156,5 +161,6 @@ class MachineConfiguration:
         cluster = self.cluster
         if cluster is not None:
             d.update(cluster=cluster)
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc, number=self.number)
+        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
+                 number=self.number, extra_devices=self.extra_devices)
         return d

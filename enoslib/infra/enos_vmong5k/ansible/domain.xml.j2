@@ -16,11 +16,11 @@
    <emulator>/usr/bin/kvm</emulator>
    <disk type='file' device='disk'>
      <driver name='qemu' type='qcow2'/>
-     <source file='/var/lib/libvirt/images/enos_vmong5k/{{ item.alias}}'/>
+     <source file='{{ libvirt_dir }}/{{ item.alias}}'/>
      <target dev='vda' bus='virtio'/>
    </disk>
    <disk type='file' device='cdrom'>
-     <source file='/var/lib/libvirt/images/enos_vmong5k/cloud-init-data-{{ item.alias }}.iso'/>
+     <source file='{{ libvirt_dir }}/cloud-init-data-{{ item.alias }}.iso'/>
      <target dev='vdb' bus='virtio'/>
      <readonly/>
    </disk>
@@ -38,5 +38,6 @@
      <target port='0'/>
    </console>
    <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'/>
+   {{ item.extra_devices }}
  </devices>
 </domain>

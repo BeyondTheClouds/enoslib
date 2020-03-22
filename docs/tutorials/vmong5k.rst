@@ -59,12 +59,89 @@ Notes
   to make sure SSH is up and running on all VMs. Otherwise you might get an *unreachable* error from
   SSH.
 
-
 .. warning::
 
-   The ``working_dir`` and all its content is deleted by the provider.
+   The ``working_dir`` and all its content is deleted by the provider when calling `destroy`.
 
 
+Changing resource size of virtual machines
+==========================================
+
+As for the CPU and memory resources, you can simply change the name of the
+flavour (available flavours are listed `here <https://gitlab.inria.fr/discovery\
+/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L17-24>`_), or
+create your own flavour with ``flavour_desc``.
+
+.. code-block:: python
+
+    [...]
+    .add_machine(
+        [...],
+        flavour_desc={"core": 1, "mem": "512"}
+    )
+
+Notes on the disks of Virtual Machines
+--------------------------------------
+
+- **Adding a new disk:**
+  Using the disk attribute of `flavour_desc` will create a new disk and make it
+  available to the VM. For instance to get an extra disk of 10GB you can use
+  this python configuration parameter:
+
+  .. code-block:: python
+
+    [...]
+    .add_machine(
+        [...],
+        flavour_desc={"core": 1, "mem": 512, "disk": 10}
+    )
+
+Note that with the above configuration an extra disk of 10GB will be provisioned and
+available to the Virtual Machine. In the current implementation, the disk is neither formatted nor mounted in the Virtual Machine OS.
+
+- **Make an external (not managed by EnOSlib) disk available to the Virtual Machine**
+  A typical use case is to use an hardware disk from the host machine.
+  In this situation, use the `extra_devices` parameter of the configuration.
+  It corresponds to the XML string of `Libvirt <https://libvirt.org/formatdomain.html#elementsDisks>`_.
+
+  .. code-block:: python
+
+    [...]
+    .add_machine(
+        [...],
+        extra_devices = """
+        <disk type='block' device='disk'>
+        <driver name='qemu' type='raw'/>
+        <source dev='/dev/disk/by-path/pci-0000:82:00.0-sas-phy1-lun-0'/>
+        <target dev='vde' bus='virtio'/>
+        </disk>
+        """
+
+- **Resize the root filesystem**
+  To do so, you will need to get the *qcow2* file, put it in your public folder, and
+  resize it. Location of the file is shown `here <https://gitlab.inria.fr/discovery/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L10>`_.
+
+  .. code-block:: bash
+
+    cp /grid5000/virt-images/debian10-x64-nfs.qcow2 $HOME/public/original.qcow2
+    cd $HOME/public
+    qemu-img info original.qcow2  # check the size (should be 10GB)
+    qemu-img resize original.qcow2 +30G
+    # at this stage, image is resized at 40GB but not the partition
+    virt-resize --expand /dev/sda1 original.qcow2 my-image.qcow2
+    rm original.qcow2
+    # now you can check the size of each partition (/dev/sda1 should be almost 40GB)
+    virt-filesystems –long -h –all -a my-image.qcow2
+
+  Finally, you need to tell EnosLib to use this file with:
+
+
+  .. code-block:: python
+
+    Configuration.from_settings(...
+                                image="/home/<username>/public/my-image.qcow2",
+                                ...
+                                )
 
 |enoslib| primer using VMonG5k
 ==============================
@@ -83,12 +160,12 @@ This is mandatory if you deployed from your local machine.
 - Solution 2: Add the following in your configuration force Ansible to
   jump through a gateway (``access.grid5000.fr``):
 
-::
+  :: code-block:: python
 
-   Configuration.from_settings(...
-                               gateway=True
-                               ...
-                              )
+  Configuration.from_settings(...
+                              gateway=True
+                              ...
+                             )
 
 Controlling the virtual machines placement
 ==========================================
@@ -99,45 +176,3 @@ Controlling the virtual machines placement
    :linenos:
 
 
-Changing resource size of virtual machines
-==========================================
-
-As for the CPU and memory resources, you can simply change the name of the
-flavour (available flavours are listed `here <https://gitlab.inria.fr/discovery\
-/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L17-24>`_), or 
-create your own flavour with ``flavour_desc``. It should look something like:
-
-.. code-block:: python
-
-    my_flavour = {
-        "title": "My Flavour",
-        "type": "object",
-        "properties": {"core": {"type": 2}, "mem": {"type": 4}},
-        "required": ["core", "mem"],
-        "additionalProperties": False,
-    }
-
-As for the disk resource, the virtual machine image needs to be resized. To do
-so, you will need to get the *qcow2* file, put it in your public folder, and
-resize it. Location of the file is shown `here <https://gitlab.inria.fr/discovery/enoslib/-/blob/master/enoslib/infra/enos_vmong5k/constants.py#L10>`_.
-
-.. code-block:: bash
-
-    cp /grid5000/virt-images/debian10-x64-nfs.qcow2 $HOME/public/original.qcow2
-    cd $HOME/public
-    qemu-img info original.qcow2  # check the size (should be 10GB)
-    qemu-img resize original.qcow2 +30G
-    # at this stage, image is resized at 40GB but not the partition
-    virt-resize --expand /dev/sda1 original.qcow2 my-image.qcow2
-    rm original.qcow2
-    # now you can check the size of each partition (/dev/sda1 should be almost 40GB)
-    virt-filesystems –long -h –all -a my-image.qcow2
-
-Finally, you need to tell EnosLib to use this file with:
-
-::
-
-   Configuration.from_settings(...
-                               image="/home/<username>/public/my-image.qcow2",
-                               ...
-                              )

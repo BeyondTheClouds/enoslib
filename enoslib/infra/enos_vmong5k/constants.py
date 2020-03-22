@@ -12,6 +12,7 @@ PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "site.yml")
 DESTROY_PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "destroy.yml")
+LIBVIRT_DIR = "/var/lib/libvirt/images/enos_vmong5k"
 
 #: Sizes of the machines available for the configuration
 FLAVOURS = {

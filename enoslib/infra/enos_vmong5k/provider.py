@@ -15,7 +15,7 @@ import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from enoslib.types import Networks, Roles, RolesNetworks
 from .configuration import Configuration
-from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH
+from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
 from ..provider import Provider
 
 logger = logging.getLogger(__name__)
@@ -170,12 +170,14 @@ def _distribute(machines, g5k_subnets, skip=0, extra=None):
     for machine in machines:
         pms = machine.undercloud
         pms_it = itertools.cycle(pms)
+        extra_devices = machine.extra_devices
         for _ in range(machine.number):
             eui = next(euis)
             descriptor = "-".join(str(_get_subnet_ip(eui)).split(".")[1:])
             name = f"virtual-{descriptor}"
             pm = next(pms_it)
-            vm = VirtualMachine(name, eui, machine.flavour_desc, pm, extra=extra)
+            vm = VirtualMachine(name, eui, machine.flavour_desc, pm,
+                                extra=extra, extra_devices=extra_devices)
 
             for role in machine.roles:
                 vmong5k_roles[role].append(vm)
@@ -211,6 +213,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
         "working_dir": provider_conf.working_dir,
         "_strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
+        "libvirt_dir": LIBVIRT_DIR
     }
 
     # Take into account only the pms that will host the vms
@@ -226,7 +229,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
 class VirtualMachine(Host):
     """Internal data structure to manipulate virtual machines."""
 
-    def __init__(self, name, eui, flavour_desc, pm, extra=None):
+    def __init__(self, name, eui, flavour_desc, pm, extra=None, extra_devices=""):
         super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra)
         self.core = flavour_desc["core"]
         # libvirt uses kiB by default
@@ -234,10 +237,26 @@ class VirtualMachine(Host):
         self.eui = eui
         self.pm = pm
         self.user = "root"
+        self.extra_devices = extra_devices
+        self.disk = flavour_desc.get("disk", None)
+        if self.disk is not None:
+            path = f"{LIBVIRT_DIR}/{self.alias}-extra.raw"
+            self.disk = {
+                "size": f"{self.disk}G",
+                "path": path
+            }
+            self.extra_devices += f"""\n
+<disk type='file' device='disk'>
+    <driver name='qemu' type='raw'/>
+    <source file='{path}'/>
+    <target dev='vdz' bus='virtio'/>
+</disk>\n"""
 
     def to_dict(self):
         d = super().to_dict()
-        d.update(core=self.core, mem=self.mem, eui=str(self.eui), pm=self.pm.to_dict())
+        d.update(core=self.core, mem=self.mem, eui=str(self.eui),
+                 pm=self.pm.to_dict(), extra_devices=self.extra_devices,
+                  disk=self.disk)
         return d
 
     def __hash__(self):

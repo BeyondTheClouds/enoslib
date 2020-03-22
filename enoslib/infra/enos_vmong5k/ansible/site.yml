@@ -3,7 +3,6 @@
   hosts: all
   vars:
     pubkey: "{{lookup('file', '~/.ssh/id_rsa.pub')}}"
-    libvirt_dir: /var/lib/libvirt/images/enos_vmong5k
   # NOTE(msimonin): quick fix for buster
   # The libvirt runtime dir (e.g with the socket) will be created in the home
   # dir instead of in /run/user/$UID
@@ -76,16 +75,16 @@
         &&
         genisoimage -output cloud-init-data-{{ item.alias }}.iso -volid cidata -joliet -rock cloud-init-data-{{ item.alias }}/user-data cloud-init-data-{{ item.alias }}/meta-data
       loop: "{{ vms[inventory_hostname] }}"
-      when: item.alias not in running_vms.list_vms
+      when:
+        item.alias not in running_vms.list_vms
+        #    - name: Copy base image
 
-            #    - name: Copy base image
       # shell: >
       #  ls {{ working_dir }}/enos_vmong5k-base-image.qcow2
       #  ||
       #  cp {{ base_image }} {{ working_dir }}/enos_vmong5k-base-image.qcow2
       # become: yes
       # become_user: "{{ g5k_user }}"
-
     - set_fact:
         taktuk_hosts: "{% for h in ansible_play_batch %} -m {{ h }} {% endfor %}"
 
@@ -130,6 +129,15 @@
       when:
         - _strategy == "copy"
         - item.alias not in running_vms.list_vms
+
+    - name: Create an extra disk (if any)
+      shell: "qemu-img create -f raw  {{ item.disk.path }} {{ item.disk.size }}"
+      args:
+        creates: "{{ item.disk.path }}"
+      loop: "{{ vms[inventory_hostname] }}"
+      when:
+        - item.disk is defined
+        - item.disk is not none
 
     - name: Dump xml domain files
       template:
