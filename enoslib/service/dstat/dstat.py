@@ -38,7 +38,7 @@ class Dstat(Service):
 
         Examples:
 
-            .. literalinclude:: examples/dtsat.py
+            .. literalinclude:: examples/dstat.py
                 :language: python
                 :linenos:
 
