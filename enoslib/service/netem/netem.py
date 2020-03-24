@@ -272,10 +272,14 @@ class SimpleNetem(Service):
     def __init__(self, options: str, network: str, *, hosts: List[Host] = None):
         """A wrapper arount netem that applies the constraint on all the hosts.
 
+
+        Note that the network constraints are set in all the nodes for
+        outgoing packets only.
+
         Args:
             options: raw netem options as described here:
                      http://man7.org/linux/man-pages/man8/tc-netem.8.html
-            netowrk: on which network the constraints will be applied (role name)
+            network: on which network the constraints will be applied (role name)
             hosts: list of host on which the constraints will be applied
 
         Example:

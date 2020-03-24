@@ -10,11 +10,11 @@ Base Service Class
     :undoc-members:
     :show-inheritance:
 
-Conda
-======
+Conda & Dask
+=============
 
-Conda Service Class
---------------------
+Conda & Dask Service Class
+--------------------------
 
 
 .. automodule:: enoslib.service.conda.conda
@@ -22,17 +22,6 @@ Conda Service Class
     :undoc-members:
     :show-inheritance:
 
-Dask
-====
-
-Dask Service Class
---------------------
-
-
-.. automodule:: enoslib.service.dask.dask
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Docker
 ======
@@ -85,12 +74,12 @@ Monitoring Service Class
 
 
 Network Emulation (Netem & SimpleNetem)
-=========================
+=======================================
 
 .. _netem:
 
-Netem Service Class
--------------------
+Netem & SimpleNetem Service Class
+---------------------------------
 
 
 .. automodule:: enoslib.service.netem.netem
