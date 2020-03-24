@@ -1,7 +1,7 @@
 from enoslib.api import discover_networks
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
-from enoslib.service import Netem
+from enoslib.service import SimpleNetem
 
 import logging
 import os
@@ -16,22 +16,16 @@ prod_network = NetworkConfiguration(
     site="rennes"
 )
 conf = (
-    Configuration.from_settings(job_name="test", job_type="allow_classic_ssh")
+    Configuration.from_settings(job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_machine(
-        roles=["paris"],
+        roles=["city", "paris"],
         cluster="parapluie",
         nodes=1,
         primary_network=prod_network
     )
     .add_machine(
-        roles=["berlin"],
-        cluster="parapluie",
-        nodes=1,
-        primary_network=prod_network
-    )
-    .add_machine(
-        roles=["londres"],
+        roles=["city", "berlin"],
         cluster="parapluie",
         nodes=1,
         primary_network=prod_network
@@ -42,21 +36,7 @@ provider = G5k(conf)
 roles, networks = provider.init()
 roles = discover_networks(roles, networks)
 
-# Building the network constraints
-emulation_conf = {
-    "enable": True,
-    "default_delay": "20ms",
-    "default_rate": "1gbit",
-    "constraints": [{
-        "src": "paris",
-        "dst": "londres",
-        "symetric": True,
-        "delay": "10ms"
-    }]
-}
-
-logging.info(emulation_conf)
-
-netem = Netem(emulation_conf, roles=roles)
+netem = SimpleNetem("delay 10ms", "my_network", hosts=roles["city"])
 netem.deploy()
 netem.validate()
+netem.destroy()

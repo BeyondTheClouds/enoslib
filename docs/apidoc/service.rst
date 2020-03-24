@@ -84,7 +84,7 @@ Monitoring Service Class
     :show-inheritance:
 
 
-Network Emulation (Netem)
+Network Emulation (Netem & SimpleNetem)
 =========================
 
 .. _netem:

@@ -7,8 +7,9 @@ import yaml
 
 from jsonschema import validate
 
-from enoslib.api import run_ansible
+from enoslib.api import run_ansible, play_on
 from enoslib.constants import TMP_DIRNAME
+from enoslib.types import Host
 from enoslib.utils import _check_tmpdir
 from ..service import Service
 
@@ -243,6 +244,73 @@ def _build_ip_constraints(roles, ips, constraints):
     return ip_constraints
 
 
+def _build_options(extra_vars, options):
+    """This only merges two dicts."""
+    _options = {}
+    _options.update(extra_vars)
+    _options.update(options)
+    return _options
+
+
+def _validate(roles, output_dir, extra_vars=None):
+    logger.debug("Checking the constraints")
+    if not output_dir:
+        output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
+    if not extra_vars:
+        extra_vars = {}
+
+    output_dir = os.path.abspath(output_dir)
+    _check_tmpdir(output_dir)
+    _playbook = os.path.join(SERVICE_PATH, "netem.yml")
+    options = _build_options(
+        extra_vars, {"enos_action": "tc_validate", "tc_output_dir": output_dir}
+    )
+    run_ansible([_playbook], roles=roles, extra_vars=options)
+
+
+class SimpleNetem(Service):
+    def __init__(self, options: str, network: str, *, hosts: List[Host] = None):
+        """A wrapper arount netem that applies the constraint on all the hosts.
+
+        Args:
+            options: raw netem options as described here:
+                     http://man7.org/linux/man-pages/man8/tc-netem.8.html
+            netowrk: on which network the constraints will be applied (role name)
+            hosts: list of host on which the constraints will be applied
+
+        Example:
+
+            .. literalinclude:: ../tutorials/network_emulation/tuto_simple_netem.py
+              :language: python
+              :linenos:
+    """
+        self.options = options
+        self.network = network
+        self.hosts = hosts if hosts else []
+        self._roles = {"all": hosts}
+
+    def deploy(self):
+        """Apply the constraints on all the hosts."""
+
+        with play_on(roles=self._roles) as p:
+            p.apt(name="iproute2", state="present")
+            p.shell("tc qdisc del dev {{ %s }} root || true" % self.network)
+            p.shell(
+                "tc qdisc add dev {{ %s }} root netem %s" % (self.network, self.options)
+            )
+
+    def backup(self):
+        pass
+
+    def validate(self, output_dir=None):
+        _validate(self._roles, output_dir)
+
+    def destroy(self):
+        with play_on(roles=self._roles) as p:
+            p.apt(name="iproute2", state="present")
+            p.shell("tc qdisc del dev {{ %s }} root || true" % self.network)
+
+
 class Netem(Service):
     SCHEMA = {
         "type": "object",
@@ -288,11 +356,11 @@ class Netem(Service):
         ``rate`` and ``loss``.
 
         Args:
-            network_constraints (dict): network constraints to apply
-            roles (dict): role->hosts mapping as returned by
-                :py:meth:`enoslib.infra.provider.Provider.init`
+            network_constraints(dict): network constraints to apply
+            roles(dict): role -> hosts mapping as returned by
+                : py: meth: `enoslib.infra.provider.Provider.init`
             inventory_path(string): path to an inventory
-            extra_vars (dict): extra_vars to pass to ansible
+            extra_vars(dict): extra_vars to pass to ansible
 
         Examples:
 
@@ -371,10 +439,14 @@ class Netem(Service):
         Examples:
 
             .. literalinclude:: examples/netem.py
-                :language: python
-                :linenos:
+              :language: python
+              :linenos:
 
+        Examples:
 
+            .. literalinclude:: ../tutorials/network_emulation/tuto_network_emulation.py
+              :language: python
+              :linenos:
         """
         # 1) Retrieve the list of ips for all nodes (Ansible)
         # 2) Build all the constraints (Python)
@@ -387,7 +459,9 @@ class Netem(Service):
         _check_tmpdir(tmpdir)
         _playbook = os.path.join(SERVICE_PATH, "netem.yml")
         ips_file = os.path.join(tmpdir, "ips.txt")
-        options = self._build_options({"enos_action": "tc_ips", "ips_file": ips_file})
+        options = _build_options(
+            self.extra_vars, {"enos_action": "tc_ips", "ips_file": ips_file}
+        )
         run_ansible([_playbook], roles=self.roles, extra_vars=options)
 
         # 2.a building the group constraints
@@ -407,12 +481,13 @@ class Netem(Service):
         logger.info("Enforcing the constraints")
         # enabling/disabling network constraints
         enable = self.network_constraints.setdefault("enable", True)
-        options = self._build_options(
+        options = _build_options(
+            self.extra_vars,
             {
                 "enos_action": "tc_apply",
                 "ips_with_constraints": ips_with_constraints,
                 "tc_enable": enable,
-            }
+            },
         )
         run_ansible([_playbook], roles=self.roles, extra_vars=options)
 
@@ -421,7 +496,7 @@ class Netem(Service):
         pass
 
     def destroy(self):
-        """Reset the network constraints (latency, bandwidth ...)
+        """Reset the network constraints(latency, bandwidth ...)
 
         Remove any filter that have been applied to shape the traffic.
         """
@@ -431,41 +506,25 @@ class Netem(Service):
         _check_tmpdir(tmpdir)
 
         _playbook = os.path.join(SERVICE_PATH, "netem.yml")
-        options = self._build_options(
-            {"enos_action": "tc_reset", "tc_output_dir": tmpdir}
+        options = _build_options(
+            self.extra_vars, {"enos_action": "tc_reset", "tc_output_dir": tmpdir}
         )
         run_ansible([_playbook], roles=self.roles, extra_vars=options)
 
     def validate(self, *, output_dir=None):
-        """Validate the network parameters (latency, bandwidth ...)
+        """Validate the network parameters(latency, bandwidth ...)
 
-        Performs flent, ping tests to validate the constraints set by
-        :py:meth:`enoslib.service.netem.Netem.deploy`.
+        Performs ping tests to validate the constraints set by
+        : py: meth: `enoslib.service.netem.Netem.deploy`.
         Reports are available in the tmp directory
         used by enos.
 
         Args:
-            roles (dict): role->hosts mapping as returned by
-                :py:meth:`enoslib.infra.provider.Provider.init`
-            inventory_path (str): path to an inventory
-            output_dir (str): directory where validation files will be stored.
-                Default to :py:const:`enoslib.constants.TMP_DIRNAME`.
+            roles(dict): role -> hosts mapping as returned by
+                : py: meth: `enoslib.infra.provider.Provider.init`
+            inventory_path(str): path to an inventory
+            output_dir(str): directory where validation files will be stored.
+                Default to: py: const: `enoslib.constants.TMP_DIRNAME`.
         """
-        logger.debug("Checking the constraints")
-        if not output_dir:
-            output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
 
-        output_dir = os.path.abspath(output_dir)
-        _check_tmpdir(output_dir)
-        _playbook = os.path.join(SERVICE_PATH, "netem.yml")
-        options = self._build_options(
-            {"enos_action": "tc_validate", "tc_output_dir": output_dir}
-        )
-
-        run_ansible([_playbook], roles=self.roles, extra_vars=options)
-
-    def _build_options(self, options):
-        _options = {}
-        _options.update(self.extra_vars)
-        _options.update(options)
-        return _options
+        _validate(self.roles, output_dir=output_dir)
