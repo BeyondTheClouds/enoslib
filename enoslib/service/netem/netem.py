@@ -329,7 +329,8 @@ class SimpleNetem(Service):
                 # get the device corresponding to the network
                 network_device = s.extra[self.network]
                 # get the corresponding device where the rule must be applied
-                # we reuse an internal function from Netem to detect bridges for instance
+                # we reuse an internal function from Netem to detect bridges
+                # for instance
                 local_devices = _gen_devices(ips[s.alias]["devices"], [network_device])
                 # There must be only one local_devices
                 # We inject this as host variable as __netem_device__ may differ from
@@ -338,13 +339,12 @@ class SimpleNetem(Service):
                     __netem_options__=self.options,
                     __netem_device__=next(local_devices)["device"],
                 )
-
+        # 88 chars!
+        cmd = "tc qdisc add dev {{ __netem_device__ }} root netem {{__netem_options__}}"
         with play_on(roles=_roles) as p:
             p.apt(name="iproute2", state="present")
             p.shell("tc qdisc del dev {{ __netem_device__ }} root || true")
-            p.shell(
-                "tc qdisc add dev {{ __netem_device__ }}  root netem {{__netem_options__}}"
-            )
+            p.shell(cmd)
 
     def backup(self):
         pass
