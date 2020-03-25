@@ -284,7 +284,9 @@ def _build_ips_file(roles, extra_vars):
 
 
 class SimpleNetem(Service):
-    def __init__(self, options: str, network: str, *, hosts: List[Host] = None, extra_vars=None):
+    def __init__(
+        self, options: str, network: str, *, hosts: List[Host] = None, extra_vars=None
+    ):
         """A wrapper arount netem that applies the constraint on all the hosts.
 
 
@@ -328,20 +330,21 @@ class SimpleNetem(Service):
                 network_device = s.extra[self.network]
                 # get the corresponding device where the rule must be applied
                 # we reuse an internal function from Netem to detect bridges for instance
-                local_devices = _gen_devices(
-                    ips[s.alias]["devices"], [network_device])
+                local_devices = _gen_devices(ips[s.alias]["devices"], [network_device])
                 # There must be only one local_devices
                 # We inject this as host variable as __netem_device__ may differ from
                 # one host to another
-                s.extra.update(__netem_options__=self.options,
-                               __netem_device__=next(local_devices)["device"])
+                s.extra.update(
+                    __netem_options__=self.options,
+                    __netem_device__=next(local_devices)["device"],
+                )
 
         with play_on(roles=_roles) as p:
             p.apt(name="iproute2", state="present")
+            p.shell("tc qdisc del dev {{ __netem_device__ }} root || true")
             p.shell(
-                "tc qdisc del dev {{ __netem_device__ }} root || true")
-            p.shell(
-                "tc qdisc add dev {{ __netem_device__ }}  root netem {{__netem_options__}}")
+                "tc qdisc add dev {{ __netem_device__ }}  root netem {{__netem_options__}}"
+            )
 
     def backup(self):
         pass
@@ -511,7 +514,8 @@ class Netem(Service):
             ips_with_constraints = _build_ip_constraints(self.roles, ips, constraints)
             # dumping it for debugging purpose
             ips_with_constraints_file = os.path.join(
-                TMP_DIR, "ips_with_constraints.yml")
+                TMP_DIR, "ips_with_constraints.yml"
+            )
             with open(ips_with_constraints_file, "w") as g:
                 yaml.dump(ips_with_constraints, g)
 
