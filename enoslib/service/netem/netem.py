@@ -15,6 +15,8 @@ from ..service import Service
 
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
+TMP_DIR = os.path.join(os.getcwd(), TMP_DIRNAME)
 
 
 logger = logging.getLogger(__name__)
@@ -172,6 +174,7 @@ def _gen_devices(
     If the device is a "virtual" one (e.g bridge) returns the
     corresponding physical ones.
     """
+    # TODO(msimonin) we can filter here which network we want more precisely
     for device in enos_devices:
         # get the device caracteristic
         _device = [d for d in all_devices if d["device"] == device][0]
@@ -268,8 +271,20 @@ def _validate(roles, output_dir, extra_vars=None):
     run_ansible([_playbook], roles=roles, extra_vars=options)
 
 
+def _build_ips_file(roles, extra_vars):
+    """Get a representation of all the devices and associated ips."""
+    logger.debug("Getting the ips of all nodes")
+    _check_tmpdir(TMP_DIR)
+    ips_file = os.path.join(TMP_DIR, "ips.txt")
+    options = _build_options(
+        extra_vars, {"enos_action": "tc_ips", "ips_file": ips_file}
+    )
+    run_ansible([PLAYBOOK], roles=roles, extra_vars=options)
+    return ips_file
+
+
 class SimpleNetem(Service):
-    def __init__(self, options: str, network: str, *, hosts: List[Host] = None):
+    def __init__(self, options: str, network: str, *, hosts: List[Host] = None, extra_vars=None):
         """A wrapper arount netem that applies the constraint on all the hosts.
 
 
@@ -291,28 +306,54 @@ class SimpleNetem(Service):
         self.options = options
         self.network = network
         self.hosts = hosts if hosts else []
-        self._roles = {"all": hosts}
+        self.extra_vars = extra_vars if extra_vars is not None else {}
 
     def deploy(self):
         """Apply the constraints on all the hosts."""
 
-        with play_on(roles=self._roles) as p:
+        # First get the list of all the devices,
+        # we'll need to set the constraints on the physical ones, not the bridge
+        # so we're reusing some logic from the Netem Service.
+        _hosts = copy.deepcopy(self.hosts)
+        _roles = {"all": _hosts}
+        ips_file = _build_ips_file(_roles, self.extra_vars)
+
+        # This will hold the constraints
+        # we inject a new variable on each host that represent the rule to apply
+        with open(ips_file) as f:
+            ips = yaml.safe_load(f)
+            for s in _hosts:
+                # for each sources
+                # get the device corresponding to the network
+                network_device = s.extra[self.network]
+                # get the corresponding device where the rule must be applied
+                # we reuse an internal function from Netem to detect bridges for instance
+                local_devices = _gen_devices(
+                    ips[s.alias]["devices"], [network_device])
+                # There must be only one local_devices
+                # We inject this as host variable as __netem_device__ may differ from
+                # one host to another
+                s.extra.update(__netem_options__=self.options,
+                               __netem_device__=next(local_devices)["device"])
+
+        with play_on(roles=_roles) as p:
             p.apt(name="iproute2", state="present")
-            p.shell("tc qdisc del dev {{ %s }} root || true" % self.network)
             p.shell(
-                "tc qdisc add dev {{ %s }} root netem %s" % (self.network, self.options)
-            )
+                "tc qdisc del dev {{ __netem_device__ }} root || true")
+            p.shell(
+                "tc qdisc add dev {{ __netem_device__ }}  root netem {{__netem_options__}}")
 
     def backup(self):
         pass
 
     def validate(self, output_dir=None):
-        _validate(self._roles, output_dir)
+        _roles = {"all": self.hosts}
+        _validate(_roles, output_dir)
 
     def destroy(self):
-        with play_on(roles=self._roles) as p:
-            p.apt(name="iproute2", state="present")
-            p.shell("tc qdisc del dev {{ %s }} root || true" % self.network)
+        # We need to know the exact device
+        # all destroy all the rules on all the devices...
+        pass
 
 
 class Netem(Service):
@@ -458,15 +499,7 @@ class Netem(Service):
         # 3) Enforce those constraints (Ansible)
 
         # 1. getting  ips/devices information
-        logger.debug("Getting the ips of all nodes")
-        tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
-        _check_tmpdir(tmpdir)
-        _playbook = os.path.join(SERVICE_PATH, "netem.yml")
-        ips_file = os.path.join(tmpdir, "ips.txt")
-        options = _build_options(
-            self.extra_vars, {"enos_action": "tc_ips", "ips_file": ips_file}
-        )
-        run_ansible([_playbook], roles=self.roles, extra_vars=options)
+        ips_file = _build_ips_file(self.roles, self.extra_vars)
 
         # 2.a building the group constraints
         logger.debug("Building all the constraints")
@@ -477,7 +510,8 @@ class Netem(Service):
             # will hold every single constraint
             ips_with_constraints = _build_ip_constraints(self.roles, ips, constraints)
             # dumping it for debugging purpose
-            ips_with_constraints_file = os.path.join(tmpdir, "ips_with_constraints.yml")
+            ips_with_constraints_file = os.path.join(
+                TMP_DIR, "ips_with_constraints.yml")
             with open(ips_with_constraints_file, "w") as g:
                 yaml.dump(ips_with_constraints, g)
 
@@ -493,7 +527,7 @@ class Netem(Service):
                 "tc_enable": enable,
             },
         )
-        run_ansible([_playbook], roles=self.roles, extra_vars=options)
+        run_ansible([PLAYBOOK], roles=self.roles, extra_vars=options)
 
     def backup(self):
         """ What do you want to backup here?"""
@@ -506,12 +540,11 @@ class Netem(Service):
         """
         logger.debug("Reset the constraints")
 
-        tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
-        _check_tmpdir(tmpdir)
+        _check_tmpdir(TMP_DIR)
 
         _playbook = os.path.join(SERVICE_PATH, "netem.yml")
         options = _build_options(
-            self.extra_vars, {"enos_action": "tc_reset", "tc_output_dir": tmpdir}
+            self.extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
         )
         run_ansible([_playbook], roles=self.roles, extra_vars=options)
 
