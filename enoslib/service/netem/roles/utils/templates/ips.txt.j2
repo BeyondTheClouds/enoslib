@@ -8,6 +8,9 @@
   devices:
 {% for enos_device in hostvars[host]['ansible_interfaces'] %}
   -
-{{ hostvars[host]['ansible_' + enos_device] | to_nice_yaml(2) | indent(width=4, indentfirst=true)}}
+{% set ansible_device = 'ansible_' + enos_device | replace("-", "_") %}
+{% if ansible_device in hostvars[host] %}
+{{ hostvars[host][ansible_device] | to_nice_yaml(2) | indent(width=4, indentfirst=true)}}
+{% endif %}
 {% endfor %}
 {% endfor %}
