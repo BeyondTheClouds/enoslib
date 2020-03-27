@@ -15,6 +15,7 @@ Changelog
     - improve documentation.
 - Service/SimpleNetem: A simplified version of the Netem Service
   that sets homogeneous constraints on hosts.
+- Service/Netem: Fix an issue when the interface names contains a dash.
 
 4.11.0
 ------
