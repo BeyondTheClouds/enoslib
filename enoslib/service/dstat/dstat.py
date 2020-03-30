@@ -1,8 +1,8 @@
 from pathlib import Path
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from enoslib.api import play_on, __python3__, __default_python3__
+from enoslib.api import play_on, __python3__
 from enoslib.types import Host
 from ..service import Service
 from ..utils import _check_path
@@ -18,11 +18,12 @@ class Dstat(Service):
         nodes: List[Host],
         options: str = "",
         remote_working_dir: str = "/builds/dstat",
-        priors: List[play_on] = [__python3__, __default_python3__],
+        priors: List[play_on] = [__python3__],
+        extra_vars: Dict = None,
     ):
         """Deploy dstat on all hosts.
 
-        This assumes a debian/ubuntu base environment and aims at producing a
+        This assumes a debian/ubuntu based environment and aims at producing a
         quick way to deploy a simple monitoring stack based on dstat on your nodes.
         It's opinionated out of the box but allow for some convenient customizations.
 
@@ -34,6 +35,7 @@ class Dstat(Service):
             nodes: the nodes to install dstat on
             options: options to pass to dstat.
             priors : priors to apply
+            extra_vars: extra vars to pass to Ansible
 
 
         Examples:
@@ -50,9 +52,16 @@ class Dstat(Service):
         self.remote_working_dir = remote_working_dir
         self._roles = dict(all=self.nodes)
 
+        # We force python3
+        extra_vars = extra_vars if extra_vars is not None else {}
+        self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
+        self.extra_vars.update(extra_vars)
+
     def deploy(self):
         """Deploy the dstat monitoring stack."""
-        with play_on(roles=self._roles, priors=self.priors) as p:
+        with play_on(
+            roles=self._roles, priors=self.priors, extra_vars=self.extra_vars
+        ) as p:
             p.apt(name=["dstat", "tmux"], state="present")
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
             options = f"{self.options} -o {OUTPUT_FILE}"
@@ -69,7 +78,7 @@ class Dstat(Service):
         Metric files survive to destroy.
         """
         """Stop locust."""
-        with play_on(roles=self._roles) as p:
+        with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
             kill_cmd = []
             kill_cmd.append('kill -9 `ps aux|grep "dstat"')
             kill_cmd.append("grep -v grep")
@@ -92,7 +101,7 @@ class Dstat(Service):
 
         _backup_dir = _check_path(_backup_dir)
 
-        with play_on(roles=self._roles) as p:
+        with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
             backup_path = os.path.join(self.remote_working_dir, OUTPUT_FILE)
             p.fetch(
                 display_name="Fetching the dstat output",

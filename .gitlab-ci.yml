@@ -135,6 +135,8 @@ test_dask$debian10$:
 test_discover_networks$debian10$:
   <<: *debian10
 
+test_dstat$debian10$:
+  <<: *debian10
 
 ## debian latest
 #-----------------------------------------------

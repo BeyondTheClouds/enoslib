@@ -92,9 +92,7 @@ class conda_play_on(play_on):
 
 
 class Conda(Service):
-    def __init__(
-        self, *, nodes: List[Host],
-    ):
+    def __init__(self, *, nodes: List[Host]):
 
         """Manage Conda on your nodes.
 

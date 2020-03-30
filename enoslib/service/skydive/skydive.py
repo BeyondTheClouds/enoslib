@@ -1,11 +1,13 @@
+import os
+from typing import List, Dict
+
 from enoslib.api import (
     play_on,
     run_ansible,
     __python3__,
-    __default_python3__,
     __docker__,
 )
-import os
+from enoslib.types import Host
 
 from ..service import Service
 
@@ -18,6 +20,8 @@ DEFAULT_VARS = {
     # we'll inject our own topology
     # there a skydive_fabric variable to do that
     "skydive_auto_fabric": "no",
+    # force python3
+    "ansible_python_interpreter": "/usr/bin/python3"
 }
 
 
@@ -25,11 +29,11 @@ class Skydive(Service):
     def __init__(
         self,
         *,
-        analyzers=None,
-        agents=None,
-        networks=None,
-        extra_vars=None,
-        priors=[__python3__, __default_python3__, __docker__]
+        analyzers: List[Host] = None,
+        agents: List[Host] = None,
+        networks: List[Host] = None,
+        priors: List[play_on] = [__python3__, __docker__],
+        extra_vars: Dict = None,
     ):
         """Deploy Skydive (see http://skydive.network/).
 
@@ -41,12 +45,13 @@ class Skydive(Service):
         https://github.com/skydive-project/skydive
 
         Args:
-            analyzers (list): list of :py:class:`enoslib.Host` where the
+            analyzers: list of :py:class:`enoslib.Host` where the
                               skydive analyzers will be installed
-            agents (list): list of :py:class:`enoslib.Host` where the agent will
+            agents: list of :py:class:`enoslib.Host` where the agent will
                            be installed
-            networks (list): list of networks as returned by a provider. This is
+            networks: list of networks as returned by a provider. This is
                              visually see them in the interface
+            priors: prior to apply before deploying this service
             extra_vars (dict): extra variables to pass to the deployment
 
         Examples:
@@ -56,10 +61,12 @@ class Skydive(Service):
                 :linenos:
 
         """
-        self.analyzers = analyzers
-        self.agents = agents
-        self.skydive = analyzers + agents
-        self.roles = {}
+        self.analyzers = analyzers if analyzers is not None else []
+        assert(self.analyzers is not None)
+        self.agents = agents if agents is not None else []
+        assert(self.agents is not None)
+        self.skydive = self.analyzers + self.agents
+        self.roles: Dict = {}
         self.networks = networks
         self.priors = priors
         self.roles.update(analyzers=analyzers, agents=agents, skydive=self.skydive)

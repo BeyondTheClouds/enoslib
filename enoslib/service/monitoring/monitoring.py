@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 from typing import Dict, List, Optional
 
-from enoslib.api import play_on, __python3__, __default_python3__, __docker__
+from enoslib.api import play_on, __python3__, __docker__
 from enoslib.types import Host, Roles
 from ..service import Service
 from ..utils import _check_path, _to_abs
@@ -27,7 +27,8 @@ class Monitoring(Service):
         collector_env: Optional[Dict] = None,
         agent_env: Optional[Dict] = None,
         ui_env: Optional[Dict] = None,
-        priors: List[play_on] = [__python3__, __default_python3__, __docker__],
+        priors: List[play_on] = [__python3__, __docker__],
+        extra_vars: Dict = None,
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
@@ -56,6 +57,7 @@ class Monitoring(Service):
             ui_env: environment variables to pass in the ui process
                            environment
             prior: priors to apply
+            extra_vars: extra variables to pass to Ansible
 
 
         Examples:
@@ -98,13 +100,23 @@ class Monitoring(Service):
 
         self.priors = priors
 
+        # We force python3
+        extra_vars = extra_vars if extra_vars is not None else {}
+        self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
+        self.extra_vars.update(extra_vars)
+
     def deploy(self):
         """Deploy the monitoring stack"""
         if self.collector is None:
             return
 
         # Some requirements
-        with play_on(pattern_hosts="all", roles=self._roles, priors=self.priors) as p:
+        with play_on(
+            pattern_hosts="all",
+            roles=self._roles,
+            priors=self.priors,
+            extra_vars=self.extra_vars,
+        ) as p:
             p.pip(display_name="Installing python-docker", name="docker")
 
         # Deploy the collector
@@ -112,7 +124,9 @@ class Monitoring(Service):
 
         # Handle port customisation
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
-        with play_on(pattern_hosts="collector", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             p.docker_container(
                 display_name="Installing",
                 name="influxdb",
@@ -143,6 +157,7 @@ class Monitoring(Service):
             collector_address = self.collector[0].address
 
         extra_vars = {"collector_address": collector_address}
+        extra_vars.update(self.extra_vars)
         with play_on(
             pattern_hosts="agent", roles=self._roles, extra_vars=extra_vars
         ) as p:
@@ -184,7 +199,9 @@ class Monitoring(Service):
 
         # Handle port customisation
         ui_port = self.ui_env["GF_SERVER_HTTP_PORT"]
-        with play_on(pattern_hosts="ui", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="ui", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             p.docker_container(
                 display_name="Installing Grafana",
                 name="grafana",
@@ -231,7 +248,9 @@ class Monitoring(Service):
 
         This destroys all the container and associated volumes.
         """
-        with play_on(pattern_hosts="ui", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="ui", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             p.docker_container(
                 display_name="Destroying Grafana",
                 name="grafana",
@@ -239,12 +258,16 @@ class Monitoring(Service):
                 force_kill=True,
             )
 
-        with play_on(pattern_hosts="agent", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="agent", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             p.docker_container(
                 display_name="Destroying telegraf", name="telegraf", state="absent"
             )
 
-        with play_on(pattern_hosts="collector", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             p.docker_container(
                 display_name="Destroying InfluxDB",
                 name="influxdb",
@@ -266,7 +289,9 @@ class Monitoring(Service):
 
         _backup_dir = _check_path(_backup_dir)
 
-        with play_on(pattern_hosts="collector", roles=self._roles) as p:
+        with play_on(
+            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
+        ) as p:
             backup_path = os.path.join(self.remote_working_dir, "influxdb-data.tar.gz")
             p.docker_container(
                 display_name="Stopping InfluxDB", name="influxdb", state="stopped"

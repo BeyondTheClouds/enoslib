@@ -576,6 +576,7 @@ class Netem(Service):
             for alias in c.keys():
                 c[alias] = " ; ".join(c[alias])
             return c
+
         # tc_commands are indexed by )host alia == inventory_hostname
         tc_commands = _combine(*_build_commands(ips_with_constraints))
         options = _build_options(self.extra_vars, {"tc_commands": tc_commands})
