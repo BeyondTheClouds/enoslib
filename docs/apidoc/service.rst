@@ -81,6 +81,13 @@ Network Emulation (Netem & SimpleNetem)
 Netem & SimpleNetem Service Class
 ---------------------------------
 
+To enforce network constraint, |enoslib| provides two different services: the
+Netem Service and the SimpleNetem Service. The former tends to be used when
+heterogeneous constraints are required between your hosts while the latter
+can be used to set homogeneous constraints between your hosts.
+
+Netem and SimpleNetem Class
+***************************
 
 .. automodule:: enoslib.service.netem.netem
     :members:

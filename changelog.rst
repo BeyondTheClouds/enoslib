@@ -15,7 +15,14 @@ Changelog
     - improve documentation.
 - Service/SimpleNetem: A simplified version of the Netem Service
   that sets homogeneous constraints on hosts.
-- Service/Netem: Fix an issue when the interface names contains a dash.
+- Service/Netem:
+    - Fix an issue when the interface names contains a dash.
+    - Fix: `symetric: False` wasn't taken into account
+    - Speed up the rules deployment (everything is pre-generated on python side)
+    - (BREAKING): Netem Schema
+        - `groups` or `except` keys are now mandatory in the decription
+        - `enable` key has been removed.
+- Api: Add `when` in the top-level kwargs of `play_on` modules.
 
 4.11.0
 ------

@@ -44,9 +44,9 @@ roles = discover_networks(roles, networks)
 
 # Building the network constraints
 emulation_conf = {
-    "enable": True,
     "default_delay": "20ms",
     "default_rate": "1gbit",
+    "except": [],
     "constraints": [{
         "src": "paris",
         "dst": "londres",
@@ -60,3 +60,4 @@ logging.info(emulation_conf)
 netem = Netem(emulation_conf, roles=roles)
 netem.deploy()
 netem.validate()
+netem.destroy()
