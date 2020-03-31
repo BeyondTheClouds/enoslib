@@ -162,6 +162,11 @@ test_static_tasks$debian$:
 test_dask$debian$:
   <<: *debian
 
+test_discover_networks$debian$:
+  <<: *debian
+
+test_dstat$debian$:
+  <<: *debian
 ## ubuntu 1804
 #-----------------------------------------------
 test_static_run_command$ubuntu1804$: &ubuntu1804
@@ -186,6 +191,12 @@ test_static_tasks$ubuntu1804$:
 test_dask$ubuntu1804$:
   <<: *ubuntu1804
 
+test_discover_networks$debian$:
+  <<: *ubuntu1804
+
+test_dstat$debian$:
+  <<: *ubuntu1804
+
 ## ubuntu latest
 #-----------------------------------------------
 test_static_run_command$ubuntu$: &ubuntu
@@ -208,6 +219,12 @@ test_static_tasks$ubuntu$:
   <<: *ubuntu
 
 test_dask$ubuntu$:
+  <<: *ubuntu
+
+test_discover_networks$ubuntu$:
+  <<: *ubuntu
+
+test_dstat$ubuntu$:
   <<: *ubuntu
 
 ###############################################################################

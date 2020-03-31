@@ -41,5 +41,6 @@ roles = discover_networks(roles, networks)
 
 m = Dstat(nodes=roles["control"])
 m.deploy()
-m.backup()
+# stop monitoring to be generated before backuping
 m.destroy()
+m.backup()
