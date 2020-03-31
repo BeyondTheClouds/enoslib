@@ -9,6 +9,7 @@ from ..utils import _check_path
 
 
 OUTPUT_FILE = "dstat.csv"
+TMUX_SESSION = "__enoslib_dstat__"
 
 
 class Dstat(Service):
@@ -66,7 +67,7 @@ class Dstat(Service):
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
             options = f"{self.options} -o {OUTPUT_FILE}"
             p.shell(
-                f"tmux new-session -d 'exec dstat {options}'",
+                f"tmux new-session -s {TMUX_SESSION} -d 'exec dstat {options}'",
                 chdir=self.remote_working_dir,
                 display_name=f"Running dstat with the options {options}",
             )
@@ -79,12 +80,8 @@ class Dstat(Service):
         """
         """Stop locust."""
         with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
-            kill_cmd = []
-            kill_cmd.append('kill -9 `ps aux|grep "dstat"')
-            kill_cmd.append("grep -v grep")
-            kill_cmd.append('sed "s/ \\{1,\\}/ /g"')
-            kill_cmd.append('cut -f 2 -d" "`')
-            p.shell("|".join(kill_cmd) + "|| true")
+            kill_cmd = f"tmux kill-session -t {TMUX_SESSION}"
+            p.shell(kill_cmd)
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the dstat monitoring stack.
