@@ -23,6 +23,7 @@ Changelog
         - `groups` or `except` keys are now mandatory in the decription
         - `enable` key has been removed.
 - Api: Add `when` in the top-level kwargs of `play_on` modules.
+- Service/dstat: use a named session.
 
 4.11.0
 ------
