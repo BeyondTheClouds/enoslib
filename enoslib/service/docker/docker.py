@@ -41,7 +41,6 @@ class Docker(Service):
     def __init__(
         self, *, agent=None, registry=None, registry_opts=None, bind_var_docker=None
     ):
-
         """Deploy docker agents on the nodes and registry cache(optionnal)
 
         This assumes a debian/ubuntu base environment and aims at producing a
@@ -113,17 +112,15 @@ class Docker(Service):
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
-        """Destroy docker
+        """(Not implemented) Destroy docker
 
-        No destroy implemented yet.
-        But what do you want to destroy exactly?
+        Feel free to share your ideas.
         """
         pass
 
     def backup(self):
-        """Backup docker.
+        """(Not implemented) Backup docker.
 
-        No backup implemented yet.
-        But what do you want to backup exactly?
+        Feel free to share your ideas.
         """
         pass

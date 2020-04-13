@@ -16,6 +16,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import pkg_resources
 import os
 import sphinx_rtd_theme
 import sys
@@ -32,7 +33,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 #extensions = []
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'autodocsumm']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -56,7 +57,6 @@ author = u'Ronan-Alexandre Cherrueau, Matthieu Simonin'
 # built documents.
 #
 # The short X.Y version.
-import pkg_resources
 version = pkg_resources.require(project)[0].version
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -177,4 +177,6 @@ rst_epilog = """
 
 # Document also the __init__
 autoclass_content = "both"
-
+autodoc_default_options = {
+    'autosummary': True,
+}

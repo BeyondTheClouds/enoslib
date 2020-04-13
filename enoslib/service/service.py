@@ -12,12 +12,15 @@ class Service:
 
     @abstractmethod
     def deploy(self):
+        """(abstract) Deploy the service."""
         pass
 
     @abstractmethod
     def destroy(self):
+        """(abstract) Destroy the service."""
         pass
 
     @abstractmethod
     def backup(self):
+        """(abstract) Backup the service."""
         pass

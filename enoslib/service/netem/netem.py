@@ -355,7 +355,7 @@ class SimpleNetem(Service):
     def __init__(
         self, options: str, network: str, *, hosts: List[Host] = None, extra_vars=None
     ):
-        """A wrapper arount netem that applies the constraint on all the hosts.
+        """Set homogeneous network constraints between your hosts.
 
 
         Note that the network constraints are set in all the nodes for
@@ -436,7 +436,7 @@ class Netem(Service):
         roles: Roles = None,
         extra_vars: Dict[Any, Any] = None,
     ):
-        """Build the Netem Service.
+        """Set heterogeneous constraints between your hosts.
 
         It allows to setup complex network topology. For a much simpler way of
         applying constraints see
@@ -589,7 +589,10 @@ class Netem(Service):
             )
 
     def backup(self):
-        """ What do you want to backup here?"""
+        """(Not Implemented) Backup.
+
+        Feel free to share your ideas.
+        """
         pass
 
     def destroy(self):

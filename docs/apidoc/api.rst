@@ -5,5 +5,5 @@ Global API
 **********
 
 .. automodule:: enoslib.api
-   :members:
-   :undoc-members:
+    :members:
+    :undoc-members:

@@ -65,10 +65,6 @@ ANSIBLE_TOP_LEVEL = {
     "when": "when"
 }
 
-AnsibleExecutionRecord = namedtuple(
-    "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
-)
-
 
 def _split_args(**kwargs):
     """Splits top level kwargs and module specific kwargs."""
@@ -141,6 +137,11 @@ def _load_defaults(
     return inventory, variable_manager, loader
 
 
+_AnsibleExecutionRecord = namedtuple(
+    "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
+)
+
+
 class _MyCallback(CallbackModule):
 
     CALLBACK_VERSION = 2.0
@@ -157,7 +158,7 @@ class _MyCallback(CallbackModule):
         self.set_option("show_per_host_start", True)
 
     def _store(self, result, status):
-        record = AnsibleExecutionRecord(
+        record = _AnsibleExecutionRecord(
             host=result._host.get_name(),
             status=status,
             task=result._task.get_name(),

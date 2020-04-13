@@ -15,7 +15,7 @@ WRAPPER_PREFIX = "/opt/enoslib_conda"
 CONDA_PREFIX = "/opt/conda"
 
 
-def conda_wrapper(env_name: str):
+def _conda_wrapper(env_name: str):
     return f"{WRAPPER_PREFIX}/bin/{env_name}"
 
 
@@ -27,7 +27,7 @@ def _get_env_name(env_file: str):
     return env_name
 
 
-def shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
+def _shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
     """Make sure conda is initialized before launching the shell command.
 
     Implementation-wise this will source /opt/conda/etc/profile.d/conda.sh
@@ -39,15 +39,15 @@ def shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
     )
 
 
-def create_wrapper_script(p: play_on, env_name: str):
+def _create_wrapper_script(p: play_on, env_name: str):
     """Create a wrapper script for Ansible.
 
     This can be used as an python interpreter and
     let the execution be contained, somehow, in a conda env.
     """
-    p.file(state="directory", dest=os.path.dirname(conda_wrapper(env_name)))
+    p.file(state="directory", dest=os.path.dirname(_conda_wrapper(env_name)))
     p.copy(
-        dest=conda_wrapper(env_name),
+        dest=_conda_wrapper(env_name),
         content=_d(
             f"""#!/bin/bash -l
             set -ex
@@ -65,11 +65,13 @@ def _inject_wrapper_script(env_name, **kwargs):
     kwds.pop("run_as", None)
     kwds.pop("become", None)
     with play_on(**kwds) as p:
-        create_wrapper_script(p, env_name)
+        _create_wrapper_script(p, env_name)
 
 
 def conda_run_command(command: str, env_name: str, **kwargs: Any):
-    """Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
+    """Run a single shell command in the context of a Conda environment.
+
+    Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
 
     Args:
         command: The command to run
@@ -78,25 +80,26 @@ def conda_run_command(command: str, env_name: str, **kwargs: Any):
     # should run as root
     _inject_wrapper_script(env_name, **kwargs)
     extra_vars = kwargs.pop("extra_vars", {})
-    extra_vars.update(ansible_python_interpreter=conda_wrapper(env_name))
+    extra_vars.update(ansible_python_interpreter=_conda_wrapper(env_name))
     # we are now ready to run this
     return run_command(command, extra_vars=extra_vars, **kwargs)
 
 
 class conda_play_on(play_on):
+    """Run Ansible modules in the context of a Conda environment."""
+
     def __init__(self, env_name: str, **kwargs: Any):
         super().__init__(**kwargs)
         self.conda_env = env_name
-        self.extra_vars.update(ansible_python_interpreter=conda_wrapper(env_name))
+        self.extra_vars.update(ansible_python_interpreter=_conda_wrapper(env_name))
         _inject_wrapper_script(env_name, **kwargs)
 
 
 class Conda(Service):
     def __init__(self, *, nodes: List[Host]):
-
         """Manage Conda on your nodes.
 
-        This installs miniconda on the nodes (latest version). Optionaly it
+        This installs miniconda on the nodes(latest version). Optionaly it
         can also prepare an environment.
 
         Args:
@@ -123,7 +126,7 @@ class Conda(Service):
         Args:
             env_file: create an environment based on this file.
                       if specified the following arguments will be ignored.
-            env_name: name of the environment to create (if env_file is absent).
+            env_name: name of the environment to create(if env_file is absent).
             packages: list of packages to install in the environment named env_name.
         """
         if packages is None:
@@ -145,7 +148,7 @@ class Conda(Service):
                 # look for the env_name
                 _env_name = _get_env_name(env_file)
                 p.copy(src=env_file, dest="environment.yml")
-                shell_in_conda(
+                _shell_in_conda(
                     p,
                     (
                         f"(conda env list | grep '^{_env_name}') || "
@@ -153,24 +156,24 @@ class Conda(Service):
                     ),
                     executable="/bin/bash",
                 )
-                create_wrapper_script(p, _env_name)
+                _create_wrapper_script(p, _env_name)
                 return
 
             # Install packages if any
             if env_name is not None and len(packages) > 0:
-                shell_in_conda(
+                _shell_in_conda(
                     p,
                     f"conda create --yes --name={env_name} {' '.join(packages)}",
                     executable="/bin/bash",
                 )
-                create_wrapper_script(p, env_name)
+                _create_wrapper_script(p, env_name)
             if env_name is None and len(packages) > 0:
-                shell_in_conda(
+                _shell_in_conda(
                     p,
                     f"conda create --yes {' '.join(packages)}",
                     executable="/bin/bash",
                 )
-                create_wrapper_script(p, env_name)
+                _create_wrapper_script(p, env_name)
 
     def destroy(self):
         """Not implemented."""
@@ -185,7 +188,7 @@ class Dask(Service):
     def __init__(
         self, scheduler: Host, worker: List[Host], env_file: Optional[str] = None
     ):
-        """ Initializes a Dask cluster on the nodes.
+        """Initialize a Dask cluster on the nodes.
 
         Args:
             scheduler: the scheduler host
@@ -195,9 +198,9 @@ class Dask(Service):
 
         Examples:
 
-            .. literalinclude:: examples/dask.py
-                :language: python
-                :linenos:
+            .. literalinclude: : examples/dask.py
+                : language: python
+                : linenos:
 
         """
         self.scheduler = scheduler
@@ -220,7 +223,7 @@ class Dask(Service):
             p.apt(name="tmux", state="present")
 
         with play_on(pattern_hosts="scheduler", roles=self.roles) as p:
-            shell_in_conda(
+            _shell_in_conda(
                 p,
                 (
                     "(tmux ls | grep dask-scheduler) ||"
@@ -233,7 +236,7 @@ class Dask(Service):
         s = self.scheduler.address
         cmd = f"tmux new-session -s dask-worker -d 'exec dask-worker tcp://{s}:8786'"
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
-            shell_in_conda(
+            _shell_in_conda(
                 p,
                 (
                     "(tmux ls | grep dask-worker) ||"

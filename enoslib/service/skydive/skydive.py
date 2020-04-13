@@ -114,6 +114,7 @@ class Skydive(Service):
         return fabric
 
     def deploy(self):
+        """Deploy Skydive service."""
         # Some requirements
         with play_on(pattern_hosts="all", roles=self.roles, priors=self.priors) as p:
             p.pip(display_name="[Preinstall] Installing pyyaml", name="pyyaml")
