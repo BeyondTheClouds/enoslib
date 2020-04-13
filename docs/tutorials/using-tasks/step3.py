@@ -1,3 +1,4 @@
+import click
 import logging
 import os
 
@@ -30,17 +31,17 @@ tc = {
     "enable": True,
     "default_delay": "20ms",
     "default_rate": "1gbit",
+    "groups": ["control", "compute"]
 }
 
 
-import click
 @click.group()
 def cli():
     pass
 
 
 @cli.command()
-@click.option("--force",is_flag=True, help="vagrant destroy and up")
+@click.option("--force", is_flag=True, help="vagrant destroy and up")
 @enostask(new=True)
 def up(force, env=None, **kwargs):
     """Starts a new experiment using vagrant"""
@@ -68,7 +69,6 @@ def validate(env=None, **kwargs):
     roles = env["roles"]
     netem = Netem(tc, roles=roles)
     netem.validate()
-
 
 
 if __name__ == '__main__':

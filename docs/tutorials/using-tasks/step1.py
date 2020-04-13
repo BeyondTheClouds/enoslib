@@ -28,6 +28,7 @@ tc = {
     "enable": True,
     "default_delay": "20ms",
     "default_rate": "1gbit",
+    "groups": ["control", "compute"]
 }
 
 

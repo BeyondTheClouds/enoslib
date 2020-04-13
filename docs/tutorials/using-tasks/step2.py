@@ -30,6 +30,7 @@ tc = {
     "enable": True,
     "default_delay": "20ms",
     "default_rate": "1gbit",
+    "groups": ["control", "compute"]
 }
 
 
@@ -56,6 +57,7 @@ def validate(env=None, **kwargs):
     roles = env["roles"]
     netem = Netem(tc, roles=roles)
     netem.validate()
+
 
 up()
 emulate()
