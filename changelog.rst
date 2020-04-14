@@ -1,6 +1,16 @@
 Changelog
 ===========
 
+5.1.0
+-----
+
+- Tasks:
+    - review the internal of the implementation
+    - support for nested tasks added
+- Doc:
+    - Add autodoc summary in the APIs pages (provided by autodocsumm)
+    - Align some examples with the new Netem implementation
+
 5.0.0
 -----
 
