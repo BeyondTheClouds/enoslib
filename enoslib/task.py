@@ -55,7 +55,18 @@ class Environment:
     def __init__(self, env_name: Path):
         env_name.mkdir(parents=True, exist_ok=True)
         self.env_name = env_name.resolve()
-        self.__store: Dict = {"config_file": None, "config": {}, "config_type": "yaml"}
+        self.__store: Dict = {
+            # this resultdir was used to store the env_name
+            # in the previous version
+            # we keep it for backward compatibility purpose
+            "resultdir": self.env_name,
+            # store the path to a configuration file if any
+            "config_file": None,
+            # the configuration itself
+            "config": {},
+            # unused for now, let's see if we can handle different
+            # configuration format
+            "config_type": "yaml"}
 
     def get(self, key, default=None):
         return self.__store.get(key, default)
@@ -143,7 +154,7 @@ def enostask(new: bool = False, symlink: bool = True):
         new (bool): indicates if a new environment must be created.
             Usually this is set on the first task of the workflow.
         symlink (bool): indicates if the env in use must be symlinked
-        (ignored if new=False)
+            (ignored if new=False)
 
     Examples:
 
