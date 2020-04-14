@@ -52,7 +52,15 @@ def _create_env_dir(env_dir: Path):
 
 
 class Environment:
+    """An environment is a kv-store used to keep track of the experimental context."""
+
     def __init__(self, env_name: Path):
+        """Build a new environment backed by a file.
+
+        Args:
+            env_name: name of the environment. This corresponds to the place
+                where the environment will be saved.
+        """
         env_name.mkdir(parents=True, exist_ok=True)
         self.env_name = env_name.resolve()
         self.__store: Dict = {
@@ -69,6 +77,12 @@ class Environment:
             "config_type": "yaml"}
 
     def get(self, key, default=None):
+        """Get a value out of the environment.
+
+        Args:
+            key: the key to be search in the environment
+            default: default value to be returned if key isn't found
+        """
         return self.__store.get(key, default)
 
     def __getitem__(self, key):
@@ -79,6 +93,11 @@ class Environment:
 
     @classmethod
     def load_from_file(cls, env_file: Path):
+        """Create an Environment from a file.
+
+        Args:
+            env_file: path to the file to load.
+        """
         if not env_file.is_file():
             raise EnosFilePathError(
                 env_file, f"{env_file} doesn't exist, not reloading"
@@ -92,16 +111,18 @@ class Environment:
         return self
 
     def dumps(self):
+        """Return the dumped object of the environment."""
         return pickle.dumps(self)
 
     def dump(self):
+        """Dump the environment in a file (env_name)."""
         self.env_name.mkdir(parents=True, exist_ok=True)
         env_file = self.env_name.joinpath(ENV_FILENAME)
         with env_file.open("wb") as f:
             f.write(self.dumps())
 
     def reload_config(self):
-        """reload a config file if any in the store."""
+        """Reload a config file if any in the store."""
         if self.get("config_file"):
             # Resets the configuration of the environment
             config_path = Path(self["config_file"])
@@ -114,6 +135,17 @@ class Environment:
 def get_or_create_env(
     new: bool, env_name: Optional[Union[Environment, Path, str]], symlink=True
 ):
+    """Loads an environment in various situations.
+
+    Args:
+        new: indicates if a new env must be created (and all its parents directories)
+        env_name: an environment specifier. May be a pathlib.Path object to
+            an existing environment, a string (representing a path to an
+            environment) or an already crafted Environment.
+        symlink: if a environment is created (new=True), a symlink can be
+            created in the current directory to point to this environment if
+            symlink=True.
+    """
     if isinstance(env_name, Environment):
         env = env_name
     elif isinstance(env_name, str):
@@ -131,6 +163,8 @@ def get_or_create_env(
             _create_env_dir(env_dir)
             # Create a new env
             env = Environment(env_dir)
+            # dump this new (empty) env
+            env.dump()
             if symlink:
                 _symlink_to(env.env_name)
         else:
@@ -145,7 +179,7 @@ def get_or_create_env(
 
 
 def enostask(new: bool = False, symlink: bool = True):
-    """Decorator for an Enos Task.
+    """Decorator for an EnOSlib Task.
 
     This decorator lets you define a new Enos task and helps you manage the
     environment. It injects the environment in the function called.

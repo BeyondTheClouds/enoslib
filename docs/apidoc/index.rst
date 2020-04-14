@@ -14,3 +14,4 @@ API documentation
    api.rst
    service.rst
    infra.rst
+   task.rst
