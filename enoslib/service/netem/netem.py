@@ -435,6 +435,7 @@ class Netem(Service):
         *,
         roles: Roles = None,
         extra_vars: Dict[Any, Any] = None,
+        chunk_size: int = 100
     ):
         """Set heterogeneous constraints between your hosts.
 
@@ -448,6 +449,8 @@ class Netem(Service):
             roles: the enoslib roles to consider
             extra_vars: extra variables to pass to Ansible when running (e.g.
                 callback options)
+            chunk_size: For large deployments, the commands to apply can become too
+                long. It can be split in chunks of size chunk_size.
 
         *Network constraint schema:*
 
@@ -531,6 +534,7 @@ class Netem(Service):
         self.network_constraints = network_constraints
         self.roles = roles if roles is not None else []
         self.extra_vars = extra_vars if extra_vars is not None else {}
+        self.chunk_size = chunk_size
 
     @classmethod
     def is_valid(cls, network_constraints):
@@ -566,6 +570,11 @@ class Netem(Service):
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
 
+        def _chunks(l, size):
+            """Chunk a list in smaller pieces."""
+            for i in range(0, len(l), size):
+                yield l[i:i + size]
+
         def _combine(*args):
             """Build the commands indexed by host"""
             c = defaultdict(list)
@@ -573,18 +582,22 @@ class Netem(Service):
             for a in list(_args):
                 for s, l in a.items():
                     c[s.alias] = c[s.alias] + l
+            commands = defaultdict(list)
             for alias in c.keys():
-                c[alias] = " ; ".join(c[alias])
-            return c
+                for chunk in list(_chunks(c[alias], self.chunk_size)):
+                    commands[alias].append(" ; ".join(chunk))
+            return commands
 
-        # tc_commands are indexed by )host alia == inventory_hostname
+        # tc_commands are indexed by host alias == inventory_hostname
         tc_commands = _combine(*_build_commands(ips_with_constraints))
         options = _build_options(self.extra_vars, {"tc_commands": tc_commands})
+
         # 4. Run the commands on the remote hosts (only those involved)
         with play_on(roles=self.roles, extra_vars=options) as p:
             p.shell(
-                "{{ tc_commands[inventory_hostname] }}",
+                "{{ item }}",
                 when="tc_commands[inventory_hostname] is defined",
+                loop="{{ tc_commands[inventory_hostname] }}",
                 display_name="Applying the network constraints",
             )
 
