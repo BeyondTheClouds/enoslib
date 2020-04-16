@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.1.1
+-----
+
+- Netem: Better support for large deployment (introduce `chunk_size` parameter)
+
 5.1.0
 -----
 
