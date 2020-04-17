@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.1.2
+-----
+
+- Task: automatic ``env_name`` change to remove colons from the name
+
 5.1.1
 -----
 

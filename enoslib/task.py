@@ -157,7 +157,8 @@ def get_or_create_env(
     elif env_name is None:
         if new:
             # regardless the existing env, we create a new one
-            env_dir = Path("enos_" + datetime.today().isoformat())
+            env_dir_key = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+            env_dir = Path(f"enos_{env_dir_key}")
             env_file = env_dir.joinpath(ENV_FILENAME)
             # This prepares the env_dir
             _create_env_dir(env_dir)
