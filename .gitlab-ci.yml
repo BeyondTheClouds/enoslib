@@ -175,6 +175,7 @@ test_discover_networks$debian$:
 
 test_dstat$debian$:
   <<: *debian
+
 ## ubuntu 1804
 #-----------------------------------------------
 test_static_run_command$ubuntu1804$: &ubuntu1804
@@ -209,6 +210,7 @@ test_dstat$debian$:
 #-----------------------------------------------
 test_static_run_command$ubuntu$: &ubuntu
   <<: *debian10
+  allow_failure: true
   image: ubuntu:latest
 
 test_static_gather_facts$ubuntu$:
@@ -234,6 +236,7 @@ test_discover_networks$ubuntu$:
 
 test_dstat$ubuntu$:
   <<: *ubuntu
+  allow_failure: true
 
 ###############################################################################
 #
