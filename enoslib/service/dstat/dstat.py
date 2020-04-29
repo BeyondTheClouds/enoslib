@@ -66,8 +66,8 @@ class Dstat(Service):
             p.apt(name=["dstat", "tmux"], state="present")
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
             options = f"{self.options} -o {OUTPUT_FILE}"
-            p.shell(
-                f"tmux new-session -s {TMUX_SESSION} -d 'exec dstat {options}'",
+            p.shell((f"(tmux ls | grep {TMUX_SESSION}) || "
+                f"tmux new-session -s {TMUX_SESSION} -d 'exec dstat {options}'"),
                 chdir=self.remote_working_dir,
                 display_name=f"Running dstat with the options {options}",
             )
@@ -78,7 +78,6 @@ class Dstat(Service):
         This kills the dstat processes on the nodes.
         Metric files survive to destroy.
         """
-        """Stop locust."""
         with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
             kill_cmd = f"tmux kill-session -t {TMUX_SESSION}"
             p.shell(kill_cmd)

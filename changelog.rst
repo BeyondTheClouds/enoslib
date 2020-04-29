@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Tasks: Fix an issue with predefined env creation
+- Service/dstat: Fix idempotency of deploy
 
 5.1.2
 -----
