@@ -1,10 +1,15 @@
 Changelog
 ===========
 
+5.1.3
+-----
+
+- Tasks: Fix an issue with predefined env creation
+
 5.1.2
 -----
 
-- Task: automatic ``env_name`` change to remove colons from the name
+- Tasks: automatic ``env_name`` change to remove colons from the name
 
 5.1.1
 -----

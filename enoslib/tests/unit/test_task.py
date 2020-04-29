@@ -92,6 +92,12 @@ class TestGetOrCreateEnvironment(EnosTest):
         self.assertTrue("enos_" in str(actual_env.env_name))
 
     @dir_without_env
+    def test_reload_create_new_predefined(self, dir_without_env):
+        actual_env = get_or_create_env(True, "xp1")
+        self.assertTrue(Path.cwd().joinpath(SYMLINK_NAME).is_symlink())
+        self.assertEqual(Path("xp1").resolve(), actual_env.env_name)
+
+    @dir_without_env
     def test_reload_reload_not_existing(self, dir_without_env):
         with self.assertRaises(EnosFilePathError) as _:
             actual_env = get_or_create_env(False, None)

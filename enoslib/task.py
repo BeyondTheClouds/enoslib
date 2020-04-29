@@ -74,7 +74,8 @@ class Environment:
             "config": {},
             # unused for now, let's see if we can handle different
             # configuration format
-            "config_type": "yaml"}
+            "config_type": "yaml",
+        }
 
     def get(self, key, default=None):
         """Get a value out of the environment.
@@ -146,37 +147,41 @@ def get_or_create_env(
             created in the current directory to point to this environment if
             symlink=True.
     """
+
+    def _create_new_env(env_file):
+        _create_env_dir(env_file.parent)
+        # Create a new env
+        env = Environment(env_file.parent)
+        # dump this new (empty) env
+        env.dump()
+        if symlink:
+            _symlink_to(env.env_name)
+        return env
+
     if isinstance(env_name, Environment):
-        env = env_name
+        return env_name
     elif isinstance(env_name, str):
         env_file = Path(env_name).joinpath(ENV_FILENAME)
-        env = Environment.load_from_file(env_file)
+        if new:
+            return _create_new_env(env_file)
+        return Environment.load_from_file(env_file)
     elif isinstance(env_name, Path):
         env_file = env_name.joinpath(ENV_FILENAME)
-        env = Environment.load_from_file(env_file)
+        if new:
+            return _create_new_env(env_file)
+        return Environment.load_from_file(env_file)
     elif env_name is None:
         if new:
-            # regardless the existing env, we create a new one
             env_dir_key = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
             env_dir = Path(f"enos_{env_dir_key}")
             env_file = env_dir.joinpath(ENV_FILENAME)
-            # This prepares the env_dir
-            _create_env_dir(env_dir)
-            # Create a new env
-            env = Environment(env_dir)
-            # dump this new (empty) env
-            env.dump()
-            if symlink:
-                _symlink_to(env.env_name)
+            return _create_new_env(env_file)
         else:
-            # otherwise we try to reuse an existing one
-            env = Environment.load_from_file(SYMLINK_NAME.joinpath(ENV_FILENAME))
-    else:
-        raise EnosFilePathError(
-            env_name, "You must pass an Environment or a Path or string path"
-        )
+            return Environment.load_from_file(SYMLINK_NAME.joinpath(ENV_FILENAME))
 
-    return env
+    raise EnosFilePathError(
+        env_name, "You must pass an Environment or a Path or string path or None"
+    )
 
 
 def enostask(new: bool = False, symlink: bool = True):
