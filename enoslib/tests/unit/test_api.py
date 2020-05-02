@@ -2,11 +2,12 @@ import unittest
 
 import mock
 
+from . import EnosTest
 from enoslib.api import *
 from enoslib.host import Host
 
 
-class TestSSH(unittest.TestCase):
+class TestSSH(EnosTest):
     longMessage = True
     hosts = [Host("1.2.3.4")]
     env = {"resultdir": "foo/bar", "inventory": "foo/bar"}
@@ -31,7 +32,7 @@ class TestSSH(unittest.TestCase):
             wait_ssh(self.env, interval=0)
 
 
-class TestPlayOn(unittest.TestCase):
+class TestPlayOn(EnosTest):
     def test_modules(self):
         p = play_on(pattern_hosts="pattern")
         p.__exit__ = mock.MagicMock()
@@ -46,3 +47,15 @@ class TestPlayOn(unittest.TestCase):
             with play_on(pattern_hosts="pattern") as p:
                 p.a()
             m.assert_called_once()
+
+class TestGetHosts(EnosTest):
+    def test_get_all(self):
+        roles = {
+            "client.1": [Host("1.2.3.4")],
+            "client.2": [Host("2.2.3.4")],
+            "server": [Host("3.2.3.4")]
+        }
+        hosts = get_hosts(roles)
+        self.assertEqual(3, len(hosts))
+        hosts = get_hosts(roles, pattern_hosts="client*")
+        self.assertEqual(2, len(hosts))

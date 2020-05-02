@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+5.2.0
+-----
+
+- Api: Add ``get_hosts(roles, pattern_hosts="all")`` to retrieve a list of host matching a pattern
+
+
 5.1.3
 -----
 

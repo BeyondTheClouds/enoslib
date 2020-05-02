@@ -35,7 +35,7 @@ from enoslib.errors import (
     EnosUnreachableHostsError,
     EnosSSHNotReady,
 )
-from enoslib.types import Roles, Networks
+from enoslib.types import Roles, Networks, Host
 
 logger = logging.getLogger(__name__)
 
@@ -897,6 +897,27 @@ def generate_inventory(
         )
         with open(inventory_path, "w") as f:
             f.write(_generate_inventory(_roles))
+
+
+def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
+    """Get all the hosts matching the pattern.
+
+    Args:
+        roles: the roles as returned by
+            :py:meth:`enoslib.infra.provider.Provider.init`
+        pattern_hosts: pattern to describe ansible hosts to target.
+            see https://docs.ansible.com/ansible/latest/intro_patterns.html
+
+    Return:
+        The list of hosts matching the pattern
+    """
+    all_hosts = set()
+    for hosts in roles.values():
+        all_hosts = all_hosts.union(set(hosts))
+    inventory = EnosInventory(roles=roles)
+    ansible_hosts = inventory.get_hosts(pattern=pattern_hosts)
+    ansible_addresses = [h.address for h in ansible_hosts]
+    return [h for h in all_hosts if h.address in ansible_addresses]
 
 
 def wait_ssh(roles: Roles, retries: int = 100, interval: int = 30) -> None:
