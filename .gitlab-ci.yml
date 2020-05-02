@@ -176,35 +176,35 @@ test_discover_networks$debian$:
 test_dstat$debian$:
   <<: *debian
 
-## ubuntu 2004
+## ubuntu 1804
 #-----------------------------------------------
-test_static_run_command$ubuntu2004$: &ubuntu2004
+test_static_run_command$ubuntu1804$: &ubuntu1804
   <<: *debian10
-  image: ubuntu:20.04
+  image: ubuntu:18.04
 
-test_static_gather_facts$ubuntu2004$:
-  <<: *ubuntu2004
+test_static_gather_facts$ubuntu1804$:
+  <<: *ubuntu1804
 
-test_static_play_on$ubuntu2004$:
-  <<: *ubuntu2004
+test_static_play_on$ubuntu1804$:
+  <<: *ubuntu1804
 
-test_static_run_ansible$ubuntu2004$:
-  <<: *ubuntu2004
+test_static_run_ansible$ubuntu1804$:
+  <<: *ubuntu1804
 
-test_monitoring_service$ubuntu2004$:
-  <<: *ubuntu2004
+test_monitoring_service$ubuntu1804$:
+  <<: *ubuntu1804
 
-test_static_tasks$ubuntu2004$:
-  <<: *ubuntu2004
+test_static_tasks$ubuntu1804$:
+  <<: *ubuntu1804
 
-test_dask$ubuntu2004$:
-  <<: *ubuntu2004
+test_dask$ubuntu1804$:
+  <<: *ubuntu1804
 
 test_discover_networks$debian$:
-  <<: *ubuntu2004
+  <<: *ubuntu1804
 
 test_dstat$debian$:
-  <<: *ubuntu2004
+  <<: *ubuntu1804
 
 ## ubuntu latest
 #-----------------------------------------------
