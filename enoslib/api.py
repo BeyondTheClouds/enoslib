@@ -4,7 +4,7 @@ import copy
 import logging
 import os
 import tempfile
-from typing import Any, List, MutableMapping, Mapping, Optional, Union
+from typing import Any, List, MutableMapping, Mapping, Optional, Union, Set
 import time
 import json
 import yaml
@@ -911,7 +911,7 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     Return:
         The list of hosts matching the pattern
     """
-    all_hosts = set()
+    all_hosts: Set[Host] = set()
     for hosts in roles.values():
         all_hosts = all_hosts.union(set(hosts))
     inventory = EnosInventory(roles=roles)
