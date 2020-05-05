@@ -25,6 +25,6 @@ Setting up heterogeneous constraints
 You can use the Netem service for this purpose. The example is based on the
 G5K provider, but can be adapted to another one if desired.
 
-.. literalinclude:: network_emulation/tuto_network_emulation.py
+.. literalinclude:: network_emulation/tuto_netem.py
    :language: python
    :linenos:

@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Api: Add ``get_hosts(roles, pattern_hosts="all")`` to retrieve a list of host matching a pattern
+- Doc: Fix netem example inclusion
 
 
 5.1.3
