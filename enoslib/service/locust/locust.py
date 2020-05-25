@@ -65,7 +65,7 @@ class Locust(Service):
             priors=self.priors,
             extra_vars=self.extra_vars,
         ) as p:
-            p.pip(display_name="Installing Locust", name="locustio")
+            p.pip(display_name="Installing Locust", name="locust")
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
 
     def destroy(self):
