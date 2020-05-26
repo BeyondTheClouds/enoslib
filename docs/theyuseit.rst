@@ -5,10 +5,22 @@ They use it
 Publications
 ============
 
-- Vania Marangozova-Martin, Noël de Palma, Ahmed El Rheddane. 
+
+- David Sarmiento, Adrien Lebre, Lucas Nussbaum, Abdelhadi Chari. Multi-site
+  Connectivity for Edge Infrastructures DIMINET:DIstributed Module for
+  Inter-site NETworking. The 20th IEEE/ACM International Symposium on Cluster,
+  Cloud and Internet Computing, IEEE; The University of Melbourne, May 2020,
+  Melbourne, Australia. ⟨hal-02573638⟩
+
+- Hélène Coullon, Dimitri Pertin, Christian Pérez. Production Deployment
+  Tools for IaaSes: an Overall Model and Survey. The IEEE 5th International
+  Conference on Future Internet of Things and Cloud (FiCloud), Aug 2017,
+  Prague, Czech Republic. pp.183-190, ⟨10.1109/FiCloud.2017.51⟩. ⟨hal-01532489⟩
+
+- Vania Marangozova-Martin, Noël de Palma, Ahmed El Rheddane.
   "Multi-Level Elasticity for Data Stream Processing," in IEEE Transactions on Parallel and Distributed Systems.
   Vol. 30, No. 10, 2019. DOI: 10.1109/TPDS.2019.2907950
-  
+
 - Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
   Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the
   23rd International Conference on Principles of Distributed Systems (OPODIS), Neuchâtel, Switzerland, December 2019.
