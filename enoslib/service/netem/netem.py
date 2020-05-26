@@ -570,10 +570,10 @@ class Netem(Service):
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
 
-        def _chunks(l, size):
+        def _chunks(_list, size):
             """Chunk a list in smaller pieces."""
-            for i in range(0, len(l), size):
-                yield l[i:i + size]
+            for i in range(0, len(_list), size):
+                yield _list[i:i + size]
 
         def _combine(*args):
             """Build the commands indexed by host"""

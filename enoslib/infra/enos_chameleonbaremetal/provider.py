@@ -55,7 +55,7 @@ def create_blazar_client(config, session):
 
 def get_reservation(bclient, provider_conf):
     leases = bclient.lease.list()
-    leases = [l for l in leases if l["name"] == provider_conf.lease_name]
+    leases = [lease for lease in leases if lease["name"] == provider_conf.lease_name]
     if len(leases) >= 1:
         lease = leases[0]
         if lease_is_reusable(lease):
