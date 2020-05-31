@@ -28,7 +28,9 @@ class Host(object):
         if not self.alias:
             self.alias = self.address
 
-        if self.extra:
+        # we make a copy to avoid to share the reference to extra outside
+        # see for example https://gitlab.inria.fr/discovery/enoslib/-/issues/74
+        if self.extra is not None:
             self.extra = copy.deepcopy(self.extra)
 
     def to_dict(self):
