@@ -148,7 +148,8 @@ class MachineConfiguration:
             kwargs.update(undercloud=undercloud)
 
         extra_devices = dictionnary.get("extra_devices")
-        kwargs.update(extra_devices=extra_devices)
+        if extra_devices is not None:
+            kwargs.update(extra_devices=extra_devices)
 
         return cls(**kwargs)
 
