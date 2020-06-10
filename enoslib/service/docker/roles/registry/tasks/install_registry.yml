@@ -6,7 +6,9 @@
     restart_policy: always
     detach: true
     ports:
-      - "{{ registry.ip }}:{{ registry.port }}:5000"
+      # make the registry listen on all addresses
+      # in the future, we may want to use a specific network
+      - "0.0.0.0:{{ registry.port }}:5000"
     env:
       REGISTRY_PROXY_REMOTEURL: https://registry-1.docker.io
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /mnt/registry
