@@ -123,7 +123,7 @@ def _load_defaults(
         ssh_extra_args=None,
         sftp_extra_args=None,
         scp_extra_args=None,
-        become=None,
+        become=False,
         become_method="sudo",
         become_user="root",
         remote_user=None,
