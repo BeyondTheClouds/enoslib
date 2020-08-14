@@ -11,6 +11,11 @@ from ..utils import _check_path
 OUTPUT_FILE = "dstat.csv"
 TMUX_SESSION = "__enoslib_dstat__"
 
+DOOL_URL = ("https://raw.githubusercontent.com/"
+            "scottchiefbaker/dool/6b89f2d0b6e38e1c8d706e88a12e020367f5100d/dool")
+DOOL_DIR = Path("/opt/enoslib_dool")
+DOOL_PATH = DOOL_DIR / "dool"
+
 
 class Dstat(Service):
     def __init__(
@@ -63,11 +68,18 @@ class Dstat(Service):
         with play_on(
             roles=self._roles, priors=self.priors, extra_vars=self.extra_vars
         ) as p:
-            p.apt(name=["dstat", "tmux"], state="present")
+            p.apt(name=["tmux"], state="present")
+            # install dool
+            p.file(path=str(DOOL_DIR), state="directory")
+            p.get_url(url=DOOL_URL, dest=str(DOOL_PATH), mode="0755")
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
             options = f"{self.options} -o {OUTPUT_FILE}"
-            p.shell((f"(tmux ls | grep {TMUX_SESSION}) || "
-                f"tmux new-session -s {TMUX_SESSION} -d 'exec dstat {options}'"),
+            p.shell(
+                (
+                    f"(tmux ls | grep {TMUX_SESSION}) || "
+                    f"tmux new-session -s {TMUX_SESSION} "
+                    f"-d 'exec {DOOL_PATH} {options}'"
+                ),
                 chdir=self.remote_working_dir,
                 display_name=f"Running dstat with the options {options}",
             )

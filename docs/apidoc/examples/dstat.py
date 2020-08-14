@@ -7,7 +7,7 @@ import logging
 import os
 import time
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # path to the inventory
 inventory = os.path.join(os.getcwd(), "hosts")
@@ -18,10 +18,10 @@ conf = Configuration.from_settings(job_type="allow_classic_ssh",
 network = NetworkConfiguration(id="n1",
                                type="prod",
                                roles=["my_network"],
-                               site="rennes")
+                               site="nancy")
 conf.add_network_conf(network)\
     .add_machine(roles=["control"],
-                 cluster="paravance",
+                 cluster="grisou",
                  nodes=2,
                  primary_network=network)\
     .finalize()
