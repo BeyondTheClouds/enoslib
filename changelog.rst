@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+5.3.0
+-----
+
+- Service/dstat: migrate to ``dool`` as a ``dstat`` alternative
+- Fix Ansible 2.9.11 compatibility
+
 5.2.0
 -----
 
