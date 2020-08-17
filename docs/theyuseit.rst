@@ -5,6 +5,9 @@ They use it
 Publications
 ============
 
+- Daniel Rosendo, Pedro Silva, Matthieu Simonin, Alexandru Costan, Gabriel Antoniu. E2Clab: Exploring the Computing
+  Continuum through Repeatable, Replicable and Reproducible Edge-to-Cloud Experiments. Cluster 2020 - The IEEE 2020
+  International Conference on Cluster Computing, Sep 2020, Kobe, Japan. ⟨hal-02916032⟩
 
 - David Sarmiento, Adrien Lebre, Lucas Nussbaum, Abdelhadi Chari. Multi-site
   Connectivity for Edge Infrastructures DIMINET:DIstributed Module for
@@ -88,7 +91,12 @@ Projects
 - **madeus-openstack-benchmarks**: Benchmark Openstack Deployment with various parallelism levels
 
   Link: https://gitlab.inria.fr/VeRDi-project/madeus-openstack-benchmarks
-    
+
+
+- **E2Clab**: Exploring the Computing Continuum through Repeatable, Replicable and Reproducible Edge-to-Cloud Experiments
+
+  Link: https://gitlab.inria.fr/Kerdata/Kerdata-Codes/e2clab
+
 
 Miscellaneous
 =============
