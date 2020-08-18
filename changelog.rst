@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.3.2
+-----
+
+- VMonG5k: resurrect nested kvm
+
 5.3.1
 -----
 
