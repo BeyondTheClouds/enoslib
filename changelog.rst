@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.3.3
+-----
+
+- G5k: fix an issue when dealing with global vlans
+
 5.3.2
 -----
 
