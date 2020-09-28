@@ -108,7 +108,11 @@ def _mount_secondary_nics(desc, networks):
             "Put %s, %s in vlan id %s for nodes %s"
             % (nic_device, nic_name, vlan_id, desc["_c_nodes"])
         )
-        g5k_api_utils.set_nodes_vlan(net["site"], desc["_c_nodes"], nic_device, vlan_id)
+        # The request must be made to the site where the nodes belong
+        # (not the site where the network is claimed)
+        # This situation happens when dealing with kavlan-global networks
+        site = g5k_api_utils.get_cluster_site(cluster)
+        g5k_api_utils.set_nodes_vlan(site, desc["_c_nodes"], nic_device, vlan_id)
         # recording the mapping, just in case
         desc["_c_nics"].append((nic_name, get_roles_as_list(net)))
         idx = idx + 1
