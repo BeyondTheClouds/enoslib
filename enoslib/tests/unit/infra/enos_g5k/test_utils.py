@@ -58,6 +58,7 @@ class TestMountSecondaryNics(EnosTest):
             return_value=[("eth0", "en0"), ("eth1", "en1")]
         )
         g5k_api_utils.set_nodes_vlan = mock.Mock()
+        g5k_api_utils.get_cluster_site = mock.Mock(return_value="site1")
         gk = mock.Mock()
         utils._mount_secondary_nics(desc, networks)
         self.assertCountEqual(
