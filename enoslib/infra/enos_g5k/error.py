@@ -32,7 +32,7 @@ class EnosG5kSynchronisationError(EnosError):
 
 
 class EnosG5kWalltimeFormatError(EnosError):
-    def __init__(self, site, job_name):
+    def __init__(self):
         super(EnosG5kWalltimeFormatError, self).__init__(
             "Waltime must be specified in HH:MM:SS format"
         )

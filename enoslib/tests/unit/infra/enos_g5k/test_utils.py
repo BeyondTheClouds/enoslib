@@ -242,6 +242,50 @@ class TestConcretizeNodes(EnosTest):
             resources_2["machines"][0]["_c_nodes"],
         )
 
+class TestConcretizeNodesWithServers(EnosTest):
+    def test_exact(self):
+        resources = {
+            "machines": [
+                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"]},
+            ]
+        }
+
+        nodes = ["foocluster-1", "barcluster-2"]
+        utils.concretize_nodes(resources, nodes)
+        self.assertCountEqual(
+            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
+        )
+
+    def test_mixed(self):
+        resources = {
+            "machines": [
+                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"], "cluster": "foocluster", "nodes": 10},
+            ]
+        }
+
+        nodes = ["foocluster-1", "barcluster-2"]
+        utils.concretize_nodes(resources, nodes)
+        self.assertCountEqual(
+            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
+        )
+
+    def test_two_types_exact(self):
+        resources = {
+            "machines": [
+                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"]},
+                {"role": "compute", "nodes": 1, "cluster": "barcluster"},
+            ]
+        }
+
+        nodes = ["foocluster-1", "barcluster-2", "barcluster-3"]
+        utils.concretize_nodes(resources, nodes)
+        self.assertCountEqual(
+            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
+        )
+        self.assertCountEqual(
+            resources["machines"][1]["_c_nodes"], ["barcluster-3"]
+        )
+
 
 class TestConcretizeNodesMin(EnosTest):
     def setUp(self):
@@ -282,12 +326,41 @@ class TestBuildReservationCriteria(EnosTest):
     @mock.patch(
         "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", return_value="site1"
     )
-    def test_only_machines_one_site(self, mock_get_cluster_site):
+    def test_only_machines_one_site_cluster(self, mock_get_cluster_site):
         resources = {
             "machines": [{"role": "role1", "nodes": 1, "cluster": "foocluster"}]
         }
         criteria = utils._build_reservation_criteria(resources["machines"], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
+
+    def test_only_machines_one_site_one_servers(self):
+        resources = {
+            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"]}]
+        }
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria)
+
+    def test_only_machines_one_site_two_servers(self):
+        resources = {
+            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr", "foo-2.site1.grid5000.fr"]}]
+        }
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1",
+                                        "{network_address='foo-2.site1.grid5000.fr'}/nodes=1"]}, criteria)
+
+    def test_only_machines_two_sites_two_servers(self):
+        resources = {
+            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr", "foo-2.site2.grid5000.fr"]}]
+        }
+        with self.assertRaises(ValueError):
+            utils._build_reservation_criteria(resources["machines"], [])
+
+    def test_only_machines_servers_win_over_cluster(self):
+        resources = {
+            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"], "cluster": "foocluster", "nodes": 1}]
+        }
+        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria)
 
     @mock.patch(
         "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site",

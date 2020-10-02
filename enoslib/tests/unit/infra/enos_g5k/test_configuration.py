@@ -1,3 +1,4 @@
+from jsonschema.exceptions import ValidationError
 from enoslib.infra.enos_g5k.configuration import (
     Configuration,
     NetworkConfiguration,
@@ -32,6 +33,70 @@ class TestConfiguration(EnosTest):
         self.assertEqual(constants.DEFAULT_JOB_TYPE, conf.job_type)
         self.assertEqual("production", conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
+
+    def test_from_dictionnary_invalid_walltime(self):
+        d = {
+            "walltime": "02:00",
+            "resources": {"machines": [], "networks": []},
+        }
+        with self.assertRaises(ValidationError):
+            Configuration.from_dictionnary(d)
+
+    def test_missing_cluster_and_servers(self):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 1,
+                        "primary_network": "n1",
+                    }
+                ],
+                "networks": []
+            }
+        }
+        with self.assertRaises(ValidationError):
+            conf = Configuration.from_dictionnary(d)
+
+    def test_servers_set_cluster(self):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 1,
+                        "primary_network": "n1",
+                        "servers": ["foo-1.site.grid5000.fr", "foo-2.site.grid5000.fr"]
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "site", "type": "prod"}
+                ],
+
+            }
+        }
+        conf = Configuration.from_dictionnary(d)
+        self.assertEqual("foo", conf.machines[0].cluster)
+
+    def test_servers_different_cluster(self):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 1,
+                        "primary_network": "n1",
+                        "servers": ["foo-1.site.grid5000.fr", "bar-2.site.grid5000.fr"]
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "site", "type": "prod"}
+                ],
+
+            }
+        }
+        with self.assertRaises(ValueError):
+           Configuration.from_dictionnary(d)
 
     def test_from_dictionnary_with_machines(self):
         d = {

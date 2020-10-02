@@ -8,7 +8,7 @@ from .constants import (
     DEFAULT_WALLTIME,
     DEFAULT_SSH_KEYFILE,
 )
-from .schema import SCHEMA
+from .schema import SCHEMA, G5kValidator
 
 
 class Configuration(BaseConfiguration):
@@ -34,7 +34,7 @@ class Configuration(BaseConfiguration):
     @classmethod
     def from_dictionnary(cls, dictionnary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            G5kValidator.validate(dictionnary)
 
         self = cls()
 
@@ -81,19 +81,42 @@ class MachineConfiguration:
         *,
         roles=None,
         cluster=None,
+        servers=None,
         primary_network=None,
         nodes=DEFAULT_NUMBER,
-        secondary_networks=None
+        secondary_networks=None,
     ):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles
         self.cluster = cluster
+        self.servers = servers
+        if servers is None:
+            self.servers = []
         self.primary_network = primary_network
         self.nodes = nodes
         self.secondary_networks = []
         if secondary_networks is not None:
             self.secondary_networks = secondary_networks
+
+        # The intent of the below lines is to set the cluster attribute even if
+        # only servers are set. Since network configuration are only
+        # homogeneous at the cluster level, we can't have servers from
+        # different cluster in a machine group description. Indeed there would
+        # be a risk to fail at network configuration time (think about
+        # secondary interfaces)
+        def extract_site_cluster(s):
+            r = s.split(".")
+            c = r[0].split("-")
+            return (c[0], r[1])
+
+        if servers is not None:
+            cluster_site = set([extract_site_cluster(s) for s in servers])
+            if len(cluster_site) > 1:
+                raise ValueError(f"Several site/cluster for {servers}")
+
+            # we force the corresponding cluster name
+            self.cluster, _ = cluster_site.pop()
 
     @classmethod
     def from_dictionnary(cls, dictionnary, networks=None):
@@ -101,7 +124,11 @@ class MachineConfiguration:
             raise ValueError("At least one network must be set")
 
         roles = dictionnary["roles"]
-        cluster = dictionnary["cluster"]
+        # cluster and servers are no individually optionnal
+        # nevertheless the schema validates that at least one is set
+        cluster = dictionnary.get("cluster")
+        servers = dictionnary.get("servers")
+        # check here if there's only one site and cluster in servers
         primary_network_id = dictionnary["primary_network"]
 
         secondary_networks_ids = dictionnary.get("secondary_networks", [])
@@ -124,9 +151,10 @@ class MachineConfiguration:
         return cls(
             roles=roles,
             cluster=cluster,
+            servers=servers,
             primary_network=primary_network[0],
             secondary_networks=secondary_networks,
-            **kwargs
+            **kwargs,
         )
 
     def to_dict(self):
@@ -134,6 +162,7 @@ class MachineConfiguration:
         d.update(
             roles=self.roles,
             cluster=self.cluster,
+            servers=self.servers,
             nodes=self.nodes,
             primary_network=self.primary_network.id,
             secondary_networks=[n.id for n in self.secondary_networks],

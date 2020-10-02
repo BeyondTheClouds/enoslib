@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
+from itertools import groupby
 import logging
 
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
@@ -126,27 +128,39 @@ def lookup_networks(network_id, networks):
 
 def concretize_nodes(resources, nodes):
     # force order to be a *function*
-    snodes = sorted(nodes, key=lambda n: n)
-    pools = mk_pools(snodes, lambda n: n.split("-")[0])
-
-    # We first try to fulfill min requirements
-    # Just considering machines with min value specified
     machines = resources["machines"]
-    min_machines = sorted(machines, key=lambda desc: desc.get("min", 0))
+
+    # we fulfill the specific servers demands
+    _nodes = deepcopy(nodes)
+    desc_servers = [d for d in machines if d.get("servers")]
+    for desc in desc_servers:
+        for s in desc["servers"]:
+            _nodes.remove(s)
+            # if that's succeed add it to the result
+            desc.setdefault("_c_nodes", []).append(s)
+
+    # now with the remaining nodes we try to fulfil the requirements at the
+    # cluster level
+    snodes = sorted(_nodes, key=lambda n: n)
+    pools_cluster = mk_pools(snodes, lambda n: n.split("-")[0])
+    desc_cluster = [d for d in machines if d.get("cluster") and d not in desc_servers]
+    # We fulfill min requirements
+    # Just considering machines with min value specified
+    min_machines = sorted(desc_cluster, key=lambda desc: desc.get("min", 0))
     for desc in min_machines:
         cluster = desc["cluster"]
         nb = desc.get("min", 0)
-        c_nodes = pick_things(pools, cluster, nb)
+        c_nodes = pick_things(pools_cluster, cluster, nb)
         if len(c_nodes) < nb:
             raise NotEnoughNodesError("min requirement failed for %s " % desc)
         desc["_c_nodes"] = [c_node for c_node in c_nodes]
 
     # We then fill the remaining without
     # If no enough nodes are there we silently continue
-    for desc in machines:
+    for desc in desc_cluster:
         cluster = desc["cluster"]
         nb = desc["nodes"] - len(desc["_c_nodes"])
-        c_nodes = pick_things(pools, cluster, nb)
+        c_nodes = pick_things(pools_cluster, cluster, nb)
         #  put concrete hostnames here
         desc["_c_nodes"].extend([c_node for c_node in c_nodes])
     return resources
@@ -178,11 +192,42 @@ def concretize_networks(resources, networks):
 
 
 def _build_reservation_criteria(machines, networks):
+    def get_site(server):
+        return server.split(".")[1]
+
     criteria = {}
     # machines reservations
+    # FIXME(msimonin): this should be refactor like this
+    # for machine in machines
+    #     machine.to_oar_string() ...
     for desc in machines:
+        # a desc is either given by
+        #  a cluster name + a number of nodes
+        # or a list of specific servers
+        # the (implicit) semantic is that if servers is given cluster and nodes
+        # are unused
+
+        # let's start with the servers case
+        servers = desc.get("servers", [])
+        if servers:
+            # we break down by site
+            sites = set([get_site(s) for s in servers])
+            if len(sites) > 1:
+                raise ValueError(
+                    "Nodes of different sites detected in a single description"
+                )
+            sorted(servers, key=get_site)
+            for site, _s in groupby(servers, key=get_site):
+                site_servers = list(_s)
+                criterion = ["{network_address='%s'}/nodes=1" % s for s in site_servers]
+                criteria.setdefault(site, []).extend(criterion)
+            # break here
+            continue
+
+        # otherwise cluster is set (enforced by the schema validation)
         cluster = desc["cluster"]
         nodes = desc["nodes"]
+        # don't generate is nodes == 0
         if nodes:
             site = g5k_api_utils.get_cluster_site(cluster)
             criterion = "{cluster='%s'}/nodes=%s" % (cluster, nodes)
