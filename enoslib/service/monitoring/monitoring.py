@@ -13,6 +13,8 @@ DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
 
 DEFAULT_COLLECTOR_ENV = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
 
+DEFAULT_AGENT_IMAGE = "telegraf"
+
 
 class Monitoring(Service):
     def __init__(
@@ -22,10 +24,11 @@ class Monitoring(Service):
         agent: List[Host] = None,
         ui: List[Host] = None,
         network: List[Host] = None,
-        agent_conf: Optional[str] = None,
         remote_working_dir: str = "/builds/monitoring",
         collector_env: Optional[Dict] = None,
+        agent_conf: Optional[str] = None,
         agent_env: Optional[Dict] = None,
+        agent_image: str = DEFAULT_AGENT_IMAGE,
         ui_env: Optional[Dict] = None,
         priors: List[play_on] = [__python3__, __docker__],
         extra_vars: Dict = None,
@@ -49,11 +52,12 @@ class Monitoring(Service):
                            the collector. If none is given, the agent will us
                            the address attribute of :py:class:`enoslib.Host` of
                            the collector (the first on currently)
-            agent_conf: path to an alternative configuration file
             collector_env: environment variables to pass in the collector
                                   process environment
+            agent_conf: path to an alternative configuration file
             agent_env: environment variables to pass in the agent process
                               envionment
+            agent_image: docker image to use for the agent (telegraf)
             ui_env: environment variables to pass in the ui process
                            environment
             prior: priors to apply
@@ -79,11 +83,6 @@ class Monitoring(Service):
         self.network = network
         self._roles: Roles = {}
         self._roles.update(collector=self.collector, agent=self.agent, ui=self.ui)
-        if agent_conf is None:
-            self.agent_conf = Path("telegraf.conf.j2")
-        else:
-            self.agent_conf = _to_abs(Path(agent_conf))
-
         self.remote_working_dir = remote_working_dir
         self.remote_telegraf_conf = os.path.join(
             self.remote_working_dir, "telegraf.conf"
@@ -93,7 +92,16 @@ class Monitoring(Service):
         self.collector_env = DEFAULT_COLLECTOR_ENV
         collector_env = {} if not collector_env else collector_env
         self.collector_env.update(collector_env)
+
+        # agent options
         self.agent_env = {} if not agent_env else agent_env
+        if agent_conf is None:
+            self.agent_conf = Path("telegraf.conf.j2")
+        else:
+            self.agent_conf = _to_abs(Path(agent_conf))
+        self.agent_image = agent_image
+
+        # ui options
         self.ui_env = DEFAULT_UI_ENV
         ui_env = {} if not ui_env else ui_env
         self.ui_env.update(ui_env)
@@ -179,7 +187,7 @@ class Monitoring(Service):
             p.docker_container(
                 display_name="Installing Telegraf",
                 name="telegraf",
-                image="telegraf",
+                image=self.agent_image,
                 detach=True,
                 state="started",
                 recreate="yes",
