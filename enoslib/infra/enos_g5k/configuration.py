@@ -74,6 +74,24 @@ class Configuration(BaseConfiguration):
         )
         return d
 
+    def to_oar_string(self):
+        pass
+
+    def reservable(self):
+        pass
+
+    def reserve(self):
+        # + set concrete nodes/network
+        pass
+
+    def deploy(self):
+        # + update concrete nodes/network
+        pass
+
+    def start(self):
+        # == provider.init ?
+        pass
+
 
 class MachineConfiguration:
     def __init__(
@@ -169,6 +187,12 @@ class MachineConfiguration:
         )
         return d
 
+    def to_oar_string(self):
+        pass
+
+    def reservable(self, start, walltime):
+        pass
+
 
 class NetworkConfiguration:
     def __init__(self, *, id=None, roles=None, type=None, site=None):
@@ -193,3 +217,9 @@ class NetworkConfiguration:
         d = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d
+
+    def to_oar_string(self):
+        pass
+
+    def reservable(self, start, walltime):
+        pass
