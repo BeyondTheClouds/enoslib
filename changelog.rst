@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+5.3.4
+-----
+
+- G5k: make the project configurable (use the project key in the
+  configuration)
+
 5.3.3
 -----
 
