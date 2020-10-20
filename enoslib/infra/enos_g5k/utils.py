@@ -48,12 +48,19 @@ def is_prod(network, networks):
 
 
 def grid_get_or_create_job(
-    job_name, walltime, reservation_date, queue, job_type, machines, networks
+    job_name, walltime, reservation_date, queue, job_type, project, machines, networks
 ):
     jobs = g5k_api_utils.grid_reload_from_name(job_name)
     if len(jobs) == 0:
         jobs = grid_make_reservation(
-            job_name, walltime, reservation_date, queue, job_type, machines, networks
+            job_name,
+            walltime,
+            reservation_date,
+            queue,
+            job_type,
+            project,
+            machines,
+            networks,
         )
     g5k_api_utils.wait_for_jobs(jobs)
 
@@ -207,7 +214,7 @@ def _build_reservation_criteria(machines, networks):
 
 
 def _do_grid_make_reservation(
-    criterias, job_name, walltime, reservation_date, queue, job_type
+    criterias, job_name, walltime, reservation_date, queue, job_type, project
 ):
     job_specs = []
     for site, criteria in criterias.items():
@@ -220,6 +227,8 @@ def _do_grid_make_reservation(
             "command": "sleep 31536000",
             "queue": queue,
         }
+        if project:
+            job_spec.update(project=project)
         if reservation_date:
             job_spec.update(reservation=reservation_date)
         job_specs.append((site, job_spec))
@@ -229,7 +238,7 @@ def _do_grid_make_reservation(
 
 
 def grid_make_reservation(
-    job_name, walltime, reservation_date, queue, job_type, machines, networks
+    job_name, walltime, reservation_date, queue, job_type, project, machines, networks
 ):
     if not reservation_date:
         # First check if synchronisation is required
@@ -240,7 +249,7 @@ def grid_make_reservation(
 
     # Submit them
     jobs = _do_grid_make_reservation(
-        criteria, job_name, walltime, reservation_date, queue, job_type
+        criteria, job_name, walltime, reservation_date, queue, job_type, project
     )
 
     return jobs
