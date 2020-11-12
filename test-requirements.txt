@@ -10,3 +10,4 @@ autodocsumm~=0.2.0
 # quick fix socks support
 requests[socks]
 mypy
+ipdb

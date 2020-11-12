@@ -6,6 +6,7 @@ from .error import EnosG5kWalltimeFormatError
 
 SCHEMA = {
     "type": "object",
+    "title": "Grid5000 configuration",
     "properties": {
         "dhcp": {"type": "boolean"},
         "force_deploy": {"type": "boolean"},
@@ -29,7 +30,10 @@ SCHEMA = {
         "title": "Resource",
         "type": "object",
         "properties": {
-            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "machines": {
+                "type": "array",
+                "items": {"oneOf": [{"$ref": "#cluster"}, {"$ref": "#servers"}]},
+            },
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
@@ -39,21 +43,13 @@ SCHEMA = {
         "additionalProperties": False,
         "required": ["machines", "networks"],
     },
-    "jobids": {"title": "JobIds", "type": "array"},
-    "machine": {
-        "title": "Compute",
+    "jobids": {"title": "JobIds", "type": "array", "items": {"type": "string"}},
+    "cluster": {
+        "title": "ComputeCluster",
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
-            "cluster": {"type": ["string", "null"]},
-            "servers": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "format": "hostname",
-                    "description": "specific fqdn, e.g. parasilo-17.rennes.grid5000.fr",
-                },
-            },
+            "cluster": {"type": "string"},
             "nodes": {"type": "number"},
             "min": {"type": "number"},
             "primary_network": {"type": "string"},
@@ -63,8 +59,23 @@ SCHEMA = {
                 "uniqueItems": True,
             },
         },
-        "required": ["roles", "primary_network"],
-        "anyOf": [{"required": ["servers"]}, {"required": ["cluster"]}],
+        "required": ["roles", "cluster", "primary_network"],
+    },
+    "servers": {
+        "title": "ComputeServers",
+        "type": "object",
+        "properties": {
+            "roles": {"type": "array", "items": {"type": "string"}},
+            "servers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "min": {"type": "number"},
+            "primary_network": {"type": "string"},
+            "secondary_networks": {
+                "type": "array",
+                "items": {"type": "string"},
+                "uniqueItems": True,
+            },
+        },
+        "required": ["roles", "servers", "primary_network"],
     },
     "network": {
         "type": "object",
@@ -77,6 +88,7 @@ SCHEMA = {
         "required": ["id", "type", "roles", "site"],
     },
 }
+
 """
 Additionnal notes
 

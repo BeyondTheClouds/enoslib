@@ -27,7 +27,10 @@ class EnosG5kDuplicateJobsError(EnosError):
 class EnosG5kSynchronisationError(EnosError):
     def __init__(self, sites):
         super(EnosG5kSynchronisationError, self).__init__(
-            "Unable to find a synchronised on %s" % sites
+            (
+                "Unable synchronize the jobs on %s" % sites,
+                "Try to make an explicit reservation instead",
+            )
         )
 
 

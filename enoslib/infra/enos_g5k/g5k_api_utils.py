@@ -7,12 +7,14 @@ with the platform.
 """
 
 from collections import defaultdict
+
 import logging
+from grid5000.objects import Node
 from netaddr import IPAddress, IPNetwork, IPSet
 import os
 import time
 import threading
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 from pathlib import Path
 
 from .error import (
@@ -69,7 +71,11 @@ class Client(Grid5000):
             self.excluded_site = []
 
 
-class ConcreteNetwork:
+class G5kApiNode(Node):
+    pass
+
+
+class G5kApiNetwork:
     def __init__(
         self,
         *,
@@ -109,7 +115,7 @@ class ConcreteNetwork:
         ) % (self.site, self.nature, self.network, self.gateway, self.dns, self.vlan_id)
 
 
-class ConcreteSubnet(ConcreteNetwork):
+class G5kApiSubnet(G5kApiNetwork):
     """Modelizes a Grid'5000 subnet."""
 
     @staticmethod
@@ -123,7 +129,7 @@ class ConcreteSubnet(ConcreteNetwork):
         for ip in list(network[1:-1]):
             _, x, y, z = ip.words
             ipmac.append((str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
-        nature = ConcreteSubnet.to_nature(subnet)
+        nature = G5kApiSubnet.to_nature(subnet)
         gateway = get_subnet_gateway(site)
         kwds = {
             "nature": nature,
@@ -135,7 +141,7 @@ class ConcreteSubnet(ConcreteNetwork):
         }
         return cls(**kwds)
 
-    def to_enos(self, roles):
+    def to_dict(self):
         net = {}
         start_ip, start_mac = self.ipmac[0]
         end_ip, end_mac = self.ipmac[-1]
@@ -144,7 +150,6 @@ class ConcreteSubnet(ConcreteNetwork):
             end=end_ip,
             mac_start=start_mac,
             mac_end=end_mac,
-            roles=roles,
             cidr=self.network,
             gateway=self.gateway,
             dns=self.dns,
@@ -152,7 +157,7 @@ class ConcreteSubnet(ConcreteNetwork):
         return net
 
 
-class ConcreteVlan(ConcreteNetwork):
+class G5kApiVlan(G5kApiNetwork):
     """Modelizes a Grid'5000 kavlan."""
 
     kavlan_local = ["1", "2", "3"]
@@ -160,22 +165,22 @@ class ConcreteVlan(ConcreteNetwork):
 
     @staticmethod
     def to_nature(vlan_id):
-        if vlan_id in ConcreteVlan.kavlan_local:
+        if vlan_id in G5kApiVlan.kavlan_local:
             return KAVLAN_LOCAL
-        if vlan_id in ConcreteVlan.kavlan:
+        if vlan_id in G5kApiVlan.kavlan:
             return KAVLAN
         return KAVLAN_GLOBAL
 
     @classmethod
     def from_job(cls, site, vlan_id):
 
-        nature = ConcreteVlan.to_nature(vlan_id)
+        nature = G5kApiVlan.to_nature(vlan_id)
         kwds = {"nature": nature, "vlan_id": str(vlan_id), "dns": get_dns(site)}
         kwds.update(get_vlans(site)[str(vlan_id)])
         kwds.update(site=site)
         return cls(**kwds)
 
-    def to_enos(self, roles):
+    def to_dict(self):
         # On the network, the first IP are reserved to g5k machines.
         # For a routed vlan I don't know exactly how many ip are
         # reserved. However, the specification is clear about global
@@ -193,7 +198,7 @@ class ConcreteVlan(ConcreteNetwork):
         # gateway, kavlan server...
         net = {}
         subnets = IPNetwork(self.network)
-        if self.vlan_id in ConcreteVlan.kavlan_local:
+        if self.vlan_id in G5kApiVlan.kavlan_local:
             # vlan local
             subnets = list(subnets.subnet(24))
             subnets = subnets[4:7]
@@ -210,12 +215,11 @@ class ConcreteVlan(ConcreteNetwork):
             cidr=self.network,
             gateway=self.gateway,
             dns=self.dns,
-            roles=roles,
         )
         return net
 
 
-class ConcreteProd(ConcreteNetwork):
+class G5kApiProd(G5kApiNetwork):
     """Modelizes a Grid'5000 production network."""
 
     @classmethod
@@ -231,9 +235,9 @@ class ConcreteProd(ConcreteNetwork):
         kwds.update(get_vlans(site)[vlan_id])
         return cls(**kwds)
 
-    def to_enos(self, roles):
+    def to_dict(self):
         net = {}
-        net.update(cidr=self.network, gateway=self.gateway, dns=self.dns, roles=roles)
+        net.update(cidr=self.network, gateway=self.gateway, dns=self.dns)
         return net
 
 
@@ -328,9 +332,9 @@ def build_resources(jobs):
         nodes = nodes + job.assigned_nodes
         site = job.site
 
-        networks += [ConcreteSubnet.from_job(site, subnet) for subnet in _subnets]
-        networks += [ConcreteVlan.from_job(site, vlan_id) for vlan_id in _vlans]
-        networks += [ConcreteProd.from_job(site)]
+        networks += [G5kApiSubnet.from_job(site, subnet) for subnet in _subnets]
+        networks += [G5kApiVlan.from_job(site, vlan_id) for vlan_id in _vlans]
+        networks += [G5kApiProd.from_job(site)]
 
     logger.debug("nodes=%s, networks=%s" % (nodes, networks))
     return nodes, networks
@@ -411,19 +415,21 @@ def wait_for_jobs(jobs):
     logger.info("All jobs are Running !")
 
 
-def _deploy(site, deployed, undeployed, count, options):
+def _deploy(
+    site: str, deployed: List[str], undeployed: List[str], count: int, config: Dict
+) -> Tuple[List[str], List[str]]:
     logger.info(
-        "Deploying %s with options %s [%s/%s]", undeployed, options, count, MAX_DEPLOY
+        "Deploying %s with options %s [%s/%s]", undeployed, config, count, MAX_DEPLOY
     )
     if count >= MAX_DEPLOY or len(undeployed) == 0:
         return deployed, undeployed
 
-    d, u = deploy(site, undeployed, options)
+    d, u = deploy(site, undeployed, config)
 
-    return _deploy(site, deployed + d, u, count + 1, options)
+    return _deploy(site, deployed + d, u, count + 1, config)
 
 
-def grid_deploy(site, nodes, options):
+def grid_deploy(site: str, nodes: List[str], config: Dict):
     """Deploy and wait for the deployment to be finished.
 
     Args:
@@ -436,14 +442,12 @@ def grid_deploy(site, nodes, options):
         tuple of deployed(list), undeployed(list) nodes.
     """
 
-    environment = options.pop("env_name")
-    options.update(environment=environment)
-    key_path = Path(options.get("key")).expanduser().resolve()
+    key_path = Path(config["key"]).expanduser().resolve()
     if not key_path.is_file():
         raise Exception("The public key file %s is not correct." % key_path)
     logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
-    options.update(key=key_path.read_text())
-    return _deploy(site, [], nodes, 0, options)
+    config.update(key=key_path.read_text())
+    return _deploy(site, [], nodes, 0, config)
 
 
 def set_nodes_vlan(site, nodes, interface, vlan_id):
@@ -584,6 +588,12 @@ def get_nodes(cluster):
     return gk.sites[site].clusters[cluster].nodes.list()
 
 
+@ring.disk(storage)
+def get_node(site, cluster, uid) -> Node:
+    gk = get_api_client()
+    return gk.sites[site].clusters[cluster].nodes[uid]
+
+
 def get_nics(cluster):
     """Get the network cards information
 
@@ -659,14 +669,28 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
     return interfaces
 
 
-def can_start_on_cluster(nodes_status, nodes, start, walltime):
+def can_start_on_cluster(
+    nodes_status: Dict, number: int, exact_nodes: List[str], start: int, walltime: int
+) -> bool:
     """Check if #nodes can be started on a given cluster.
 
     This is intended to give a good enough approximation.
     This can be use to prefiltered possible reservation dates before submitting
     them on oar.
+
+    Args:
+        nodes_status: a dictionnary with all the status of the nodes as
+            returned by the api (cluster status endpoint)
+        number: number of node in the demand
+        exact_nodes: the list of the fqdn of the machines to get
+        start: start time of the job
+        walltime: walltime of the job
+
+    Returns
+        True iff the job can start
     """
     candidates = []
+    # node is the uid, e.g: paranoia-8.rennes.grid5000.fr
     for node, status in nodes_status.items():
         reservations = status.get("reservations", [])
         # we search for the overlapping reservations
@@ -688,7 +712,7 @@ def can_start_on_cluster(nodes_status, nodes, start, walltime):
         if len(overlapping_reservations) == 0:
             # this node can be accounted for a potential reservation
             candidates.append(node)
-    if len(candidates) >= nodes:
+    if len(candidates) >= number and set(exact_nodes).issubset(candidates):
         return True
     return False
 
@@ -712,9 +736,13 @@ def _do_synchronise_jobs(walltime, machines):
 
     # Compute the demand for each cluster
     demands = defaultdict(int)
+    # Keeps track of
+    exact_nodes = defaultdict(list)
     for machine in machines:
-        cluster = machine["cluster"]
-        demands[cluster] += machine["nodes"]
+        cluster = machine.cluster
+        number, exact = machine.get_demands()
+        demands[cluster] += number
+        exact_nodes[cluster].extend(exact)
 
     # Early leave if only one cluster is there
     if len(list(demands.keys())) <= 1:
@@ -730,19 +758,20 @@ def _do_synchronise_jobs(walltime, machines):
         return None
 
     # Test the proposed reservation_date
-    ok = True
+    ko = False
     for cluster, nodes in demands.items():
         cluster_status = clusters[cluster].status.list()
-        ok = ok and can_start_on_cluster(cluster_status.nodes, nodes, start, _walltime)
-        if not ok:
+        ko = ko or not can_start_on_cluster(
+            cluster_status.nodes, nodes, exact_nodes[cluster], start, _walltime
+        )
+        if ko:
             break
-    if ok:
+    if not ko:
         # The proposed reservation_date fits
         logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
         return start
 
-    if start is None:
-        raise EnosG5kSynchronisationError(sites)
+    raise EnosG5kSynchronisationError(sites)
 
 
 @ring.disk(storage)
@@ -763,10 +792,10 @@ def get_vlans(site):
     return site_info.kavlans
 
 
-def deploy(site, nodes, options):
+def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[str]]:
     gk = get_api_client()
-    options.update(nodes=nodes)
-    deployment = gk.sites[site].deployments.create(options)
+    config.update(nodes=nodes)
+    deployment = gk.sites[site].deployments.create(config)
     while deployment.status not in ["terminated", "error"]:
         deployment.refresh()
         print("Waiting for the end of deployment [%s]" % deployment.uid)
@@ -781,3 +810,83 @@ def deploy(site, nodes, options):
         undeploy = nodes
 
     return deploy, undeploy
+
+
+def grid_get_or_create_job(
+    job_name, walltime, reservation_date, queue, job_type, machines, networks
+):
+    jobs = grid_reload_from_name(job_name)
+    if len(jobs) == 0:
+        jobs = grid_make_reservation(
+            job_name, walltime, reservation_date, queue, job_type, machines, networks
+        )
+    wait_for_jobs(jobs)
+
+    return build_resources(jobs)
+
+
+def _build_reservation_criteria(machines, networks):
+    criteria = {}
+    # machines reservations
+    # FIXME(msimonin): this should be refactor like this
+    # for machine in machines
+    #     machine.to_oar_string() ...
+    for config in machines:
+        # a desc is either given by
+        #  a cluster name + a number of nodes
+        # or a list of specific servers
+        # the (implicit) semantic is that if servers is given cluster and nodes
+        # are unused
+
+        # let's start with the servers case
+        site, criterion = config.oar()
+        if criterion is not None:
+            criteria.setdefault(site, []).append(criterion)
+
+    for config in networks:
+        site, criterion = config.oar()
+        if criterion is not None:
+            # in the prod case nothing is generated
+            criteria.setdefault(site, []).append(criterion)
+
+    return criteria
+
+
+def _do_grid_make_reservation(
+    criterias, job_name, walltime, reservation_date, queue, job_type
+):
+    job_specs = []
+    for site, criteria in criterias.items():
+        resources = "+".join(criteria)
+        resources = "%s,walltime=%s" % (resources, walltime)
+        job_spec = {
+            "name": job_name,
+            "types": [job_type],
+            "resources": resources,
+            "command": "sleep 31536000",
+            "queue": queue,
+        }
+        if reservation_date:
+            job_spec.update(reservation=reservation_date)
+        job_specs.append((site, job_spec))
+
+    jobs = submit_jobs(job_specs)
+    return jobs
+
+
+def grid_make_reservation(
+    job_name, walltime, reservation_date, queue, job_type, machines, networks
+):
+    if not reservation_date:
+        # First check if synchronisation is required
+        reservation_date = _do_synchronise_jobs(walltime, machines)
+
+    # Build the OAR criteria
+    criteria = _build_reservation_criteria(machines, networks)
+
+    # Submit them
+    jobs = _do_grid_make_reservation(
+        criteria, job_name, walltime, reservation_date, queue, job_type
+    )
+
+    return jobs

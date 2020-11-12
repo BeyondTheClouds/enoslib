@@ -16,7 +16,10 @@ class TestBuildG5kConf(EnosTest):
     @mock.patch(
         "enoslib.infra.enos_vmong5k.provider._find_nodes_number", return_value=2
     )
-    def test_do_build_g5k_conf(self, mock_find_node_number):
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site1"
+    )
+    def test_do_build_g5k_conf(self, mock_get_cluster_site, mock_find_node_number):
         conf = Configuration()
         conf.add_machine(roles=["r1"], cluster="cluster1", number=10, flavour="tiny")
         conf.finalize()

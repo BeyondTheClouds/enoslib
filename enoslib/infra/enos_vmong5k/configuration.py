@@ -162,6 +162,10 @@ class MachineConfiguration:
         cluster = self.cluster
         if cluster is not None:
             d.update(cluster=cluster)
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc,
-                 number=self.number, extra_devices=self.extra_devices)
+        d.update(
+            roles=self.roles,
+            flavour_desc=self.flavour_desc,
+            number=self.number,
+            extra_devices=self.extra_devices,
+        )
         return d

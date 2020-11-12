@@ -53,7 +53,9 @@ def dir_with_env(env_name, *top_args, symlink=True):
             with dummy_env(env_name, symlink=symlink) as (env, tmp_dir):
                 f(*args, *top_args, Path(tmp_dir), env, **kwargs)
             # not restoring the cwd make py.test lose her mind
+
         return wrapped
+
     return _dir_with_env
 
 
@@ -62,11 +64,11 @@ def dir_without_env(f):
         with into_tmp_dir() as tmp_dir:
             # create a dummy env there
             f(*args, Path(tmp_dir), **kwargs)
+
     return wrapped
 
 
 class TestGetOrCreateEnvironment(EnosTest):
-
     @dir_with_env("xp1")
     def test_reload_existing(self, dir, env):
         actual_env = get_or_create_env(False, env)
@@ -108,16 +110,12 @@ class TestGetOrCreateEnvironment(EnosTest):
         create_env("xp2", symlink=True)
 
         self.assertTrue(SYMLINK_NAME.is_dir())
-        self.assertEqual(
-            dir_without_env.joinpath("xp2"),
-            SYMLINK_NAME.resolve())
+        self.assertEqual(dir_without_env.joinpath("xp2"), SYMLINK_NAME.resolve())
 
         # no symlink is done in this case
         actual_env = get_or_create_env(False, Path("xp1"))
         self.assertTrue(SYMLINK_NAME.is_dir())
-        self.assertEqual(
-            dir_without_env.joinpath("xp2"),
-            SYMLINK_NAME.resolve())
+        self.assertEqual(dir_without_env.joinpath("xp2"), SYMLINK_NAME.resolve())
         self.assertEqual(Path("xp1").resolve(), actual_env.env_name)
 
 
@@ -139,10 +137,8 @@ class TestConfig(EnosTest):
 
 @ddt
 class TestEnosTask(EnosTest):
-
     @dir_with_env("xp1", symlink=True)
     def test_decorator_autoreload(self, dir_with_env, env):
-
         @enostask(new=False)
         def mytask(env=None):
             pass
@@ -151,7 +147,6 @@ class TestEnosTask(EnosTest):
 
     @dir_with_env("xp1", symlink=False)
     def test_decorator_autoreload_raise_if_no_current(self, dir_with_env, env):
-
         @enostask(new=False)
         def mytask(env=None):
             pass

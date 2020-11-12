@@ -1,8 +1,17 @@
 import copy
+from enoslib.infra.enos_g5k.provider import (
+    _concretize_networks,
+    _concretize_nodes,
+    _join,
+)
+
+from enoslib.infra.enos_g5k.configuration import (
+    ClusterConfiguration,
+    ServersConfiguration,
+    NetworkConfiguration,
+)
 
 from ddt import ddt, data
-import execo_g5k as ex5
-from execo_g5k import api_utils as api
 import mock
 
 from enoslib.infra.enos_g5k import utils, g5k_api_utils
@@ -11,77 +20,25 @@ from enoslib.infra.enos_g5k.constants import KAVLAN, PROD, SLASH_22, SLASH_16
 from enoslib.tests.unit import EnosTest
 
 
-# TODO(msimonin): use patch
-class TestMountNics(EnosTest):
-    def setUp(self):
-        self.c_resources = {
-            "machines": [{"primary_network": "network_1", "cluster": "foo"}],
-            "networks": [{"id": "network_1", "roles": ["n1", "n2"]}],
-        }
-
-    @mock.patch("enoslib.infra.enos_g5k.utils._mount_secondary_nics")
-    @mock.patch(
-        "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_interfaces",
-        return_value=[("eth0", "en0")],
-    )
-    def test_primary(self, mock__mount_secondary_nics, mock_get_cluster_interfaces):
-        utils.mount_nics(self.c_resources)
-        self.assertCountEqual(
-            [("en0", ["n1", "n2"])], self.c_resources["machines"][0]["_c_nics"]
-        )
-
-
-class TestMountSecondaryNics(EnosTest):
-    def test_exact(self):
-        desc = {
-            "cluster": "foocluster",
-            "_c_nodes": ["foocluster-1", "foocluster-2"],
-            "secondary_networks": ["network_1", "network_2"],
-        }
-        networks = [
-            {
-                "type": KAVLAN,
-                "id": "network_1",
-                "role": "net_role_1",
-                "site": "rennes",
-                "_c_network": [g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="4")],
-            },
-            {
-                "type": KAVLAN,
-                "id": "network_2",
-                "roles": ["net_role_2", "net_role_3"],
-                "site": "rennes",
-                "_c_network": [g5k_api_utils.ConcreteVlan(site="rennes", vlan_id="5")],
-            },
-        ]
-        g5k_api_utils.get_cluster_interfaces = mock.MagicMock(
-            return_value=[("eth0", "en0"), ("eth1", "en1")]
-        )
-        g5k_api_utils.set_nodes_vlan = mock.Mock()
-        g5k_api_utils.get_cluster_site = mock.Mock(return_value="site1")
-        gk = mock.Mock()
-        utils._mount_secondary_nics(desc, networks)
-        self.assertCountEqual(
-            [("en0", ["net_role_1"]), ("en1", ["net_role_2", "net_role_3"])],
-            desc["_c_nics"],
-        )
-
-
 class TestConcretizeNetwork(EnosTest):
     def setUp(self):
-        self.resources = {
-            "networks": [
-                {"type": KAVLAN, "site": "rennes", "id": "role1"},
-                {"type": KAVLAN, "site": "rennes", "id": "role2"},
-            ]
-        }
+        self.networks = [
+            NetworkConfiguration(
+                type="kavlan", site="rennes", id="roles1", roles=["role1"]
+            ),
+            NetworkConfiguration(
+                type="kavlan", site="rennes", id="roles2", roles=["role2"]
+            ),
+        ]
         # used fot the subnet testing
-        self.resources_subnet = {
-            "networks": [
-                {"type": SLASH_22, "site": "rennes", "id": "role1"},
-                {"type": SLASH_16, "site": "rennes", "id": "role1"},
-            ]
-        }
+        self.subnets = [
+            NetworkConfiguration(
+                type=SLASH_22, site="rennes", id="role1", roles=["role1"]
+            ),
+            NetworkConfiguration(
+                type=SLASH_16, site="rennes", id="role2", roles=["role2"]
+            ),
+        ]
 
     def test_act(self):
         _networks = [
@@ -98,39 +55,35 @@ class TestConcretizeNetwork(EnosTest):
                 "network": "2.2.3.4/24",
             },
         ]
-        networks = [g5k_api_utils.ConcreteVlan(**n) for n in _networks]
-        utils.concretize_networks(self.resources, networks)
-        self.assertEqual([networks[0]], self.resources["networks"][0]["_c_network"])
-        self.assertEqual([networks[1]], self.resources["networks"][1]["_c_network"])
+        networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
+        concrete = _concretize_networks(self.networks, networks)
+        self.assertEqual([networks[0]], concrete[0].apinetworks)
+        self.assertEqual([networks[1]], concrete[1].apinetworks)
 
     def test_act_subnets_enough(self):
         _networks = [
             {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"}
             for i in range(65)
         ]
-        networks = [g5k_api_utils.ConcreteSubnet(**n) for n in _networks]
-        utils.concretize_networks(self.resources_subnet, networks)
-        self.assertCountEqual(
-            [networks[0]], self.resources_subnet["networks"][0]["_c_network"]
-        )
-        self.assertCountEqual(
-            networks[1:], self.resources_subnet["networks"][1]["_c_network"]
-        )
+        oar_networks = [g5k_api_utils.G5kApiSubnet(**n) for n in _networks]
+        concrete = _concretize_networks(self.subnets, oar_networks)
+        self.assertCountEqual([oar_networks[0]], concrete[0].apinetworks)
+        self.assertCountEqual(oar_networks[1:], concrete[1].apinetworks)
 
     def test_act_subnets_not_enough(self):
         _networks = [
             {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"}
             for i in range(33)
         ]
-        networks = [g5k_api_utils.ConcreteSubnet(**n) for n in _networks]
-        utils.concretize_networks(self.resources_subnet, networks)
-        self.assertEqual(32, len(self.resources_subnet["networks"][1]["_c_network"]))
+        oar_networks = [g5k_api_utils.G5kApiSubnet(**n) for n in _networks]
+        concrete = _concretize_networks(self.subnets, oar_networks)
+        self.assertEqual(32, len(concrete[1].apinetworks))
 
     def test_prod(self):
-        self.resources["networks"][0]["type"] = PROD
-        self.resources["networks"][0]["nature"] = PROD
-        networks = [
-            g5k_api_utils.ConcreteVlan(
+        self.networks[0].type = PROD
+        self.networks[0].nature = PROD
+        oar_networks = [
+            g5k_api_utils.G5kApiVlan(
                 **{
                     "site": "rennes",
                     "vlan_id": 5,
@@ -138,15 +91,16 @@ class TestConcretizeNetwork(EnosTest):
                     "network": "1.2.3.4/24",
                 }
             ),
-            g5k_api_utils.ConcreteProd(
+            g5k_api_utils.G5kApiProd(
                 **{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"}
             ),
         ]
 
-        utils.concretize_networks(self.resources, networks)
-        # self.assertEqual(networks[0], self.resources["networks"][0]["_c_network"])
-        self.assertEqual(None, self.resources["networks"][0]["_c_network"][0].vlan_id)
-        self.assertEqual([networks[0]], self.resources["networks"][1]["_c_network"])
+        g5k_networks = _concretize_networks(self.networks, oar_networks)
+        self.assertEqual(None, g5k_networks[0].vlan_id)
+        self.assertEqual(5, g5k_networks[1].vlan_id)
+        self.assertEqual(["role1"], g5k_networks[0].roles)
+        self.assertEqual(["role2"], g5k_networks[1].roles)
 
     def test_one_missing(self):
         _networks = [
@@ -158,9 +112,9 @@ class TestConcretizeNetwork(EnosTest):
             }
         ]
 
-        networks = [g5k_api_utils.ConcreteVlan(**n) for n in _networks]
+        oar_networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
         with self.assertRaises(MissingNetworkError):
-            utils.concretize_networks(self.resources, networks)
+            _concretize_networks(self.networks, oar_networks)
 
     def test_not_order_dependent(self):
         _networks_1 = [
@@ -177,231 +131,262 @@ class TestConcretizeNetwork(EnosTest):
                 "network": "2.2.3.4/24",
             },
         ]
-        networks_1 = [g5k_api_utils.ConcreteVlan(**n) for n in _networks_1]
-        networks_2 = [networks_1[1], networks_1[0]]
+        oar_networks_1 = [g5k_api_utils.G5kApiVlan(**n) for n in _networks_1]
+        oar_networks_2 = [oar_networks_1[1], oar_networks_1[0]]
 
-        resources_1 = copy.deepcopy(self.resources)
-        resources_2 = copy.deepcopy(self.resources)
-        utils.concretize_networks(resources_1, networks_1)
-        utils.concretize_networks(resources_2, networks_2)
+        networks_1 = copy.deepcopy(self.networks)
+        networks_2 = copy.deepcopy(self.networks)
+        g5k_networks_1 = _concretize_networks(networks_1, oar_networks_1)
+        g5k_networks_2 = _concretize_networks(networks_2, oar_networks_2)
 
-        self.maxDiff = None
-        self.assertCountEqual(resources_1["networks"], resources_2["networks"])
+        # concrete are filled following the order of the config
+        self.assertCountEqual(
+            g5k_networks_1[0].apinetworks, g5k_networks_2[0].apinetworks
+        )
+        self.assertCountEqual(
+            g5k_networks_1[1].apinetworks, g5k_networks_2[1].apinetworks
+        )
 
 
 class TestConcretizeNodes(EnosTest):
     def setUp(self):
-        self.resources = {
-            "machines": [
-                {"role": "compute", "nodes": 1, "cluster": "foocluster"},
-                {"role": "compute", "nodes": 1, "cluster": "barcluster"},
-            ]
-        }
+        self.machines = [
+            ClusterConfiguration(
+                roles=["compute"], nodes=1, cluster="foocluster", site="rennes"
+            ),
+            ClusterConfiguration(
+                roles=["compute"], nodes=1, cluster="barcluster", site="rennes"
+            ),
+        ]
 
     def test_exact(self):
-        nodes = ["foocluster-1", "barcluster-2"]
-        utils.concretize_nodes(self.resources, nodes)
-        self.assertCountEqual(
-            self.resources["machines"][0]["_c_nodes"], ["foocluster-1"]
-        )
-        self.assertCountEqual(
-            self.resources["machines"][1]["_c_nodes"], ["barcluster-2"]
-        )
+        n1 = "foocluster-1.rennes.grid5000.fr"
+        n2 = "barcluster-2.rennes.grid5000.fr"
+        nodes = [n1, n2]
+        concrete_servers = _concretize_nodes(self.machines, nodes)
+        self.assertCountEqual(concrete_servers[0].oar_nodes, [n1])
+        self.assertCountEqual(concrete_servers[1].oar_nodes, [n2])
 
     def test_one_missing(self):
-        nodes = ["foocluster-1"]
-        utils.concretize_nodes(self.resources, nodes)
-        self.assertCountEqual(
-            self.resources["machines"][0]["_c_nodes"], ["foocluster-1"]
-        )
-        self.assertCountEqual(self.resources["machines"][1]["_c_nodes"], [])
+        n1 = "foocluster-1.rennes.grid5000.fr"
+        nodes = [n1]
+        concrete_servers = _concretize_nodes(self.machines, nodes)
+        self.assertCountEqual(concrete_servers[0].oar_nodes, [n1])
+        self.assertCountEqual(concrete_servers[1].oar_nodes, [])
 
     def test_same_cluster(self):
-        nodes = ["foocluster-1", "foocluster-2"]
-        self.resources["machines"][1]["cluster"] = "foocluster"
-        utils.concretize_nodes(self.resources, nodes)
-        self.assertCountEqual(
-            self.resources["machines"][0]["_c_nodes"], ["foocluster-1"]
-        )
-        self.assertCountEqual(
-            self.resources["machines"][1]["_c_nodes"], ["foocluster-2"]
-        )
+        n1 = "foocluster-1.rennes.grid5000.fr"
+        n2 = "foocluster-2.rennes.grid5000.fr"
+        nodes = [n1, n2]
+        self.machines[1].cluster = "foocluster"
+        concrete_servers = _concretize_nodes(self.machines, nodes)
+        self.assertCountEqual(concrete_servers[0].oar_nodes, [n1])
+        self.assertCountEqual(concrete_servers[1].oar_nodes, [n2])
 
     def test_not_order_dependent(self):
-        nodes = ["foocluster-1", "foocluster-2", "foocluster-3"]
-        self.resources["machines"][0]["nodes"] = 2
-        resources_1 = copy.deepcopy(self.resources)
-        utils.concretize_nodes(resources_1, nodes)
-        nodes = ["foocluster-2", "foocluster-3", "foocluster-1"]
-        resources_2 = copy.deepcopy(self.resources)
-        resources_2["machines"][0]["nodes"] = 2
-        utils.concretize_nodes(resources_2, nodes)
+        n1 = "foocluster-1.rennes.grid5000.fr"
+        n2 = "foocluster-2.rennes.grid5000.fr"
+        n3 = "foocluster-3.rennes.grid5000.fr"
+        nodes = [n1, n2, n3]
+        self.machines[0].nodes = 2
 
-        self.assertCountEqual(
-            resources_1["machines"][0]["_c_nodes"],
-            resources_2["machines"][0]["_c_nodes"],
-        )
+        machines_1 = copy.deepcopy(self.machines)
+        concrete_1 = _concretize_nodes(machines_1, nodes)
+
+        nodes = [n2, n3, n1]
+        machines_2 = copy.deepcopy(self.machines)
+        concrete_2 = _concretize_nodes(machines_2, nodes)
+
+        self.assertCountEqual(concrete_1[0].oar_nodes, concrete_2[0].oar_nodes)
+        self.assertCountEqual(concrete_1[1].oar_nodes, concrete_2[1].oar_nodes)
+
 
 class TestConcretizeNodesWithServers(EnosTest):
     def test_exact(self):
-        resources = {
-            "machines": [
-                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"]},
-            ]
-        }
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        machines = [
+            ServersConfiguration(roles=["compute"], servers=nodes, site="rennes")
+        ]
 
-        nodes = ["foocluster-1", "barcluster-2"]
-        utils.concretize_nodes(resources, nodes)
-        self.assertCountEqual(
-            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
-        )
-
-    def test_mixed(self):
-        resources = {
-            "machines": [
-                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"], "cluster": "foocluster", "nodes": 10},
-            ]
-        }
-
-        nodes = ["foocluster-1", "barcluster-2"]
-        utils.concretize_nodes(resources, nodes)
-        self.assertCountEqual(
-            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
-        )
+        concrete = _concretize_nodes(machines, nodes)
+        self.assertCountEqual(concrete[0].oar_nodes, nodes)
 
     def test_two_types_exact(self):
-        resources = {
-            "machines": [
-                {"role": "compute", "servers": ["foocluster-1", "barcluster-2"]},
-                {"role": "compute", "nodes": 1, "cluster": "barcluster"},
-            ]
-        }
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        machines = [
+            ServersConfiguration(roles=["compute"], servers=nodes, site="rennes"),
+            ClusterConfiguration(
+                roles=["compute"], nodes=1, cluster="barcluster", site="rennes"
+            ),
+        ]
 
-        nodes = ["foocluster-1", "barcluster-2", "barcluster-3"]
-        utils.concretize_nodes(resources, nodes)
+        oar_nodes = nodes + ["barcluster-1.rennes.grid5000.fr"]
+        concrete = _concretize_nodes(machines, oar_nodes)
+        self.assertCountEqual(concrete[0].oar_nodes, nodes)
         self.assertCountEqual(
-            resources["machines"][0]["_c_nodes"], ["foocluster-1", "barcluster-2"]
-        )
-        self.assertCountEqual(
-            resources["machines"][1]["_c_nodes"], ["barcluster-3"]
+            concrete[1].oar_nodes, ["barcluster-1.rennes.grid5000.fr"]
         )
 
 
 class TestConcretizeNodesMin(EnosTest):
     def setUp(self):
-        self.resources = {
-            "machines": [
-                {"role": "compute", "nodes": 1, "cluster": "foocluster"},
-                {"role": "compute", "nodes": 1, "cluster": "foocluster", "min": 1},
-            ]
-        }
+        self.machines = [
+            ClusterConfiguration(
+                roles=["compute"], nodes=1, cluster="foocluster", site="rennes"
+            ),
+            ClusterConfiguration(
+                roles=["compute"], nodes=1, cluster="foocluster", min=1, site="rennes"
+            ),
+        ]
 
     def test_exact(self):
-        nodes = ["foocluster-1", "foocluster-2"]
-        utils.concretize_nodes(self.resources, nodes)
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        concrete = _concretize_nodes(self.machines, nodes)
+        # filled in a second step
         self.assertCountEqual(
-            self.resources["machines"][0]["_c_nodes"], ["foocluster-2"]
+            concrete[0].oar_nodes, ["foocluster-2.rennes.grid5000.fr"]
         )
         # Description with min are filled first
         self.assertCountEqual(
-            self.resources["machines"][1]["_c_nodes"], ["foocluster-1"]
+            concrete[1].oar_nodes, ["foocluster-1.rennes.grid5000.fr"]
         )
 
     def test_one_missing(self):
-        nodes = ["foocluster-1"]
-        utils.concretize_nodes(self.resources, nodes)
-        self.assertCountEqual(self.resources["machines"][0]["_c_nodes"], [])
+        nodes = ["foocluster-1.rennes.grid5000.fr"]
+        concrete = _concretize_nodes(self.machines, nodes)
+        self.assertCountEqual(concrete[0].oar_nodes, [])
         self.assertCountEqual(
-            self.resources["machines"][1]["_c_nodes"], ["foocluster-1"]
+            concrete[1].oar_nodes, ["foocluster-1.rennes.grid5000.fr"]
         )
 
     def test_all_missing(self):
         nodes = []
         with self.assertRaises(NotEnoughNodesError):
-            utils.concretize_nodes(self.resources, nodes)
+            _concretize_nodes(self.machines, nodes)
+
+
+class TestJoin(EnosTest):
+    def setUp(self) -> None:
+        n1 = NetworkConfiguration(type="kavlan", site="rennes", id="roles1")
+        n2 = NetworkConfiguration(type="kavlan", site="rennes", id="roles2")
+
+        self.networks = [n1, n2]
+        self.machines = [
+            ClusterConfiguration(
+                roles=["compute"],
+                nodes=1,
+                cluster="foocluster",
+                site="rennes",
+                primary_network=n1,
+            ),
+            ClusterConfiguration(
+                roles=["compute"],
+                nodes=1,
+                cluster="foocluster",
+                min=1,
+                site="rennes",
+                primary_network=n2,
+                secondary_networks=[n1],
+            ),
+        ]
+
+    def test_exact(self):
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        cmachines = _concretize_nodes(self.machines, nodes)
+        _networks = [
+            {
+                "site": "rennes",
+                "vlan_id": 4,
+                "nature": "kavlan",
+                "network": "1.2.3.4/24",
+            },
+            {
+                "site": "rennes",
+                "vlan_id": 5,
+                "nature": "kavlan",
+                "network": "2.2.3.4/24",
+            },
+        ]
+        networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
+        cnetworks = _concretize_networks(self.networks, networks)
+        hosts = _join(cmachines, cnetworks)
+        self.assertEqual(2, len(hosts))
+        self.assertEqual(cnetworks[0], hosts[0].primary_network)
+        self.assertEqual([], hosts[0].secondary_networks)
+
+        self.assertEqual(cnetworks[1], hosts[1].primary_network)
+        self.assertEqual([cnetworks[0]], hosts[1].secondary_networks)
 
 
 @ddt
 class TestBuildReservationCriteria(EnosTest):
-    @mock.patch(
-        "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", return_value="site1"
-    )
-    def test_only_machines_one_site_cluster(self, mock_get_cluster_site):
-        resources = {
-            "machines": [{"role": "role1", "nodes": 1, "cluster": "foocluster"}]
-        }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+    def test_only_machines_one_site_cluster(self):
+        c = ClusterConfiguration(
+            roles=["role1"], nodes=1, site="site1", cluster="foocluster"
+        )
+
+        criteria = utils._build_reservation_criteria([c], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
     def test_only_machines_one_site_one_servers(self):
         resources = {
             "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"]}]
         }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
-        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria)
+        c = ServersConfiguration(roles=["role1"], servers=["foo-1.site1.grid5000.fr"])
+
+        criteria = utils._build_reservation_criteria([c], [])
+        self.assertDictEqual(
+            {"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria
+        )
 
     def test_only_machines_one_site_two_servers(self):
-        resources = {
-            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr", "foo-2.site1.grid5000.fr"]}]
-        }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
-        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1",
-                                        "{network_address='foo-2.site1.grid5000.fr'}/nodes=1"]}, criteria)
-
-    def test_only_machines_two_sites_two_servers(self):
-        resources = {
-            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr", "foo-2.site2.grid5000.fr"]}]
-        }
-        with self.assertRaises(ValueError):
-            utils._build_reservation_criteria(resources["machines"], [])
-
-    def test_only_machines_servers_win_over_cluster(self):
-        resources = {
-            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"], "cluster": "foocluster", "nodes": 1}]
-        }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
-        self.assertDictEqual({"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria)
-
-    @mock.patch(
-        "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site",
-        side_effect=["site1", "site2"],
-    )
-    def test_only_machines_two_sites(self, mock_get_cluster_site):
-        resources = {
-            "machines": [
-                {"role": "role1", "nodes": 1, "cluster": "foocluster"},
-                {"role": "role2", "nodes": 2, "cluster": "barcluster"},
-            ]
-        }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+        c = ServersConfiguration(
+            roles=["role1"],
+            servers=["foo-1.site1.grid5000.fr", "foo-2.site1.grid5000.fr"],
+        )
+        criteria = utils._build_reservation_criteria([c], [])
         self.assertDictEqual(
             {
-                "site1": ["{cluster='foocluster'}/nodes=1"],
-                "site2": ["{cluster='barcluster'}/nodes=2"],
+                "site1": [
+                    "{network_address='foo-1.site1.grid5000.fr'}/nodes=1+{network_address='foo-2.site1.grid5000.fr'}/nodes=1"
+                ]
             },
             criteria,
         )
 
-    @mock.patch(
-        "enoslib.infra.enos_g5k.g5k_api_utils.get_cluster_site", return_value="site1"
-    )
-    def test_only_no_machines(self, mock_get_cluster_site):
-        resources = {
-            "machines": [{"role": "role1", "nodes": 0, "cluster": "foocluster"}]
-        }
-        criteria = utils._build_reservation_criteria(resources["machines"], [])
+    def test_only_machines_two_sites(self):
+        c1 = ClusterConfiguration(
+            roles=["role1"], nodes=1, cluster="foocluster", site="site1"
+        )
+        c2 = ClusterConfiguration(
+            roles=["role1"], nodes=1, cluster="barcluster", site="site2"
+        )
+        criteria = utils._build_reservation_criteria([c1, c2], [])
+        self.assertDictEqual(
+            {
+                "site1": ["{cluster='foocluster'}/nodes=1"],
+                "site2": ["{cluster='barcluster'}/nodes=1"],
+            },
+            criteria,
+        )
+
+    def test_only_no_machines(self):
+        c = ClusterConfiguration(
+            roles=["role1"], nodes=0, cluster="foocluster", site="site1"
+        )
+        criteria = utils._build_reservation_criteria([c], [])
         self.assertDictEqual({}, criteria)
 
     @data("kavlan", "kavlan-local", "kavlan-global")
     def test_network_kavlan(self, value):
-        resources = {"networks": [{"type": value, "site": "site1"}]}
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        n = NetworkConfiguration(roles=["role1"], type=value, site="site1")
+        criteria = utils._build_reservation_criteria([], [n])
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
     @data("slash_16", "slash_22")
     def test_network_subnet(self, value):
-        resources = {"networks": [{"type": value, "site": "site1"}]}
-        criteria = utils._build_reservation_criteria([], resources["networks"])
+        n = NetworkConfiguration(roles=["role1"], type=value, site="site1")
+        criteria = utils._build_reservation_criteria([], [n])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
 
 
@@ -425,19 +410,19 @@ class TestGridStuffs(EnosTest):
             }
         }
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 0, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 0.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 1, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 1.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 2, 1)
         self.assertTrue(ok)
 
     def test_can_start_on_cluster_2_1(self):
@@ -463,19 +448,19 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 0, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 0.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 1, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 1.5, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 1, [], 2, 1)
         self.assertTrue(ok)
 
     def test_can_start_on_cluster_2_2(self):
@@ -501,19 +486,19 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 0, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 0.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 1, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 1.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 2, 1)
         self.assertTrue(ok)
 
     def test_can_start_on_cluster_2_2b(self):
@@ -546,17 +531,17 @@ class TestGridStuffs(EnosTest):
             },
         }
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 0, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 0.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 0.5, 1)
         self.assertFalse(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 1, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 1.5, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 1.5, 1)
         self.assertTrue(ok)
 
-        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, 2, 1)
+        ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 2, 1)
         self.assertTrue(ok)

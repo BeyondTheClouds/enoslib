@@ -44,6 +44,9 @@ class BaseConfiguration:
 
     def finalize(self):
         d = self.to_dict()
+        import json
+
+        print(json.dumps(d, indent=4))
         self.validate(d)
         return self
 
@@ -57,7 +60,7 @@ class BaseConfiguration:
         return self
 
     def add_machine(self, *args, **kwargs):
-        self.machines.append(self._machine_cls(*args, **kwargs))
+        self.machines.append(self._machine_cls(**kwargs))
         return self
 
     def add_network_conf(self, network):

@@ -1,8 +1,10 @@
 from jsonschema.exceptions import ValidationError
+from mock import patch
 from enoslib.infra.enos_g5k.configuration import (
+    ClusterConfiguration,
     Configuration,
     NetworkConfiguration,
-    MachineConfiguration,
+    GroupConfiguration,
 )
 import enoslib.infra.enos_g5k.constants as constants
 
@@ -35,24 +37,15 @@ class TestConfiguration(EnosTest):
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
 
     def test_from_dictionnary_invalid_walltime(self):
-        d = {
-            "walltime": "02:00",
-            "resources": {"machines": [], "networks": []},
-        }
+        d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}
         with self.assertRaises(ValidationError):
             Configuration.from_dictionnary(d)
 
     def test_missing_cluster_and_servers(self):
         d = {
             "resources": {
-                "machines": [
-                    {
-                        "roles": ["r1"],
-                        "nodes": 1,
-                        "primary_network": "n1",
-                    }
-                ],
-                "networks": []
+                "machines": [{"roles": ["r1"], "nodes": 1, "primary_network": "n1"}],
+                "networks": [],
             }
         }
         with self.assertRaises(ValidationError):
@@ -66,13 +59,12 @@ class TestConfiguration(EnosTest):
                         "roles": ["r1"],
                         "nodes": 1,
                         "primary_network": "n1",
-                        "servers": ["foo-1.site.grid5000.fr", "foo-2.site.grid5000.fr"]
+                        "servers": ["foo-1.site.grid5000.fr", "foo-2.site.grid5000.fr"],
                     }
                 ],
                 "networks": [
                     {"id": "n1", "roles": ["rn1"], "site": "site", "type": "prod"}
                 ],
-
             }
         }
         conf = Configuration.from_dictionnary(d)
@@ -86,26 +78,28 @@ class TestConfiguration(EnosTest):
                         "roles": ["r1"],
                         "nodes": 1,
                         "primary_network": "n1",
-                        "servers": ["foo-1.site.grid5000.fr", "bar-2.site.grid5000.fr"]
+                        "servers": ["foo-1.site.grid5000.fr", "bar-2.site.grid5000.fr"],
                     }
                 ],
                 "networks": [
                     {"id": "n1", "roles": ["rn1"], "site": "site", "type": "prod"}
                 ],
-
             }
         }
         with self.assertRaises(ValueError):
-           Configuration.from_dictionnary(d)
+            Configuration.from_dictionnary(d)
 
-    def test_from_dictionnary_with_machines(self):
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_from_dictionnary_with_machines(self, mock_get_cluster_site):
         d = {
             "resources": {
                 "machines": [
                     {
                         "roles": ["r1"],
                         "nodes": 2,
-                        "cluster": "cluste1",
+                        "cluster": "cluster1",
                         "primary_network": "n1",
                     }
                 ],
@@ -127,7 +121,12 @@ class TestConfiguration(EnosTest):
         # check the network ref
         self.assertEqual(network, machine_group.primary_network)
 
-    def test_from_dictionnary_with_machines_and_secondary_networks(self):
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_from_dictionnary_with_machines_and_secondary_networks(
+        self, mock_get_cluster_site
+    ):
         d = {
             "resources": {
                 "machines": [
@@ -253,18 +252,21 @@ class TestConfiguration(EnosTest):
         with self.assertRaises(ValueError) as ctx:
             conf = Configuration.from_dictionnary(d)
 
-    def test_programmatic(self):
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_programmatic(self, mock_get_cluster_site):
         conf = Configuration()
         network = NetworkConfiguration(
             id="id", roles=["my_network"], type="prod", site="rennes"
         )
 
         conf.add_network_conf(network).add_machine_conf(
-            MachineConfiguration(
+            ClusterConfiguration(
                 roles=["r1"], cluster="paravance", primary_network=network
             )
         ).add_machine_conf(
-            MachineConfiguration(
+            ClusterConfiguration(
                 roles=["r2"], cluster="parapluie", primary_network=network, nodes=10
             )
         )

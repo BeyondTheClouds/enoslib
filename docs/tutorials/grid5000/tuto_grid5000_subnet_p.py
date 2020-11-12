@@ -9,26 +9,19 @@ logging.basicConfig(level=logging.INFO)
 
 # claim the resources
 prod_network = NetworkConfiguration(
-    id="n1",
-    type="prod",
-    roles=["my_network"],
-    site="rennes"
+    id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    Configuration
-    .from_settings(job_type="allow_classic_ssh")
+    Configuration.from_settings(job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",
-        type="slash_22",
+        type="slash_16",
         roles=["my_subnet"],
         site="rennes",
     )
     .add_machine(
-        roles=["control"],
-        cluster="parapluie",
-        nodes=1,
-        primary_network=prod_network
+        roles=["control"], cluster="parapluie", nodes=1, primary_network=prod_network
     )
     .finalize()
 )

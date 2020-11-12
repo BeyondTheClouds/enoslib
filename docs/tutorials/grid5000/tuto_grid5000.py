@@ -2,9 +2,8 @@ from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import Configuration
 
 import logging
-import os
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
     "resources": {
@@ -39,7 +38,7 @@ provider_conf = {
 # claim the resources
 conf = Configuration.from_dictionnary(provider_conf)
 provider = G5k(conf)
-roles, networks = provider.init()
+provider.init()
 
 # destroy the reservation
 provider.destroy()

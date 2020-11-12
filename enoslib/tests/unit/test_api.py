@@ -48,12 +48,13 @@ class TestPlayOn(EnosTest):
                 p.a()
             m.assert_called_once()
 
+
 class TestGetHosts(EnosTest):
     def test_get_all(self):
         roles = {
             "client.1": [Host("1.2.3.4")],
             "client.2": [Host("2.2.3.4")],
-            "server": [Host("3.2.3.4")]
+            "server": [Host("3.2.3.4")],
         }
         hosts = get_hosts(roles)
         self.assertEqual(3, len(hosts))
