@@ -80,11 +80,20 @@ class OargridDynamicDriver(Driver):
     """
 
     def __init__(
-        self, job_name, walltime, job_type, reservation_date, queue, machines, networks
+        self,
+        job_name,
+        walltime,
+        job_type,
+        project,
+        reservation_date,
+        queue,
+        machines,
+        networks,
     ):
         self.job_name = job_name
         self.walltime = walltime
         self.job_type = job_type
+        self.project = project
         self.reservation_date = reservation_date
         self.queue = queue
         self.machines = machines
@@ -97,6 +106,7 @@ class OargridDynamicDriver(Driver):
             self.reservation_date,
             self.queue,
             self.job_type,
+            self.project,
             self.machines,
             self.networks,
         )
@@ -118,6 +128,7 @@ def get_driver(
     machines = configuration.machines
     networks = configuration.networks
     oargrid_jobids = configuration.oargrid_jobids
+    project = configuration.project
 
     if oargrid_jobids:
         logger.debug("Loading the OargridStaticDriver")
@@ -134,5 +145,5 @@ def get_driver(
         logger.debug("Loading the OargridDynamicDriver")
 
         return OargridDynamicDriver(
-            job_name, walltime, job_type, reservation_date, queue, machines, networks
+            job_name, walltime, job_type, project, reservation_date, queue, machines, networks
         )

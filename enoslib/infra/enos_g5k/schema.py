@@ -15,6 +15,7 @@ SCHEMA = {
         "job_type": {"type": "string", "enum": JOB_TYPES},
         "key": {"type": "string"},
         "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},
+        "project": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "reservation": {"type": "string"},
         "walltime": {

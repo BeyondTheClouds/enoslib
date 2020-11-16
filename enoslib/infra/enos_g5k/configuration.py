@@ -27,6 +27,7 @@ class Configuration(BaseConfiguration):
         self.job_type = DEFAULT_JOB_TYPE
         self.key = DEFAULT_SSH_KEYFILE
         self.oargrid_jobids = None
+        self.project = None
         self.queue = DEFAULT_QUEUE
         self.reservation = None
         self.walltime = DEFAULT_WALLTIME
