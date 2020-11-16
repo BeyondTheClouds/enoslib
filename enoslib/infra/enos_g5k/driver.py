@@ -145,5 +145,12 @@ def get_driver(
         logger.debug("Loading the OargridDynamicDriver")
 
         return OargridDynamicDriver(
-            job_name, walltime, job_type, project, reservation_date, queue, machines, networks
+            job_name,
+            walltime,
+            job_type,
+            project,
+            reservation_date,
+            queue,
+            machines,
+            networks,
         )

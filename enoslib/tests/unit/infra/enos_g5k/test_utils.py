@@ -14,7 +14,7 @@ from enoslib.infra.enos_g5k.configuration import (
 from ddt import ddt, data
 import mock
 
-from enoslib.infra.enos_g5k import utils, g5k_api_utils
+from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
 from enoslib.infra.enos_g5k.constants import KAVLAN, PROD, SLASH_22, SLASH_16
 from enoslib.tests.unit import EnosTest
@@ -325,7 +325,7 @@ class TestBuildReservationCriteria(EnosTest):
             roles=["role1"], nodes=1, site="site1", cluster="foocluster"
         )
 
-        criteria = utils._build_reservation_criteria([c], [])
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
     def test_only_machines_one_site_one_servers(self):
@@ -334,7 +334,7 @@ class TestBuildReservationCriteria(EnosTest):
         }
         c = ServersConfiguration(roles=["role1"], servers=["foo-1.site1.grid5000.fr"])
 
-        criteria = utils._build_reservation_criteria([c], [])
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual(
             {"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria
         )
@@ -344,7 +344,7 @@ class TestBuildReservationCriteria(EnosTest):
             roles=["role1"],
             servers=["foo-1.site1.grid5000.fr", "foo-2.site1.grid5000.fr"],
         )
-        criteria = utils._build_reservation_criteria([c], [])
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual(
             {
                 "site1": [
@@ -361,7 +361,7 @@ class TestBuildReservationCriteria(EnosTest):
         c2 = ClusterConfiguration(
             roles=["role1"], nodes=1, cluster="barcluster", site="site2"
         )
-        criteria = utils._build_reservation_criteria([c1, c2], [])
+        criteria = g5k_api_utils._build_reservation_criteria([c1, c2], [])
         self.assertDictEqual(
             {
                 "site1": ["{cluster='foocluster'}/nodes=1"],
@@ -374,19 +374,19 @@ class TestBuildReservationCriteria(EnosTest):
         c = ClusterConfiguration(
             roles=["role1"], nodes=0, cluster="foocluster", site="site1"
         )
-        criteria = utils._build_reservation_criteria([c], [])
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual({}, criteria)
 
     @data("kavlan", "kavlan-local", "kavlan-global")
     def test_network_kavlan(self, value):
         n = NetworkConfiguration(roles=["role1"], type=value, site="site1")
-        criteria = utils._build_reservation_criteria([], [n])
+        criteria = g5k_api_utils._build_reservation_criteria([], [n])
         self.assertDictEqual({"site1": ["{type='%s'}/vlan=1" % value]}, criteria)
 
     @data("slash_16", "slash_22")
     def test_network_subnet(self, value):
         n = NetworkConfiguration(roles=["role1"], type=value, site="site1")
-        criteria = utils._build_reservation_criteria([], [n])
+        criteria = g5k_api_utils._build_reservation_criteria([], [n])
         self.assertDictEqual({"site1": ["%s=1" % value]}, criteria)
 
 
