@@ -1,8 +1,7 @@
 from typing import Dict
-from enoslib.infra.enos_g5k.g5k_api_utils import G5kApiProd, G5kApiVlan
 import mock
 
-from enoslib.infra.enos_g5k.provider import G5k, G5kHost, G5kNetwork, G5kProdNetwork, G5kVlanNetwork
+from enoslib.infra.enos_g5k.provider import G5k, G5kHost, G5kProdNetwork, G5kVlanNetwork
 
 from enoslib.infra.enos_g5k.constants import (
     DEFAULT_ENV_NAME,
@@ -28,9 +27,12 @@ class TestDeploy(EnosTest):
             "foocluster-2.rennes.grid5000.fr",
         ]
 
+        # conf
         network_config = NetworkConfiguration(id="network1", type=PROD, site=site)
-        g5k_networks = [G5kProdNetwork(["roles1"], "roles1", G5kApiProd(site="rennes"))]
+        # concrete
+        g5k_networks = [G5kProdNetwork(["roles1"], "id1", site)]
 
+        # conf
         cluster_config = ClusterConfiguration(
             site="rennes", primary_network=network_config
         )
@@ -76,11 +78,8 @@ class TestDeploy(EnosTest):
             site="rennes", primary_network=network_2
         )
 
-        g5k_networks_1 = G5kProdNetwork(["roles1"], "roles1", G5kApiProd(site="rennes"))
-
-        g5k_networks_2 = G5kVlanNetwork(
-            ["roles1"], "roles1", G5kApiVlan(site=site, vlan_id="4")
-        )
+        oar_network_1 = G5kProdNetwork(["roles1"], "id1", "rennes")
+        oar_network_2 = G5kVlanNetwork(["roles1"], "id2", "rennes", "4")
 
         provider_config = (
             Configuration()
@@ -95,13 +94,13 @@ class TestDeploy(EnosTest):
 
         # mimic a reservation
         p.hosts = [
-            G5kHost(oar_nodes_1[0], ["r1"], g5k_networks_1, []),
-            G5kHost(oar_nodes_1[1], ["r1"], g5k_networks_1, []),
-            G5kHost(oar_nodes_2[0], ["r1"], g5k_networks_2, []),
-            G5kHost(oar_nodes_2[1], ["r1"], g5k_networks_2, []),
+            G5kHost(oar_nodes_1[0], ["r1"], oar_network_1, []),
+            G5kHost(oar_nodes_1[1], ["r1"], oar_network_1, []),
+            G5kHost(oar_nodes_2[0], ["r1"], oar_network_2, []),
+            G5kHost(oar_nodes_2[1], ["r1"], oar_network_2, []),
         ]
 
-        return p, oar_nodes_1, oar_nodes_2, g5k_networks_2
+        return p, oar_nodes_1, oar_nodes_2, oar_network_2
 
     def test_prod(self):
         p, site, oar_nodes = self.build_provider()

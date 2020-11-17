@@ -1,10 +1,12 @@
 import copy
 from enoslib.infra.enos_g5k.provider import (
+    G5kSubnetNetwork,
+    G5kVlanNetwork,
     _concretize_networks,
     _concretize_nodes,
     _join,
 )
-
+from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     ServersConfiguration,
@@ -16,7 +18,14 @@ import mock
 
 from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
-from enoslib.infra.enos_g5k.constants import KAVLAN, PROD, SLASH_22, SLASH_16
+from enoslib.infra.enos_g5k.constants import (
+    KAVLAN,
+    NATURE_PROD,
+    PROD,
+    PROD_VLAN_ID,
+    SLASH_22,
+    SLASH_16,
+)
 from enoslib.tests.unit import EnosTest
 
 
@@ -41,97 +50,64 @@ class TestConcretizeNetwork(EnosTest):
         ]
 
     def test_act(self):
-        _networks = [
-            {
-                "site": "rennes",
-                "vlan_id": 4,
-                "nature": "kavlan",
-                "network": "1.2.3.4/24",
-            },
-            {
-                "site": "rennes",
-                "vlan_id": 5,
-                "nature": "kavlan",
-                "network": "2.2.3.4/24",
-            },
+        oar_networks = [
+            OarNetwork(site="rennes", nature="kavlan", descriptor="4"),
+            OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
         ]
-        networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
-        concrete = _concretize_networks(self.networks, networks)
-        self.assertEqual([networks[0]], concrete[0].apinetworks)
-        self.assertEqual([networks[1]], concrete[1].apinetworks)
+        concrete = _concretize_networks(self.networks, oar_networks)
+        self.assertEqual(concrete[0].vlan_id, concrete[0].vlan_id)
+        self.assertEqual(concrete[1].vlan_id, concrete[1].vlan_id)
 
     def test_act_subnets_enough(self):
         _networks = [
-            {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"}
+            {"site": "rennes", "descriptor": "10.156.%s.0/22" % i, "nature": "slash_22"}
             for i in range(65)
         ]
-        oar_networks = [g5k_api_utils.G5kApiSubnet(**n) for n in _networks]
+        oar_networks = [OarNetwork(**n) for n in _networks]
         concrete = _concretize_networks(self.subnets, oar_networks)
-        self.assertCountEqual([oar_networks[0]], concrete[0].apinetworks)
-        self.assertCountEqual(oar_networks[1:], concrete[1].apinetworks)
+        self.assertCountEqual(
+            [n.descriptor for n in oar_networks[0:1]], concrete[0].subnets
+        )
+        self.assertCountEqual(
+            [n.descriptor for n in oar_networks[1:]], concrete[1].subnets
+        )
 
     def test_act_subnets_not_enough(self):
         _networks = [
             {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"}
             for i in range(33)
         ]
-        oar_networks = [g5k_api_utils.G5kApiSubnet(**n) for n in _networks]
+        oar_networks = [
+            OarNetwork(site="rennes", nature="slash_22", descriptor=f"10.156.{i}.0/22")
+            for i in range(33)
+        ]
         concrete = _concretize_networks(self.subnets, oar_networks)
-        self.assertEqual(32, len(concrete[1].apinetworks))
+        self.assertEqual(32, len(concrete[1].subnets))
 
     def test_prod(self):
         self.networks[0].type = PROD
         self.networks[0].nature = PROD
         oar_networks = [
-            g5k_api_utils.G5kApiVlan(
-                **{
-                    "site": "rennes",
-                    "vlan_id": 5,
-                    "nature": "kavlan",
-                    "network": "1.2.3.4/24",
-                }
-            ),
-            g5k_api_utils.G5kApiProd(
-                **{"site": "rennes", "nature": PROD, "network": "2.2.3.4/24"}
-            ),
+            OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
+            OarNetwork(site="rennes", nature=NATURE_PROD, descriptor=PROD_VLAN_ID),
         ]
 
         g5k_networks = _concretize_networks(self.networks, oar_networks)
-        self.assertEqual(None, g5k_networks[0].vlan_id)
-        self.assertEqual(5, g5k_networks[1].vlan_id)
+        self.assertEqual(PROD_VLAN_ID, g5k_networks[0].vlan_id)
+        self.assertEqual("5", g5k_networks[1].vlan_id)
         self.assertEqual(["role1"], g5k_networks[0].roles)
         self.assertEqual(["role2"], g5k_networks[1].roles)
 
     def test_one_missing(self):
-        _networks = [
-            {
-                "site": "rennes",
-                "vlan_id": 4,
-                "nature": "kavlan",
-                "network": "1.2.3.4/24",
-            }
-        ]
-
-        oar_networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
+        oar_networks = [OarNetwork(site="rennes", nature="kavlan", descriptor="4")]
         with self.assertRaises(MissingNetworkError):
             _concretize_networks(self.networks, oar_networks)
 
     def test_not_order_dependent(self):
-        _networks_1 = [
-            {
-                "site": "rennes",
-                "vlan_id": 4,
-                "nature": "kavlan",
-                "network": "1.2.3.4/24",
-            },
-            {
-                "site": "rennes",
-                "vlan_id": 5,
-                "nature": "kavlan",
-                "network": "2.2.3.4/24",
-            },
+        oar_networks_1 = [
+            OarNetwork(site="rennes", nature="kavlan", descriptor="4"),
+            OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
         ]
-        oar_networks_1 = [g5k_api_utils.G5kApiVlan(**n) for n in _networks_1]
         oar_networks_2 = [oar_networks_1[1], oar_networks_1[0]]
 
         networks_1 = copy.deepcopy(self.networks)
@@ -140,12 +116,8 @@ class TestConcretizeNetwork(EnosTest):
         g5k_networks_2 = _concretize_networks(networks_2, oar_networks_2)
 
         # concrete are filled following the order of the config
-        self.assertCountEqual(
-            g5k_networks_1[0].apinetworks, g5k_networks_2[0].apinetworks
-        )
-        self.assertCountEqual(
-            g5k_networks_1[1].apinetworks, g5k_networks_2[1].apinetworks
-        )
+        self.assertCountEqual(g5k_networks_1[0].vlan_id, g5k_networks_2[0].vlan_id)
+        self.assertCountEqual(g5k_networks_1[1].vlan_id, g5k_networks_2[1].vlan_id)
 
 
 class TestConcretizeNodes(EnosTest):
@@ -293,29 +265,18 @@ class TestJoin(EnosTest):
     def test_exact(self):
         nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
         cmachines = _concretize_nodes(self.machines, nodes)
-        _networks = [
-            {
-                "site": "rennes",
-                "vlan_id": 4,
-                "nature": "kavlan",
-                "network": "1.2.3.4/24",
-            },
-            {
-                "site": "rennes",
-                "vlan_id": 5,
-                "nature": "kavlan",
-                "network": "2.2.3.4/24",
-            },
+        oar_networks = [
+            OarNetwork(site="rennes", nature="kavlan", descriptor="4"),
+            OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
         ]
-        networks = [g5k_api_utils.G5kApiVlan(**n) for n in _networks]
-        cnetworks = _concretize_networks(self.networks, networks)
-        hosts = _join(cmachines, cnetworks)
+        networks = _concretize_networks(self.networks, oar_networks)
+        hosts = _join(cmachines, networks)
         self.assertEqual(2, len(hosts))
-        self.assertEqual(cnetworks[0], hosts[0].primary_network)
+        self.assertEqual(networks[0], hosts[0].primary_network)
         self.assertEqual([], hosts[0].secondary_networks)
 
-        self.assertEqual(cnetworks[1], hosts[1].primary_network)
-        self.assertEqual([cnetworks[0]], hosts[1].secondary_networks)
+        self.assertEqual(networks[1], hosts[1].primary_network)
+        self.assertEqual([networks[0]], hosts[1].secondary_networks)
 
 
 @ddt

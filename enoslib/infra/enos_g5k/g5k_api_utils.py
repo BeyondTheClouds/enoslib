@@ -6,11 +6,10 @@ It wraps the python-grid5000 library to provide some usual routines to interact
 with the platform.
 """
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 import logging
-from grid5000.objects import Node
-from netaddr import IPAddress, IPNetwork, IPSet
+from grid5000.objects import Job, Node, Vlan
 import os
 import time
 import threading
@@ -23,10 +22,12 @@ from .error import (
     EnosG5kWalltimeFormatError,
 )
 from .constants import (
-    G5KMACPREFIX,
     KAVLAN_GLOBAL,
+    KAVLAN_IDS,
     KAVLAN_LOCAL,
     KAVLAN,
+    KAVLAN_LOCAL_IDS,
+    PROD_VLAN_ID,
     SYNCHRONISATION_OFFSET,
     NATURE_PROD,
     MAX_DEPLOY,
@@ -71,174 +72,26 @@ class Client(Grid5000):
             self.excluded_site = []
 
 
-class G5kApiNode(Node):
-    pass
+# Lighweight reprentation of a network returned by OAR
+# descriptor is the cidr for a subnet or an id for vlan (prod=="DEFAULT")
+OarNetwork = namedtuple("OarNetwork", ["site", "nature", "descriptor"])
 
 
-class G5kApiNetwork:
-    def __init__(
-        self,
-        *,
-        site=None,
-        network=None,
-        gateway=None,
-        dns=None,
-        vlan_id=None,
-        ipmac=None,
-        nature=None,
-        **kwargs
-    ):
-        self.site = site
-        self.network = network
-        self.gateway = gateway
-        # NOTE(msimonin): dns info isn't present in g5k api
-        self.dns = dns
-        self.vlan_id = vlan_id
-        self.ipmac = []
-        if ipmac is not None:
-            self.ipmac = ipmac
-
-        self.nature = nature
-
-    @staticmethod
-    def to_nature(n_type):
-        return n_type
-
-    def __repr__(self):
-        return (
-            "<ConcreteNetwork site=%s"
-            " nature=%s"
-            " network=%s"
-            " gateway=%s"
-            " dns=%s"
-            " vlan_id=%s>"
-        ) % (self.site, self.nature, self.network, self.gateway, self.dns, self.vlan_id)
+def to_vlan_nature(vlan_id: str) -> str:
+    # TODO(msimonin): replace that by an api call to get the nature
+    if vlan_id in KAVLAN_LOCAL_IDS:
+        return KAVLAN_LOCAL
+    if vlan_id in KAVLAN_IDS:
+        return KAVLAN
+    return KAVLAN_GLOBAL
 
 
-class G5kApiSubnet(G5kApiNetwork):
-    """Modelizes a Grid'5000 subnet."""
-
-    @staticmethod
-    def to_nature(subnet):
-        return "slash_%s" % subnet[-2:]
-
-    @classmethod
-    def from_job(cls, site, subnet):
-        ipmac = []
-        network = IPNetwork(subnet)
-        for ip in list(network[1:-1]):
-            _, x, y, z = ip.words
-            ipmac.append((str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
-        nature = G5kApiSubnet.to_nature(subnet)
-        gateway = get_subnet_gateway(site)
-        kwds = {
-            "nature": nature,
-            "gateway": gateway,
-            "network": subnet,
-            "site": site,
-            "ipmac": ipmac,
-            "dns": get_dns(site),
-        }
-        return cls(**kwds)
-
-    def to_dict(self):
-        net = {}
-        start_ip, start_mac = self.ipmac[0]
-        end_ip, end_mac = self.ipmac[-1]
-        net.update(
-            start=start_ip,
-            end=end_ip,
-            mac_start=start_mac,
-            mac_end=end_mac,
-            cidr=self.network,
-            gateway=self.gateway,
-            dns=self.dns,
-        )
-        return net
+def to_subnet_nature(cidr: str) -> str:
+    return "slash_%s" % cidr[-2:]
 
 
-class G5kApiVlan(G5kApiNetwork):
-    """Modelizes a Grid'5000 kavlan."""
-
-    kavlan_local = ["1", "2", "3"]
-    kavlan = ["4", "5", "6", "7", "8", "9"]
-
-    @staticmethod
-    def to_nature(vlan_id):
-        if vlan_id in G5kApiVlan.kavlan_local:
-            return KAVLAN_LOCAL
-        if vlan_id in G5kApiVlan.kavlan:
-            return KAVLAN
-        return KAVLAN_GLOBAL
-
-    @classmethod
-    def from_job(cls, site, vlan_id):
-
-        nature = G5kApiVlan.to_nature(vlan_id)
-        kwds = {"nature": nature, "vlan_id": str(vlan_id), "dns": get_dns(site)}
-        kwds.update(get_vlans(site)[str(vlan_id)])
-        kwds.update(site=site)
-        return cls(**kwds)
-
-    def to_dict(self):
-        # On the network, the first IP are reserved to g5k machines.
-        # For a routed vlan I don't know exactly how many ip are
-        # reserved. However, the specification is clear about global
-        # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
-        # It is split -- contiguously -- so that every site gets one
-        # /23 (510 ip) in the global VLAN address space". There are 12
-        # site. This means that we could take ip from 13th subnetwork.
-        # Lets consider the strategy is the same for routed vlan. See,
-        # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
-        #
-        # First, split network in /23 this leads to 32 subnetworks.
-        # Then, (i) drops the 12 first subnetworks because they are
-        # dedicated to g5k machines, and (ii) drops the last one
-        # because some of ips are used for specific stuff such as
-        # gateway, kavlan server...
-        net = {}
-        subnets = IPNetwork(self.network)
-        if self.vlan_id in G5kApiVlan.kavlan_local:
-            # vlan local
-            subnets = list(subnets.subnet(24))
-            subnets = subnets[4:7]
-        else:
-            subnets = list(subnets.subnet(23))
-            subnets = subnets[13:31]
-
-        # Finally, compute the range of available ips
-        ips = IPSet(subnets).iprange()
-
-        net.update(
-            start=str(IPAddress(ips.first)),
-            end=str(IPAddress(ips.last)),
-            cidr=self.network,
-            gateway=self.gateway,
-            dns=self.dns,
-        )
-        return net
-
-
-class G5kApiProd(G5kApiNetwork):
-    """Modelizes a Grid'5000 production network."""
-
-    @classmethod
-    def from_job(cls, site):
-        nature = NATURE_PROD
-        vlan_id = "default"
-        kwds = {
-            "nature": nature,
-            "vlan_id": str(vlan_id),
-            "site": site,
-            "dns": get_dns(site),
-        }
-        kwds.update(get_vlans(site)[vlan_id])
-        return cls(**kwds)
-
-    def to_dict(self):
-        net = {}
-        net.update(cidr=self.network, gateway=self.gateway, dns=self.dns)
-        return net
+def to_prod_nature() -> str:
+    return "DEFAULT"
 
 
 def get_api_client():
@@ -311,7 +164,7 @@ def grid_reload_from_ids(oargrid_jobids):
     return jobs
 
 
-def build_resources(jobs):
+def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
@@ -322,19 +175,35 @@ def build_resources(jobs):
             - nodes is a list of all the nodes of the various reservations
             - networks is a list of all the networks of the various reservation
     """
-    nodes = []
-    networks = []
+    nodes: List[str] = []
+    networks: List[OarNetwork] = []
     for job in jobs:
-        # Ok so we build the networks given by g5k for each job
-        # a network is here a dict
+        # can have several subnet like this (e.g when requesting a /16)
+        # [...]
+        # "subnets": [
+        #     "10.158.0.0/22",
+        #       ...,
+        # ]
         _subnets = job.resources_by_type.get("subnets", [])
+        # [...]
+        # "vlans": [
+        #     "4"
+        # ]
         _vlans = job.resources_by_type.get("vlans", [])
         nodes = nodes + job.assigned_nodes
         site = job.site
-
-        networks += [G5kApiSubnet.from_job(site, subnet) for subnet in _subnets]
-        networks += [G5kApiVlan.from_job(site, vlan_id) for vlan_id in _vlans]
-        networks += [G5kApiProd.from_job(site)]
+        networks += [
+            OarNetwork(site=site, nature=to_subnet_nature(subnet), descriptor=subnet)
+            for subnet in _subnets
+        ]
+        networks += [
+            OarNetwork(
+                site=site, nature=to_vlan_nature(vlan_id), descriptor=str(vlan_id)
+            )
+            for vlan_id in _vlans
+        ]
+        # always add the Production network
+        networks += [OarNetwork(site=site, nature=NATURE_PROD, descriptor=PROD_VLAN_ID)]
 
     logger.debug("nodes=%s, networks=%s" % (nodes, networks))
     return nodes, networks
@@ -473,7 +342,9 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
 
     gk = get_api_client()
     network_addresses = [_to_network_address(n) for n in nodes]
-    gk.sites[site].vlans[str(vlan_id)].submit({"nodes": network_addresses})
+    data = {"nodes": network_addresses}
+    logger.debug(data)
+    gk.sites[site].vlans[str(vlan_id)].submit(data)
 
 
 def get_api_username():
@@ -790,6 +661,12 @@ def get_subnet_gateway(site):
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
+
+
+@ring.disk(storage)
+def get_vlan(site, vlan_id) -> Vlan:
+    site_info = get_site_obj(site)
+    return site_info.vlans[vlan_id]
 
 
 def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[str]]:

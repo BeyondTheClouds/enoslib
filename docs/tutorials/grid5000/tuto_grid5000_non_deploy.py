@@ -40,5 +40,3 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = G5k(conf)
 roles, networks = provider.init()
 
-# destroy the reservation
-provider.destroy()

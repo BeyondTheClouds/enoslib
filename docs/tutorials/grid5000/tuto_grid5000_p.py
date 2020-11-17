@@ -12,14 +12,14 @@ network = NetworkConfiguration(
     id="n1", type="kavlan", roles=["my_network"], site="rennes"
 )
 conf = (
-    Configuration.from_settings(job_name="test-enoslib")
+    Configuration.from_settings(job_name="test-enoslib_")
     .add_network_conf(network)
     .add_machine(
-        roles=["control"], cluster="paravance", nodes=1, primary_network=network
+        roles=["control"], cluster="parapluie", nodes=1, primary_network=network
     )
     .add_machine(
         roles=["control", "compute"],
-        cluster="paravance",
+        cluster="parapluie",
         nodes=1,
         primary_network=network,
     )
