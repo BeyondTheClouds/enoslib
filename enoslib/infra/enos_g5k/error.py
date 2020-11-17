@@ -27,12 +27,15 @@ class EnosG5kDuplicateJobsError(EnosError):
 class EnosG5kSynchronisationError(EnosError):
     def __init__(self, sites):
         super(EnosG5kSynchronisationError, self).__init__(
-            "Unable to find a synchronised on %s" % sites
+            (
+                "Unable synchronize the jobs on %s" % sites,
+                "Try to make an explicit reservation instead",
+            )
         )
 
 
 class EnosG5kWalltimeFormatError(EnosError):
-    def __init__(self, site, job_name):
+    def __init__(self):
         super(EnosG5kWalltimeFormatError, self).__init__(
             "Waltime must be specified in HH:MM:SS format"
         )

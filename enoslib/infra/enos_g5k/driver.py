@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
+from typing import Union
+from enoslib.infra.enos_g5k.configuration import Configuration
 import logging
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
@@ -7,51 +9,11 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     grid_deploy,
     grid_destroy_from_name,
     grid_destroy_from_ids,
+    grid_get_or_create_job,
+    grid_reload_from_ids,
 )
-from enoslib.infra.enos_g5k.utils import grid_get_or_create_job, grid_reload_from_ids
-from enoslib.infra.enos_g5k.constants import (
-    DEFAULT_JOB_NAME,
-    DEFAULT_WALLTIME,
-    JOB_TYPE_DEPLOY,
-)
-
 
 logger = logging.getLogger(__name__)
-
-
-def get_driver(configuration):
-    """Build an instance of the driver to interact with G5K
-    """
-    resources = configuration["resources"]
-    machines = resources["machines"]
-    networks = resources["networks"]
-    oargrid_jobids = configuration.get("oargrid_jobids")
-
-    if oargrid_jobids:
-        logger.debug("Loading the OargridStaticDriver")
-        return OargridStaticDriver(oargrid_jobids)
-    else:
-        job_name = configuration.get("job_name", DEFAULT_JOB_NAME)
-        walltime = configuration.get("walltime", DEFAULT_WALLTIME)
-        job_type = configuration.get("job_type", JOB_TYPE_DEPLOY)
-        project = configuration.get("project")
-        reservation_date = configuration.get("reservation", False)
-        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
-        # the queues and it was quiet convenient
-        # see https://github.com/BeyondTheClouds/enos/pull/62
-        queue = configuration.get("queue", None)
-        logger.debug("Loading the OargridDynamicDriver")
-
-        return OargridDynamicDriver(
-            job_name,
-            walltime,
-            job_type,
-            project,
-            reservation_date,
-            queue,
-            machines,
-            networks,
-        )
 
 
 class Driver:
@@ -156,3 +118,39 @@ class OargridDynamicDriver(Driver):
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
+
+
+def get_driver(
+    configuration: Configuration
+) -> Union[OargridDynamicDriver, OargridStaticDriver]:
+    """Build an instance of the driver to interact with G5K
+    """
+    machines = configuration.machines
+    networks = configuration.networks
+    oargrid_jobids = configuration.oargrid_jobids
+    project = configuration.project
+
+    if oargrid_jobids:
+        logger.debug("Loading the OargridStaticDriver")
+        return OargridStaticDriver(oargrid_jobids)
+    else:
+        job_name = configuration.job_name
+        walltime = configuration.walltime
+        job_type = configuration.job_type
+        reservation_date = configuration.reservation
+        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
+        # the queues and it was quiet convenient
+        # see https://github.com/BeyondTheClouds/enos/pull/62
+        queue = configuration.queue
+        logger.debug("Loading the OargridDynamicDriver")
+
+        return OargridDynamicDriver(
+            job_name,
+            walltime,
+            job_type,
+            project,
+            reservation_date,
+            queue,
+            machines,
+            networks,
+        )

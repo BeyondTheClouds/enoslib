@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES
-
+from .error import EnosG5kWalltimeFormatError
 
 SCHEMA = {
     "type": "object",
+    "title": "Grid5000 configuration",
     "properties": {
         "dhcp": {"type": "boolean"},
         "force_deploy": {"type": "boolean"},
@@ -16,7 +18,11 @@ SCHEMA = {
         "project": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "reservation": {"type": "string"},
-        "walltime": {"type": "string"},
+        "walltime": {
+            "type": "string",
+            "format": "walltime",
+            "description": "walltime in HH:MM:SS format",
+        },
         "resources": {"$ref": "#/resources"},
     },
     "additionalProperties": False,
@@ -25,7 +31,10 @@ SCHEMA = {
         "title": "Resource",
         "type": "object",
         "properties": {
-            "machines": {"type": "array", "items": {"$ref": "#/machine"}},
+            "machines": {
+                "type": "array",
+                "items": {"oneOf": [{"$ref": "#cluster"}, {"$ref": "#servers"}]},
+            },
             "networks": {
                 "type": "array",
                 "items": {"$ref": "#/network"},
@@ -35,9 +44,9 @@ SCHEMA = {
         "additionalProperties": False,
         "required": ["machines", "networks"],
     },
-    "jobids": {"title": "JobIds", "type": "array"},
-    "machine": {
-        "title": "Compute",
+    "jobids": {"title": "JobIds", "type": "array", "items": {"type": "string"}},
+    "cluster": {
+        "title": "ComputeCluster",
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
@@ -53,6 +62,22 @@ SCHEMA = {
         },
         "required": ["roles", "cluster", "primary_network"],
     },
+    "servers": {
+        "title": "ComputeServers",
+        "type": "object",
+        "properties": {
+            "roles": {"type": "array", "items": {"type": "string"}},
+            "servers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "min": {"type": "number"},
+            "primary_network": {"type": "string"},
+            "secondary_networks": {
+                "type": "array",
+                "items": {"type": "string"},
+                "uniqueItems": True,
+            },
+        },
+        "required": ["roles", "servers", "primary_network"],
+    },
     "network": {
         "type": "object",
         "properties": {
@@ -64,6 +89,7 @@ SCHEMA = {
         "required": ["id", "type", "roles", "site"],
     },
 }
+
 """
 Additionnal notes
 
@@ -91,3 +117,32 @@ reloaded from the corresponding oar job. In this case what is described
 under the ``resources`` key mut be compatible with the job content.
 
 """
+G5kFormatChecker = FormatChecker()
+
+
+@G5kFormatChecker.checks("hostname")
+def is_valid_hostname(instance):
+    if not isinstance(instance, str):
+        return False
+    # cluster-n.site.grid5000.fr
+    import re
+
+    pattern = r"\w+-\d+.\w+.grid5000.fr"
+    return re.match(pattern, instance) is not None
+
+
+@G5kFormatChecker.checks("walltime", raises=EnosG5kWalltimeFormatError)
+def is_valid_walltime(instance):
+    if not isinstance(instance, str):
+        return False
+    # HH:MM:SS
+    from datetime import datetime
+
+    try:
+        datetime.strptime(instance, "%H:%M:%S")
+        return True
+    except ValueError:
+        raise EnosG5kWalltimeFormatError()
+
+
+G5kValidator = Draft7Validator(SCHEMA, format_checker=G5kFormatChecker)

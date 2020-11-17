@@ -353,7 +353,8 @@ class TestBuildIpConstraints(EnosTest):
 
     def test_build_ip_constraints_bridge(self):
         ips_with_tc = _build_ip_constraints(
-            self.rsc, self.ips_with_bridge, self.constraints)
+            self.rsc, self.ips_with_bridge, self.constraints
+        )
         # tc rules are applied on the source only
         self.assertTrue("tc" in ips_with_tc["node1"])
         tcs = ips_with_tc["node1"]["tc"]
@@ -367,8 +368,7 @@ class TestBuildIpConstraints(EnosTest):
 
     def test_build_commands(self):
         self.constraints[0]["symetric"] = True
-        ips_with_tc = _build_ip_constraints(
-            self.rsc, self.ips, self.constraints)
+        ips_with_tc = _build_ip_constraints(self.rsc, self.ips, self.constraints)
         remove, add, rate, delay, filtr = _build_commands(ips_with_tc)
         self.assertEqual(2, len(remove[self.n1]))
         # symetric cases are handled prior to _build_ip_constraints

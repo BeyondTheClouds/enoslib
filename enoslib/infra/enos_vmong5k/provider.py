@@ -176,8 +176,14 @@ def _distribute(machines, g5k_subnets, skip=0, extra=None):
             descriptor = "-".join(str(_get_subnet_ip(eui)).split(".")[1:])
             name = f"virtual-{descriptor}"
             pm = next(pms_it)
-            vm = VirtualMachine(name, eui, machine.flavour_desc, pm,
-                                extra=extra, extra_devices=extra_devices)
+            vm = VirtualMachine(
+                name,
+                eui,
+                machine.flavour_desc,
+                pm,
+                extra=extra,
+                extra_devices=extra_devices,
+            )
 
             for role in machine.roles:
                 vmong5k_roles[role].append(vm)
@@ -213,7 +219,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
         "working_dir": provider_conf.working_dir,
         "_strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
-        "libvirt_dir": LIBVIRT_DIR
+        "libvirt_dir": LIBVIRT_DIR,
     }
 
     # Take into account only the pms that will host the vms
@@ -241,10 +247,7 @@ class VirtualMachine(Host):
         self.disk = flavour_desc.get("disk", None)
         if self.disk is not None:
             path = f"{LIBVIRT_DIR}/{self.alias}-extra.raw"
-            self.disk = {
-                "size": f"{self.disk}G",
-                "path": path
-            }
+            self.disk = {"size": f"{self.disk}G", "path": path}
             self.extra_devices += f"""\n
 <disk type='file' device='disk'>
     <driver name='qemu' type='raw'/>
@@ -254,9 +257,14 @@ class VirtualMachine(Host):
 
     def to_dict(self):
         d = super().to_dict()
-        d.update(core=self.core, mem=self.mem, eui=str(self.eui),
-                 pm=self.pm.to_dict(), extra_devices=self.extra_devices,
-                  disk=self.disk)
+        d.update(
+            core=self.core,
+            mem=self.mem,
+            eui=str(self.eui),
+            pm=self.pm.to_dict(),
+            extra_devices=self.extra_devices,
+            disk=self.disk,
+        )
         return d
 
     def __hash__(self):

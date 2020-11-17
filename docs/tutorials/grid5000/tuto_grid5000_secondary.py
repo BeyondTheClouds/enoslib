@@ -10,18 +10,8 @@ logging.basicConfig(level=logging.INFO)
 SITE = "rennes"
 CLUSTER = "paravance"
 
-network = NetworkConfiguration(
-    id="n1",
-    type="prod",
-    roles=["my_network"],
-    site=SITE
-)
-private = NetworkConfiguration(
-    id="n2",
-    type="kavlan",
-    roles=["private"],
-    site=SITE
-)
+network = NetworkConfiguration(id="n1", type="prod", roles=["my_network"], site=SITE)
+private = NetworkConfiguration(id="n2", type="kavlan", roles=["private"], site=SITE)
 
 conf = (
     Configuration()
@@ -32,14 +22,14 @@ conf = (
         cluster=CLUSTER,
         nodes=1,
         primary_network=network,
-        secondary_networks=[private]
+        secondary_networks=[private],
     )
     .add_machine(
         roles=["client"],
         cluster=CLUSTER,
         nodes=1,
         primary_network=network,
-        secondary_networks=[private]
+        secondary_networks=[private],
     )
     .finalize()
 )

@@ -157,6 +157,15 @@ Build the configuration programmatically
     :linenos:
 
 
+Specific nodes reservation
+==========================
+
+
+.. literalinclude:: grid5000/tuto_grid5000_p_specific_servers.py
+    :language: python
+    :linenos:
+
+
 Start Virtual Machines on nodes
 ===============================
 
