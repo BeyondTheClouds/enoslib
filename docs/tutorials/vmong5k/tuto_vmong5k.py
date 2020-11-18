@@ -11,10 +11,10 @@ logging.basicConfig(level=logging.DEBUG)
 # claim the resources
 conf = (
     Configuration
-    .from_settings(job_name="tuto-vmong5k")
+    .from_settings(job_name="tuto-vmong5k", gateway=True)
     .add_machine(
         roles=["docker", "compute"],
-        cluster="grisou",
+        cluster="parapluie",
         number=1,
         flavour_desc={
             "core": 4,
@@ -23,7 +23,7 @@ conf = (
     )
     .add_machine(
         roles=["docker", "controller"],
-        cluster="grisou",
+        cluster="parapluie",
         number=3,
         flavour="tiny"
     )

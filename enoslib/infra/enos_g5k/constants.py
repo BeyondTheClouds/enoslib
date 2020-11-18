@@ -19,6 +19,8 @@ G5KMACPREFIX = "00:16:3E"
 # schema stuffs
 KAVLAN = "kavlan"
 KAVLAN_LOCAL = "kavlan-local"
+KAVLAN_LOCAL_IDS = ["1", "2", "3"]
+KAVLAN_IDS = ["4", "5", "6", "7", "8"]
 KAVLAN_GLOBAL = "kavlan-global"
 KAVLAN_TYPE = [KAVLAN, KAVLAN_LOCAL, KAVLAN_GLOBAL]
 
@@ -27,6 +29,7 @@ SLASH_16 = "slash_16"
 SUBNET_TYPES = [SLASH_16, SLASH_22]
 
 PROD = "prod"
+PROD_VLAN_ID = "DEFAULT"
 
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPES
 JOB_TYPES = ["deploy", "allow_classic_ssh"]

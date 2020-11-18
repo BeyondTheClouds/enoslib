@@ -18,9 +18,7 @@ Vagrant Provider Class
 ----------------------
 
 .. automodule:: enoslib.infra.enos_vagrant.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Enos_vagrant
 
 .. _vagrant-schema:
 
@@ -37,9 +35,7 @@ G5k Provider Class
 ------------------
 
 .. automodule:: enoslib.infra.enos_g5k.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: G5k, G5kHost, G5kNetwork, G5kVlanNetwork, G5kProdNetwork, G5kSubnetNetwork
 
 .. _grid5000-schema:
 
@@ -48,14 +44,6 @@ G5k Schema
 
 .. literalinclude:: ../../enoslib/infra/enos_g5k/schema.py
 
-G5k API
--------
-
-.. automodule:: enoslib.infra.enos_g5k.api
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 G5k API utils
 -------------
@@ -63,7 +51,6 @@ G5k API utils
 .. automodule:: enoslib.infra.enos_g5k.g5k_api_utils
     :members:
     :undoc-members:
-    :show-inheritance:
 
 
 Virtual Machines on Grid5000 (VMonG5k)
@@ -73,9 +60,7 @@ VMonG5k Provider Class
 ----------------------
 
 .. automodule:: enoslib.infra.enos_vmong5k.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: VirtualMachine, start_virtualmachines
 
 .. _vmong5k-schema:
 
@@ -92,9 +77,7 @@ Distem Provider Class
 ---------------------
 
 .. automodule:: enoslib.infra.enos_distem.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Distem
 
 .. _distem-schema:
 
@@ -111,9 +94,7 @@ Static Provider Class
 ---------------------
 
 .. automodule:: enoslib.infra.enos_static.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Static
 
 .. _static-schema:
 
@@ -130,9 +111,7 @@ Openstack Provider Class
 ------------------------
 
 .. automodule:: enoslib.infra.enos_openstack.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Openstack
 
 .. _openstack-schema:
 
@@ -149,9 +128,7 @@ Chameleon(kvm) Provider Class
 -----------------------------
 
 .. automodule:: enoslib.infra.enos_chameleonkvm.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Chameleonkvm
 
 Chameleon(kvm) Schema
 ---------------------
@@ -162,9 +139,7 @@ Chameleon(bare metal) Provider Class
 ------------------------------------
 
 .. automodule:: enoslib.infra.enos_chameleonbaremetal.provider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Chameleonbaremetal
 
 Chameleon(bare metal) schema
 ----------------------------
