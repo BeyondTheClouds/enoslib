@@ -22,6 +22,13 @@ class G5kNetwork(ABC):
     """Base abstract class for a network."""
 
     def __init__(self, roles: List[str], id: str, site: str):
+        """Build a G5kNetwork representing an actual network in G5k
+
+        Args:
+            roles: roles/tags to give to this network (set by the application)
+            id: the id to give to this network (set by the application)
+            site: the site of this network
+        """
         self.roles = roles
         self.id = id
         self.site = site
@@ -35,6 +42,10 @@ class G5kNetwork(ABC):
         self.hosts: List["G5kHost"] = []
 
     def __lt__(self, other):
+        """In case you want to sort networks.
+
+        This is used to sort/groupby host by network before deploying them.
+        """
         if self.vlan_id is None:
             return True
         if other.vlan_id is None:
@@ -42,7 +53,8 @@ class G5kNetwork(ABC):
         return self.vlan_id < other.vlan_id
 
     @property
-    def dns(self):
+    def dns(self) -> str:
+        """Gets the DNS address for this network."""
         if self._dns is None:
             self._dns = get_dns(self.site)
         return self._dns
@@ -50,46 +62,113 @@ class G5kNetwork(ABC):
     @property
     @abstractmethod
     def apinetwork(self) -> Optional[RESTObject]:
+        """Gets the underlying RESTObject representing the network.
+
+        Only vlan and prod network have an equivalent entry in the API.
+        None will be returned for subets.
+
+        Returns:
+            The corresponding RESTObject, None otherwise.
+        """
         pass
 
     @property
     @abstractmethod
     def vlan_id(self) -> Optional[str]:
+        """Get the vlan id.
+
+        Return:
+            The vlan id. None for subnets.
+        """
         pass
 
     @property
     @abstractmethod
     def gateway(self) -> Optional[str]:
+        """Get the gateway for this network.
+
+        Returns:
+            The gateway address as a string.
+        """
         pass
 
     @property
     @abstractmethod
     def cidr(self) -> Optional[str]:
+        """Get the network address in cid format.
+
+        Returns:
+            The cidre of the network. None for subnets.
+        """
         pass
 
     @abstractmethod
     def translate(self, fqdns: List[str], reverse=True) -> Iterable[Tuple[str, str]]:
+        """Gets the DNS names of the passed fqdns in this networks and vice versa.
+
+        Args:
+            fqdns: list of hostnames (host uid in the API) to translate.
+            reverse: Do the opposite operation.
+
+        Returns:
+            List of translated names.
+        """
         pass
 
     @abstractmethod
     def attach(self, fqdns: List[str], device: str):
+        """Attach the specific devices into this network.
+
+        Args:
+            fqdns: list of hostnames (host uid in the API) to attach
+            device: the NIC names to put on this network.
+        """
         pass
 
     @abstractmethod
     def to_enos(self) -> List[Dict]:
+        """Transform into an provider agnostic data structure.
+
+        For legacy reason we're still using dicts here...
+
+        Returns:
+            a list of networks, each being a dict.
+        """
         pass
 
     def add_host(self, host: "G5kHost"):
-        # attach here ?
+        """Add a host :py:class:`enoslib.infra.enos_g5k.objects.G5kHost` to this network.
+
+        Currently this doesn't attach the node.
+
+        Args:
+            host: The host to attach
+        """
         self.hosts.append(host)
 
     def add_hosts(self, hosts: List["G5kHost"]):
+        """Add a list of hosts :py:class:`enoslib.infra.enos_g5k.objects.G5kHost` to this network.
+
+        Currently this doesn't attach the node.
+
+        Args:
+            hosts: The list host to attach
+        """
+
         # attach here ?
         self.hosts.extend(hosts)
 
 
 class G5kVlanNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, vlan_id: str):
+        """Build a representation of an actual Vlan in G5k.
+
+        Args:
+            roles: roles/tags to give to this network (set by the application)
+            id: the id to give to this network (set by the application)
+            site: the site of this network
+            vlan_id: the vlan id of the vlan
+        """
         super().__init__(roles, id, site)
         # forcing to string (the vlan_id of a prod network is DEFAULT)
         self._vlan_id = str(vlan_id)
@@ -183,6 +262,16 @@ class G5kVlanNetwork(G5kNetwork):
 
 class G5kProdNetwork(G5kVlanNetwork):
     def __init__(self, roles: List[str], id: str, site: str):
+        """Build a representation of an actual Production Network in G5k.
+
+        Note: production network have the "default" uid on the G5K API.
+
+        Args:
+            roles: roles/tags to give to this network (set by the application)
+            id: the id to give to this network (set by the application)
+            site: the site of this network
+        """
+
         super().__init__(roles, id, site, "DEFAULT")
 
     def translate(
@@ -202,8 +291,22 @@ class G5kProdNetwork(G5kVlanNetwork):
 
 class G5kSubnetNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, subnets: List[str]):
-        # we shallow copy the list which makes mypy happy
-        # https://mypy.readthedocs.io/en/latest/common_issues.html#variance
+        """Build a representation of a subnet of G5k.
+
+        .. info::
+
+            Subnets are weird beasts on G5k. Especially /16 networks for
+            which you will be given 64 /22 networks and they aren't
+            represented in the REST API.
+
+            So we encapsulate this in this object
+
+        Args:
+            roles: roles/tags to give to this network (set by the application)
+            id: the id to give to this network (set by the application)
+            site: the site of this network
+            subnets: the actual subnets (list of cidr) given by OAR.
+        """
         super().__init__(roles, id, site)
         self.subnets = subnets
 
@@ -283,8 +386,8 @@ class G5kHost:
 
         # by default the ssh address is set to the fqdn
         # this might change if the node is on a vlan
-        self.__ssh_address: Optional[str] = None
-        self.__apinode: Optional[RESTObject] = None
+        self._ssh_address: Optional[str] = None
+        self._apinode: Optional[RESTObject] = None
 
         # Trigger any state change on the Grid'5000 side to reflect this object
         # - eg put the node in the vlan
@@ -292,17 +395,29 @@ class G5kHost:
 
     @property
     def ssh_address(self):
-        if self.__ssh_address is None:
+        """Get an SSH reachable address for this Host.
+
+        This may differ from the fqdn when using vlans.
+
+        Returns:
+            The address as a string.
+        """
+        if self._ssh_address is None:
             return self.fqdn
         else:
-            return self.__ssh_address
+            return self._ssh_address
 
     @ssh_address.setter
     def ssh_address(self, address: str):
-        self.__ssh_address = address
+        """Sets an ssh address for this node.
+
+        You aren't supposed to call this unless you know what you're doing.
+        The G5k provider is calling this to set the right name.
+        """
+        self._ssh_address = address
 
     @property
-    def where(self) -> Tuple[str, str, str]:
+    def _where(self) -> Tuple[str, str, str]:
         """Get site cluster and uid for this node.
 
         Returns:
@@ -314,48 +429,71 @@ class G5kHost:
 
     @property
     def apinode(self):
-        """Get the api Node object."""
-        if self.__apinode is None:
-            self.__apinode = get_node(*self.where)
-        return self.__apinode
+        """Get the api Node object.
+
+        Return:
+            Node object (see python-grid500)
+        """
+        if self._apinode is None:
+            self._apinode = get_node(*self._where)
+        return self._apinode
 
     @property
-    def primary_nic(self):
+    def primary_nic(self) -> Tuple[str, str]:
         """Get the first nic mounted.
 
         On Grid'5000 there's only one nic mounted by default: this is the
         primary nic.
+
+        Returns:
+            A tuple of (legacy name, deterministic name) for the network card.
         """
         nics = self._get_nics(extra_cond=lambda nic: nic["mounted"])
         return nics[0]
 
     @property
-    def secondary_nics(self):
-        """Get mountable nics to serve as secondary interfaces."""
+    def _all_secondary_nics(self) -> List[Tuple[str, str]]:
+        """Get mountable nics to serve as secondary interfaces.
+
+        Returns:
+            All the nic that can serve as extra network connection.
+        """
         return self._get_nics(extra_cond=lambda nic: not nic["mounted"])
 
-    def dhcp_networks_command(self):
+    @property
+    def secondary_nics(self) -> List[Tuple[str, str]]:
+        """Get the nics that serves as secondary nics.
+
+        Note: only return those eligible to map a secondary network.
+
+        Returns:
+            All the nic that serves to connect the node to a secondary network.
+        """
+        return [nic for (_, nic) in zip(self.secondary_networks, self._all_secondary_nics)]
+
+
+    def dhcp_networks_command(self) -> str:
         """Get the command to set up the dhcp an all interfaces.
 
-        Args:
-            TODO network_roles: get the command for these roles only.
-                None means all roles
+        Returns:
+            The command as a string.
         """
         if len(self.secondary_networks) == 0:
             return ""
 
-        if len(self.secondary_networks) > len(self.secondary_nics):
+        if len(self.secondary_networks) > len(self._all_secondary_nics):
             raise ValueError("There's not enough NIC on the node {self.fqdn}")
 
         ifconfig = []
         dhcp = []
-        for _, (_, nic) in zip(self.secondary_networks, self.secondary_nics):
+        for _, (_, nic) in zip(self.secondary_networks, self._all_secondary_nics):
             ifconfig.append(f"ip link set {nic} up")
             dhcp.append(f"dhclient {nic}")
         cmd = "%s ; %s" % (";".join(ifconfig), ";".join(dhcp))
         return cmd
 
-    def grant_root_access_command(self):
+    def grant_root_access_command(self) -> List[str]:
+        """ Get the command to get root access on the node."""
         cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         cmd = "|".join(cmd)
@@ -366,10 +504,14 @@ class G5kHost:
     ) -> Iterable[Tuple[str, str]]:
         """Get the network interfaces names corresponding to a criteria.
 
-        Note that the cluster is passed (not the individual node names), thus it is
-        assumed that all nodes in a cluster have the same interface names same
-        configuration. In addition to ``extra_cond``, only the mountable and
-        Ehernet interfaces are returned.
+        .. note::
+
+            - Only the mountable and Ehernet interfaces are returned.
+            - Nic are sorted so that the result is fixed accros run.
+
+        Args:
+            extra_cond: predicate over a nic to further filter the results.
+                Here a nic is a dictionnary as returned in the API.
 
         NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
         the api description keep the legacy name (device key) and the new
@@ -384,8 +526,10 @@ class G5kHost:
 
         Returns:
             An Iterable of nics.
-            Each nic is a tuple (legacy name, deterministic name).
-            E.g ("eth0", "eno1")
+            Each nic is a tuple (legacy name, deterministic name)(
+            e.g ("eth0", "eno1")
+            Result is sorted (ensure idempotence)
+
         """
         nics = [
             (nic["device"], nic["name"])
@@ -399,11 +543,16 @@ class G5kHost:
         return nics
 
     def mirror_state(self):
-        """Make sure the API states are consistent to the Host attributes."""
+        """Make sure the API states are consistent to the Host attributes.
+
+        For instance this will some of the NIC of the nodes in a vlan (POST
+        request on the API)
+        Note that this doesn't configure the NIC on the node itself (e.g dhcp).
+        """
         # Handle vlans for secondary networks
-        if len(self.secondary_networks) > len(self.secondary_nics):
+        if len(self.secondary_networks) > len(self._all_secondary_nics):
             raise ValueError("There's not enough NIC on the node {self.fqdn}")
-        for net, (eth, _) in zip(self.secondary_networks, self.secondary_nics):
+        for net, (eth, _) in zip(self.secondary_networks, self._all_secondary_nics):
             # NOTE(msimonin): in the global vlan case the site of the nodes and
             # the site of the vlan may differ.
             # The site is known in the context of a concrete network.

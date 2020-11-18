@@ -132,6 +132,8 @@ def _concretize_networks(
     Returns:
         The mapping between every single group_config and a corresponding oar nodes.
     """
+    # NOTE(msimonin): Sorting avoid non deterministic mapping
+    # here we also sort by descriptor to differentiate between vlans
     s_api_networks = sorted(
         oar_networks, key=lambda n: (n.site, n.nature, n.descriptor)
     )
@@ -223,11 +225,37 @@ class G5k(Provider):
         priv_key = self.key_path.replace(".pub", "")
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
-    def init(self, force_deploy=False, client=None):
-        """Reserve and deploys the nodes according to the resources section
+    def init(self, force_deploy: bool=False):
+        """Take ownership over some Grid'5000 resources (compute and networks).
 
-        In comparison to the vagrant provider, networks must be characterized
-        as in the networks key.
+        The function does the heavy lifting of transforming your
+        abstract resource configuration into concrete resources.
+
+        From a high level perspective it works as follow:
+
+        - First it transforms the configuration of resources into an actual
+          OAR resource selection string (one single reservation per provider
+          instance).
+        - It requests the API to get the corresponding resources (job and
+          optionaly deploys a environment)
+        - Those resources are then mapped back to every single item on the
+          configuration.
+        - Finally it applies some more operations (set nodes on vlans,
+          configure secondary interfaces) before returning.
+
+        .. note::
+
+            The call to the function is **idempotent** and the following is ensured:
+
+            - Existing job(s) (based on the name) will be reloaded - The
+              mapping between concrete resources and their corresponding roles
+              is fixed accros runs. This includes:
+                - the mapping between machines and roles
+                - the mapping between networks and roles
+                - the mapping between network cards and networks
+            - Deployments is performed only on nodes that are not deployed yet
+              (up to three attempts).
+            - At the end machine are reachable using the root account.
 
         Args:
             force_deploy (bool): True iff the environment must be redeployed
@@ -236,6 +264,9 @@ class G5k(Provider):
                 what is claimed.
             NotEnoughNodesError: If the `min` constraints can't be met.
 
+        Returns:
+            Two dictionnaries (roles, networks) representing the inventory of
+            resources.
            """
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
@@ -271,7 +302,7 @@ class G5k(Provider):
             """Get the site and the primary network of a concrete description
 
             """
-            site, _, _ = host.where
+            site, _, _ = host._where
             return site, host.primary_network
 
         # Should we deploy whatever the previous state ?
