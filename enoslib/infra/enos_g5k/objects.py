@@ -139,8 +139,7 @@ class G5kVlanNetwork(G5kNetwork):
         return [(fqdn, translate(fqdn, self.vlan_id)) for fqdn in fqdns]
 
     def attach(self, fqdns: List[str], device: str):
-        nodes = [n[1] for n in self.translate(fqdns)]
-        set_nodes_vlan(self.site, nodes, device, self.vlan_id)
+        set_nodes_vlan(self.site, fqdns, device, self.vlan_id)
 
     def to_enos(self):
         # On the network, the first IP are reserved to g5k machines.
