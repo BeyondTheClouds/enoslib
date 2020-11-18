@@ -225,7 +225,7 @@ class G5k(Provider):
         priv_key = self.key_path.replace(".pub", "")
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
-    def init(self, force_deploy: bool=False):
+    def init(self, force_deploy: bool = False):
         """Take ownership over some Grid'5000 resources (compute and networks).
 
         The function does the heavy lifting of transforming your

@@ -53,7 +53,7 @@ class G5kNetwork(ABC):
         return self.vlan_id < other.vlan_id
 
     @property
-    def dns(self) -> str:
+    def dns(self) -> Optional[str]:
         """Gets the DNS address for this network."""
         if self._dns is None:
             self._dns = get_dns(self.site)
@@ -137,7 +137,7 @@ class G5kNetwork(ABC):
         pass
 
     def add_host(self, host: "G5kHost"):
-        """Add a host :py:class:`enoslib.infra.enos_g5k.objects.G5kHost` to this network.
+        """Add a host :py:class:`enoslib.infra.enos_g5k.objects.G5kHost`.
 
         Currently this doesn't attach the node.
 
@@ -147,7 +147,7 @@ class G5kNetwork(ABC):
         self.hosts.append(host)
 
     def add_hosts(self, hosts: List["G5kHost"]):
-        """Add a list of hosts :py:class:`enoslib.infra.enos_g5k.objects.G5kHost` to this network.
+        """Add some hosts :py:class:`enoslib.infra.enos_g5k.objects.G5kHost`.
 
         Currently this doesn't attach the node.
 
@@ -469,8 +469,9 @@ class G5kHost:
         Returns:
             All the nic that serves to connect the node to a secondary network.
         """
-        return [nic for (_, nic) in zip(self.secondary_networks, self._all_secondary_nics)]
-
+        return [
+            nic for (_, nic) in zip(self.secondary_networks, self._all_secondary_nics)
+        ]
 
     def dhcp_networks_command(self) -> str:
         """Get the command to set up the dhcp an all interfaces.
@@ -492,16 +493,15 @@ class G5kHost:
         cmd = "%s ; %s" % (";".join(ifconfig), ";".join(dhcp))
         return cmd
 
-    def grant_root_access_command(self) -> List[str]:
+    def grant_root_access_command(self) -> str:
         """ Get the command to get root access on the node."""
         cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
-        cmd = "|".join(cmd)
-        return cmd
+        return "|".join(cmd)
 
     def _get_nics(
         self, extra_cond: Callable[[Dict], bool] = lambda nic: True
-    ) -> Iterable[Tuple[str, str]]:
+    ) -> List[Tuple[str, str]]:
         """Get the network interfaces names corresponding to a criteria.
 
         .. note::
@@ -525,7 +525,7 @@ class G5kHost:
                 parameter
 
         Returns:
-            An Iterable of nics.
+            An list of nics.
             Each nic is a tuple (legacy name, deterministic name)(
             e.g ("eth0", "eno1")
             Result is sorted (ensure idempotence)
