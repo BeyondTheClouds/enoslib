@@ -55,8 +55,8 @@ class TestConcretizeNetwork(EnosTest):
             OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
         ]
         concrete = _concretize_networks(self.networks, oar_networks)
-        self.assertEqual(concrete[0].vlan_id, concrete[0].vlan_id)
-        self.assertEqual(concrete[1].vlan_id, concrete[1].vlan_id)
+        self.assertEqual(concrete[0].vlan_id, oar_networks[0].descriptor)
+        self.assertEqual(concrete[1].vlan_id, oar_networks[1].descriptor)
 
     def test_act_subnets_enough(self):
         _networks = [
