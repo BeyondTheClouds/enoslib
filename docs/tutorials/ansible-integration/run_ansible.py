@@ -19,8 +19,8 @@ provider_conf = {
     }
 }
 
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Enos_vagrant(conf)
+conf = VagrantConf.from_dictionnary(provider_conf)
+provider = Vagrant(conf)
 roles, networks = provider.init()
 
 run_ansible(["site.yml"], roles=roles)

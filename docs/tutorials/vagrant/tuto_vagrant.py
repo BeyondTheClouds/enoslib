@@ -21,7 +21,7 @@ provider_conf = {
 
 # claim the resources
 conf = VagrantConf.from_dictionnary(provider_conf)
-provider = Enos_vagrant(conf)
+provider = Vagrant(conf)
 roles, networks = provider.init()
 print(roles)
 print(networks)

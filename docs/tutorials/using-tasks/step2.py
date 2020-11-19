@@ -32,7 +32,7 @@ tc = {
 def up(force=True, env=None, **kwargs):
     "Starts a new experiment"
     conf = VagrantConf.from_dictionnary(provider_conf)
-    provider = Enos_vagrant(conf)
+    provider = Vagrant(conf)
     roles, networks = provider.init()
     roles = discover_networks(roles, networks)
     env["roles"] = roles

@@ -30,7 +30,7 @@ from enoslib.infra.enos_g5k.configuration import NetworkConfiguration as G5kNetw
 from enoslib.infra.enos_g5k.configuration import ServersConfiguration as G5kServersConf
 from enoslib.infra.enos_g5k.configuration import ClusterConfiguration as G5kClusterConf
 
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
+from enoslib.infra.enos_vagrant.provider import Enos_vagrant as Vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
 from enoslib.infra.enos_vagrant.configuration import (
     MachineConfiguration as VagrantMachineMachineConf,

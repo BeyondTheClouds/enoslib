@@ -1,7 +1,4 @@
-from enoslib.api import discover_networks
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-from enoslib.service import Locust
+from enoslib import *
 
 provider_conf = {
     "backend": "virtualbox",
@@ -19,8 +16,8 @@ provider_conf = {
     }
 }
 
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Enos_vagrant(conf)
+conf = VagrantConf.from_dictionnary(provider_conf)
+provider = Vagrant(conf)
 roles, networks = provider.init()
 
 roles = discover_networks(roles, networks)

@@ -1,9 +1,6 @@
-from enoslib.api import play_on
-from enoslib.errors import EnosFailedHostsError
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -22,8 +19,8 @@ provider_conf = {
     }
 }
 
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Enos_vagrant(conf)
+conf = VagrantConf.from_dictionnary(provider_conf)
+provider = Vagrant(conf)
 roles, networks = provider.init()
 
 with play_on(roles=roles) as p:

@@ -26,7 +26,7 @@ conf = (
     .finalize()
 )
 
-provider = Enos_vagrant(conf)
+provider = Vagrant(conf)
 
 # The code below is intended to be provider agnostic
 

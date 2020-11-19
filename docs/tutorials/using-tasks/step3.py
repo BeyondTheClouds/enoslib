@@ -40,7 +40,7 @@ def cli():
 def up(force, env=None, **kwargs):
     """Starts a new experiment using vagrant"""
     conf = VagrantConf.from_dictionnary(provider_conf)
-    provider = Enos_vagrant(conf)
+    provider = Vagrant(conf)
     roles, networks = provider.init(force_deploy=force)
     roles = discover_networks(roles, networks)
     env["roles"] = roles
