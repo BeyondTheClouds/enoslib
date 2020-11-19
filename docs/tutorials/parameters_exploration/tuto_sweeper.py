@@ -1,18 +1,11 @@
-from enoslib.api import play_on, wait_ssh, ensure_python3, discover_networks
-from enoslib.infra.enos_vmong5k.provider import VMonG5k
-from enoslib.infra.enos_vmong5k.configuration import Configuration
-from enoslib.service import Netem
-
-
-from execo_engine import ParamSweeper, sweep
-
 import logging
-from operator import itemgetter
-import os
-from pathlib import Path
 import traceback
+from operator import itemgetter
+from pathlib import Path
 from typing import Dict
 
+from execo_engine import ParamSweeper, sweep
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,7 +22,7 @@ def bench(parameter: Dict) -> None:
     """
     nb_vms = parameter["nb_vms"]
     conf = (
-        Configuration
+        VMonG5kConf
         .from_settings(force_deploy=True)
         .add_machine(roles=["server"],
                     cluster=CLUSTER,

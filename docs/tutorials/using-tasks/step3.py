@@ -1,13 +1,7 @@
 import click
 import logging
-import os
 
-from enoslib.api import discover_networks
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-from enoslib.service import Netem
-from enoslib.task import enostask
-
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,7 +39,7 @@ def cli():
 @enostask(new=True)
 def up(force, env=None, **kwargs):
     """Starts a new experiment using vagrant"""
-    conf = Configuration.from_dictionnary(provider_conf)
+    conf = VagrantConf.from_dictionnary(provider_conf)
     provider = Enos_vagrant(conf)
     roles, networks = provider.init(force_deploy=force)
     roles = discover_networks(roles, networks)

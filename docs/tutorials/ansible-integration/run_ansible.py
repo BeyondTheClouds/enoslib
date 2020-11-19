@@ -1,8 +1,6 @@
-from enoslib.api import run_ansible
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 

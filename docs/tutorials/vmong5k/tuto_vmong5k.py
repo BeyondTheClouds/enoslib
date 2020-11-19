@@ -1,16 +1,12 @@
-from enoslib.service.docker.docker import Docker
-from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_vmong5k.provider import VMonG5k
-from enoslib.infra.enos_vmong5k.configuration import Configuration
-
 import logging
-import os
+
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
 # claim the resources
 conf = (
-    Configuration
+    VMonG5kConf
     .from_settings(job_name="tuto-vmong5k", gateway=True)
     .add_machine(
         roles=["docker", "compute"],

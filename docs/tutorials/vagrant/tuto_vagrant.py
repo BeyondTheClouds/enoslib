@@ -1,7 +1,6 @@
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,7 +20,7 @@ provider_conf = {
 }
 
 # claim the resources
-conf = Configuration.from_dictionnary(provider_conf)
+conf = VagrantConf.from_dictionnary(provider_conf)
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()
 print(roles)

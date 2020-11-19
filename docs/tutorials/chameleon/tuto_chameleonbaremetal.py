@@ -1,8 +1,6 @@
-from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal
-from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,8 +26,8 @@ tc = {
     "default_delay": "20ms",
     "default_rate": "1gbit",
 }
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Chameleonbaremetal(conf)
+conf = CBMConf.from_dictionnary(provider_conf)
+provider = CBM(conf)
 
 roles, networks = provider.init()
 

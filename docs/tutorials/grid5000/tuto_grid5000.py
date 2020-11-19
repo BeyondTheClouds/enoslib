@@ -1,7 +1,6 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import Configuration
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,10 +1,6 @@
-from enoslib.api import play_on, discover_networks
-from enoslib.infra.enos_distem.provider import Distem
-from enoslib.infra.enos_distem.configuration import Configuration
-
 import logging
-import os
 
+from enoslib import *
 
 FORCE = True
 CLUSTER = "parapluie"
@@ -14,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # claim the resources
 conf = (
-    Configuration
+    DistemConf
     .from_settings(
         job_name="distem",
         force_deploy=FORCE,

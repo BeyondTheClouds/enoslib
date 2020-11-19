@@ -1,10 +1,6 @@
 import logging
 
-from enoslib.api import discover_networks
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-from enoslib.service import Netem
-
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -33,7 +29,7 @@ tc = {
 
 
 # claim the resources
-conf = Configuration.from_dictionnary(provider_conf)
+conf = VagrantConf.from_dictionnary(provider_conf)
 
 provider = Enos_vagrant(conf)
 roles, networks = provider.init()

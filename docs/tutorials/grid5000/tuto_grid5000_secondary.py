@@ -1,8 +1,6 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
-
 import logging
 
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -10,11 +8,11 @@ logging.basicConfig(level=logging.INFO)
 SITE = "rennes"
 CLUSTER = "paravance"
 
-network = NetworkConfiguration(id="n1", type="prod", roles=["my_network"], site=SITE)
-private = NetworkConfiguration(id="n2", type="kavlan", roles=["private"], site=SITE)
+network = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
+private = G5kNetworkConf(id="n2", type="kavlan", roles=["private"], site=SITE)
 
 conf = (
-    Configuration()
+    G5kConf()
     .add_network_conf(network)
     .add_network_conf(private)
     .add_machine(
