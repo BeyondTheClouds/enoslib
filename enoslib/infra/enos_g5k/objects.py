@@ -22,7 +22,7 @@ class G5kNetwork(ABC):
     """Base abstract class for a network."""
 
     def __init__(self, roles: List[str], id: str, site: str):
-        """Build a G5kNetwork representing an actual network in G5k
+        """Representation of an actual network in G5k
 
         Args:
             roles: roles/tags to give to this network (set by the application)
@@ -161,7 +161,7 @@ class G5kNetwork(ABC):
 
 class G5kVlanNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, vlan_id: str):
-        """Build a representation of an actual Vlan in G5k.
+        """Representation of an actual Vlan in G5k.
 
         Args:
             roles: roles/tags to give to this network (set by the application)
@@ -262,7 +262,7 @@ class G5kVlanNetwork(G5kNetwork):
 
 class G5kProdNetwork(G5kVlanNetwork):
     def __init__(self, roles: List[str], id: str, site: str):
-        """Build a representation of an actual Production Network in G5k.
+        """Representation of an actual Production Network in G5k.
 
         Note: production network have the "default" uid on the G5K API.
 
@@ -291,7 +291,7 @@ class G5kProdNetwork(G5kVlanNetwork):
 
 class G5kSubnetNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, subnets: List[str]):
-        """Build a representation of a subnet of G5k.
+        """Representation of a subnet of G5k (/16 or /22).
 
         .. info::
 
@@ -448,7 +448,7 @@ class G5kHost:
         Returns:
             A tuple of (legacy name, deterministic name) for the network card.
         """
-        nics = self._get_nics(extra_cond=lambda nic: nic["mounted"])
+        nics = self.get_nics(extra_cond=lambda nic: nic["mounted"])
         return nics[0]
 
     @property
@@ -458,7 +458,7 @@ class G5kHost:
         Returns:
             All the nic that can serve as extra network connection.
         """
-        return self._get_nics(extra_cond=lambda nic: not nic["mounted"])
+        return self.get_nics(extra_cond=lambda nic: not nic["mounted"])
 
     @property
     def secondary_nics(self) -> List[Tuple[str, str]]:
@@ -499,7 +499,7 @@ class G5kHost:
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         return "|".join(cmd)
 
-    def _get_nics(
+    def get_nics(
         self, extra_cond: Callable[[Dict], bool] = lambda nic: True
     ) -> List[Tuple[str, str]]:
         """Get the network interfaces names corresponding to a criteria.

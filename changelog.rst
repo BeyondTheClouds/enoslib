@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.4.0
+-----
+
+- G5K: surgery in the provider: dictectomy.
+
 5.3.4
 -----
 
