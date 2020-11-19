@@ -44,10 +44,6 @@ from enoslib.infra.enos_distem.configuration import (
     MachineConfiguration as DistemMachineConf,
 )
 
-from enoslib.infra.enos_openstack.provider import Openstack as OS
-from enoslib.infra.enos_openstack.configuration import (
-    MachineConfiguration as OSMachineConf,
-)
 
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration as StaticConf
@@ -66,6 +62,7 @@ from enoslib.infra.enos_vmong5k.configuration import (
 from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
 
 try:
+
     from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal as CBM
     from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration as CBMConf
     from enoslib.infra.enos_chameleonbaremetal.configuration import (
@@ -79,6 +76,12 @@ try:
     from enoslib.infra.enos_chameleonbaremetal.configuration import (
         MachineConfiguration as CKVMMachineConf,
     )
+
+    from enoslib.infra.enos_openstack.provider import Openstack as OS
+    from enoslib.infra.enos_openstack.configuration import (
+        MachineConfiguration as OSMachineConf,
+    )
+
 except ModuleNotFoundError:
     print("Note: Openstack clients not installed")
 
