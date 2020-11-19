@@ -1,6 +1,4 @@
-from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
+from enoslib import *
 
 import logging
 
@@ -10,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 # The conf let us define the resources wanted.
 # This is provider specific
 conf = (
-    Configuration
+    VagrantConf()
     .from_settings(backend="libvirt")
     .add_machine(
         roles=["server"],

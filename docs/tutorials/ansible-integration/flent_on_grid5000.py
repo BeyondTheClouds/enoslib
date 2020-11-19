@@ -1,14 +1,11 @@
-from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import (Configuration,
-                                                  NetworkConfiguration)
+from enoslib import *
 
 import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
 
-network = NetworkConfiguration(
+network = G5kNetworkConf(
     id="n1",
     type="kavlan",
     roles=["mynetwork"],
@@ -16,7 +13,7 @@ network = NetworkConfiguration(
 )
 
 conf = (
-    Configuration
+    G5kConf
     .from_settings(job_name="flent_on")
     .add_network_conf(network)
     .add_machine(

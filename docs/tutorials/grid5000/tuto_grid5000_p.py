@@ -1,18 +1,16 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
+from enoslib import *
 
 import logging
-import os
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 # claim the resources
-network = NetworkConfiguration(
+network = G5kNetworkConf(
     id="n1", type="kavlan", roles=["my_network"], site="rennes"
 )
 conf = (
-    Configuration.from_settings(job_name="test-enoslib_")
+    G5kConf.from_settings(job_name="test-enoslib_")
     .add_network_conf(network)
     .add_machine(
         roles=["control"], cluster="parapluie", nodes=1, primary_network=network

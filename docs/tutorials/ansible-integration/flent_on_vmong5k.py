@@ -1,14 +1,11 @@
-from enoslib.api import discover_networks, play_on
-from enoslib.infra.enos_vmong5k.provider import VMonG5k
-from enoslib.infra.enos_vmong5k.configuration import Configuration
-
 import logging
 
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
 conf = (
-    Configuration
+    VMonG5KConf()
     .from_settings(
         job_name="flent_on",
         gateway=True
@@ -29,6 +26,8 @@ conf = (
 provider = VMonG5k(conf)
 
 roles, networks = provider.init()
+import ipdb; ipdb.set_trace()
+
 roles = discover_networks(roles, networks)
 with play_on(roles=roles) as p:
     # flent requires python3, so we default python to python3

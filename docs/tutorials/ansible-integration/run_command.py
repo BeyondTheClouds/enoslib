@@ -1,10 +1,7 @@
-from enoslib.api import discover_networks, run_command
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import json
 import logging
 
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
