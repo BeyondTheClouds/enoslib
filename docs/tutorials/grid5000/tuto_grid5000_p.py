@@ -10,7 +10,7 @@ network = G5kNetworkConf(
     id="n1", type="kavlan", roles=["my_network"], site="rennes"
 )
 conf = (
-    G5kConf.from_settings(job_name="test-enoslib_")
+    G5kConf.from_settings(job_name=__file__)
     .add_network_conf(network)
     .add_machine(
         roles=["control"], cluster="parapluie", nodes=1, primary_network=network

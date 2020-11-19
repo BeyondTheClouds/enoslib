@@ -6,6 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "resources": {
+        "job_name": __file__,
         "machines": [
             {
                 "roles": ["control"],

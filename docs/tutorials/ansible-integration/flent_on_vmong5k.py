@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 conf = (
     VMonG5kConf()
     .from_settings(
-        job_name="flent_on",
+        job_name=__file__,
         gateway=True
     )
     .add_machine(

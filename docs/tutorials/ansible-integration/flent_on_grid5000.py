@@ -14,7 +14,7 @@ network = G5kNetworkConf(
 
 conf = (
     G5kConf
-    .from_settings(job_name="flent_on")
+    .from_settings(job_name=__file__)
     .add_network_conf(network)
     .add_machine(
         roles=["server"],

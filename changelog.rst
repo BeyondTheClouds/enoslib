@@ -4,7 +4,11 @@ Changelog
 5.4.0
 -----
 
-- G5K: surgery in the provider: dictectomy.
+- G5k: surgery in the provider: dictectomy.
+    - extra: allow job inspection through ``provider.hosts`` and ``provider.networks``
+- G5k: reservation at the server level is now possible
+    Use case: you need a specific machine (or some machine on a specific set of machines)
+- Support ``from enoslib import *``
 
 5.3.4
 -----

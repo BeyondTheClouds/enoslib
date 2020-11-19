@@ -17,7 +17,7 @@ conf = (
     G5kConf
     .from_settings(
         job_type="allow_classic_ssh",
-        job_name="placement"
+        job_name=__file__
     )
     .add_network_conf(prod_network)
     .add_network(

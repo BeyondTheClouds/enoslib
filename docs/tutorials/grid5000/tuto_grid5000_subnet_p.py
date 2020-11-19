@@ -10,7 +10,8 @@ prod_network = G5kNetworkConf(
     id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    G5kConf.from_settings(job_type="allow_classic_ssh")
+    G5kConf.from_settings(job_name=__file__,
+                          job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",

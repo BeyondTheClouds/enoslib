@@ -2,7 +2,7 @@ import logging
 
 from enoslib import *
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
     "resources": {

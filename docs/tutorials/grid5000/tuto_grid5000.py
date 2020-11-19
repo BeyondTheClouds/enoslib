@@ -5,6 +5,7 @@ from enoslib import *
 logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
+    "job_name": __file__,
     "resources": {
         "machines": [
             {
@@ -35,7 +36,7 @@ provider_conf = {
 }
 
 # claim the resources
-conf = Configuration.from_dictionnary(provider_conf)
+conf = G5kConf.from_dictionnary(provider_conf)
 provider = G5k(conf)
 provider.init()
 

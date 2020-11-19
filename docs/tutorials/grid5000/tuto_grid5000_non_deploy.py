@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "job_type": "allow_classic_ssh",
-    "job_name": "test-non-deploy",
+    "job_name": __file__,
     "resources": {
         "machines": [
             {

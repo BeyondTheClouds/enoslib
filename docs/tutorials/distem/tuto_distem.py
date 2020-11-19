@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 conf = (
     DistemConf
     .from_settings(
-        job_name="distem",
+        job_name=__file__,
         force_deploy=FORCE,
         image="file:///home/msimonin/public/distem-stretch.tgz"
     )

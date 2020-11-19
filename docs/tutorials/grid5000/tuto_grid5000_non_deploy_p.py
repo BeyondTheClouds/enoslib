@@ -12,7 +12,7 @@ network = G5kNetworkConf(
 
 conf = (
     G5kConf.from_settings(
-        job_type="allow_classic_ssh", job_name="test-non-deploy"
+        job_type="allow_classic_ssh", job_name=__file__
     )
     .add_network_conf(network)
     .add_machine(

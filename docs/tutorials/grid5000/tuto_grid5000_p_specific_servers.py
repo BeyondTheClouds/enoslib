@@ -17,7 +17,7 @@ kavlan_global = G5kNetworkConf(
 )
 
 conf = (
-    G5kConf().from_settings(job_name="test-enoslib", walltime="00:33:00")
+    G5kConf().from_settings(job_name=__file__, walltime="00:33:00")
     .add_network_conf(prod_rennes)
     .add_network_conf(prod_lille)
     .add_network_conf(kavlan_global)

@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 # claim the resources
 conf = (
     VMonG5kConf
-    .from_settings(job_name="tuto-vmong5k", gateway=True)
+    .from_settings(job_name=__file__, gateway=True)
     .add_machine(
         roles=["docker", "compute"],
         cluster="parapluie",

@@ -215,6 +215,8 @@ class G5k(Provider):
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
         self.hosts = []
+        # will hold the concrete version of the networks
+        self.networks = []
         self.deployed = []
         self.undeployed = []
 
@@ -285,6 +287,8 @@ class G5k(Provider):
             self.deploy()
             self.dhcp_networks()
         else:
+            # TODO: let user opt out of this
+            # even if they won't do much with enoslib in this case.
             self.grant_root_access()
 
     def reserve(self):
