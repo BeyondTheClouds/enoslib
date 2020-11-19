@@ -358,7 +358,7 @@ class G5kSubnetNetwork(G5kNetwork):
                     "site": self.site,
                     "dns": self.dns,
                     "gateway": self.gateway,
-                    "network": subnet,
+                    "cidr": subnet,
                     "start": start_ip,
                     "end": end_ip,
                     "mac_start": start_mac,
