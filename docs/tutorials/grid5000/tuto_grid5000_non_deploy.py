@@ -1,9 +1,6 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import Configuration
-
 import logging
-import os
 
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
@@ -35,7 +32,7 @@ provider_conf = {
 }
 
 # claim the resources
-conf = Configuration.from_dictionnary(provider_conf)
+conf = G5kConf.from_dictionnary(provider_conf)
 
 provider = G5k(conf)
 roles, networks = provider.init()

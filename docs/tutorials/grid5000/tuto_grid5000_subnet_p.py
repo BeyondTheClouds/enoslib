@@ -1,18 +1,16 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import Configuration, NetworkConfiguration
-
 import logging
-import os
+
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
 
 # claim the resources
-prod_network = NetworkConfiguration(
+prod_network = G5kNetworkConf(
     id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    Configuration.from_settings(job_type="allow_classic_ssh")
+    G5kConf.from_settings(job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",

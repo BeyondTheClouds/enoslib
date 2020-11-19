@@ -1,6 +1,6 @@
-from enoslib import *
-
 import logging
+
+from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 

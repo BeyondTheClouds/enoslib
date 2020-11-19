@@ -5,7 +5,7 @@ from enoslib import *
 logging.basicConfig(level=logging.DEBUG)
 
 conf = (
-    VMonG5KConf()
+    VMonG5kConf()
     .from_settings(
         job_name="flent_on",
         gateway=True

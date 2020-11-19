@@ -74,7 +74,7 @@ from enoslib.infra.enos_static.configuration import (
 )
 
 from enoslib.infra.enos_vmong5k.provider import VMonG5k
-from enoslib.infra.enos_vmong5k.configuration import Configuration as VMonG5KConf
+from enoslib.infra.enos_vmong5k.configuration import Configuration as VMonG5kConf
 from enoslib.infra.enos_vmong5k.configuration import (
     MachineConfiguration as VMonG5KMachineConf,
 )

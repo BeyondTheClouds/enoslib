@@ -1,13 +1,12 @@
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration
-
 import logging
-import os
+
+from enoslib import *
+
 
 logging.basicConfig(level=logging.INFO)
 
 conf = (
-    Configuration()
+    VagrantConf()
     .add_machine(
        roles=["control"],
        flavour="tiny",

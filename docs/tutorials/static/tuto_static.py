@@ -1,14 +1,12 @@
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration
-
 import logging
-import os
+
+from enoslib import *
 
 logging.basicConfig(level=logging.INFO)
 
 # Use existing resources
 conf = (
-    Configuration()
+    StaticConf()
     .add_machine(
         roles=["control"],
         address="192.168.42.245",
