@@ -1,5 +1,4 @@
 # flake8: noqa
-
 from enoslib.api import (
     ensure_python2,
     ensure_python3,
@@ -39,20 +38,6 @@ from enoslib.infra.enos_vagrant.configuration import (
     NetworkConfiguration as VagrantNetworkConf,
 )
 
-from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal as CBM
-from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration as CBMConf
-from enoslib.infra.enos_chameleonbaremetal.configuration import (
-    MachineConfiguration as CBMMachineConf,
-)
-
-from enoslib.infra.enos_chameleonkvm.provider import Chameleonkvm as CKVM
-from enoslib.infra.enos_chameleonbaremetal.configuration import (
-    Configuration as CKVMConf,
-)
-from enoslib.infra.enos_chameleonbaremetal.configuration import (
-    MachineConfiguration as CKVMMachineConf,
-)
-
 from enoslib.infra.enos_distem.provider import Distem
 from enoslib.infra.enos_distem.configuration import Configuration as DistemConf
 from enoslib.infra.enos_distem.configuration import (
@@ -79,6 +64,23 @@ from enoslib.infra.enos_vmong5k.configuration import (
     MachineConfiguration as VMonG5KMachineConf,
 )
 from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
+
+try:
+    from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal as CBM
+    from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration as CBMConf
+    from enoslib.infra.enos_chameleonbaremetal.configuration import (
+        MachineConfiguration as CBMMachineConf,
+    )
+
+    from enoslib.infra.enos_chameleonkvm.provider import Chameleonkvm as CKVM
+    from enoslib.infra.enos_chameleonbaremetal.configuration import (
+        Configuration as CKVMConf,
+    )
+    from enoslib.infra.enos_chameleonbaremetal.configuration import (
+        MachineConfiguration as CKVMMachineConf,
+    )
+except ModuleNotFoundError:
+    print("Note: Openstack clients not installed")
 
 # Tasks
 from enoslib.task import enostask, Environment
