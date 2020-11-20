@@ -6,9 +6,7 @@ Base Service Class
 ==================
 
 .. automodule:: enoslib.service.service
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Service
 
 Conda & Dask
 =============
@@ -18,9 +16,7 @@ Conda & Dask Service Class
 
 
 .. automodule:: enoslib.service.conda.conda
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Conda, Dask, conda_run_command, conda_run
 
 
 Docker
@@ -31,9 +27,7 @@ Docker Service Class
 
 
 .. automodule:: enoslib.service.docker.docker
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Docker
 
 Dstat (monitoring)
 ==================
@@ -43,9 +37,7 @@ Dstat Service Class
 
 
 .. automodule:: enoslib.service.dstat.dstat
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Dstat
 
 Locust (Load generation)
 ========================
@@ -54,9 +46,7 @@ Locust Service Class
 ------------------------
 
 .. automodule:: enoslib.service.locust.locust
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Locust
 
 Monitoring
 ==========
@@ -68,9 +58,7 @@ Monitoring Service Class
 
 
 .. automodule:: enoslib.service.monitoring.monitoring
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Monitoring
 
 
 Network Emulation (Netem & SimpleNetem)
@@ -90,9 +78,7 @@ Netem and SimpleNetem Class
 ***************************
 
 .. automodule:: enoslib.service.netem.netem
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Netem, SimpleNetem
 
 
 Skydive
@@ -105,6 +91,4 @@ Skydive Service Class
 
 
 .. automodule:: enoslib.service.skydive.skydive
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    :members: Skydive
