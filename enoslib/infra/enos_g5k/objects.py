@@ -490,6 +490,7 @@ class G5kHost:
         Returns:
             All the nic that serves to connect the node to a secondary network.
         """
+        assert self.secondary_networks is not None
         return [
             nic for (_, nic) in zip(self.secondary_networks, self._all_secondary_nics)
         ]
@@ -500,6 +501,7 @@ class G5kHost:
         Returns:
             The command as a string.
         """
+        assert self.secondary_networks is not None
         if len(self.secondary_networks) == 0:
             return ""
 
