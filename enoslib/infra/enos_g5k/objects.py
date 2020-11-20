@@ -260,10 +260,11 @@ class G5kVlanNetwork(G5kNetwork):
         return [net]
 
     def __repr__(self):
-        return ("<G5kVlanNetwork("
-                f"roles={self.roles}, "
-                f"site={self.site}, "
-                f"vlan_id={self.vlan_id})>"
+        return (
+            "<G5kVlanNetwork("
+            f"roles={self.roles}, "
+            f"site={self.site}, "
+            f"vlan_id={self.vlan_id})>"
         )
 
 
@@ -296,10 +297,7 @@ class G5kProdNetwork(G5kVlanNetwork):
         return [net]
 
     def __repr__(self):
-        return ("<G5kProdNetwork("
-                f"roles={self.roles}, "
-                f"site={self.site}"
-        )
+        return "<G5kProdNetwork(" f"roles={self.roles}, " f"site={self.site}"
 
 
 class G5kSubnetNetwork(G5kNetwork):
@@ -381,12 +379,12 @@ class G5kSubnetNetwork(G5kNetwork):
         return enos_networks
 
     def __repr__(self):
-        return ("<G5kSubnetNetwork("
-                f"roles={self.roles}, "
-                f"site={self.site}, "
-                f"/22={len(self.subnets)}"
+        return (
+            "<G5kSubnetNetwork("
+            f"roles={self.roles}, "
+            f"site={self.site}, "
+            f"/22={len(self.subnets)}"
         )
-
 
 
 class G5kHost:
@@ -586,10 +584,11 @@ class G5kHost:
             net.attach([self.fqdn], eth)
 
     def __repr__(self):
-        return ("<G5kHost("
-                    f"roles={self.roles}, "
-                    f"fqdn={self.fqdn}, "
-                    f"ssh_address={self.ssh_address}, "
-                    f"primary_network={self.primary_network}, "
-                    f"secondary_networks={self.secondary_networks})>"
+        return (
+            "<G5kHost("
+            f"roles={self.roles}, "
+            f"fqdn={self.fqdn}, "
+            f"ssh_address={self.ssh_address}, "
+            f"primary_network={self.primary_network}, "
+            f"secondary_networks={self.secondary_networks})>"
         )
