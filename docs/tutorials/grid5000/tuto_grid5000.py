@@ -1,11 +1,14 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
+
 provider_conf = {
-    "job_name": __file__,
+    "job_name": job_name,
     "resources": {
         "machines": [
             {
@@ -35,10 +38,16 @@ provider_conf = {
     }
 }
 
-# claim the resources
 conf = G5kConf.from_dictionnary(provider_conf)
 provider = G5k(conf)
-provider.init()
 
-# destroy the reservation
-provider.destroy()
+try:
+    # Get actual resources
+    roles, networks = provider.init()
+    # Do your stuffs
+    # ...
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    provider.destroy()

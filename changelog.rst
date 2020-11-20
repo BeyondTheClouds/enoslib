@@ -4,11 +4,13 @@ Changelog
 5.4.0
 -----
 
+- Support ``from enoslib import *``
 - G5k: surgery in the provider: dictectomy.
     - extra: allow job inspection through ``provider.hosts`` and ``provider.networks``
 - G5k: reservation at the server level is now possible
-    Use case: you need a specific machine (or some machine on a specific set of machines)
-- Support ``from enoslib import *``
+    Use case: you need a specific machine (or certain number of machines over a specific set of machines)
+- G5k: configuration can take the project as a key
+- Doc: G5k uniformize examples
 
 5.3.4
 -----

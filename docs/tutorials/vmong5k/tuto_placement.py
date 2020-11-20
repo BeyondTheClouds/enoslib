@@ -1,8 +1,11 @@
+import logging
+from pathlib import Path
+
 from enoslib import *
 
-import logging
-
 logging.basicConfig(level=logging.INFO)
+
+job_name = Path(__file__).name
 
 CLUSTER = "parasilo"
 SITE = "rennes"
@@ -17,7 +20,7 @@ conf = (
     G5kConf
     .from_settings(
         job_type="allow_classic_ssh",
-        job_name=__file__
+        job_name=job_name
     )
     .add_network_conf(prod_network)
     .add_network(

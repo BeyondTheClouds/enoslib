@@ -1,9 +1,11 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
 
 SITE = "rennes"
 CLUSTER = "paravance"
@@ -33,5 +35,13 @@ conf = (
 )
 
 provider = G5k(conf)
-roles, networks = provider.init()
-provider.destroy()
+try:
+    # Get actual resources
+    roles, networks = provider.init()
+    # Do your stuffs here
+    # ...
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    provider.destroy()

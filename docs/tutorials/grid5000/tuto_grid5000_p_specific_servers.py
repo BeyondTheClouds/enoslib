@@ -1,9 +1,11 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
 
 # claim the resources
 prod_rennes = G5kNetworkConf(
@@ -44,7 +46,13 @@ conf = (
 )
 
 provider = G5k(conf)
-roles, networks = provider.init()
-
-# destroy the reservation
-provider.destroy()
+try:
+    # Get actual resources
+    roles, networks = provider.init()
+    # Do your stuffs here
+    # ...
+except Exception as e:
+    print(e)
+finally:
+    # destroy the reservation
+    provider.destroy()

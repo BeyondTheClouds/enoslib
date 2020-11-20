@@ -1,9 +1,11 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
 
 # claim the resources
 network = G5kNetworkConf(
@@ -12,7 +14,7 @@ network = G5kNetworkConf(
 
 conf = (
     G5kConf.from_settings(
-        job_type="allow_classic_ssh", job_name=__file__
+        job_type="allow_classic_ssh", job_name=job_name
     )
     .add_network_conf(network)
     .add_machine(
@@ -29,6 +31,13 @@ conf = (
 
 
 provider = G5k(conf)
-roles, networks = provider.init()
-print(roles)
-print(networks)
+try:
+    # Get actual resources
+    roles, networks = provider.init()
+    # Do your stuffs here
+    # ...
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    provider.destroy()

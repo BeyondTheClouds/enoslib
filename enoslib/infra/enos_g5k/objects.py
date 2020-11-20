@@ -259,6 +259,13 @@ class G5kVlanNetwork(G5kNetwork):
         )
         return [net]
 
+    def __repr__(self):
+        return ("<G5kVlanNetwork("
+                f"roles={self.roles}, "
+                f"site={self.site}, "
+                f"vlan_id={self.vlan_id})>"
+        )
+
 
 class G5kProdNetwork(G5kVlanNetwork):
     def __init__(self, roles: List[str], id: str, site: str):
@@ -287,6 +294,12 @@ class G5kProdNetwork(G5kVlanNetwork):
         net = {}
         net.update(roles=self.roles, cidr=self.cidr, gateway=self.gateway, dns=self.dns)
         return [net]
+
+    def __repr__(self):
+        return ("<G5kProdNetwork("
+                f"roles={self.roles}, "
+                f"site={self.site}"
+        )
 
 
 class G5kSubnetNetwork(G5kNetwork):
@@ -367,6 +380,14 @@ class G5kSubnetNetwork(G5kNetwork):
             )
         return enos_networks
 
+    def __repr__(self):
+        return ("<G5kSubnetNetwork("
+                f"roles={self.roles}, "
+                f"site={self.site}, "
+                f"/22={len(self.subnets)}"
+        )
+
+
 
 class G5kHost:
     """A G5k host."""
@@ -376,13 +397,15 @@ class G5kHost:
         fqdn: str,
         roles: List[str],
         primary_network: G5kNetwork,
-        secondary_networks: List[G5kNetwork],
+        secondary_networks: Optional[List[G5kNetwork]] = None,
     ):
         # read only attributes
         self.fqdn = fqdn
         self.roles = roles
         self.primary_network = primary_network
         self.secondary_networks = secondary_networks
+        if secondary_networks is None:
+            self.secondary_networks = []
 
         # by default the ssh address is set to the fqdn
         # this might change if the node is on a vlan
@@ -514,7 +537,7 @@ class G5kHost:
                 Here a nic is a dictionnary as returned in the API.
 
         NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
-        the api description keep the legacy name (device key) and the new
+        the api description keeps the legacy name (device key) and the new
         predictable name (key name).  The legacy names is still used for api
         request to the vlan endpoint This should be fixed in
         https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
@@ -545,8 +568,12 @@ class G5kHost:
     def mirror_state(self):
         """Make sure the API states are consistent to the Host attributes.
 
-        For instance this will some of the NIC of the nodes in a vlan (POST
-        request on the API)
+        For instance this will set some of the NIC of the nodes in a vlan (POST
+        request on the API).
+        For now the only strategy to map NIC to secondary network is to map
+        them in the same order : nic_i <-> seconday_networks[i].
+        (where nic_i is not the primary one)
+
         Note that this doesn't configure the NIC on the node itself (e.g dhcp).
         """
         # Handle vlans for secondary networks
@@ -557,3 +584,12 @@ class G5kHost:
             # the site of the vlan may differ.
             # The site is known in the context of a concrete network.
             net.attach([self.fqdn], eth)
+
+    def __repr__(self):
+        return ("<G5kHost("
+                    f"roles={self.roles}, "
+                    f"fqdn={self.fqdn}, "
+                    f"ssh_address={self.ssh_address}, "
+                    f"primary_network={self.primary_network}, "
+                    f"secondary_networks={self.secondary_networks})>"
+        )

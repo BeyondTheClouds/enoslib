@@ -15,8 +15,13 @@ documentation of the Grid'5000 provider.
 
 .. hint::
 
-    |enoslib| has also a dedicated tutorial at https://msimonin.gitlabpages.inria.fr/enoslib-tutorials/
-    It illustrates the use of |enoslib| in the Grid'5000 context.
+    - Most of the example make use of a ``try/except/finally`` block that eases
+      the functionnal testing phase. If you want to explore them (any exception
+      will delete the corresponding job), it's probably better to get rid of
+      this block (at least in the first steps).
+
+    - |enoslib| has also a dedicated tutorial at https://msimonin.gitlabpages.inria.fr/enoslib-tutorials/
+      It illustrates the use of |enoslib| in the Grid'5000 context.
 
 
 .. include:: ./setup_g5k.rst
@@ -56,6 +61,30 @@ The above script can be rewritten using the programmatc API.
 
    Here we first create a network and pass its reference to each group of
    machine to configure the first interface of the Grid'5000 nodes.
+
+
+Resources inspection
+====================
+
+The G5k provider object exposes the actual hosts and networks. It allows for
+inspecting the acquire resources.
+
+.. code-block:: python
+
+    # Get all the reserved (and deployed) hosts:
+    provider.hosts
+
+    # Get all the networks
+    provider.networks
+
+    # Example on getting on host
+    [x] provider.hosts[0]
+    <G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>
+
+    # Another example (what are the hosts in the same network as me)
+    [x] provider.hosts[0].primary_network.hosts
+    [<G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>,
+     <G5kHost(roles=['control', 'compute'], fqdn=grisou-9.nancy.grid5000.fr, ssh_address=grisou-9-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>]
 
 
 Using the secondary interfaces

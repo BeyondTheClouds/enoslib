@@ -1,13 +1,16 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
 logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
+
 conf = (
     VMonG5kConf()
     .from_settings(
-        job_name=__file__,
+        job_name=job_name,
         gateway=True
     )
     .add_machine(

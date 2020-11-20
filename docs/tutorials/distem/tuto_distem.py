@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
@@ -7,12 +8,14 @@ CLUSTER = "parapluie"
 
 logging.basicConfig(level=logging.DEBUG)
 
+job_name = Path(__file__).name
+
 
 # claim the resources
 conf = (
     DistemConf
     .from_settings(
-        job_name=__file__,
+        job_name=job_name,
         force_deploy=FORCE,
         image="file:///home/msimonin/public/distem-stretch.tgz"
     )

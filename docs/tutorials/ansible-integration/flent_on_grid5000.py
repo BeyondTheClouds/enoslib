@@ -1,9 +1,12 @@
 from enoslib import *
+from pathlib import Path
 
 import logging
 
 
 logging.basicConfig(level=logging.DEBUG)
+
+job_name = Path(__file__).name
 
 network = G5kNetworkConf(
     id="n1",
@@ -14,7 +17,7 @@ network = G5kNetworkConf(
 
 conf = (
     G5kConf
-    .from_settings(job_name=__file__)
+    .from_settings(job_name=job_name)
     .add_network_conf(network)
     .add_machine(
         roles=["server"],

@@ -1,12 +1,15 @@
 import logging
+from pathlib import Path
 
 from enoslib import *
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
+
+job_name = Path(__file__).name
 
 provider_conf = {
+    "job_name": job_name,
     "resources": {
-        "job_name": __file__,
         "machines": [
             {
                 "roles": ["control"],
@@ -29,24 +32,32 @@ provider_conf = {
 }
 
 # claim the resources
-conf = Configuration.from_dictionnary(provider_conf)
+conf = G5kConf.from_dictionnary(provider_conf)
 provider = G5k(conf)
-roles, networks = provider.init()
 
-# Retrieving subnet
-subnet = [n for n in networks if "my_subnet" in n["roles"]]
-logging.info(subnet)
-# This returns the subnet information
-# {
-#    'roles': ['my_subnet'],
-#    'start': '10.158.0.1',
-#    'dns': '131.254.203.235',
-#    'end': '10.158.3.254',
-#    'cidr': '10.158.0.0/22',
-#    'gateway': '10.159.255.254'
-#    'mac_end': '00:16:3E:9E:03:FE',
-#    'mac_start': '00:16:3E:9E:00:01',
-# }
+try:
+    # Get actual resources
+    roles, networks = provider.init()
 
-# destroy the reservation
-provider.destroy()
+    # Retrieving subnet
+    subnet = [n for n in networks if "my_subnet" in n["roles"]]
+    logging.info(subnet)
+    # This returns the subnet information
+    # {
+    #    'roles': ['my_subnet'],
+    #    'start': '10.158.0.1',
+    #    'dns': '131.254.203.235',
+    #    'end': '10.158.3.254',
+    #    'cidr': '10.158.0.0/22',
+    #    'gateway': '10.159.255.254'
+    #    'mac_end': '00:16:3E:9E:03:FE',
+    #    'mac_start': '00:16:3E:9E:00:01',
+    # }
+
+    # Do your stuffs here
+    # ...
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    provider.destroy()
