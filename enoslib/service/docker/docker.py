@@ -39,7 +39,13 @@ class Docker(Service):
     }
 
     def __init__(
-        self, *, agent=None, registry=None, registry_opts=None, bind_var_docker=None
+        self,
+        *,
+        agent=None,
+        registry=None,
+        registry_opts=None,
+        bind_var_docker=None,
+        swarm=False
     ):
         """Deploy docker agents on the nodes and registry cache(optionnal)
 
@@ -80,6 +86,8 @@ class Docker(Service):
                 directory. The rationale is that on Grid'5000, there isn't much
                 disk space on /var/lib by default. Set it to False to disable
                 the fallback to the default location.
+            swarm (bool): Whether a docker swarm needs to be created over the agents.
+                The first agent will be taken as the swarm master.
         """
         # TODO: use a decorator for this purpose
         if registry_opts:
@@ -100,12 +108,22 @@ class Docker(Service):
                 self.registry_opts["port"] = 5000
 
         self.bind_var_docker = bind_var_docker
-        self._roles = {"agent": self.agent, "registry": self.registry}
+        self.swarm = swarm
+        self._roles = {
+            "agent": self.agent,
+            "registry": self.registry,
+            "swarm-manager": [self.agent[0]],
+            "swarm-node": self.agent,
+        }
 
     def deploy(self):
         """Deploy docker and optionnaly a docker registry cache."""
         _playbook = os.path.join(SERVICE_PATH, "docker.yml")
-        extra_vars = {"registry": self.registry_opts, "enos_action": "deploy"}
+        extra_vars = {
+            "registry": self.registry_opts,
+            "enos_action": "deploy",
+            "swarm": self.swarm,
+        }
         if self.bind_var_docker:
             # In the Ansible playbook, undefined means no binding
             extra_vars.update(bind_var_docker=self.bind_var_docker)

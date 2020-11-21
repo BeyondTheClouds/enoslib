@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# Fact to get the token and the addr of the manager
+
+token=$(docker swarm join-token manager -q || echo "-1")
+addr=$(docker node inspect --format '{{ .ManagerStatus.Addr }}' self || echo "-1")
+echo "{\"swarm_token\": \"$token\", \"swarm_address\": \"$addr\"}"

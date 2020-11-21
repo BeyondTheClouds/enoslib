@@ -1,0 +1,28 @@
+---
+- name: Start the manager
+  # NOTE(msimonin): we could find something more elegant
+  shell: "docker swarm init --advertise-addr {{hostvars[inventory_hostname].ansible_default_ipv4.address}} || true"
+  when: inventory_hostname in groups["swarm-manager"]
+
+- name: Create custom facts directory
+  file:
+    path: /etc/ansible/facts.d
+    state: directory
+    recurse: yes
+
+- name: Install custom facts
+  copy:
+    src: swarm.fact
+    dest: /etc/ansible/facts.d/swarm.fact
+    mode: 0755
+
+- name: Loading facts
+  setup: ~
+
+- name: Join the swarm cluster
+  shell: >
+      docker swarm join
+      --token {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_token }}
+      {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_address }} || true
+  when: inventory_hostname in groups["swarm-node"]
+

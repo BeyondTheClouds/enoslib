@@ -2,4 +2,5 @@
 - name: Deploy docker and registry
   hosts: all
   roles:
-    - registry
+  - { role: registry }
+  - { role: swarm, when: swarm | bool }
