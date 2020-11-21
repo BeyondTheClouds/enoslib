@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.4.1
+-----
+
+- Service/docker: swarm support
+
 5.4.0
 -----
 
