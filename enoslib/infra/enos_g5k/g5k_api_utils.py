@@ -342,9 +342,8 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
 
     gk = get_api_client()
     network_addresses = [_to_network_address(n) for n in nodes]
-    data = {"nodes": network_addresses}
-    logger.debug(data)
-    gk.sites[site].vlans[str(vlan_id)].submit(data)
+    logger.debug(network_addresses)
+    gk.sites[site].vlans[str(vlan_id)].nodes.submit(network_addresses)
 
 
 def get_api_username():
