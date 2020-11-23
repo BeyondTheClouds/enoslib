@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+5.4.2
+-----
+
+- Doc: G5k change tutorial URL
+- G5k: Align the code with the new REST API for vlans (need python-grid5000 >= 1.0.0)
+
 5.4.1
 -----
 
