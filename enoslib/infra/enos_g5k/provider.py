@@ -402,7 +402,7 @@ class G5k(Provider):
         roles = {}
         for host in self.hosts:
             for role in host.roles:
-                roles.setdefault(role, []).append(Host(host.fqdn, user="root"))
+                roles.setdefault(role, []).append(Host(host.ssh_address, user="root"))
         networks = []
         for network in self.networks:
             networks.extend(network.to_enos())
