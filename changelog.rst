@@ -3,8 +3,8 @@ Changelog
 
 5.4.3
 -----
-
-- Service/docker: add missing fact file
+- G5k: returned Host.address was wrong when using vlans
+- Doc: fix execo url
 
 5.4.2
 -----
