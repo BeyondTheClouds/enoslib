@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.4.3
+-----
+
+- Service/docker: add missing fact file
+
 5.4.2
 -----
 

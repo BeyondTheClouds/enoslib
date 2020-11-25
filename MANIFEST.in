@@ -4,4 +4,4 @@ include LICENSE.txt
 
 recursive-include enoslib/ansible *
 recursive-include enoslib/infra *.py *.j2 *.yml
-recursive-include enoslib/service *.py *.j2 *.yml
+recursive-include enoslib/service *.py *.j2 *.yml *.fact
