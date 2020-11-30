@@ -173,6 +173,7 @@ texinfo_documents = [
 
 rst_epilog = """
 .. |enoslib| replace:: EnOSlib
+.. |chat| replace:: https://framateam.org/enoslib/channels/town-square
 """
 
 # Document also the __init__

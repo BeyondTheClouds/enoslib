@@ -39,6 +39,16 @@ Dstat Service Class
 .. automodule:: enoslib.service.dstat.dstat
     :members: Dstat
 
+K3s (container orchestration)
+=============================
+
+K3s Service Class
+--------------------
+
+
+.. automodule:: enoslib.service.k3s.k3s
+    :members: K3s
+
 Locust (Load generation)
 ========================
 
