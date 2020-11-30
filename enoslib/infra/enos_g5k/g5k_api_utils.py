@@ -161,7 +161,10 @@ def grid_reload_from_ids(oargrid_jobids):
     jobs = []
     for site, job_id in oargrid_jobids:
         jobs.append(gk.sites[site].jobs[job_id])
-    return jobs
+
+    wait_for_jobs(jobs)
+
+    return build_resources(jobs)
 
 
 def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
