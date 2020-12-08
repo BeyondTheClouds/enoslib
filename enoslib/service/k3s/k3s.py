@@ -50,8 +50,8 @@ class K3s(Service):
                 f"K3S_URL=https://{self.master[0].address}:6443 K3S_TOKEN={token} sh"
             ))
 
-    def destroy():
+    def destroy(self):
         pass
 
-    def backup():
+    def backup(self):
         pass
