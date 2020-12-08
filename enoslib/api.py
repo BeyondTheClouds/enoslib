@@ -11,6 +11,7 @@ import yaml
 
 
 # These two imports are 2.9
+import ansible.constants as C
 from ansible.module_utils.common.collections import ImmutableDict
 from ansible import context
 from ansible.executor import task_queue_manager
@@ -223,6 +224,7 @@ def run_play(
         loader=loader,
         passwords=passwords,
         stdout_callback=callback,
+        forks=C.DEFAULT_FORKS
     )
 
     # create play
