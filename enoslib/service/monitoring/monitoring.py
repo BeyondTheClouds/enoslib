@@ -113,6 +113,76 @@ class Monitoring(Service):
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
         self.extra_vars.update(extra_vars)
 
+    def write_agent_config(self, agents: List[Host] = None) -> str:
+        """
+        Sets agent's telegraf config
+
+        Args:
+            agents: list of hosts to write telegraf's config
+        Returns:
+            config filename that will be created in agent's host
+        """
+        _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+        extra_vars = {"collector_address": self._get_collector_address()}
+        extra_vars.update(self.extra_vars)
+        roles = self._roles
+        # user set a specific list of hosts
+        if agents is not None:
+            roles = {"agent": agents}
+        with play_on(
+            pattern_hosts="agent", roles=roles, extra_vars=extra_vars
+        ) as p:
+            p.file(path=self.remote_working_dir, state="directory")
+            p.template(
+                display_name="Generating the configuration file",
+                src=os.path.join(_path, self.agent_conf),
+                dest=self.remote_telegraf_conf,
+            )
+        return self.remote_telegraf_conf
+
+    def deploy_agent(self):
+        """Deploy telegraf agent
+
+        Generates telegraf config and start docker container
+        """
+        self.write_agent_config()
+        with play_on(
+            pattern_hosts="agent", roles=self._roles, extra_vars=self.extra_vars,
+        ) as p:
+
+            volumes = [
+                f"{self.remote_telegraf_conf}:/etc/telegraf/telegraf.conf",
+                "/sys:/rootfs/sys:ro",
+                "/proc:/rootfs/proc:ro",
+                "/var/run/docker.sock:/var/run/docker.sock:ro",
+            ]
+            env = {"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"}
+            env.update(self.agent_env)
+            p.docker_container(
+                display_name="Installing Telegraf",
+                name="telegraf",
+                image=self.agent_image,
+                detach=True,
+                state="started",
+                recreate="yes",
+                network_mode="host",
+                volumes=volumes,
+                env=env,
+            )
+
+    def _get_collector_address(self) -> str:
+        """
+        Auxiliary method to get collector's IP address
+
+        Returns:
+            str with IP address
+        """
+        if self.network is not None:
+            # This assumes that `discover_network` has been run before
+            return self.collector[0].extra[self.network + "_ip"]
+        else:
+            return self.collector[0].address
+
     def deploy(self):
         """Deploy the monitoring stack"""
         if self.collector is None:
@@ -128,8 +198,6 @@ class Monitoring(Service):
             p.pip(display_name="Installing python-docker", name="docker")
 
         # Deploy the collector
-        _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-
         # Handle port customisation
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
         with play_on(
@@ -158,43 +226,7 @@ class Monitoring(Service):
             )
 
         # Deploy the agents
-        if self.network is not None:
-            # This assumes that `discover_network` has been run before
-            collector_address = self.collector[0].extra[self.network + "_ip"]
-        else:
-            collector_address = self.collector[0].address
-
-        extra_vars = {"collector_address": collector_address}
-        extra_vars.update(self.extra_vars)
-        with play_on(
-            pattern_hosts="agent", roles=self._roles, extra_vars=extra_vars
-        ) as p:
-            p.file(path=self.remote_working_dir, state="directory")
-            p.template(
-                display_name="Generating the configuration file",
-                src=os.path.join(_path, self.agent_conf),
-                dest=self.remote_telegraf_conf,
-            )
-
-            volumes = [
-                f"{self.remote_telegraf_conf}:/etc/telegraf/telegraf.conf",
-                "/sys:/rootfs/sys:ro",
-                "/proc:/rootfs/proc:ro",
-                "/var/run/docker.sock:/var/run/docker.sock:ro",
-            ]
-            env = {"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"}
-            env.update(self.agent_env)
-            p.docker_container(
-                display_name="Installing Telegraf",
-                name="telegraf",
-                image=self.agent_image,
-                detach=True,
-                state="started",
-                recreate="yes",
-                network_mode="host",
-                volumes=volumes,
-                env=env,
-            )
+        self.deploy_agent()
 
         # Deploy the UI
         ui_address = None
@@ -243,7 +275,7 @@ class Monitoring(Service):
                     {
                         "name": "telegraf",
                         "type": "influxdb",
-                        "url": f"http://{collector_address}:{collector_port}",
+                        "url": f"http://{self._get_collector_address()}:{collector_port}",
                         "access": "proxy",
                         "database": "telegraf",
                         "isDefault": True,
