@@ -186,15 +186,17 @@ class Conda(Service):
 
 class Dask(Service):
     def __init__(
-        self, scheduler: Host, worker: List[Host], env_file: Optional[str] = None
+        self, scheduler: Host, worker: List[Host], worker_args: str = "", env_file: Optional[str] = None,
     ):
         """Initialize a Dask cluster on the nodes.
 
         Args:
             scheduler: the scheduler host
             worker: the workers Hosts
+            worker_args: args to be passed when starting the worker (see dask-worker --help)
             env_file: conda environment with you specific dependencies.
                       Dask should be present in this environment.
+
 
         Examples:
 
@@ -205,6 +207,7 @@ class Dask(Service):
         """
         self.scheduler = scheduler
         self.worker = worker
+        self.worker_args = worker_args
         self.env_file = env_file
         self.env_name = _get_env_name(env_file) if env_file is not None else "__dask__"
         self.conda = Conda(nodes=worker + [scheduler])
@@ -234,7 +237,7 @@ class Dask(Service):
                 display_name="Starting the dask scheduler",
             )
         s = self.scheduler.address
-        cmd = f"tmux new-session -s dask-worker -d 'exec dask-worker tcp://{s}:8786'"
+        cmd = f"tmux new-session -s dask-worker -d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'"
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
             _shell_in_conda(
                 p,
