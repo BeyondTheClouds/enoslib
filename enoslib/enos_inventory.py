@@ -1,6 +1,8 @@
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 
+from enoslib.host import Host
+
 
 class EnosInventory(Inventory):
     def __init__(self, loader=None, sources=None, roles=None):
@@ -23,6 +25,9 @@ class EnosInventory(Inventory):
         for role, machines in roles.items():
             self.add_group(role)
             for machine in machines:
+                # only Host can be accessed by ssh
+                if not isinstance(machine, Host):
+                    continue
                 self.add_host(machine.alias, group=role)
                 # let's add some variabe to that host
                 host = self.get_host(machine.alias)

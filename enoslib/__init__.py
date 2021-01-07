@@ -62,6 +62,14 @@ from enoslib.infra.enos_vmong5k.configuration import (
 )
 from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
 
+from enoslib.infra.enos_iotlab.provider import Iotlab
+from enoslib.infra.enos_iotlab.configuration import Configuration as IotlabConf
+from enoslib.infra.enos_iotlab.objects import (
+    IotlabSensor,
+    IotlabSniffer,
+    IotlabSerial,
+)
+
 try:
 
     from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal as CBM
