@@ -12,6 +12,7 @@ Tutorials
     distem
     chameleon
     static
+    iotlab
     using-tasks
     ansible-integration
     network_emulation

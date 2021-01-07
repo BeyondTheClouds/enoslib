@@ -1,0 +1,193 @@
+*********************
+Provider::FIT/IoT-LAB
+*********************
+
+.. contents::
+   :depth: 2
+
+This tutorial illustrates the use of EnOSlib to interact with FIT/IoT-LAB testbed.
+
+.. hint::
+
+   For a complete schema reference see :ref:`iotlab-schema`
+
+.. hint::
+
+
+.. include:: ./setup_iotlab.rst
+
+
+Basic examples
+==============
+
+
+Getting started tutorial
+------------------------
+
+This script implements a similar behavior as the getting started tutorial from
+FIT/IoT-LAB (https://www.iot-lab.info/legacy/tutorials/getting-started-tutorial/index.html).
+
+
+**Requirement**: M3 image (*tutorial_m3.elf*)
+
+- The M3 image can be download from the website: https://www.iot-lab.info/testbed/resources/firmware.
+- It is available at the "Presets tab" under the name *iotlab_m3_tutorial*.
+- Download and save it in the same folder as the script.
+
+
+.. literalinclude:: iotlab/tuto_iotlab_getting_started.py
+   :language: python
+   :linenos:
+
+.. note::
+
+   The test creates a thread to read serial while the test ask the sensor to send messages.
+   We don't recommend doing this in your tests. Anyway, this is necessary in this example since
+   the getting started tutorial supposes the user interaction.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_getting_started.py
+
+
+Using A8 nodes
+--------------
+
+This script shows how to use the A8 node available in the platform.
+They have a Linux OS installed, so we can access them through SSH and run simple
+linux commands.
+
+
+.. literalinclude:: iotlab/tuto_iotlab_a8_basic.py
+   :language: python
+   :linenos:
+
+.. note::
+
+   Note that the Linux version installed on nodes has limited capabilities.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_a8_basic.py
+
+
+ 
+Advanced examples
+=================
+
+
+Monitor M3 consumption
+----------------------
+
+Simple example of using the monitoring tools in FIT/IoT-LAB testbed.
+
+This script implements a similar behavior as the "Monitor the consumption of M3 node
+during an experiment" (https://www.iot-lab.info/legacy/tutorials/monitoring-consumption-m3/index.html).
+
+
+**Requirement**: M3 image (*tutorial_m3.elf*)
+
+- The M3 image can be download from the website: https://raw.githubusercontent.com/wiki/iot-lab/iot-lab/firmwares/tutorial_m3.elf
+- Download and rename it properly, saving in the same folder as the script.
+
+.. literalinclude:: iotlab/tuto_iotlab_m3_consumption.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    The monitoring files are compressed and saved in the current folder.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_m3_consumption.py
+
+- Finally, you can evaluate and plot the results as done in the tutorial.
+  It uses the plot_oml_consum tool (Available at: https://github.com/iot-lab/oml-plot-tools).
+
+    .. code-block:: bash
+
+        $ tar xfz <expid>-grenoble.iot-lab.info.tar.gz
+        $ plot_oml_consum -p -i <expid>/consumption/m3_<id>.oml
+
+
+Radio Monitoring for M3 nodes
+-----------------------------
+
+Simple example of using the monitoring tools in FIT/IoT-LAB testbed.
+
+This script implements a similar behavior as the "Radio monitoring for M3 nodes"
+(https://www.iot-lab.info/legacy/tutorials/monitoring-radio-m3/index.html).
+
+
+**Requirement**: M3 image (*tutorial_m3.elf*)
+
+- Please follow the steps 1-4 in the FIT/IoT-LAB tutorial to create the image.
+- Save it in the same folder as the script.
+- Adjust the channels (11, 14) used during the test accordingly
+  (see step 5 in the FIT/IoT-LAB tutorial).
+
+.. literalinclude:: iotlab/tuto_iotlab_m3_radio_monitoring.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    The monitoring files are compressed and saved in the current folder.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_m3_radio_monitoring.py
+
+- Finally, you can evaluate and plot the results as done in the tutorial.
+  It uses the plot_oml_consum tool (Available at: https://github.com/iot-lab/oml-plot-tools).
+
+    .. code-block:: bash
+
+        $ tar xfz <expid>-grenoble.iot-lab.info.tar.gz
+        $ plot_oml_radio -a -i <expid>/radio/m3_<id>.oml
+
+
+Radio Sniffer with M3 nodes
+---------------------------
+
+Simple example of using the monitoring tools in FIT/IoT-LAB testbed.
+
+This script implements a similar behavior as the "Radio sniffer with M3 nodes"
+(https://www.iot-lab.info/legacy/tutorials/monitoring-sniffer-m3/index.html).
+
+
+**Requirement**: M3 image (*tutorial_m3.elf*)
+
+- The M3 image can be download from the website:
+  https://raw.githubusercontent.com/wiki/iot-lab/iot-lab/firmwares/tutorial_m3.elf
+- Download and save it in the same folder as the script.
+
+.. literalinclude:: iotlab/tuto_iotlab_m3_radio_sniffer.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    The pcap file is compressed and saved in the current folder.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_m3_radio_sniffer.py
+
+- Finally, you can analyze the packets with wireshark.
+
+    .. code-block:: bash
+
+        $ tar xfz <expid>-grenoble.iot-lab.info.tar.gz
+        $ wireshark <expid>/sniffer/m3-7.pcap

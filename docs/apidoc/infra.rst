@@ -146,3 +146,17 @@ Chameleon(bare metal) schema
 
 .. literalinclude:: ../../enoslib/infra/enos_chameleonkvm/schema.py
 
+FIT/IoT-LAB
+==============
+
+.. _iotlab-schema:
+
+FIT/IoT-LAB Schema
+----------
+
+.. literalinclude:: ../../enoslib/infra/enos_iotlab/schema.py
+
+Sensor
+------
+
+.. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
