@@ -22,7 +22,7 @@ def _conda_wrapper(env_name: str):
 def _get_env_name(env_file: str):
     env_name = ""
     with open(env_file, "r") as f:
-        env = yaml.load(f)
+        env = yaml.safe_load(f)
         env_name = env["name"]
     return env_name
 

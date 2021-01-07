@@ -129,7 +129,7 @@ class Environment:
             config_path = Path(self["config_file"])
             if config_path.is_file():
                 with config_path.open(mode="r") as f:
-                    self["config"].update(yaml.load(f))
+                    self["config"].update(yaml.safe_load(f))
                     logger.debug("Reloaded config %s", self["config"])
 
 
