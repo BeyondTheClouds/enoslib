@@ -191,3 +191,36 @@ This script implements a similar behavior as the "Radio sniffer with M3 nodes"
 
         $ tar xfz <expid>-grenoble.iot-lab.info.tar.gz
         $ wireshark <expid>/sniffer/m3-7.pcap
+
+
+IPv6 - Interacting with frontend
+--------------------------------
+
+Some tutorials in FIT/IoT-LAB run commands directly in the frontend
+node. You can script this interaction using a combination of Static
+and IoT-LAB providers in EnOSlib.
+
+This script implements a similar behavior as the "Public IPv6 (6LoWPAN/RPL)
+network with M3 nodes"
+(https://www.iot-lab.info/legacy/tutorials/contiki-public-ipv6-m3/index.html).
+This tutorial runs the tunslip tool in the frontend node to bridge packets between
+the external network and M3 sensors in the platform.
+
+**Requirement**: M3 images (*border-router.iotlab-m3* and *http-server.iotlab-m3*)
+
+- Please follow Step 4 in the original tutorial to download the images.
+
+.. literalinclude:: iotlab/tuto_iotlab_m3_ipv6.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    IPv6 address used in M3 sensors are globally accessible.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_m3_ipv6.py
+
