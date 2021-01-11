@@ -660,7 +660,7 @@ class Yedit(object):
         # deepcopy didn't work
         # Try to use ruamel.yaml and fallback to pyyaml
         try:
-            tmp_copy = yaml.load(
+            tmp_copy = yaml.safe_load(
                 yaml.round_trip_dump(self.yaml_dict, default_flow_style=False),
                 yaml.RoundTripLoader,
             )
@@ -697,7 +697,7 @@ class Yedit(object):
             # deepcopy didn't work
             # Try to use ruamel.yaml and fallback to pyyaml
             try:
-                tmp_copy = yaml.load(
+                tmp_copy = yaml.safe_load(
                     yaml.round_trip_dump(self.yaml_dict, default_flow_style=False),
                     yaml.RoundTripLoader,
                 )
@@ -725,7 +725,7 @@ class Yedit(object):
 
         curr_value = invalue
         if val_type == "yaml":
-            curr_value = yaml.load(invalue)
+            curr_value = yaml.safe_load(invalue)
         elif val_type == "json":
             curr_value = json.loads(invalue)
 
