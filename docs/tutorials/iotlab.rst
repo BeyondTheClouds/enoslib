@@ -224,3 +224,10 @@ the external network and M3 sensors in the platform.
 
         $ python tuto_iotlab_m3_ipv6.py
 
+
+Jupyter Notebooks
+=================
+
+`Grid5000 and FIT/IoT-LAB - IPv6 <iotlab/tuto_iotlab_g5k_ipv6.ipynb>`_
+----------------------------------------------------------------------
+
