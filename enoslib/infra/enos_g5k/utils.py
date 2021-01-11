@@ -5,7 +5,7 @@ from operator import itemgetter
 from typing import Dict, List, Tuple
 import logging
 
-from enoslib.infra.enos_g5k import remote
+from . import remote
 
 
 logger = logging.getLogger(__name__)

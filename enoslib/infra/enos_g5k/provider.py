@@ -3,7 +3,10 @@ import copy
 import logging
 import operator
 from itertools import groupby
+import os
 from typing import List, Optional, Tuple, cast
+
+from sshtunnel import SSHTunnelForwarder
 
 from enoslib.host import Host
 from enoslib.infra.enos_g5k.concrete import (
@@ -27,7 +30,7 @@ from enoslib.infra.enos_g5k.constants import (
 )
 from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
-from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork
+from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork, get_api_username
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
     G5kNetwork,
@@ -205,6 +208,48 @@ def _join(machines: List[ConcreteGroup], networks: List[G5kNetwork]) -> List[G5k
             for s in secondary_networks:
                 s.add_host(g5k_host)
     return hosts
+
+
+class G5kTunnel(object):
+    """A context Manager that initiate a tunnel to a grid node if needed."""
+
+    def __init__(self, address: str, port: int):
+        """
+        Args:
+            address: The ip address/fqdn of the targetted service
+            port: The port of the targetted service
+        """
+        self.address = address
+        self.port = port
+
+        # computed
+        self.tunnel = None
+
+    def start(self):
+        import socket
+
+        if "grid5000.fr" not in socket.getfqdn():
+            logging.debug(f"Creating a tunnel to {self.address}:{self.port}")
+            self.tunnel = SSHTunnelForwarder(
+                "access.grid5000.fr",
+                ssh_username=get_api_username(),
+                remote_bind_address=(self.address, self.port),
+            )
+            self.tunnel.start()
+            local_address, local_port = self.tunnel.local_bind_address
+            return local_address, local_port, self.tunnel
+        return self.address, self.port, None
+
+    def close(self):
+        if self.tunnel is not None:
+            logging.debug(f"Closing the tunnel to {self.address}:{self.port}")
+            self.tunnel.stop(force=True)
+
+    def __enter__(self):
+        return self.start()
+
+    def __exit__(self, *args):
+        self.close()
 
 
 class G5k(Provider):
@@ -407,6 +452,19 @@ class G5k(Provider):
         for network in self.networks:
             networks.extend(network.to_enos())
         return roles, networks
+
+    @staticmethod
+    def tunnel(address: str, port: int):
+        """Create a tunnel if necessary between here and there (in G5k).
+
+        Args:
+            address: The remote address to reach (assuming inside g5k)
+            port: The remote port to reach
+
+        Returns
+            The context manager
+        """
+        return G5kTunnel(address, port).start()
 
     def __str__(self):
         return "G5k"

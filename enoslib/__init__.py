@@ -14,7 +14,8 @@ from enoslib.api import (
 )
 
 # Services
-from enoslib.service.conda.conda import Conda, conda_play_on, conda_run_command, Dask
+from enoslib.service.conda.conda import Dask, in_conda_cmd
+
 from enoslib.service.docker.docker import Docker
 from enoslib.service.dstat.dstat import Dstat
 from enoslib.service.locust.locust import Locust
@@ -24,7 +25,8 @@ from enoslib.service.netem.netem import Netem, SimpleNetem
 from enoslib.service.skydive.skydive import Skydive
 
 # Providers
-from enoslib.infra.enos_g5k.provider import G5k
+from enoslib.infra.enos_g5k.provider import G5k, G5kTunnel
+import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from enoslib.infra.enos_g5k.configuration import Configuration as G5kConf
 from enoslib.infra.enos_g5k.configuration import NetworkConfiguration as G5kNetworkConf
 from enoslib.infra.enos_g5k.configuration import ServersConfiguration as G5kServersConf
@@ -64,16 +66,14 @@ from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
 
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.configuration import Configuration as IotlabConf
-from enoslib.infra.enos_iotlab.objects import (
-    IotlabSensor,
-    IotlabSniffer,
-    IotlabSerial,
-)
+from enoslib.infra.enos_iotlab.objects import IotlabSensor, IotlabSniffer, IotlabSerial
 
 try:
 
     from enoslib.infra.enos_chameleonbaremetal.provider import Chameleonbaremetal as CBM
-    from enoslib.infra.enos_chameleonbaremetal.configuration import Configuration as CBMConf
+    from enoslib.infra.enos_chameleonbaremetal.configuration import (
+        Configuration as CBMConf,
+    )
     from enoslib.infra.enos_chameleonbaremetal.configuration import (
         MachineConfiguration as CBMMachineConf,
     )

@@ -68,7 +68,7 @@ def _inject_wrapper_script(env_name, **kwargs):
         _create_wrapper_script(p, env_name)
 
 
-def conda_run_command(command: str, env_name: str, **kwargs: Any):
+def _conda_run_command(command: str, env_name: str, **kwargs: Any):
     """Run a single shell command in the context of a Conda environment.
 
     Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
@@ -85,7 +85,7 @@ def conda_run_command(command: str, env_name: str, **kwargs: Any):
     return run_command(command, extra_vars=extra_vars, **kwargs)
 
 
-class conda_play_on(play_on):
+class _conda_play_on(play_on):
     """Run Ansible modules in the context of a Conda environment."""
 
     def __init__(self, env_name: str, **kwargs: Any):
@@ -95,7 +95,7 @@ class conda_play_on(play_on):
         _inject_wrapper_script(env_name, **kwargs)
 
 
-class Conda(Service):
+class _Conda(Service):
     def __init__(self, *, nodes: List[Host]):
         """Manage Conda on your nodes.
 
@@ -184,18 +184,28 @@ class Conda(Service):
         pass
 
 
-class Dask(Service):
+class _Dask(Service):
     def __init__(
-        self, scheduler: Host, worker: List[Host], worker_args: str = "", env_file: Optional[str] = None,
+        self,
+        scheduler: Host,
+        worker: List[Host],
+        worker_args: str = "",
+        env_file: Optional[str] = None,
     ):
         """Initialize a Dask cluster on the nodes.
+
+        This installs a dask cluster from scratch by installing the dependency from the conda env_file.
+        As a consequence bootstraping the dask cluster is easy but not fast
+        (conda might be slow to do his job). Also everything run as root which might not be ideal.
+        Instead you can have a look to the Dask Service (:py:class:`enoslib.service.conda.conda.Dask`)
+        that will be faster at bootstraping Dask and run as a regular user.
 
         Args:
             scheduler: the scheduler host
             worker: the workers Hosts
             worker_args: args to be passed when starting the worker (see dask-worker --help)
             env_file: conda environment with you specific dependencies.
-                      Dask should be present in this environment.
+                      Dask must be present in this environment.
 
 
         Examples:
@@ -210,7 +220,7 @@ class Dask(Service):
         self.worker_args = worker_args
         self.env_file = env_file
         self.env_name = _get_env_name(env_file) if env_file is not None else "__dask__"
-        self.conda = Conda(nodes=worker + [scheduler])
+        self.conda = _Conda(nodes=worker + [scheduler])
         self.roles = {"scheduler": [self.scheduler], "worker": self.worker}
 
     def deploy(self):
@@ -263,3 +273,149 @@ class Dask(Service):
                 executable="/bin/bash",
                 display_name="Killing the dask worker ",
             )
+
+
+def in_conda_cmd(cmd: str, env: str, prefix: str):
+    """Build a command line that will run inside a conda env.
+
+    Make sure conda env is sourced correctly.
+
+    Args:
+        cmd: The command to run
+        env: The conda environment to activate
+        prefix: The conda prefix, where the conda installation is
+
+    Return:
+        The command string prefixed by the right command to jump into the
+        conda env.
+    """
+    return f"source {prefix}/etc/profile.d/conda.sh && conda activate andromak && {cmd}"
+
+
+class Dask(Service):
+    def __init__(
+        self,
+        conda_env: str,
+        conda_prefix: str = None,
+        scheduler: Host = None,
+        workers: List[Host] = None,
+        worker_args: str = "",
+        run_as: str = "root",
+    ):
+        """Deploy a Dask Cluster.
+
+        It bootstraps a Dask scheduler and workers by activating the passed conda environment.
+        User must have an environment ready with, at least, dask installed inside.
+        The agents will be started as the passed user.
+
+        It can be used as a context manager.
+        Note that the exit method isn't optimal though (see
+        :py:method:`enoslib.service.conda.conda.AutoDask.destroy`)
+
+        Args:
+            conda_env: name of the conda environment (on the remote system)
+            conda_prefix: prefix of the conda installation (will be used to bring conda in the env)
+                          Default to /home/<run_as>/miniconda3
+            scheduler: Host that will serve as the dask scheduler
+            workers: List of Host that will serve as workers
+            worker_args: specific worker args to pass (e.g "--nthreads 1 --nprocs 8")
+            run_as: remote user to use. Conda must be available to this user.
+
+        Examples:
+
+            `Notebook <examples/dask.ipynb>`_
+        """
+        self.conda_env = conda_env
+        if conda_prefix is None:
+            self.conda_prefix = f"/home/{run_as}/miniconda3"
+        else:
+            self.conda_prefix = conda_prefix
+        self.scheduler = scheduler
+        self.workers = workers
+        self.worker_args = worker_args
+        self.run_as = run_as
+
+        # computed
+        self.roles = dict(scheduler=[self.scheduler], worker=self.workers)
+        # can be set to optimize destroy
+        self.client = None
+
+    def in_conda_cmd(self, cmd: str):
+        """Transforms a command to be executed in the context of the current conda env.
+
+        Args:
+            cmd: the command string
+
+        Returns:
+            The transformed command string prefixed by some other to activate the conda env.
+        """
+        return in_conda_cmd(cmd, self.conda_env, self.conda_prefix)
+
+    def deploy(self):
+        cmd = self.in_conda_cmd("dask-scheduler")
+        print(cmd)
+        with play_on(
+            pattern_hosts="scheduler",
+            roles=self.roles,
+            run_as=self.run_as,
+            gather_facts=False,
+        ) as p:
+            p.raw(
+                f"(tmux ls | grep dask-scheduler )|| tmux new-session -s dask-scheduler -d '{cmd}'",
+                executable="/bin/bash",
+            )
+            p.wait_for(host="{{ inventory_hostname }}", port="8786")
+
+        scheduler_addr = self.roles["scheduler"][0].address
+        cmd = self.in_conda_cmd(
+            f"dask-worker tcp://{scheduler_addr}:8786 {self.worker_args}"
+        )
+        with play_on(
+            pattern_hosts="worker",
+            roles=self.roles,
+            run_as=self.run_as,
+            gather_facts=False,
+        ) as p:
+            p.raw(
+                f"(tmux ls | grep dask-worker )|| tmux new-session -s dask-worker -d '{cmd}'",
+                executable="/bin/bash",
+            )
+
+    def destroy(self):
+        """Destroy the dask cluster.
+
+        Note that client.shutdown() is much more efficient.
+        """
+        if self.client is not None:
+            self.client.shutdown()
+        else:
+            # wipe all tmux created
+            with play_on(
+                pattern_hosts="scheduler",
+                roles=self.roles,
+                gather_facts=False,
+                run_as=self.run_as,
+            ) as p:
+                p.raw(
+                    "tmux kill-session -t dask-scheduler || true",
+                    executable="/bin/bash",
+                    display_name="Killing the dask scheduler",
+                )
+            with play_on(
+                pattern_hosts="worker",
+                roles=self.roles,
+                gather_facts=False,
+                run_as=self.run_as,
+            ) as p:
+                p.raw(
+                    "tmux kill-session -t dask-worker || true",
+                    executable="/bin/bash",
+                    display_name="Killing the dask worker ",
+                )
+
+    def __enter__(self):
+        self.deploy()
+        return self
+
+    def __exit__(self, *args):
+        self.destroy()
