@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 #extensions = []
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'autodocsumm']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'autodocsumm', 'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
