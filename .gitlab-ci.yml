@@ -117,7 +117,7 @@ test_static_run_command$debian10$: &debian10
   script:
   - env
   - apt update
-  - apt install -y python3 python3-pip iproute2
+  - apt install -y python3 python3-pip iproute2 cmake zlib1g-dev
   - ip a
   - update-alternatives --install /usr/bin/python python /usr/bin/python3 1
   - pip3 install -e .
