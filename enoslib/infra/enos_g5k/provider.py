@@ -3,7 +3,6 @@ import copy
 import logging
 import operator
 from itertools import groupby
-import os
 from typing import List, Optional, Tuple, cast
 
 from sshtunnel import SSHTunnelForwarder
@@ -211,13 +210,17 @@ def _join(machines: List[ConcreteGroup], networks: List[G5kNetwork]) -> List[G5k
 
 
 class G5kTunnel(object):
-    """A context Manager that initiate a tunnel to a grid node if needed."""
+    """A class to initiate a tunnel to a targetted service inside Grid'5000.
+
+    Can be used as a context manager (will close the tunnel automatically).
+
+    Args:
+        address: The ip address/fqdn of the targetted service
+        port: The port of the targetted service
+    """
 
     def __init__(self, address: str, port: int):
         """
-        Args:
-            address: The ip address/fqdn of the targetted service
-            port: The port of the targetted service
         """
         self.address = address
         self.port = port
@@ -226,6 +229,7 @@ class G5kTunnel(object):
         self.tunnel = None
 
     def start(self):
+        """Start the tunnel."""
         import socket
 
         if "grid5000.fr" not in socket.getfqdn():
@@ -241,6 +245,9 @@ class G5kTunnel(object):
         return self.address, self.port, None
 
     def close(self):
+        """Close the tunnel.
+
+        Note that this won't wait for any connection to finish first."""
         if self.tunnel is not None:
             logging.debug(f"Closing the tunnel to {self.address}:{self.port}")
             self.tunnel.stop(force=True)

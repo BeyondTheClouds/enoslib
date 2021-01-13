@@ -194,26 +194,22 @@ class _Dask(Service):
     ):
         """Initialize a Dask cluster on the nodes.
 
-        This installs a dask cluster from scratch by installing the dependency from the conda env_file.
-        As a consequence bootstraping the dask cluster is easy but not fast
-        (conda might be slow to do his job). Also everything run as root which might not be ideal.
-        Instead you can have a look to the Dask Service (:py:class:`enoslib.service.conda.conda.Dask`)
-        that will be faster at bootstraping Dask and run as a regular user.
+        This installs a dask cluster from scratch by installing the
+        dependency from the conda env_file. As a consequence bootstraping the
+        dask cluster is easy but not fast (conda might be slow to do his
+        job). Also everything run as root which might not be ideal. Instead
+        you can have a look to the Dask Service
+        (:py:class:`enoslib.service.conda.conda.Dask`) that will be faster at
+        bootstraping Dask and run as a regular user.
 
         Args:
-            scheduler: the scheduler host
-            worker: the workers Hosts
-            worker_args: args to be passed when starting the worker (see dask-worker --help)
-            env_file: conda environment with you specific dependencies.
-                      Dask must be present in this environment.
-
-
-        Examples:
-
-            .. literalinclude: : examples/dask.py
-                : language: python
-                : linenos:
-
+            scheduler  : the scheduler host
+            worker     : the workers Hosts
+            worker_args: args to be passed when starting the worker (see
+                         dask-worker --help)
+            env_file   : conda environment with you specific
+                         dependencies.
+                         Dask must be present in this environment.
         """
         self.scheduler = scheduler
         self.worker = worker
@@ -247,7 +243,8 @@ class _Dask(Service):
                 display_name="Starting the dask scheduler",
             )
         s = self.scheduler.address
-        cmd = f"tmux new-session -s dask-worker -d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'"
+        cmd = ("tmux new-session -s dask-worker"
+               f"-d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'")
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
             _shell_in_conda(
                 p,
@@ -304,22 +301,26 @@ class Dask(Service):
     ):
         """Deploy a Dask Cluster.
 
-        It bootstraps a Dask scheduler and workers by activating the passed conda environment.
-        User must have an environment ready with, at least, dask installed inside.
-        The agents will be started as the passed user.
+        It bootstraps a Dask scheduler and workers by activating the passed
+        conda environment.
+        User must have an environment ready with, at least, dask installed
+        inside. The agents will be started as the passed user.
 
         It can be used as a context manager.
         Note that the exit method isn't optimal though (see
         :py:method:`enoslib.service.conda.conda.AutoDask.destroy`)
 
         Args:
-            conda_env: name of the conda environment (on the remote system)
-            conda_prefix: prefix of the conda installation (will be used to bring conda in the env)
-                          Default to /home/<run_as>/miniconda3
-            scheduler: Host that will serve as the dask scheduler
-            workers: List of Host that will serve as workers
-            worker_args: specific worker args to pass (e.g "--nthreads 1 --nprocs 8")
-            run_as: remote user to use. Conda must be available to this user.
+            conda_env   : name of the conda environment (on the remote system)
+            conda_prefix: prefix of the conda installation (will be used to
+                          bring conda in the env) Default to
+                          /home/<run_as>/miniconda3
+            scheduler   : Host that will serve as the dask scheduler
+            workers     : List of Host that will serve as workers
+            worker_args : specific worker args to pass (e.g "--nthreads 1
+                          --nprocs 8")
+            run_as      : remote user to use. Conda must be available to this
+                          user.
 
         Examples:
 
@@ -347,7 +348,8 @@ class Dask(Service):
             cmd: the command string
 
         Returns:
-            The transformed command string prefixed by some other to activate the conda env.
+            The transformed command string prefixed by some other to activate
+            the conda env.
         """
         return in_conda_cmd(cmd, self.conda_env, self.conda_prefix)
 
@@ -361,7 +363,9 @@ class Dask(Service):
             gather_facts=False,
         ) as p:
             p.raw(
-                f"(tmux ls | grep dask-scheduler )|| tmux new-session -s dask-scheduler -d '{cmd}'",
+                "(tmux ls | grep dask-scheduler ) "
+                " || "
+                f"tmux new-session -s dask-scheduler -d '{cmd}'",
                 executable="/bin/bash",
             )
             p.wait_for(host="{{ inventory_hostname }}", port="8786")
@@ -376,8 +380,10 @@ class Dask(Service):
             run_as=self.run_as,
             gather_facts=False,
         ) as p:
-            p.raw(
-                f"(tmux ls | grep dask-worker )|| tmux new-session -s dask-worker -d '{cmd}'",
+            p.raw((
+                "(tmux ls | grep dask-worker )"
+                " || "
+                f"tmux new-session -s dask-worker -d '{cmd}'"),
                 executable="/bin/bash",
             )
 

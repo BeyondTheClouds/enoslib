@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import iotlabcli
 import iotlabcli.experiment
@@ -13,7 +13,6 @@ from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 
 from enoslib.infra.enos_iotlab.constants import (
     PROFILE_POWER_DEFAULT,
-    PROFILE_ARCHI_TYPES,
 )
 
 from enoslib.infra.enos_iotlab.configuration import (
@@ -106,7 +105,7 @@ class IotlabAPI():
         self.walltime = self._walltime_to_minutes(walltime)
         logger.info("Job submitted: %d" % self.job_id)
 
-    def _check_job_running(self, name: str) -> (int, int):
+    def _check_job_running(self, name: str) -> Tuple[int, int]:
         """
         Check if job is already running
 
