@@ -225,6 +225,53 @@ the external network and M3 sensors in the platform.
         $ python tuto_iotlab_m3_ipv6.py
 
 
+Monitoring A8 nodes - Telegraf
+------------------------------
+
+This example has a twofold objective:
+
+1. **VPN** connection: Interconnect the A8 nodes in FIT/IoT-LAB platform with Grid'5000
+2. **Telegraf**: Install Telegraf agent on A8 nodes and use a monitoring stack from Grid'5000
+
+This example is based on the `Monitoring Service Class <../apidoc/service.html#monitoring>`_.
+It installs the Granafa/InfluxDB to visualize/store the monitoring metrics, which are collected by
+Telegraf agents running on each node of the infrastructure.
+
+Unfortunately, we cannot use the available API to install the monitoring stack in FIT/IoT-LAB, since
+they depend on a debian/ubuntu base environment and docker containers which is not available in the nodes of
+this testbed.
+However, it is still possible to install the Telegraf agent in A8 nodes, and consequently,
+collect metrics about their resource utilization.
+
+In this scenario, a Grid'5000 node contains the collector(InfluxDB) and ui(Grafana).
+The telegraf agent is installed in both Grid'5000 and FIT/IoT-LAB nodes, but the installation on
+A8 nodes is done without using the standard "Monitoring Service Class".
+
+Finally, to handle with the connectivity problem, because Grid'5000 and FIT/IoT-LAB are part of
+2 isolated networks, we need to run the openvpn client on A8 nodes. For that, it is necessary to
+follow the tutorial available at: `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_, to download and set your
+personal VPN credentials in FIT/IoT-LAB frontend, under the shared folder available in your home directory (~/A8/).
+Note that the openvpn client is already available in A8 nodes and no installation is necessary.
+
+**Requirement**: Grid'5000 VPN files on shared folder (~/A8/).
+
+.. literalinclude:: iotlab/tuto_iotlab_a8_monitoring.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    The InfluxDB database is compressed and saved in the current folder.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_a8_monitoring.py
+
+- An *influxdb-data.tar.gz* file is generated containing a backup copy of InfluxDB database.
+
+
 Jupyter Notebooks
 =================
 
