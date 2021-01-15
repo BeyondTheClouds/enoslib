@@ -261,6 +261,7 @@ class Monitoring(Service):
                 delay=2,
                 timeout=120,
             )
+            collector_url = f"http://{self._get_collector_address()}:{collector_port}"
             p.uri(
                 display_name="Add InfluxDB in Grafana",
                 url=f"http://{ui_address}:{ui_port}/api/datasources",
@@ -275,7 +276,7 @@ class Monitoring(Service):
                     {
                         "name": "telegraf",
                         "type": "influxdb",
-                        "url": f"http://{self._get_collector_address()}:{collector_port}",
+                        "url": collector_url,
                         "access": "proxy",
                         "database": "telegraf",
                         "isDefault": True,
