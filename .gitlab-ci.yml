@@ -13,6 +13,9 @@ stages:
  - package
  - publish
 
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  TZ: Europe/Paris
 
 ###############################################################################
 #
@@ -139,9 +142,6 @@ test_monitoring_service$debian10$:
 test_static_tasks$debian10$:
   <<: *debian10
 
-test_dask$debian10$:
-  <<: *debian10
-
 test_discover_networks$debian10$:
   <<: *debian10
 
@@ -167,9 +167,6 @@ test_monitoring_service$debian$:
   <<: *debian
 
 test_static_tasks$debian$:
-  <<: *debian
-
-test_dask$debian$:
   <<: *debian
 
 test_discover_networks$debian$:
@@ -199,9 +196,6 @@ test_monitoring_service$ubuntu1804$:
 test_static_tasks$ubuntu1804$:
   <<: *ubuntu1804
 
-test_dask$ubuntu1804$:
-  <<: *ubuntu1804
-
 test_discover_networks$debian$:
   <<: *ubuntu1804
 
@@ -227,9 +221,6 @@ test_monitoring_service$ubuntu$:
   <<: *ubuntu
 
 test_static_tasks$ubuntu$:
-  <<: *ubuntu
-
-test_dask$ubuntu$:
   <<: *ubuntu
 
 test_discover_networks$ubuntu$:
