@@ -1,9 +1,8 @@
-import json
 from pathlib import Path
 import os
 from typing import Dict, List, Optional
 
-from enoslib.api import play_on, __python3__, __docker__
+from enoslib.api import play_on, run_ansible
 from enoslib.types import Host, Roles
 from ..service import Service
 from ..utils import _check_path, _to_abs
@@ -14,6 +13,8 @@ DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
 DEFAULT_COLLECTOR_ENV = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
 
 DEFAULT_AGENT_IMAGE = "telegraf"
+
+SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Monitoring(Service):
@@ -30,7 +31,7 @@ class Monitoring(Service):
         agent_env: Optional[Dict] = None,
         agent_image: str = DEFAULT_AGENT_IMAGE,
         ui_env: Optional[Dict] = None,
-        priors: List[play_on] = [__python3__, __docker__],
+        priors: List[play_on] = [],
         extra_vars: Dict = None,
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
@@ -96,9 +97,9 @@ class Monitoring(Service):
         # agent options
         self.agent_env = {} if not agent_env else agent_env
         if agent_conf is None:
-            self.agent_conf = Path("telegraf.conf.j2")
+            self.agent_conf = "telegraf.conf.j2"
         else:
-            self.agent_conf = _to_abs(Path(agent_conf))
+            self.agent_conf = str(_to_abs(Path(agent_conf)))
         self.agent_image = agent_image
 
         # ui options
@@ -112,63 +113,6 @@ class Monitoring(Service):
         extra_vars = extra_vars if extra_vars is not None else {}
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
         self.extra_vars.update(extra_vars)
-
-    def write_agent_config(self, agents: List[Host] = None) -> str:
-        """
-        Sets agent's telegraf config
-
-        Args:
-            agents: list of hosts to write telegraf's config
-        Returns:
-            config filename that will be created in agent's host
-        """
-        _path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-        extra_vars = {"collector_address": self._get_collector_address()}
-        extra_vars.update(self.extra_vars)
-        roles = self._roles
-        # user set a specific list of hosts
-        if agents is not None:
-            roles = {"agent": agents}
-        with play_on(
-            pattern_hosts="agent", roles=roles, extra_vars=extra_vars
-        ) as p:
-            p.file(path=self.remote_working_dir, state="directory")
-            p.template(
-                display_name="Generating the configuration file",
-                src=os.path.join(_path, self.agent_conf),
-                dest=self.remote_telegraf_conf,
-            )
-        return self.remote_telegraf_conf
-
-    def deploy_agent(self):
-        """Deploy telegraf agent
-
-        Generates telegraf config and start docker container
-        """
-        self.write_agent_config()
-        with play_on(
-            pattern_hosts="agent", roles=self._roles, extra_vars=self.extra_vars,
-        ) as p:
-
-            volumes = [
-                f"{self.remote_telegraf_conf}:/etc/telegraf/telegraf.conf",
-                "/sys:/rootfs/sys:ro",
-                "/proc:/rootfs/proc:ro",
-                "/var/run/docker.sock:/var/run/docker.sock:ro",
-            ]
-            env = {"HOST_PROC": "/rootfs/proc", "HOST_SYS": "/rootfs/sys"}
-            env.update(self.agent_env)
-            p.docker_container(
-                display_name="Installing Telegraf",
-                name="telegraf",
-                image=self.agent_image,
-                detach=True,
-                state="started",
-                recreate="yes",
-                network_mode="host",
-                volumes=volumes,
-                env=env,
-            )
 
     def _get_collector_address(self) -> str:
         """
@@ -188,47 +132,7 @@ class Monitoring(Service):
         if self.collector is None:
             return
 
-        # Some requirements
-        with play_on(
-            pattern_hosts="all",
-            roles=self._roles,
-            priors=self.priors,
-            extra_vars=self.extra_vars,
-        ) as p:
-            p.pip(display_name="Installing python-docker", name="docker")
-
-        # Deploy the collector
-        # Handle port customisation
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
-        with play_on(
-            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            p.docker_container(
-                display_name="Installing",
-                name="influxdb",
-                image="influxdb",
-                detach=True,
-                network_mode="host",
-                state="started",
-                recreate="yes",
-                env=self.collector_env,
-                volumes=[f"{self.remote_influxdata}:/var/lib/influxdb"],
-            )
-            p.wait_for(
-                display_name="Waiting for InfluxDB to be ready",
-                # I don't have better solution yet
-                # The ci requirements are a bit annoying...
-                host="172.17.0.1",
-                port=collector_port,
-                state="started",
-                delay=2,
-                timeout=120,
-            )
-
-        # Deploy the agents
-        self.deploy_agent()
-
-        # Deploy the UI
         ui_address = None
         if self.network is not None:
             # This assumes that `discover_network` has been run before
@@ -237,52 +141,22 @@ class Monitoring(Service):
             # NOTE(msimonin): ping on docker bridge address for ci testing
             ui_address = "172.17.0.1"
 
-        # Handle port customisation
-        ui_port = self.ui_env["GF_SERVER_HTTP_PORT"]
-        with play_on(
-            pattern_hosts="ui", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            p.docker_container(
-                display_name="Installing Grafana",
-                name="grafana",
-                image="grafana/grafana",
-                detach=True,
-                network_mode="host",
-                env=self.ui_env,
-                recreate="yes",
-                state="started",
-            )
-            p.wait_for(
-                display_name="Waiting for grafana to be ready",
-                # NOTE(msimonin): ping on docker bridge address for ci testing
-                host=ui_address,
-                port=ui_port,
-                state="started",
-                delay=2,
-                timeout=120,
-            )
-            collector_url = f"http://{self._get_collector_address()}:{collector_port}"
-            p.uri(
-                display_name="Add InfluxDB in Grafana",
-                url=f"http://{ui_address}:{ui_port}/api/datasources",
-                user="admin",
-                password="admin",
-                force_basic_auth=True,
-                body_format="json",
-                method="POST",
-                # 409 means: already added
-                status_code=[200, 409],
-                body=json.dumps(
-                    {
-                        "name": "telegraf",
-                        "type": "influxdb",
-                        "url": collector_url,
-                        "access": "proxy",
-                        "database": "telegraf",
-                        "isDefault": True,
-                    }
-                ),
-            )
+        extra_vars = {
+            "collector_address": self._get_collector_address(),
+            "collector_port": collector_port,
+            "collector_env": self.collector_env,
+            "agent_conf": self.agent_conf,
+            "agent_image": self.agent_image,
+            "remote_working_dir": self.remote_working_dir,
+            "ui_address": ui_address,
+            "ui_port": self.ui_env["GF_SERVER_HTTP_PORT"],
+            "ui_env": self.ui_env
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
+        run_ansible(
+            self.priors + [_playbook], roles=self._roles, extra_vars=extra_vars
+        )
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -303,7 +177,13 @@ class Monitoring(Service):
             pattern_hosts="agent", roles=self._roles, extra_vars=self.extra_vars
         ) as p:
             p.docker_container(
-                display_name="Destroying telegraf", name="telegraf", state="absent"
+                display_name="Destroying telegraf", name="telegraf", state="absent",
+                when='ansible_architecture != "armv7l"'
+            )
+            p.shell(
+                "pgrep telegraf | xargs kill",
+                display_name="Destroying telegraf",
+                when='ansible_architecture == "armv7l"'
             )
 
         with play_on(

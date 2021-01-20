@@ -1,0 +1,22 @@
+---
+
+- name: Installing InfluxDB
+  docker_container:
+    name: influxdb
+    image: influxdb
+    detach: yes
+    state: started
+    recreate: yes
+    network_mode: host
+    volumes: 
+      - "{{ remote_working_dir }}/influxdb-data:/var/lib/influxdb"
+    env: "{{ collector_env }}"
+
+
+- name: Waiting for InfluxDB to be ready
+  wait_for:
+    host: "172.17.0.1"
+    port: "{{ collector_port }}"
+    state: started
+    delay: 2
+    timeout: 120

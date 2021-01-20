@@ -1,0 +1,13 @@
+---
+
+- include_tasks: config.yml
+
+- name: Host architecture
+  ansible.builtin.debug:
+    var: ansible_architecture
+
+- include_tasks: container.yml
+  when: ansible_architecture != "armv7l"
+
+- include_tasks: binary.yml
+  when: ansible_architecture == "armv7l"

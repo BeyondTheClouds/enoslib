@@ -1,0 +1,24 @@
+---
+- name: Gather facts
+  hosts: all
+  tasks:
+  - name: Gather facts on all hosts
+    setup: {}
+
+- name: Deploy monitoring agents
+  hosts: agent
+  become: yes
+  roles:
+  - agent
+
+- name: Deploy monitoring collector
+  hosts: collector
+  become: yes
+  roles:
+  - collector
+
+- name: Deploy monitoring ui
+  hosts: ui
+  become: yes
+  roles:
+  - ui
