@@ -4,7 +4,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, __python3__, __docker__
-from enoslib.types import Host, Roles
+from enoslib.types import Host, Network, Roles
 from ..service import Service
 from ..utils import _check_path, _to_abs
 
@@ -23,7 +23,7 @@ class Monitoring(Service):
         collector: List[Host] = None,
         agent: List[Host] = None,
         ui: List[Host] = None,
-        network: List[Host] = None,
+        network: str = None,
         remote_working_dir: str = "/builds/monitoring",
         collector_env: Optional[Dict] = None,
         agent_conf: Optional[str] = None,
