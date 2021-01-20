@@ -65,26 +65,24 @@ typecheck:
   - pip install tox
   - tox -e typecheck
 
-python3.6_sonar:
-  image: python:3.7-stretch
+sonar:
+  image: python:3.7-buster
   stage: test
   allow_failure: true
   tags:
   - large
   - qlf-ci.inria.fr
-  only:
-    refs:
-    - master
   script:
   - pip install -e .
   - apt update
-  - apt install -y wget unzip openjdk-8-jre
+  - apt install -y wget unzip openjdk-11-jre
   - pip install pylint
-  - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.2.0.1227-linux.zip
-  - unzip sonar-scanner-cli-3.2.0.1227-linux.zip
+  - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-linux.zip
+  - unzip sonar-scanner-cli-4.4.0.2170-linux.zip
+  - mv sonar-scanner-4.4.0.2170-linux sonar
   - wget --no-check-certificate https://sonarqube.inria.fr/static/digicertca.crt
-  - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar-scanner-3.2.0.1227-linux/jre/lib/security/cacerts -file digicertca.crt
-  - sonar-scanner-3.2.0.1227-linux/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
+  - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar/jre/lib/security/cacerts -file digicertca.crt
+  - sonar/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
   artifacts:
     paths:
     - ./utest.xml
