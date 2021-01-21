@@ -1,0 +1,11 @@
+---
+- name: Destroying InfluxDB
+  docker_container:
+    name: influxdb
+    state: absent
+    force_kill: yes
+
+- name: Removing InfluxDB database
+  file:
+    path: "{{ remote_working_dir }}/influxdb-data"
+    state: absent

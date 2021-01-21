@@ -5,19 +5,19 @@
   - name: Gather facts on all hosts
     setup: {}
 
-- name: Deploy monitoring agents
+- name: Monitoring - agents
   hosts: agent
   become: yes
   roles:
   - agent
 
-- name: Deploy monitoring collector
+- name: Monitoring - collector
   hosts: collector
   become: yes
   roles:
   - collector
 
-- name: Deploy monitoring ui
+- name: Monitoring - UI
   hosts: ui
   become: yes
   roles:

@@ -142,6 +142,7 @@ class Monitoring(Service):
             ui_address = "172.17.0.1"
 
         extra_vars = {
+            "enos_action": "deploy",
             "collector_address": self._get_collector_address(),
             "collector_port": collector_port,
             "collector_env": self.collector_env,
@@ -163,39 +164,18 @@ class Monitoring(Service):
 
         This destroys all the container and associated volumes.
         """
-        with play_on(
-            pattern_hosts="ui", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            p.docker_container(
-                display_name="Destroying Grafana",
-                name="grafana",
-                state="absent",
-                force_kill=True,
-            )
+        extra_vars = {
+            "enos_action": "destroy",
+            "remote_working_dir": self.remote_working_dir,
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        with play_on(
-            pattern_hosts="agent", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            p.docker_container(
-                display_name="Destroying telegraf", name="telegraf", state="absent",
-                when='ansible_architecture != "armv7l"'
-            )
-            p.shell(
-                "pgrep telegraf | xargs kill",
-                display_name="Destroying telegraf",
-                when='ansible_architecture == "armv7l"'
-            )
-
-        with play_on(
-            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            p.docker_container(
-                display_name="Destroying InfluxDB",
-                name="influxdb",
-                state="absent",
-                force_kill=True,
-            )
-            p.file(path=f"{self.remote_influxdata}", state="absent")
+        run_ansible(
+            [_playbook],
+            roles=self._roles,
+            extra_vars=extra_vars
+        )
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the monitoring stack.
@@ -210,29 +190,16 @@ class Monitoring(Service):
 
         _backup_dir = _check_path(_backup_dir)
 
-        with play_on(
-            pattern_hosts="collector", roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
-            backup_path = os.path.join(self.remote_working_dir, "influxdb-data.tar.gz")
-            p.docker_container(
-                display_name="Stopping InfluxDB", name="influxdb", state="stopped"
-            )
-            p.archive(
-                display_name="Archiving the data volume",
-                path=f"{self.remote_influxdata}",
-                dest=backup_path,
-            )
+        extra_vars = {
+            "enos_action": "backup",
+            "remote_working_dir": self.remote_working_dir,
+            "backup_dir": str(_backup_dir)
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-            p.fetch(
-                display_name="Fetching the data volume",
-                src=backup_path,
-                dest=str(Path(_backup_dir, "influxdb-data.tar.gz")),
-                flat=True,
-            )
-
-            p.docker_container(
-                display_name="Restarting InfluxDB",
-                name="influxdb",
-                state="started",
-                force_kill=True,
-            )
+        run_ansible(
+            [_playbook],
+            roles={"collector": self._roles["collector"]},
+            extra_vars=extra_vars
+        )

@@ -1,0 +1,22 @@
+---
+- name: Stopping InfluxDB
+  docker_container:
+    name: influxdb
+    state: stopped
+
+- name: Archiving the data volume
+  archive:
+    path: "{{ remote_working_dir }}/influxdb-data"
+    dest: "{{ remote_working_dir }}/influxdb-data.tar.gz"
+
+- name: Fetching the data volume
+  fetch:
+    src: "{{ remote_working_dir }}/influxdb-data.tar.gz"
+    dest: "{{ backup_dir }}/"
+    flat: yes
+
+- name: Restarting InfluxDB
+  docker_container:
+    name: influxdb
+    state: started
+    force_kill: yes
