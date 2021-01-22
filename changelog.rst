@@ -20,6 +20,7 @@ Changelog
 
     - Example updated accordingly
 
+- G5k: G5kTunnel context manager to automatically manage a tunnel from your current machine to Grid'5000 machines.
 5.4.3
 -----
 
