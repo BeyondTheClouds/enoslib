@@ -1,8 +1,28 @@
 Changelog
 ===========
 
+5.5.0
+-----
+
+-  	🎉 New provider	🎉: Iotlab provides resources on https://www.iot-lab.info/.
+
+  - reserve nodes and run some actions (radio monitoring, power consumption, run modules on A8 nodes)
+
+  - connection between Grid'5000 and Fit:
+
+    - Using Grid'5000 VPN: allow bi-redirectionnal communication over IPv4
+
+    - Using IPv6: allow transparent communication between both platform (limitation: connection established from Fit to G5k are currently dropped)
+
+- New Dask Service: Deploy a Dask cluster on your nodes.
+
+    - Replace the former Dask Service
+
+    - Example updated accordingly
+
 5.4.3
 -----
+
 - G5k: returned Host.address was wrong when using vlans
 - Doc: fix execo url
 
