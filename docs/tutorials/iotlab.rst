@@ -192,6 +192,7 @@ This script implements a similar behavior as the "Radio sniffer with M3 nodes"
         $ tar xfz <expid>-grenoble.iot-lab.info.tar.gz
         $ wireshark <expid>/sniffer/m3-7.pcap
 
+.. _IoT-LAB IPv6:
 
 IPv6 - Interacting with frontend
 --------------------------------
@@ -237,15 +238,8 @@ This example is based on the `Monitoring Service Class <../apidoc/service.html#m
 It installs the Granafa/InfluxDB to visualize/store the monitoring metrics, which are collected by
 Telegraf agents running on each node of the infrastructure.
 
-Unfortunately, we cannot use the available API to install the monitoring stack in FIT/IoT-LAB, since
-they depend on a debian/ubuntu base environment and docker containers which is not available in the nodes of
-this testbed.
-However, it is still possible to install the Telegraf agent in A8 nodes, and consequently,
-collect metrics about their resource utilization.
-
 In this scenario, a Grid'5000 node contains the collector(InfluxDB) and ui(Grafana).
-The telegraf agent is installed in both Grid'5000 and FIT/IoT-LAB nodes, but the installation on
-A8 nodes is done without using the standard "Monitoring Service Class".
+The telegraf agent is installed in both Grid'5000 and FIT/IoT-LAB nodes.
 
 Finally, to handle with the connectivity problem, because Grid'5000 and FIT/IoT-LAB are part of
 2 isolated networks, we need to run the openvpn client on A8 nodes. For that, it is necessary to
@@ -254,6 +248,12 @@ personal VPN credentials in FIT/IoT-LAB frontend, under the shared folder availa
 Note that the openvpn client is already available in A8 nodes and no installation is necessary.
 
 **Requirement**: Grid'5000 VPN files on shared folder (~/A8/).
+
+.. warning::
+    This tutorial assumes that the files Grid5000_VPN.ovpn, .crt, .key are located on the FIT frontend.
+    Moreover it also assumes that no passphrase is given to the private key.
+    You private key is very sensitive so you must protect it the best you can (chmod 600).
+    Prefer using IPv6 if you can: :ref:`IoT-LAB IPv6`
 
 .. literalinclude:: iotlab/tuto_iotlab_a8_monitoring.py
    :language: python
