@@ -6,21 +6,27 @@ Changelog
 
 -  	🎉 New provider	🎉: Iotlab provides resources on https://www.iot-lab.info/.
 
-  - reserve nodes and run some actions (radio monitoring, power consumption, run modules on A8 nodes)
+  - Reserve nodes and run some actions (radio monitoring, power consumption, run modules on A8 nodes)
 
-  - connection between Grid'5000 and Fit:
+  - Connection between Grid'5000 and Fit:
 
     - Using Grid'5000 VPN: allow bi-redirectionnal communication over IPv4
 
     - Using IPv6: allow transparent communication between both platform (limitation: connection established from Fit to G5k are currently dropped)
 
+- Monitoring Service:
+
+    - The monitoring stack can span both Grid'5000 (ui, collector, agents) and Fit platform (agents only).
+
 - New Dask Service: Deploy a Dask cluster on your nodes.
 
-    - Replace the former Dask Service
+    - Replace the former Dask Service and allow for on demand computation (*just in time* deployment.)
 
     - Example updated accordingly
 
 - G5k: G5kTunnel context manager to automatically manage a tunnel from your current machine to Grid'5000 machines.
+
+
 5.4.3
 -----
 
