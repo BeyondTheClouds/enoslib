@@ -1,0 +1,6 @@
+---
+- name: Destroying Grafana
+  docker_container:
+    name: grafana
+    state: absent
+    force_kill: yes

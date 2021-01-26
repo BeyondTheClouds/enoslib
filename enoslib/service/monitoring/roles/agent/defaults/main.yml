@@ -1,0 +1,2 @@
+telegraf_binary_version: telegraf-1.17.0
+telegraf_timeout: 31536000 # 1 year timeout
