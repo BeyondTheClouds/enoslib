@@ -139,7 +139,7 @@ def _load_defaults(
 
 
 _AnsibleExecutionRecord = namedtuple(
-    "AnsibleExecutionRecord", ["host", "status", "task", "payload"]
+    "_AnsibleExecutionRecord", ["host", "status", "task", "payload"]
 )
 
 
