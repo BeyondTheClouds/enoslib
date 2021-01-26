@@ -1,0 +1,6 @@
+- name: Install docker
+  shell: "which docker || (curl -sSL https://get.docker.com/ | sh)"
+
+- name: Installing python-docker
+  pip:
+    name: docker

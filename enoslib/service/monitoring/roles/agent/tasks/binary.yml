@@ -1,0 +1,15 @@
+---
+- name: Check that the telegraf binary already exists
+  stat:
+    path: /{{ telegraf_binary_version }}/usr/bin/telegraf 
+  register: stat_result
+
+- name: Installing telegraf binary
+  shell: "which telegraf || (curl -sfL https://dl.influxdata.com/telegraf/releases/{{ telegraf_binary_version }}_linux_armhf.tar.gz | tar x -zf - -C /)"
+  run_once: true
+  when: not stat_result.stat.exists
+
+- name: Running telegraf
+  shell: "/{{ telegraf_binary_version }}/usr/bin/telegraf --config {{ remote_working_dir }}/telegraf.conf"
+  async: "{{ telegraf_timeout }}"
+  poll: 0

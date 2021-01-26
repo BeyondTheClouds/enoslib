@@ -1,0 +1,18 @@
+---
+
+- name: Installing Telegraf
+  docker_container:
+    name: telegraf
+    image: "{{ agent_image }}"
+    detach: yes
+    state: started
+    recreate: yes
+    network_mode: host
+    volumes: 
+      - "{{ remote_working_dir }}/telegraf.conf:/etc/telegraf/telegraf.conf"
+      - /sys:/rootfs/sys:ro
+      - /proc:/rootfs/proc:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env:
+      HOST_PROC: "/rootfs/proc"
+      HOST_SYS: "/rootfs/sys"
