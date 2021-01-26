@@ -1,0 +1,6 @@
+---
+dependencies:
+  - role: python3
+    when: ansible_architecture != "armv7l"
+  - role: docker
+    when: ansible_architecture != "armv7l"

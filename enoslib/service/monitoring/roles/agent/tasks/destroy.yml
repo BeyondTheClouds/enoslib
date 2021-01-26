@@ -1,0 +1,11 @@
+---
+- name: Destroying Telegraf
+  docker_container:
+    name: telegraf
+    state: absent
+    force_kill: yes
+  when: ansible_architecture != "armv7l"
+
+- name: Destroying Telegraf (binary)
+  shell: pgrep telegraf | xargs kill
+  when: ansible_architecture == "armv7l"

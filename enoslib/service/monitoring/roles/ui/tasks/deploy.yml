@@ -1,0 +1,36 @@
+---
+
+- name: Installing Grafana
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    detach: yes
+    state: started
+    recreate: yes
+    network_mode: host
+    env: "{{ ui_env }}"
+
+- name: Waiting for grafana to be ready
+  wait_for:
+    host: "{{ ui_address }}"
+    port: "{{ ui_port }}"
+    state: started
+    delay: 2
+    timeout: 120
+
+- name: Add InfluxDB in Grafana
+  uri:
+    url: "http://{{ ui_address }}:{{ ui_port }}/api/datasources"
+    user: admin
+    password: admin
+    force_basic_auth: yes
+    body_format: json
+    method: POST
+    status_code: [200, 409]
+    body:
+      name: telegraf
+      type:  influxdb
+      url: "http://{{ collector_address }}:{{ collector_port }}"
+      access: proxy
+      database: telegraf
+      isDefault: True

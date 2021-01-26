@@ -1,0 +1,10 @@
+---
+- name: "Creating remote directory"
+  file:
+    path: "{{ remote_working_dir }}"
+    state: directory
+
+- name: "Generating the configuration file"
+  ansible.builtin.template:
+    src: "{{ agent_conf }}"
+    dest: "{{ remote_working_dir }}/telegraf.conf"
