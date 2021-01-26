@@ -18,7 +18,7 @@ Changelog
 
     - The monitoring stack can span both Grid'5000 (ui, collector, agents) and Fit platform (agents only).
 
-- New Dask Service: Deploy a Dask cluster on your nodes.
+-✨ New Dask Service ✨: Deploy a Dask cluster on your nodes.
 
     - Replace the former Dask Service and allow for on demand computation (*just in time* deployment.)
 
