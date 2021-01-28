@@ -1,5 +1,4 @@
 ---
-
 - name: Installing InfluxDB
   docker_container:
     name: influxdb
