@@ -18,7 +18,7 @@
     delay: 2
     timeout: 120
 
-- name: Add InfluxDB in Grafana
+- name: Add Collector (Influxdb) in Grafana
   uri:
     url: "http://{{ ui_address }}:{{ ui_port }}/api/datasources"
     user: admin
@@ -29,8 +29,27 @@
     status_code: [200, 409]
     body:
       name: telegraf
-      type:  influxdb
+      type: influxdb
       url: "http://{{ collector_address }}:{{ collector_port }}"
       access: proxy
       database: telegraf
       isDefault: True
+  when: collector_type == "influxdb"
+
+- name: Add Collector (Prometheus) in Grafana
+  uri:
+    url: "http://[{{ hostvars[inventory_hostname]['ansible_default_ipv6']['address'] }}]:{{ ui_port }}/api/datasources"
+    user: admin
+    password: admin
+    force_basic_auth: yes
+    body_format: json
+    method: POST
+    status_code: [200, 409]
+    body:
+      name: telegraf
+      type: prometheus
+      url: "http://[{{ hostvars[groups['prometheus'][0]]['ansible_default_ipv6']['address'] }}]:{{ collector_port }}"
+      access: proxy
+      database: telegraf
+      isDefault: True
+  when: collector_type == "prometheus"

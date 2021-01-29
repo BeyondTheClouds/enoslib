@@ -37,9 +37,11 @@ class Monitoring(Service):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
         This assumes a debian/ubuntu base environment and aims at producing a
-        quick way to deploy a monitoring stack on your nodes. It's opinionated
-        out of the box but allow for some convenient customizations.
+        quick way to deploy a monitoring stack on your nodes. Except for
+        telegraf agents which will use a binary file for armv7 (FIT/IoT-LAB).
 
+        It's opinionated out of the box but allow for some convenient
+        customizations.
 
         Args:
             collector: list of :py:class:`enoslib.Host` where the
@@ -85,10 +87,6 @@ class Monitoring(Service):
         self._roles: Roles = {}
         self._roles.update(influxdb=self.collector, telegraf=self.agent, grafana=self.ui)
         self.remote_working_dir = remote_working_dir
-        self.remote_telegraf_conf = os.path.join(
-            self.remote_working_dir, "telegraf.conf"
-        )
-        self.remote_influxdata = os.path.join(self.remote_working_dir, "influxdb-data")
 
         self.collector_env = DEFAULT_COLLECTOR_ENV
         collector_env = {} if not collector_env else collector_env
@@ -156,6 +154,7 @@ class Monitoring(Service):
             "collector_address": self._get_collector_address(),
             "collector_port": collector_port,
             "collector_env": self.collector_env,
+            "collector_type": "prometheus",
             "agent_conf": self.agent_conf,
             "agent_image": self.agent_image,
             "remote_working_dir": self.remote_working_dir,
@@ -211,5 +210,116 @@ class Monitoring(Service):
         run_ansible(
             [_playbook],
             roles={"influxdb": self._roles["influxdb"]},
+            extra_vars=extra_vars
+        )
+
+
+class MonitoringIPv6(Service):
+    def __init__(
+        self,
+        collector: Host,
+        agent: List[Host],
+        *,
+        ui: Host = None,
+        remote_working_dir: str = "/builds/monitoring",
+        agent_env: Optional[Dict] = None,
+    ):
+        """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
+
+        This assumes a debian/ubuntu base environment and aims at producing a
+        quick way to deploy a monitoring stack on your nodes. Except for
+        telegraf agents which will use a binary file for armv7 (FIT/IoT-LAB).
+
+        It's opinionated out of the box but allow for some convenient
+        customizations.
+
+        Args:
+            collector: :py:class:`enoslib.Host` where the
+                              collector will be installed
+            ui: :py:class:`enoslib.Host` where the UI will
+                       be installed
+            agent: list of :py:class:`enoslib.Host` where the agent will
+                          be installed
+        """
+
+        # Some initialisation and make mypy happy
+        self.collector = [collector]
+        assert self.collector is not None
+        self.agent = agent
+        assert self.agent is not None
+        self.ui = ui if agent else []
+        assert self.ui is not None
+
+        self._roles: Roles = {}
+        self._roles.update(
+            prometheus=self.collector, telegraf=self.agent, grafana=self.ui
+        )
+        self.remote_working_dir = remote_working_dir
+        self.prometheus_port = 9090
+
+        # We force python3
+        self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
+
+    def deploy(self):
+        """Deploy the monitoring stack"""
+        if self.collector is None:
+            return
+
+        extra_vars = {
+            "enos_action": "deploy",
+            "collector_type": "prometheus",
+            "remote_working_dir": self.remote_working_dir,
+            "collector_port": self.prometheus_port,
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
+        run_ansible(
+            [_playbook], roles=self._roles, extra_vars=extra_vars
+        )
+
+    def destroy(self):
+        """Destroy the monitoring stack.
+
+        This destroys all the container and associated volumes.
+        """
+        extra_vars = {
+            "enos_action": "destroy",
+            "remote_working_dir": self.remote_working_dir,
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
+
+        run_ansible(
+            [_playbook],
+            roles=self._roles,
+            extra_vars=extra_vars
+        )
+
+    def backup(self, backup_dir: Optional[str] = None):
+        """Backup the monitoring stack.
+
+        Args:
+            backup_dir (str): path of the backup directory to use.
+        """
+        if backup_dir is None:
+            _backup_dir = Path.cwd()
+        else:
+            _backup_dir = Path(backup_dir)
+
+        _backup_dir = _check_path(_backup_dir)
+
+        extra_vars = {
+            "enos_action": "backup",
+            "remote_working_dir": self.remote_working_dir,
+           # "collector_address": self._get_collector_address(),
+            "collector_port": self.prometheus_port,
+            "backup_dir": str(_backup_dir)
+        }
+        extra_vars.update(self.extra_vars)
+        _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
+
+        run_ansible(
+            [_playbook],
+            roles={"prometheus": self._roles["prometheus"]},
             extra_vars=extra_vars
         )

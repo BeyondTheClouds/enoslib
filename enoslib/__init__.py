@@ -19,7 +19,7 @@ from enoslib.service.docker.docker import Docker
 from enoslib.service.dstat.dstat import Dstat
 from enoslib.service.locust.locust import Locust
 from enoslib.service.k3s.k3s import K3s
-from enoslib.service.monitoring.monitoring import Monitoring
+from enoslib.service.monitoring.monitoring import Monitoring, MonitoringIPv6
 from enoslib.service.netem.netem import Netem, SimpleNetem
 from enoslib.service.skydive.skydive import Skydive
 

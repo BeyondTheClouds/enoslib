@@ -1,3 +1,5 @@
+agent_image: telegraf
 telegraf_binary_version: telegraf-1.17.0
 telegraf_timeout: 31536000 # 1 year timeout
 agent_listen_address: ":9273"
+agent_conf: telegraf.conf.j2

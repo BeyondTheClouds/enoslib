@@ -1,0 +1,19 @@
+global:
+  scrape_interval: {{ prometheus_scrape_interval }}
+  scrape_timeout: {{ prometheus_scrape_timeout }}
+  evaluation_interval: {{ prometheus_eval_interval }}
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+{% for host in groups['prometheus'] %}
+        - "[{{ hostvars[host]['ansible_default_ipv6']['address'] }}]:{{ prometheus_port }}"
+{% endfor %}
+  
+  - job_name: telegraf
+    static_configs:
+      - targets:
+{% for host in groups['telegraf'] %}
+        - "[{{ hostvars[host]['ansible_default_ipv6']['address'] }}]:{{ telegraf_port }}"
+{% endfor %}

@@ -17,11 +17,11 @@
   roles:
   - influxdb
 
-    #- name: Monitoring - Prometheus collector
-    #  hosts: prometheus
-    #  become: yes
-    #  roles:
-    #  - prometheus
+- name: Monitoring - Prometheus collector
+  hosts: prometheus
+  become: yes
+  roles:
+  - prometheus
 
 - name: Monitoring - Grafana UI
   hosts: grafana

@@ -1,0 +1,11 @@
+---
+- name: Destroying Prometheus
+  docker_container:
+    name: prometheus
+    state: absent
+    force_kill: yes
+
+- name: Removing prometheus database
+  file:
+    path: "{{ remote_working_dir }}/snapshots"
+    state: absent
