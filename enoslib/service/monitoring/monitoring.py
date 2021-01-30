@@ -80,7 +80,7 @@ class Monitoring(Service):
         assert self.collector is not None
         self.agent = agent if agent else []
         assert self.agent is not None
-        self.ui = ui if agent else []
+        self.ui = ui if ui else []
         assert self.ui is not None
 
         self.network = network
@@ -154,7 +154,7 @@ class Monitoring(Service):
             "collector_address": self._get_collector_address(),
             "collector_port": collector_port,
             "collector_env": self.collector_env,
-            "collector_type": "prometheus",
+            "collector_type": "influxdb",
             "agent_conf": self.agent_conf,
             "agent_image": self.agent_image,
             "remote_working_dir": self.remote_working_dir,
@@ -247,7 +247,7 @@ class MonitoringIPv6(Service):
         assert self.collector is not None
         self.agent = agent
         assert self.agent is not None
-        self.ui = ui if agent else []
+        self.ui = [ui] if ui else []
         assert self.ui is not None
 
         self._roles: Roles = {}
@@ -311,7 +311,6 @@ class MonitoringIPv6(Service):
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
-           # "collector_address": self._get_collector_address(),
             "collector_port": self.prometheus_port,
             "backup_dir": str(_backup_dir)
         }
