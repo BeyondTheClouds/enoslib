@@ -222,7 +222,6 @@ class MonitoringIPv6(Service):
         *,
         ui: Host = None,
         remote_working_dir: str = "/builds/monitoring",
-        agent_env: Optional[Dict] = None,
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
 

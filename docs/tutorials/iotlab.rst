@@ -244,7 +244,7 @@ Summarizing, the example does the following:
   They are defined at: enoslib/service/monitoring/roles/prometheus/defaults/main.yml).
   
 - Install Telegraf on remaining nodes: Telegraf is configured to receive incoming
-  connexions from Prometheus at port 9273.
+  connections from Prometheus at port 9273.
 
 .. literalinclude:: iotlab/tuto_iotlab_ipv6_monitoring.py
    :language: python
