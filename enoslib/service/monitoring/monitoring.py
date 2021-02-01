@@ -85,7 +85,9 @@ class Monitoring(Service):
 
         self.network = network
         self._roles: Roles = {}
-        self._roles.update(influxdb=self.collector, telegraf=self.agent, grafana=self.ui)
+        self._roles.update(
+            influxdb=self.collector, telegraf=self.agent, grafana=self.ui
+        )
         self.remote_working_dir = remote_working_dir
 
         self.collector_env = DEFAULT_COLLECTOR_ENV
