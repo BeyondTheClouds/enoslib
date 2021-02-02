@@ -1,7 +1,7 @@
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 
-from enoslib.host import Host
+from enoslib.objects import Host
 
 
 class EnosInventory(Inventory):

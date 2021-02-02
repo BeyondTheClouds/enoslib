@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.provider import Provider
 
 

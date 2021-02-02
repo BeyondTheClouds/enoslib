@@ -6,7 +6,7 @@ import logging
 
 import iotlabcli.auth
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.api import play_on
 from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI

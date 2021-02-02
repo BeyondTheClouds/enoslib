@@ -7,7 +7,7 @@ from enoslib.service.netem.netem import (
     _build_grp_constraints,
     _merge_constraints,
 )
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 
 

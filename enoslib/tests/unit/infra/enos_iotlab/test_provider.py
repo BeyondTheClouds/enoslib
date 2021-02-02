@@ -6,9 +6,7 @@ from unittest.mock import patch
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 
-from enoslib.infra.enos_iotlab.constants import (
-    DEFAULT_JOB_NAME
-)
+from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME
 from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     BoardConfiguration,
@@ -21,14 +19,11 @@ from iotlabcli.profile import ProfileM3, ProfileA8, ProfileCustom
 
 
 class TestAuthProvider(EnosTest):
-    @patch('iotlabcli.auth.get_user_credentials')
+    @patch("iotlabcli.auth.get_user_credentials")
     def test_missing_iotlab_cfg(self, MockApi):
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                BoardConfiguration(
-                    roles=["r2"], archi="m3:at86rf231", site="grenoble", number=1
-                )
+        provider_config = Configuration().add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"], archi="m3:at86rf231", site="grenoble", number=1
             )
         )
         MockApi.return_value = [None, None]
@@ -36,15 +31,12 @@ class TestAuthProvider(EnosTest):
         with self.assertRaises(EnosIotlabCfgError):
             Iotlab(provider_config)
 
-    @patch('iotlabcli.rest.Api')
-    @patch('iotlabcli.auth.get_user_credentials')
+    @patch("iotlabcli.rest.Api")
+    @patch("iotlabcli.auth.get_user_credentials")
     def test_valid_init(self, cred, api):
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                BoardConfiguration(
-                    roles=["r2"], archi="m3:at86rf231", site="grenoble", number=1
-                )
+        provider_config = Configuration().add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"], archi="m3:at86rf231", site="grenoble", number=1
             )
         )
         cred.return_value = ["test", "test"]
@@ -56,29 +48,46 @@ class TestAuthProvider(EnosTest):
 class TestSubmit(EnosTest):
     def setUp(self):
         # initialize common mocks for tests
-        mock_api = mock.patch('iotlabcli.rest.Api').start()
+        mock_api = mock.patch("iotlabcli.rest.Api").start()
         mock_api.return_value = None
 
-        mock_auth = mock.patch('iotlabcli.auth.get_user_credentials').start()
+        mock_auth = mock.patch("iotlabcli.auth.get_user_credentials").start()
         mock_auth.return_value = ["test", "test"]
 
-        mock_wait = mock.patch('iotlabcli.experiment.wait_experiment').start()
+        mock_wait = mock.patch("iotlabcli.experiment.wait_experiment").start()
         mock_wait.return_value = None
 
-        mock_get_list = mock.patch('iotlabcli.experiment.get_experiments_list').start()
+        mock_get_list = mock.patch("iotlabcli.experiment.get_experiments_list").start()
         mock_get_list.return_value = {"items": []}
 
-        mock_wait_a8 = mock.patch('iotlabsshcli.open_linux.wait_for_boot').start()
-        mock_wait_a8.return_value = {'wait-for-boot': {'0': [], '1': []}}
+        mock_wait_a8 = mock.patch("iotlabsshcli.open_linux.wait_for_boot").start()
+        mock_wait_a8.return_value = {"wait-for-boot": {"0": [], "1": []}}
 
-        mock_get = mock.patch('iotlabcli.experiment.get_experiment').start()
-        mock_get.return_value = {'items': [{'site': 'grenoble', 'archi': 'a8:at86rf231', 'uid': 'b564', 'x': '20.33', 'state': 'Alive', 'network_address': 'a8-1.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}]}
+        mock_get = mock.patch("iotlabcli.experiment.get_experiment").start()
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "a8:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "a8-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                }
+            ]
+        }
 
     def tearDown(self):
         mock.patch.stopall()
 
-    @patch('iotlabcli.experiment.submit_experiment')
-    @patch('iotlabcli.experiment.get_experiments_list')
+    @patch("iotlabcli.experiment.submit_experiment")
+    @patch("iotlabcli.experiment.get_experiments_list")
     def test_valid_job_already_running(self, mock_get_list, mock_submit):
         provider_config = (
             Configuration()
@@ -89,73 +98,122 @@ class TestSubmit(EnosTest):
                 )
             )
         )
-        mock_get_list.return_value = {'items': [{'id': 237466, 'name': 'EnOSlib2', 'user': 'donassol', 'state': 'Running', 'submission_date': '2020-11-30T09:58:28Z', 'start_date': '2020-11-30T09:58:30Z', 'stop_date': '1970-01-01T00:00:00Z', 'effective_duration': 10, 'submitted_duration': 120, 'nb_nodes': 1, 'scheduled_date': '2020-11-30T09:58:30Z'}]}
+        mock_get_list.return_value = {
+            "items": [
+                {
+                    "id": 237466,
+                    "name": "EnOSlib2",
+                    "user": "donassol",
+                    "state": "Running",
+                    "submission_date": "2020-11-30T09:58:28Z",
+                    "start_date": "2020-11-30T09:58:30Z",
+                    "stop_date": "1970-01-01T00:00:00Z",
+                    "effective_duration": 10,
+                    "submitted_duration": 120,
+                    "nb_nodes": 1,
+                    "scheduled_date": "2020-11-30T09:58:30Z",
+                }
+            ]
+        }
         # build a provider
         p = Iotlab(provider_config)
         nodes, _ = p.init()
         mock_submit.assert_not_called()
         self.assertTrue(len(nodes["r2"]) == 1)
 
-    @patch('iotlabcli.experiment.submit_experiment')
-    @patch('iotlabcli.experiment.get_experiment')
+    @patch("iotlabcli.experiment.submit_experiment")
+    @patch("iotlabcli.experiment.get_experiment")
     def test_01_valid_board_cfg(self, mock_get, mock_submit):
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                BoardConfiguration(
-                    roles=["r2"], archi="a8:at86rf231", site="grenoble", number=2
-                )
+        provider_config = Configuration().add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"], archi="a8:at86rf231", site="grenoble", number=2
             )
         )
-        mock_get.return_value = {'items': [{'site': 'grenoble', 'archi': 'a8:at86rf231', 'uid': 'b564', 'x': '20.33', 'state': 'Alive', 'network_address': 'a8-1.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}, {'site': 'grenoble', 'archi': 'a8:at86rf231', 'uid': 'b565', 'x': '20.33', 'state': 'Alive', 'network_address': 'a8-2.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}]}
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "a8:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "a8-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+                {
+                    "site": "grenoble",
+                    "archi": "a8:at86rf231",
+                    "uid": "b565",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "a8-2.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+            ]
+        }
         # build a provider
         p = Iotlab(provider_config)
         nodes, _ = p.init()
-        mock_submit.assert_called_with(api=mock.ANY, name=DEFAULT_JOB_NAME, duration=1, resources=[exp_resources(AliasNodes(2, site="grenoble", archi="a8:at86rf231", _alias=1))])  # not ideal but the _alias depends on the test order...
+        mock_submit.assert_called_with(
+            api=mock.ANY,
+            name=DEFAULT_JOB_NAME,
+            duration=1,
+            resources=[
+                exp_resources(
+                    AliasNodes(2, site="grenoble", archi="a8:at86rf231", _alias=1)
+                )
+            ],
+        )  # not ideal but the _alias depends on the test order...
 
         self.assertTrue(len(nodes["r2"]) == 2)
 
-    @patch('iotlabcli.experiment.submit_experiment')
+    @patch("iotlabcli.experiment.submit_experiment")
     def test_valid_phys_cfg(self, mock_submit):
         list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=list_nodes)
-            )
+        provider_config = Configuration().add_machine_conf(
+            PhysNodeConfiguration(roles=[], hostname=list_nodes)
         )
         # build a provider
         p = Iotlab(provider_config)
         nodes, _ = p.init()
-        mock_submit.assert_called_with(api=mock.ANY, name=DEFAULT_JOB_NAME, duration=1, resources=[exp_resources(list_nodes)])
+        mock_submit.assert_called_with(
+            api=mock.ANY,
+            name=DEFAULT_JOB_NAME,
+            duration=1,
+            resources=[exp_resources(list_nodes)],
+        )
         self.assertEquals(nodes, {})  # no roles nothing to check
 
-    @patch('iotlabcli.experiment.stop_experiment')
+    @patch("iotlabcli.experiment.stop_experiment")
     def test_destroy_not_init(self, mock_stop):
         list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=list_nodes)
-            )
+        provider_config = Configuration().add_machine_conf(
+            PhysNodeConfiguration(roles=[], hostname=list_nodes)
         )
         # build a provider
         p = Iotlab(provider_config)
         p.destroy()  # nothing happens
         mock_stop.assert_not_called()
 
-    @patch('iotlabcli.experiment.submit_experiment')
-    @patch('iotlabcli.experiment.stop_experiment')
+    @patch("iotlabcli.experiment.submit_experiment")
+    @patch("iotlabcli.experiment.stop_experiment")
     def test_destroy_init(self, mock_stop, mock_submit):
         list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=list_nodes)
-            )
+        provider_config = Configuration().add_machine_conf(
+            PhysNodeConfiguration(roles=[], hostname=list_nodes)
         )
         # build a provider
-        mock_submit.return_value = {'id': 666}
+        mock_submit.return_value = {"id": 666}
         p = Iotlab(provider_config)
         p.init()
         p.destroy()
@@ -165,31 +223,62 @@ class TestSubmit(EnosTest):
 class TestDeploy(EnosTest):
     def setUp(self):
         # initialize common mocks for tests
-        mock_api = mock.patch('iotlabcli.rest.Api').start()
+        mock_api = mock.patch("iotlabcli.rest.Api").start()
         mock_api.return_value = None
 
-        mock_auth = mock.patch('iotlabcli.auth.get_user_credentials').start()
+        mock_auth = mock.patch("iotlabcli.auth.get_user_credentials").start()
         mock_auth.return_value = ["test", "test"]
 
-        mock_wait = mock.patch('iotlabcli.experiment.wait_experiment').start()
+        mock_wait = mock.patch("iotlabcli.experiment.wait_experiment").start()
         mock_wait.return_value = None
 
-        mock_wait_a8 = mock.patch('iotlabsshcli.open_linux.wait_for_boot').start()
-        mock_wait_a8.return_value = {'wait-for-boot': {'0': [], '1': []}}
+        mock_wait_a8 = mock.patch("iotlabsshcli.open_linux.wait_for_boot").start()
+        mock_wait_a8.return_value = {"wait-for-boot": {"0": [], "1": []}}
 
-        mock_get_list = mock.patch('iotlabcli.experiment.get_experiments_list').start()
+        mock_get_list = mock.patch("iotlabcli.experiment.get_experiments_list").start()
         mock_get_list.return_value = {"items": []}
 
-        mock_submit = mock.patch('iotlabcli.experiment.submit_experiment').start()
-        mock_submit.return_value = {'id': 666}
+        mock_submit = mock.patch("iotlabcli.experiment.submit_experiment").start()
+        mock_submit.return_value = {"id": 666}
 
-        mock_get = mock.patch('iotlabcli.experiment.get_experiment').start()
-        mock_get.return_value = {'items': [{'site': 'grenoble', 'archi': 'm3:at86rf231', 'uid': 'b564', 'x': '20.33', 'state': 'Alive', 'network_address': 'm3-1.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}, {'site': 'grenoble', 'archi': 'm3:at86rf231', 'uid': 'b565', 'x': '20.33', 'state': 'Alive', 'network_address': 'm3-2.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}]}
+        mock_get = mock.patch("iotlabcli.experiment.get_experiment").start()
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "m3:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "m3-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+                {
+                    "site": "grenoble",
+                    "archi": "m3:at86rf231",
+                    "uid": "b565",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "m3-2.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+            ]
+        }
 
     def tearDown(self):
         mock.patch.stopall()
 
-    @patch('iotlabcli.node.node_command')
+    @patch("iotlabcli.node.node_command")
     def test_deploy(self, mock_node):
         list_nodes = ["m3-1.grenoble.iot-lab.info"]
         provider_config = (
@@ -198,44 +287,69 @@ class TestDeploy(EnosTest):
                 PhysNodeConfiguration(roles=[], hostname=list_nodes, image="test.elf"),
             )
             .add_machine_conf(
-                PhysNodeConfiguration(roles=["r2"], hostname=["m3-2.grenoble.iot-lab.info"])
+                PhysNodeConfiguration(
+                    roles=["r2"], hostname=["m3-2.grenoble.iot-lab.info"]
+                )
             )
         )
         # build a provider
         p = Iotlab(provider_config)
         nodes, _ = p.init()
-        mock_node.assert_called_with(api=mock.ANY, command="flash", exp_id=666, nodes_list=list_nodes, cmd_opt="test.elf")
+        mock_node.assert_called_with(
+            api=mock.ANY,
+            command="flash",
+            exp_id=666,
+            nodes_list=list_nodes,
+            cmd_opt="test.elf",
+        )
         self.assertTrue(len(nodes) == 1)
-        self.assertTrue(len(nodes['r2']) == 1)
+        self.assertTrue(len(nodes["r2"]) == 1)
 
-    @patch('iotlabcli.experiment.get_experiment')
-    @patch('iotlabsshcli.open_linux.wait_for_boot')
+    @patch("iotlabcli.experiment.get_experiment")
+    @patch("iotlabsshcli.open_linux.wait_for_boot")
     def test_wait_a8(self, mock_wait_a8, mock_get):
         list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = (
-            Configuration()
-            .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=list_nodes)
-            )
+        provider_config = Configuration().add_machine_conf(
+            PhysNodeConfiguration(roles=[], hostname=list_nodes)
         )
         # build a provider
-        mock_get.return_value = {'items': [{'site': 'grenoble', 'archi': 'a8:at86rf231', 'uid': 'b564', 'x': '20.33', 'state': 'Alive', 'network_address': 'a8-1.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}]}
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "a8:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "a8-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                }
+            ]
+        }
         p = Iotlab(provider_config)
         nodes, _ = p.init()
         mock_wait_a8.assert_called_with(
-            {'user': 'test', 'exp_id': 666},
-            ['node-%s' % n for n in list_nodes]
+            {"user": "test", "exp_id": 666}, ["node-%s" % n for n in list_nodes]
         )
 
-    @patch('iotlabsshcli.open_linux.wait_for_boot')
+    @patch("iotlabsshcli.open_linux.wait_for_boot")
     def test_no_wait_a8(self, mock_wait_a8):
         provider_config = (
             Configuration()
             .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=["m3-1.grenoble.iot-lab.info"]),
+                PhysNodeConfiguration(
+                    roles=[], hostname=["m3-1.grenoble.iot-lab.info"]
+                ),
             )
             .add_machine_conf(
-                PhysNodeConfiguration(roles=["r2"], hostname=["m3-2.grenoble.iot-lab.info"])
+                PhysNodeConfiguration(
+                    roles=["r2"], hostname=["m3-2.grenoble.iot-lab.info"]
+                )
             )
         )
         # build a provider
@@ -246,55 +360,90 @@ class TestDeploy(EnosTest):
 
 class TestProfiles(EnosTest):
     def setUp(self):
-        mock_api = mock.patch('iotlabcli.rest.Api').start()
+        mock_api = mock.patch("iotlabcli.rest.Api").start()
         mock_api.return_value.get_profiles.return_value = []
 
         # initialize common mocks for tests
-        mock_auth = mock.patch('iotlabcli.auth.get_user_credentials').start()
+        mock_auth = mock.patch("iotlabcli.auth.get_user_credentials").start()
         mock_auth.return_value = ["test", "test"]
 
-        mock_wait = mock.patch('iotlabcli.experiment.wait_experiment').start()
+        mock_wait = mock.patch("iotlabcli.experiment.wait_experiment").start()
         mock_wait.return_value = None
 
-        mock_wait_a8 = mock.patch('iotlabsshcli.open_linux.wait_for_boot').start()
-        mock_wait_a8.return_value = {'wait-for-boot': {'0': [], '1': []}}
+        mock_wait_a8 = mock.patch("iotlabsshcli.open_linux.wait_for_boot").start()
+        mock_wait_a8.return_value = {"wait-for-boot": {"0": [], "1": []}}
 
-        mock_get_list = mock.patch('iotlabcli.experiment.get_experiments_list').start()
+        mock_get_list = mock.patch("iotlabcli.experiment.get_experiments_list").start()
         mock_get_list.return_value = {"items": []}
 
-        mock_submit = mock.patch('iotlabcli.experiment.submit_experiment').start()
-        mock_submit.return_value = {'id': 666}
+        mock_submit = mock.patch("iotlabcli.experiment.submit_experiment").start()
+        mock_submit.return_value = {"id": 666}
 
-        mock_get = mock.patch('iotlabcli.experiment.get_experiment').start()
-        mock_get.return_value = {'items': [{'site': 'grenoble', 'archi': 'm3:at86rf231', 'uid': 'b564', 'x': '20.33', 'state': 'Alive', 'network_address': 'm3-1.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}, {'site': 'grenoble', 'archi': 'm3:at86rf231', 'uid': 'b565', 'x': '20.33', 'state': 'Alive', 'network_address': 'm3-2.grenoble.iot-lab.info', 'z': '2.63', 'production': 'YES', 'y': '25.28', 'mobile': '0', 'mobility_type': ' ', 'camera': None}]}
+        mock_get = mock.patch("iotlabcli.experiment.get_experiment").start()
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "m3:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "m3-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+                {
+                    "site": "grenoble",
+                    "archi": "m3:at86rf231",
+                    "uid": "b565",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "m3-2.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                },
+            ]
+        }
 
     def tearDown(self):
         mock.patch.stopall()
 
-    @patch('iotlabcli.experiment.submit_experiment')
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.experiment.submit_experiment")
+    @patch("iotlabcli.rest.Api")
     def test_02_radio(self, mock_api, mock_submit):
         d = {
             "resources": {
-                "machines": [{
-                    "roles": ["r1"],
-                    "archi": "m3:at86rf231",
-                    "site": "grenoble",
-                    "number": 2,
-                    "profile": "test_profile",
-                }],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                        "profile": "test_profile",
+                    }
+                ],
             },
             "monitoring": {
-                "profiles": [{
-                    "name": "test_profile",
-                    "archi": "m3",
-                    "radio": {
-                        "mode": "rssi",
-                        "num_per_channel": 1,
-                        "period": 1,
-                        "channels": [11, 26],
-                    },
-                }],
+                "profiles": [
+                    {
+                        "name": "test_profile",
+                        "archi": "m3",
+                        "radio": {
+                            "mode": "rssi",
+                            "num_per_channel": 1,
+                            "period": 1,
+                            "channels": [11, 26],
+                        },
+                    }
+                ],
             },
         }
         # building profile as expected by cli-tools
@@ -313,34 +462,45 @@ class TestProfiles(EnosTest):
         p = Iotlab(conf)
         nodes, _ = p.init()
         mock_submit.assert_called_with(
-            api=mock.ANY, name=DEFAULT_JOB_NAME, duration=1,
+            api=mock.ANY,
+            name=DEFAULT_JOB_NAME,
+            duration=1,
             resources=[
                 exp_resources(
                     AliasNodes(2, site="grenoble", archi="m3:at86rf231", _alias=2),
-                    profile_name="test_profile"
+                    profile_name="test_profile",
                 )  # not ideal but the _alias depends on the test order...
-            ]
+            ],
         )
         mock_api.return_value.add_profile.assert_called_with(profile)
 
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.rest.Api")
     def test_consumption(self, mock_api):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
             "monitoring": {
-                "profiles": [{
-                    "name": "test_profile",
-                    "archi": "a8",
-                    "consumption": {
-                        "current": True,
-                        "power": True,
-                        "voltage": True,
-                        "period": 140,
-                        "average": 16,
-                    },
-                }]
+                "profiles": [
+                    {
+                        "name": "test_profile",
+                        "archi": "a8",
+                        "consumption": {
+                            "current": True,
+                            "power": True,
+                            "voltage": True,
+                            "period": 140,
+                            "average": 16,
+                        },
+                    }
+                ]
             },
         }
         # building profile as expected by cli-tools
@@ -361,30 +521,39 @@ class TestProfiles(EnosTest):
         nodes, _ = p.init()
         mock_api.return_value.add_profile.assert_called_with(profile)
 
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.rest.Api")
     def test_custom_radio_consumption(self, mock_api):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
             "monitoring": {
-                "profiles": [{
-                    "name": "test_profile",
-                    "archi": "custom",
-                    "consumption": {
-                        "current": True,
-                        "power": True,
-                        "voltage": True,
-                        "period": 140,
-                        "average": 16,
-                    },
-                    "radio": {
-                        "mode": "rssi",
-                        "num_per_channel": 1,
-                        "period": 1,
-                        "channels": [11, 26],
-                    },
-                }]
+                "profiles": [
+                    {
+                        "name": "test_profile",
+                        "archi": "custom",
+                        "consumption": {
+                            "current": True,
+                            "power": True,
+                            "voltage": True,
+                            "period": 140,
+                            "average": 16,
+                        },
+                        "radio": {
+                            "mode": "rssi",
+                            "num_per_channel": 1,
+                            "period": 1,
+                            "channels": [11, 26],
+                        },
+                    }
+                ]
             },
         }
         # building profile as expected by cli-tools
@@ -411,23 +580,32 @@ class TestProfiles(EnosTest):
         nodes, _ = p.init()
         mock_api.return_value.add_profile.assert_called_with(profile)
 
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.rest.Api")
     def test_del_profile(self, mock_api):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
             "monitoring": {
-                "profiles": [{
-                    "name": "test_profile",
-                    "archi": "m3",
-                    "radio": {
-                        "mode": "rssi",
-                        "num_per_channel": 1,
-                        "period": 1,
-                        "channels": [11, 26],
-                    },
-                }]
+                "profiles": [
+                    {
+                        "name": "test_profile",
+                        "archi": "m3",
+                        "radio": {
+                            "mode": "rssi",
+                            "num_per_channel": 1,
+                            "period": 1,
+                            "channels": [11, 26],
+                        },
+                    }
+                ]
             },
         }
 
@@ -437,23 +615,32 @@ class TestProfiles(EnosTest):
         p.destroy()
         mock_api.return_value.del_profile.assert_called_with(name="test_profile")
 
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.rest.Api")
     def test_profile_already_created(self, mock_api):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
             "monitoring": {
-                "profiles": [{
-                    "name": "test_profile",
-                    "archi": "m3",
-                    "radio": {
-                        "mode": "rssi",
-                        "num_per_channel": 1,
-                        "period": 1,
-                        "channels": [11, 26],
-                    },
-                }]
+                "profiles": [
+                    {
+                        "name": "test_profile",
+                        "archi": "m3",
+                        "radio": {
+                            "mode": "rssi",
+                            "num_per_channel": 1,
+                            "period": 1,
+                            "channels": [11, 26],
+                        },
+                    }
+                ]
             },
         }
         mock_api.return_value.get_profiles.return_value = [
@@ -462,14 +649,11 @@ class TestProfiles(EnosTest):
                 "power": "dc",
                 "profilename": "test_profile",
                 "radio": {
-                    "channels": [
-                        11,
-                        14
-                    ],
+                    "channels": [11, 14],
                     "mode": "rssi",
                     "num_per_channel": 1,
-                    "period": 1
-                }
+                    "period": 1,
+                },
             }
         ]
         conf = Configuration.from_dictionary(d)
@@ -477,11 +661,18 @@ class TestProfiles(EnosTest):
         nodes, _ = p.init()
         mock_api.return_value.add_profile.assert_not_called()
 
-    @patch('iotlabcli.rest.Api')
+    @patch("iotlabcli.rest.Api")
     def test_multiple_profiles(self, mock_api):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
             "monitoring": {
                 "profiles": [
@@ -536,15 +727,23 @@ class TestProfiles(EnosTest):
         p = Iotlab(conf)
         nodes, _ = p.init()
         mock_api.return_value.add_profile.assert_has_calls(
-            [mock.call(profile), mock.call(profile2)], any_order=True)
+            [mock.call(profile), mock.call(profile2)], any_order=True
+        )
 
-    @patch('enoslib.api.play_on.__enter__')
-    @patch('enoslib.api.play_on.__exit__')
-    @patch('iotlabcli.rest.Api')
+    @patch("enoslib.api.play_on.__enter__")
+    @patch("enoslib.api.play_on.__exit__")
+    @patch("iotlabcli.rest.Api")
     def test_collect_data(self, mock_api, mock_exit, mock_enter):
         d = {
             "resources": {
-                "machines": [{"roles": ["r1"], "archi": "m3:at86rf231", "site": "grenoble", "number": 2}],
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "archi": "m3:at86rf231",
+                        "site": "grenoble",
+                        "number": 2,
+                    }
+                ],
             },
         }
         conf = Configuration.from_dictionary(d)
@@ -555,13 +754,22 @@ class TestProfiles(EnosTest):
         mock_api.return_value.get_experiment_info.return_value = b"test"
         with tempfile.TemporaryDirectory() as tmpdir:
             p.collect_data_experiment(tmpdir)
-            mock_api.return_value.get_experiment_info.assert_called_with(expid=666, option="data")
+            mock_api.return_value.get_experiment_info.assert_called_with(
+                expid=666, option="data"
+            )
             my_m.fetch.assert_called_with(
                 src=".iot-lab/666-{{ inventory_hostname }}.tar.gz",
-                dest=tmpdir + "/", flat=True
+                dest=tmpdir + "/",
+                flat=True,
             )
             my_m.shell.assert_has_calls(
-                [mock.call("cd .iot-lab/; tar --ignore-command-error -czf 666-{{ inventory_hostname }}.tar.gz 666/"),
-                 mock.call("cd .iot-lab/; rm -f 666-{{ inventory_hostname }}.tar.gz")],
-                 any_order=True
+                [
+                    mock.call(
+                        "cd .iot-lab/; tar --ignore-command-error -czf 666-{{ inventory_hostname }}.tar.gz 666/"
+                    ),
+                    mock.call(
+                        "cd .iot-lab/; rm -f 666-{{ inventory_hostname }}.tar.gz"
+                    ),
+                ],
+                any_order=True,
             )

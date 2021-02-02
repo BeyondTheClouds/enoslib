@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from enoslib.api import play_on
-from enoslib.host import Host
+from enoslib.objects import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider

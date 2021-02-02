@@ -1,6 +1,6 @@
 import uuid
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_FLAVOUR,

@@ -9,7 +9,7 @@ from typing import Dict, List, Mapping
 from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
-from enoslib.host import Host
+from enoslib.objects import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils

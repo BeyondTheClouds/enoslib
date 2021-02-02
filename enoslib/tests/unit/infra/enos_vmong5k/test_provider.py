@@ -1,7 +1,7 @@
 import mock
 from netaddr import EUI
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 from enoslib.infra.enos_vmong5k.provider import (
     _do_build_g5k_conf,

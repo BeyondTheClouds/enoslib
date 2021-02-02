@@ -6,7 +6,7 @@ from typing import List, Optional
 import iotlabcli.auth
 
 from enoslib.api import play_on
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor

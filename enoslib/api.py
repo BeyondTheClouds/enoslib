@@ -1002,6 +1002,7 @@ def _update_hosts(roles, facts, extra_mapping=None):
 
 def _map_device_on_host_networks(provider_nets, devices):
     """Decorate each networks with the corresponding nic name."""
+    import ipdb; ipdb.set_trace()
     networks = copy.deepcopy(provider_nets)
     for network in networks:
         for device in devices:

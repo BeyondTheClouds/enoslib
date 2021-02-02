@@ -1,5 +1,5 @@
 from enoslib.errors import *
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.api import _update_hosts, _map_device_on_host_networks
 from enoslib.enos_inventory import EnosInventory
 from enoslib.utils import gen_rsc

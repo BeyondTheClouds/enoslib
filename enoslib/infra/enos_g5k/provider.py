@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple, cast
 
 from sshtunnel import SSHTunnelForwarder
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
     ConcreteGroup,
