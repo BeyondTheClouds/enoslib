@@ -176,8 +176,8 @@ def _concretize_networks(
         # pick_thing is best-effort
         if g5k_network is None:
             raise MissingNetworkError(site, n_type)
-        g5k_networks.append(g5k_network)
 
+        g5k_networks.append(g5k_network)
     return g5k_networks
 
 
@@ -220,8 +220,7 @@ class G5kTunnel(object):
     """
 
     def __init__(self, address: str, port: int):
-        """
-        """
+        """"""
         self.address = address
         self.port = port
 
@@ -321,7 +320,7 @@ class G5k(Provider):
         Returns:
             Two dictionnaries (roles, networks) representing the inventory of
             resources.
-           """
+        """
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         self.launch()
@@ -355,9 +354,7 @@ class G5k(Provider):
 
     def deploy(self):
         def _key(host):
-            """Get the site and the primary network of a concrete description
-
-            """
+            """Get the site and the primary network of a concrete description"""
             site, _, _ = host._where
             return site, host.primary_network
 
@@ -454,7 +451,8 @@ class G5k(Provider):
         roles = {}
         for host in self.hosts:
             for role in host.roles:
-                roles.setdefault(role, []).append(Host(host.ssh_address, user="root"))
+                h = Host(host.ssh_address, user="root")
+                roles.setdefault(role, []).append(h)
         networks = []
         for network in self.networks:
             networks.extend(network.to_enos())

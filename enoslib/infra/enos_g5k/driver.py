@@ -121,10 +121,9 @@ class OargridDynamicDriver(Driver):
 
 
 def get_driver(
-    configuration: Configuration
+    configuration: Configuration,
 ) -> Union[OargridDynamicDriver, OargridStaticDriver]:
-    """Build an instance of the driver to interact with G5K
-    """
+    """Build an instance of the driver to interact with G5K"""
     machines = configuration.machines
     networks = configuration.networks
     oargrid_jobids = configuration.oargrid_jobids

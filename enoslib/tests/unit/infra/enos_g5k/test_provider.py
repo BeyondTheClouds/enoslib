@@ -1,7 +1,16 @@
+import ipaddress
 from typing import Dict
 import mock
 
-from enoslib.infra.enos_g5k.provider import G5k, G5kHost, G5kProdNetwork, G5kVlanNetwork
+from enoslib.infra.enos_g5k.provider import (
+    G5k,
+    G5kHost,
+    G5kProdNetwork,
+    G5kVlanNetwork,
+    G5kSubnetNetwork
+)
+
+from enoslib.infra.enos_g5k.network import G5kEnosProdNetwork, G5kEnosVlan4Network, G5kEnosVlan6Network, G5kEnosSubnetNetwork
 
 from enoslib.infra.enos_g5k.constants import (
     DEFAULT_ENV_NAME,
@@ -16,6 +25,129 @@ from enoslib.infra.enos_g5k.configuration import (
 )
 from enoslib.tests.unit import EnosTest
 
+
+class TestG5kEnos(EnosTest):
+    def test_production(self):
+        enos_prod = ipaddress.ip_network("172.16.0.0/16")
+        enos_network = G5kEnosProdNetwork(roles=["role1"], network=enos_prod)
+        self.assertFalse(enos_network.has_free_ips())
+        self.assertCountEqual([], list(enos_network.free_ips()))
+        self.assertFalse(enos_network.has_free_macs())
+        self.assertCountEqual([], list(enos_network.free_macs()))
+
+    def test_production6(self):
+        enos_prod = ipaddress.ip_network("2001:660:4406:07::/64")
+        enos_network = G5kEnosProdNetwork(roles=["role1"], network=enos_prod)
+        self.assertFalse(enos_network.has_free_ips())
+        self.assertCountEqual([], list(enos_network.free_ips()))
+        self.assertFalse(enos_network.has_free_macs())
+        self.assertCountEqual([], list(enos_network.free_macs()))
+
+    def test_kavlan(self):
+        enos_kavlan = ipaddress.ip_network("10.24.0.0/18")
+        enos_kavlan = G5kEnosVlan4Network(roles=["role1"], network=enos_kavlan, vlan_id="4")
+        self.assertTrue(enos_kavlan.has_free_ips())
+        # There should be a lot of ips available in the worse case
+        # (/20 network == local vlan) => some /24 contiguous subnet
+        self.assertTrue(len(list(enos_kavlan.free_ips())) > 3000)
+        # not clear about macs, so we kept them empty
+        self.assertFalse(enos_kavlan.has_free_macs())
+
+    def test_kavlan6(self):
+        enos_kavlan = ipaddress.ip_network("2001:660:4406:0790::/64")
+        enos_kavlan = G5kEnosVlan6Network(roles=["role1"], network=enos_kavlan, vlan_id="4")
+        self.assertTrue(enos_kavlan.has_free_ips())
+        # There should be a lot of ips available in the worse case
+        # (/20 network == local vlan) => some /24 contiguous subnet
+        it_ips = enos_kavlan.free_ips()
+        # let's get some ips
+        ips = []
+        for i in range(3000):
+            ips.append(next(it_ips))
+        self.assertEqual(3000, len(ips))
+        # not clear about macs, so we kept them empty
+        self.assertFalse(enos_kavlan.has_free_macs())
+
+    def test_subnet(self):
+        enos_subnet = ipaddress.ip_network("10.140.0.0/22")
+        enos_subnet = G5kEnosSubnetNetwork(roles=["role1"], network=enos_subnet)
+        self.assertTrue(enos_subnet.has_free_ips())
+        # we get rid of the first and last address of the /22
+        # which leaves us with 1022 addresses
+        self.assertEqual(1022, len(list(enos_subnet.free_ips())))
+        self.assertTrue(enos_subnet.has_free_macs())
+        self.assertEqual(1022, len(list(enos_subnet.free_macs())))
+
+
+class TestTranslate(EnosTest):
+    def setUp(self):
+        self.uids = ["paravance-1.rennes.grid5000.fr"]
+        self.uid6s = ["paravance-1-ipv6.rennes.grid5000.fr"]
+        self.uids_vlan = ["paravance-1-kavlan-6.rennes.grid5000.fr"]
+        self.uid6s_vlan = ["paravance-1-kavlan-6-ipv6.rennes.grid5000.fr"]
+        self.prod = G5kProdNetwork(roles=["role1"], id="1", site="rennes")
+        self.kavlan = G5kVlanNetwork(roles=["role1"], id="1", site="rennes", vlan_id="6")
+        self.subnet = G5kSubnetNetwork(roles=["roles1"], id="1", site="rennes", subnets=["10.0.0.1/24"])
+
+    def test_production(self):
+        # direct
+        [(f, t)] = self.prod.translate(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uids[0], t)
+        # reverse
+        [(rf, rt)] = self.prod.translate([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
+
+    def test_production6(self):
+        # direct
+        [(f, t)] = self.prod.translate6(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uid6s[0], t)
+        # reverse
+        [(rf, rt)] = self.prod.translate6([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
+
+    def test_kavlan(self):
+        # direct
+        [(f, t)] = self.kavlan.translate(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uids_vlan[0], t)
+        # reverse
+        [(rf, rt)] = self.kavlan.translate([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
+
+    def test_kavlan6(self):
+        # direct
+        [(f, t)] = self.kavlan.translate6(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uid6s_vlan[0], t)
+        # reverse
+        [(rf, rt)] = self.kavlan.translate6([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
+
+    def test_subnet(self):
+        # direct
+        [(f, t)] = self.subnet.translate(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uids[0], t)
+        # reverse
+        [(rf, rt)] = self.subnet.translate([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
+
+    def test_subnet6(self):
+        # direct
+        [(f, t)] = self.subnet.translate6(self.uids)
+        self.assertEqual(self.uids[0], f)
+        self.assertEqual(self.uids[0], t)
+        # reverse
+        [(rf, rt)] = self.subnet.translate6([t], reverse=True)
+        self.assertEqual(t, rf)
+        self.assertEqual(self.uids[0], rt)
 
 class TestDeploy(EnosTest):
     def build_provider(self, conf: Dict = None):

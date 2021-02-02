@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from netaddr.ip.sets import IPSet
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
+from enoslib.network import Network
 
 from grid5000.objects import VlanNodeManager
 from netaddr.ip import IPAddress, IPNetwork
@@ -11,6 +12,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_subnet_gateway,
     get_vlan,
     get_vlans,
+    get_ipv6,
     set_nodes_vlan,
 )
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
@@ -102,9 +104,32 @@ class G5kNetwork(ABC):
         """
         pass
 
+    @property
     @abstractmethod
-    def translate(self, fqdns: List[str], reverse=True) -> Iterable[Tuple[str, str]]:
+    def cidr6(self) -> Optional[str]:
+        """Get the ipv6 network address in cidr format.
+
+        Returns:
+            The cidre of the network. None for subnets.
+        """
+        pass
+
+    @abstractmethod
+    def translate(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
         """Gets the DNS names of the passed fqdns in this networks and vice versa.
+
+        Args:
+            fqdns: list of hostnames (host uid in the API) to translate.
+            reverse: Do the opposite operation.
+
+        Returns:
+            List of translated names.
+        """
+        pass
+
+    @abstractmethod
+    def translate6(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
+        """Gets the DNS names (resolved as ipv6) of the passed fqdns in this networks and vice versa.
 
         Args:
             fqdns: list of hostnames (host uid in the API) to translate.
@@ -174,10 +199,16 @@ class G5kVlanNetwork(G5kNetwork):
         self._vlan_id = str(vlan_id)
         # the diff here with G5kHost is that we don't point to a resource of the API.
         self._info: Dict[str, str] = {}
+        # some info we got about ipv6
+        self._info6: Dict[str, str] = {}
 
     def _check_info(self):
         if not self._info:
             self._info = get_vlans(self.site)[self.vlan_id.lower()]
+
+    def _check_info6(self):
+        if not self._info6:
+            self._info6 = get_ipv6(self.site)
 
     def _check_apinetwork(self):
         if self._apinetwork is None:
@@ -194,6 +225,13 @@ class G5kVlanNetwork(G5kNetwork):
         return self._info["network"]
 
     @property
+    def cidr6(self) -> str:
+        self._check_info6()
+        xx = self._info6["site_index"]
+        yy = 0x80 + self.vlan_id
+        return f"2001:0660:4406:{xx:02x}{yy:02x}/64"
+
+    @property
     def gateway(self) -> str:
         self._check_info()
         return self._info["gateway"]
@@ -203,19 +241,45 @@ class G5kVlanNetwork(G5kNetwork):
         self._check_apinetwork()
         return self._apinetwork
 
+    def _translate(self, uid, vlan_id=None, reverse=False, ipv6=False):
+        direct_descriptor = "%s"
+        if vlan_id:
+            direct_descriptor += f"-kavlan-{vlan_id}"
+        if ipv6:
+            direct_descriptor += "-ipv6"
+
+        reverse_descriptor = ""
+        if vlan_id:
+            reverse_descriptor = f"-kavlan-{vlan_id}"
+        if ipv6:
+            reverse_descriptor += "-ipv6"
+
+        if not reverse:
+            splitted = uid.split(".")
+            splitted[0] = direct_descriptor % (splitted[0])
+            return ".".join(splitted)
+        else:
+            uid = uid.replace(reverse_descriptor, "")
+            return uid
+
     def translate(
         self, fqdns: List[str], reverse: bool = False
     ) -> Iterable[Tuple[str, str]]:
-        def translate(node, vlan_id):
-            if not reverse:
-                splitted = node.split(".")
-                splitted[0] = "%s-kavlan-%s" % (splitted[0], vlan_id)
-                return ".".join(splitted)
-            else:
-                node = node.replace("-kavlan-%s" % vlan_id, "")
-                return node
+        return [
+            (fqdn, self._translate(fqdn, self.vlan_id, reverse=reverse))
+            for fqdn in fqdns
+        ]
 
-        return [(fqdn, translate(fqdn, self.vlan_id)) for fqdn in fqdns]
+    def translate6(
+        self, fqdns: List[str], reverse: bool = False
+    ) -> Iterable[Tuple[str, str]]:
+        return [
+            (
+                fqdn,
+                self._translate(fqdn, vlan_id=self.vlan_id, reverse=reverse, ipv6=True),
+            )
+            for fqdn in fqdns
+        ]
 
     def attach(self, fqdns: List[str], device: str):
         set_nodes_vlan(self.site, fqdns, device, self.vlan_id)
@@ -282,10 +346,25 @@ class G5kProdNetwork(G5kVlanNetwork):
 
         super().__init__(roles, id, site, "DEFAULT")
 
+    @property
+    def cidr6(self) -> str:
+        self._check_info6()
+        return f"{self._info6['prefix']}/64"
+
     def translate(
-        self, fqdns: List[str], reverse: bool = True
+        self, fqdns: List[str], reverse: bool = False
     ) -> Iterable[Tuple[str, str]]:
+        """Node in the production network.
+
+        node uid == node name
+        """
         return [(f, f) for f in fqdns]
+
+    def translate6(
+        self, fqdns: List[str], reverse: bool = False
+    ) -> Iterable[Tuple[str, str]]:
+        """Translate node name in ipv6 resolvable name."""
+        return [(f, self._translate(f, reverse=reverse, ipv6=True)) for f in fqdns]
 
     def attach(self, fqdns: List[str], nic: str):
         # nothing to do
@@ -338,6 +417,10 @@ class G5kSubnetNetwork(G5kNetwork):
         return None
 
     @property
+    def cidr6(self):
+        return None
+
+    @property
     def apinetwork(self):
         return None
 
@@ -345,6 +428,11 @@ class G5kSubnetNetwork(G5kNetwork):
         self, fqdns: List[str], reverse: bool = True
     ) -> Iterable[Tuple[str, str]]:
         return [(f, f) for f in fqdns]
+
+    def translate6(
+        self, fqdns: List[str], reverse: bool = True
+    ) -> Iterable[Tuple[str, str]]:
+        return self.translate(fqdns, reverse=reverse)
 
     def attach(self, fqdns: List[str], nic: str):
         pass

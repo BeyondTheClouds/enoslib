@@ -229,7 +229,7 @@ def grid_destroy_from_ids(oargrid_jobids):
 
     Args:
         oargrid_jobids (list): the ``(site, oar_job_id)`` list of tuple
-            identifying the jobs for each site. """
+            identifying the jobs for each site."""
     jobs = grid_reload_from_ids(oargrid_jobids)
     for job in jobs:
         job.delete()
@@ -514,7 +514,7 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
 
 
 def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
-    """ Returns for each cluster the available cluster interfaces
+    """Returns for each cluster the available cluster interfaces
 
     Args:
         clusters (str): list of the clusters
@@ -591,7 +591,7 @@ def can_start_on_cluster(
 
 
 def _do_synchronise_jobs(walltime, machines):
-    """ This returns a common reservation date for all the jobs.
+    """This returns a common reservation date for all the jobs.
 
     This reservation date is really only a hint and will be supplied to each
     oar server. Without this *common* reservation_date, one oar server can
@@ -663,6 +663,12 @@ def get_subnet_gateway(site):
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
+
+
+@ring.disk(storage)
+def get_ipv6(site):
+    site_info = get_site_obj(site)
+    return site_info.ipv6
 
 
 @ring.disk(storage)
