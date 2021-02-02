@@ -29,29 +29,5 @@ conf = (
 
 provider = G5k(conf)
 
-try:
-    # Get actual resources
-    roles, networks = provider.init()
-
-    # Retrieving subnet
-    subnet = [n for n in networks if "my_subnet" in n["roles"]]
-    logging.info(subnet)
-    # This returns the subnet information
-    # {
-    #    'roles': ['my_subnet'],
-    #    'start': '10.158.0.1',
-    #    'dns': '131.254.203.235',
-    #    'end': '10.158.3.254',
-    #    'cidr': '10.158.0.0/22',
-    #    'gateway': '10.159.255.254'
-    #    'mac_end': '00:16:3E:9E:03:FE',
-    #    'mac_start': '00:16:3E:9E:00:01',
-    # }
-
-    # Do your stuffs here
-    # ...
-except Exception as e:
-    print(e)
-finally:
-    # Clean everything
-    provider.destroy()
+# Get actual resources
+roles, networks = provider.init()

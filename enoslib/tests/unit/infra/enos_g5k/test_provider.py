@@ -10,7 +10,7 @@ from enoslib.infra.enos_g5k.provider import (
     G5kSubnetNetwork
 )
 
-from enoslib.infra.enos_g5k.network import G5kEnosProdNetwork, G5kEnosVlan4Network, G5kEnosVlan6Network, G5kEnosSubnetNetwork
+from enoslib.infra.enos_g5k.objects import G5kEnosProd4Network,  G5kEnosProd6Network, G5kEnosVlan4Network, G5kEnosVlan6Network, G5kEnosSubnetNetwork
 
 from enoslib.infra.enos_g5k.constants import (
     DEFAULT_ENV_NAME,
@@ -29,7 +29,7 @@ from enoslib.tests.unit import EnosTest
 class TestG5kEnos(EnosTest):
     def test_production(self):
         enos_prod = ipaddress.ip_network("172.16.0.0/16")
-        enos_network = G5kEnosProdNetwork(roles=["role1"], network=enos_prod)
+        enos_network = G5kEnosProd4Network(roles=["role1"], network=enos_prod)
         self.assertFalse(enos_network.has_free_ips())
         self.assertCountEqual([], list(enos_network.free_ips()))
         self.assertFalse(enos_network.has_free_macs())
@@ -37,7 +37,7 @@ class TestG5kEnos(EnosTest):
 
     def test_production6(self):
         enos_prod = ipaddress.ip_network("2001:660:4406:07::/64")
-        enos_network = G5kEnosProdNetwork(roles=["role1"], network=enos_prod)
+        enos_network = G5kEnosProd6Network(roles=["role1"], network=enos_prod)
         self.assertFalse(enos_network.has_free_ips())
         self.assertCountEqual([], list(enos_network.free_ips()))
         self.assertFalse(enos_network.has_free_macs())

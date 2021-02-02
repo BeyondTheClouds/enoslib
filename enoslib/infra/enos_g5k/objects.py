@@ -1,23 +1,23 @@
+import ipaddress
 from abc import ABC, abstractmethod
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-from netaddr.ip.sets import IPSet
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
-from enoslib.network import Network
-
-from grid5000.objects import VlanNodeManager
-from netaddr.ip import IPAddress, IPNetwork
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_dns,
+    get_ipv6,
     get_node,
     get_subnet_gateway,
     get_vlan,
     get_vlans,
-    get_ipv6,
     set_nodes_vlan,
 )
-from typing import Callable, Dict, Iterable, List, Optional, Tuple
-
 from grid5000.base import RESTObject
+from grid5000.objects import VlanNodeManager
+from netaddr.ip import IPNetwork
+from netaddr.ip.sets import IPSet
+
+from enoslib.network import Network
 
 
 class G5kNetwork(ABC):
@@ -129,7 +129,7 @@ class G5kNetwork(ABC):
 
     @abstractmethod
     def translate6(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
-        """Gets the DNS names (resolved as ipv6) of the passed fqdns in this networks and vice versa.
+        """Gets the DNS names (resolved as ipv6) of the passed fqdns in this networks.
 
         Args:
             fqdns: list of hostnames (host uid in the API) to translate.
@@ -228,8 +228,8 @@ class G5kVlanNetwork(G5kNetwork):
     def cidr6(self) -> str:
         self._check_info6()
         xx = self._info6["site_index"]
-        yy = 0x80 + self.vlan_id
-        return f"2001:0660:4406:{xx:02x}{yy:02x}/64"
+        yy = 0x80 + int(self.vlan_id)
+        return f"2001:0660:4406:{xx:02x}{yy:02x}::/64"
 
     @property
     def gateway(self) -> str:
@@ -285,43 +285,23 @@ class G5kVlanNetwork(G5kNetwork):
         set_nodes_vlan(self.site, fqdns, device, self.vlan_id)
 
     def to_enos(self):
-        # On the network, the first IP are reserved to g5k machines.
-        # For a routed vlan I don't know exactly how many ip are
-        # reserved. However, the specification is clear about global
-        # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
-        # It is split -- contiguously -- so that every site gets one
-        # /23 (510 ip) in the global VLAN address space". There are 12
-        # site. This means that we could take ip from 13th subnetwork.
-        # Lets consider the strategy is the same for routed vlan. See,
-        # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
-        #
-        # First, split network in /23 this leads to 32 subnetworks.
-        # Then, (i) drops the 12 first subnetworks because they are
-        # dedicated to g5k machines, and (ii) drops the last one
-        # because some of ips are used for specific stuff such as
-        # gateway, kavlan server...
-        net = {}
-        subnets = IPNetwork(self.cidr)
-        if self.vlan_id in KAVLAN_LOCAL_IDS:
-            # vlan local
-            subnets = list(subnets.subnet(24))
-            subnets = subnets[4:7]
-        else:
-            subnets = list(subnets.subnet(23))
-            subnets = subnets[13:31]
+        """Build the generic network type implementation.
 
-        # Finally, compute the range of available ips
-        ips = IPSet(subnets).iprange()
-
-        net.update(
-            roles=self.roles,
-            start=str(IPAddress(ips.first)),
-            end=str(IPAddress(ips.last)),
-            cidr=self.cidr,
-            gateway=self.gateway,
-            dns=self.dns,
-        )
-        return [net]
+        A vlan in G5k has 2 flavours IPv4 and IPv6 so
+        we generate both generic network type here corresponding to this vlan.
+        """
+        return [
+            G5kEnosVlan4Network(
+                roles=self.roles,
+                network=ipaddress.ip_network(self.cidr),
+                provider_network=self,
+            ),
+            G5kEnosVlan6Network(
+                roles=self.roles,
+                network=ipaddress.ip_network(self.cidr6),
+                provider_network=self,
+            ),
+        ]
 
     def __repr__(self):
         return (
@@ -349,7 +329,7 @@ class G5kProdNetwork(G5kVlanNetwork):
     @property
     def cidr6(self) -> str:
         self._check_info6()
-        return f"{self._info6['prefix']}/64"
+        return f"{self._info6['prefix']}::/64"
 
     def translate(
         self, fqdns: List[str], reverse: bool = False
@@ -371,9 +351,23 @@ class G5kProdNetwork(G5kVlanNetwork):
         pass
 
     def to_enos(self):
-        net = {}
-        net.update(roles=self.roles, cidr=self.cidr, gateway=self.gateway, dns=self.dns)
-        return [net]
+        """Build the generic network type implementation.
+
+        A production network in G5k has 2 flavours IPv4 and IPv6 so
+        we generate both generic network type here corresponding to this vlan.
+        """
+        return [
+            G5kEnosProd4Network(
+                roles=self.roles,
+                network=ipaddress.ip_network(self.cidr),
+                provider_network=self,
+            ),
+            G5kEnosProd6Network(
+                roles=self.roles,
+                network=ipaddress.ip_network(self.cidr6),
+                provider_network=self,
+            ),
+        ]
 
     def __repr__(self):
         return "<G5kProdNetwork(" f"roles={self.roles}, " f"site={self.site}"
@@ -438,33 +432,23 @@ class G5kSubnetNetwork(G5kNetwork):
         pass
 
     def to_enos(self):
-        def build_ipmac(subnet):
-            network = IPNetwork(subnet)
-            ipmac = []
-            for ip in list(network[1:-1]):
-                _, x, y, z = ip.words
-                ipmac.append((str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z)))
-            start_ip, start_mac = ipmac[0]
-            end_ip, end_mac = ipmac[-1]
-            return start_ip, start_mac, end_ip, end_mac
+        """Build the generic network type implementation.
 
-        enos_networks = []
+        A subnet in G5k doesn't have yet an IPv6 counterpart so we generate a single
+        IPv4 generic representation.
+        A /16 is actually an aggregation of /22 so we emit one generic network per
+        underlying subnet.
+        """
+        nets = []
         for subnet in self.subnets:
-            start_ip, start_mac, end_ip, end_mac = build_ipmac(subnet)
-            enos_networks.append(
-                {
-                    "roles": self.roles,
-                    "site": self.site,
-                    "dns": self.dns,
-                    "gateway": self.gateway,
-                    "cidr": subnet,
-                    "start": start_ip,
-                    "end": end_ip,
-                    "mac_start": start_mac,
-                    "mac_end": end_mac,
-                }
+            nets.append(
+                G5kEnosSubnetNetwork(
+                    roles=self.roles,
+                    network=ipaddress.ip_network(subnet),
+                    provider_network=self,
+                )
             )
-        return enos_networks
+        return nets
 
     def __repr__(self):
         return (
@@ -682,3 +666,204 @@ class G5kHost:
             f"primary_network={self.primary_network}, "
             f"secondary_networks={self.secondary_networks})>"
         )
+
+
+class G5kEnosProd4Network(Network):
+    """Implementation of the generic network type.
+
+    IPv4 production network.
+    """
+
+    def __init__(
+        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+    ):
+        super().__init__(roles, network)
+        self.provider_network = provider_network
+
+    @property
+    def has_free_ips(self):
+        return False
+
+    @property
+    def free_ips(self):
+        yield from ()
+
+    @property
+    def has_free_macs(self):
+        return False
+
+    @property
+    def free_macs(self):
+        yield from ()
+
+    @property
+    def gateway(self):
+        return ipaddress.ip_address(self.provider_network.gateway)
+
+    @property
+    def dns(self):
+        return ipaddress.ip_address(self.provider_network.dns)
+
+
+class G5kEnosProd6Network(G5kEnosProd4Network):
+    """Implementation of the generic network type.
+
+    IPv6 production network.
+    """
+
+    @property
+    def gateway(self):
+        # FIXME
+        return ipaddress.ip_address(self.provider_network.gateway)
+
+    @property
+    def dns(self):
+        # FIXME
+        return ipaddress.ip_address(self.provider_network.dns)
+
+
+class G5kEnosVlan4Network(Network):
+    """Implementation of the generic network type.
+
+    IPv4 kavlan network
+    """
+
+    def __init__(
+        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+    ):
+        super().__init__(roles, network)
+        self.provider_network = provider_network
+
+    @property
+    def has_free_ips(self):
+        return True
+
+    @property
+    def free_ips(self) -> Iterable[AddressType]:
+        # On the network, the first IP are reserved to g5k machines.
+        # For a routed vlan I don't know exactly how many ip are
+        # reserved. However, the specification is clear about global
+        # vlan: "A global VLAN is a /18 subnet (16382 IP addresses).
+        # It is split -- contiguously -- so that every site gets one
+        # /23 (510 ip) in the global VLAN address space". There are 12
+        # site. This means that we could take ip from 13th subnetwork.
+        # Lets consider the strategy is the same for routed vlan. See,
+        # https://www.grid5000.fr/mediawiki/index.php/Grid5000:Network#KaVLAN
+        #
+        # First, split network in /23 this leads to 32 subnetworks.
+        # Then, (i) drops the 12 first subnetworks because they are
+        # dedicated to g5k machines, and (ii) drops the last one
+        # because some of ips are used for specific stuff such as
+        # gateway, kavlan server...
+        subnets = IPNetwork(str(self.network))
+        if self.provider_network.vlan_id in KAVLAN_LOCAL_IDS:
+            # vlan local
+            subnets = list(subnets.subnet(24))
+            subnets = subnets[4:7]
+        else:
+            subnets = list(subnets.subnet(23))
+            subnets = subnets[13:31]
+
+        # Finally, compute the range of available ips
+        # and yield in the standard ipaddress world
+        for addr in IPSet(subnets).iprange():
+            yield ipaddress.ip_address(addr)
+
+    @property
+    def has_free_macs(self):
+        return False
+
+    @property
+    def free_macs(self):
+        yield from ()
+
+    @property
+    def gateway(self):
+        return ipaddress.ip_address(self.provider_network.gateway)
+
+    @property
+    def dns(self):
+        return ipaddress.ip_address(self.provider_network.dns)
+
+
+class G5kEnosVlan6Network(G5kEnosVlan4Network):
+    """Implementation of the generic network type
+
+    IPv6 kavlan.
+    https://www.grid5000.fr/w/IPv6#The_interface_part
+
+    In my understanding taking a E part greater than max(cluster_index,
+    site_index) will give us some free ips.
+    """
+
+    def __init__(
+        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+    ):
+        super().__init__(roles, network, provider_network)
+
+    @property
+    def free_ips(self):
+        subnets = IPNetwork(str(self.network))
+        start = subnets.network + 256
+        subnet = IPNetwork(f"{start}/70")
+        for addr in subnet.iter_hosts():
+            yield ipaddress.ip_address(addr.value)
+
+    @property
+    def gateway(self):
+        # FIXME
+        raise ValueError("Unsupported operation")
+
+    @property
+    def dns(self):
+        # FIXME
+        raise ValueError("Unsupported operation")
+
+
+def build_ipmac(subnet):
+    network = IPNetwork(subnet)
+    for ip in list(network[1:-1]):
+        _, x, y, z = ip.words
+        ip, mac = (str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z))
+        yield ip, mac
+
+
+class G5kEnosSubnetNetwork(Network):
+    """Implementation of the generic network type.
+
+    IPv4 only for now.
+    """
+
+    def __init__(
+        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+    ):
+        super().__init__(roles, network)
+        self.provider_network = provider_network
+
+    @property
+    def has_free_ips(self):
+        return True
+
+    @property
+    def free_ips(self):
+        for ip, _ in build_ipmac(str(self.network)):
+            yield ipaddress.ip_address(ip)
+
+    @property
+    def has_free_macs(self):
+        return True
+
+    @property
+    def free_macs(self):
+        for _, mac in build_ipmac(str(self.network)):
+            yield mac
+
+    @property
+    def gateway(self):
+        # FIXME
+        raise ValueError("Unsupported operation")
+
+    @property
+    def dns(self):
+        # FIXME
+        raise ValueError("Unsupported operation")
