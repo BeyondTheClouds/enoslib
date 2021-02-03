@@ -5,15 +5,17 @@ from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from ipaddress import (
     IPv4Address,
+    IPv4Interface,
     IPv6Address,
     IPv6Interface,
     ip_address,
     ip_interface,
-    ip_network,
 )
+from netaddr import EUI
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 NetworkType = Union[bytes, int, Tuple, str]
+AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 
@@ -46,7 +48,8 @@ def _ansible_map_network_device(
 class Network(ABC):
     def __init__(self, roles: List[str], address: NetworkType):
         self.roles = roles
-        self.network = ip_network(address)
+        # accept cidr but coerce to IPNetwork
+        self.network = ip_interface(address).network
 
     @property
     @abstractmethod
@@ -80,12 +83,21 @@ class Network(ABC):
 
 
 class DefaultNetwork(Network):
+    """Good enough implementation of Network for most situations.
+
+    Provides pooling for contiguous ips and/or macs.
+    """
+
     def __init__(
         self,
         roles: List[str],
         address: NetworkType,
         gateway: Optional[str] = None,
         dns: Optional[str] = None,
+        ip_start: Optional[AddressType] = None,
+        ip_end: Optional[AddressType] = None,
+        mac_start: str = None,
+        mac_end: str = None,
     ):
         super().__init__(roles=roles, address=address)
         self._gateway = None
@@ -94,6 +106,17 @@ class DefaultNetwork(Network):
         self._dns = None
         if self._dns is not None:
             self._dns = ip_address(dns)
+        self.pool_start = None
+        if ip_start is not None:
+            self.pool_start = ip_address(ip_start)
+        if ip_end is not None:
+            self.pool_end = ip_address(ip_end)
+        self.mac_start = None
+        if mac_start is not None:
+            self.mac_start = EUI(mac_start)
+        self.mac_end = None
+        if mac_end is not None:
+            self.mac_end = EUI(mac_end)
 
     @property
     def gateway(self) -> Optional[AddressInterfaceType]:
@@ -105,19 +128,21 @@ class DefaultNetwork(Network):
 
     @property
     def has_free_ips(self):
-        return False
+        return self.pool_start and self.pool_end and self.pool_start < self.pool_end
 
     @property
     def free_ips(self) -> Iterable[AddressInterfaceType]:
-        yield from ()
+        for i in range(int(self.pool_start), int(self.pool_end)):
+            yield ip_address(i)
 
     @property
     def has_free_macs(self):
-        return False
+        return self.mac_start and self.mac_end and self.mac_start < self.mac_end
 
     @property
-    def free_macs(self) -> Iterable[str]:
-        yield from ()
+    def free_macs(self) -> Iterable[EUI]:
+        for item in range(int(self.mac_start) + 1, int(self.mac_end)):
+            yield EUI(item)
 
 
 @dataclass(unsafe_hash=True)
@@ -133,7 +158,7 @@ class IPAddress(object):
     device: str = field(compare=False, hash=False)
 
     # computed
-    ip: Optional[Union[IPv4Address, IPv6Interface]] = field(
+    ip: Optional[Union[IPv4Interface, IPv6Interface]] = field(
         default=None, init=False, compare=True, hash=True
     )
 
@@ -152,7 +177,13 @@ class IPAddress(object):
         keys_1 = {"address", "netmask"}
         keys_2 = {"address", "prefix"}
         if keys_1.issubset(d.keys()):
-            return cls((d["address"], d["netmask"]), roles, device)
+            # there's a bug/feature in early python3.7, and the second argument
+            # is actually the prefix length
+            # https://bugs.python.org/issue27860
+            # cls((d["address"], d["netmask"])), roles, device)
+            return cls(
+                f"{d['address']}/{d['netmask']}", roles, device
+            )
         elif keys_2.issubset(d.keys()):
             return cls(f"{d['address']}/{d['prefix']}", roles, device)
         else:

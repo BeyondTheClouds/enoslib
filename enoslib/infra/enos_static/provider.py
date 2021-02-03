@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from enoslib.objects import Host
+from enoslib.objects import DefaultNetwork, Host
 from enoslib.infra.provider import Provider
 
 
@@ -28,7 +28,18 @@ class Static(Provider):
                         extra=machine.extra,
                     )
                 )
-        return roles, [n.to_dict() for n in self.provider_conf.networks]
+
+        return roles, [
+            DefaultNetwork(
+                roles=n.roles,
+                address=n.cidr,
+                gateway=n.gateway,
+                dns=n.dns,
+                ip_start=n.start,
+                ip_end=n.end,
+            )
+            for n in self.provider_conf.networks
+        ]
 
     def destroy(self):
         pass

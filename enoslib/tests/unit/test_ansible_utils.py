@@ -115,7 +115,6 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
             DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
-        # only the last match is taken into account
         expected = [
             (networks[0], IPAddress("1.2.3.5/24", roles=["a"], device="eth0")),
             (networks[0], IPAddress("1.2.3.254/24", roles=["a"], device="eth1")),

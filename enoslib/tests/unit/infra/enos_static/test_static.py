@@ -13,10 +13,8 @@ class TestBuildResources(EnosTest):
             ],
             "networks": [
                 {
-                    "cidr": "",
+                    "cidr": "2.2.3.1/24",
                     "roles": ["net2"],
-                    "start": "2.2.3.100",
-                    "end": "2.2.3.252",
                     "gateway": "2.2.3.254",
                     "dns": "2.2.3.253",
                 },
@@ -37,4 +35,4 @@ class TestBuildResources(EnosTest):
         self.assertEqual(2, len(roles["role1"]))
         self.assertEqual(1, len(roles["role2"]))
         self.assertEqual(2, len(networks))
-        self.assertTrue(networks[0]["cidr"] in ["1.2.3.4/24", ""])
+        self.assertTrue(str(networks[0].network) in ["1.2.3.0/24", "2.2.3.0/24"])
