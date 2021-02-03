@@ -24,7 +24,7 @@ class G5kNetwork(ABC):
     """Base abstract class for a network."""
 
     def __init__(self, roles: List[str], id: str, site: str):
-        """Representation of an actual network in G5k
+        """Representation of an reservable network in G5k
 
         Args:
             roles: roles/tags to give to this network (set by the application)
@@ -186,7 +186,7 @@ class G5kNetwork(ABC):
 
 class G5kVlanNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, vlan_id: str):
-        """Representation of an actual Vlan in G5k.
+        """Representation of a Vlan resource in G5k.
 
         Args:
             roles: roles/tags to give to this network (set by the application)
@@ -215,7 +215,7 @@ class G5kVlanNetwork(G5kNetwork):
             self._apinetwork = get_vlan(self.site, self.vlan_id)
 
     @property
-    def vlan_id(self) -> Optional[str]:
+    def vlan_id(self) -> str:
         """Get a vlan id if any."""
         return self._vlan_id
 
@@ -228,7 +228,11 @@ class G5kVlanNetwork(G5kNetwork):
     def cidr6(self) -> str:
         self._check_info6()
         xx = self._info6["site_index"]
-        yy = 0x80 + int(self.vlan_id)
+        if self.vlan_id == "DEFAULT":
+            # prod case =0
+            yy = 0
+        else:
+            yy = 0x80 + (int(self.vlan_id) - 1)
         return f"2001:0660:4406:{xx:02x}{yy:02x}::/64"
 
     @property
@@ -314,7 +318,7 @@ class G5kVlanNetwork(G5kNetwork):
 
 class G5kProdNetwork(G5kVlanNetwork):
     def __init__(self, roles: List[str], id: str, site: str):
-        """Representation of an actual Production Network in G5k.
+        """Representation of the Production Network in G5k.
 
         Note: production network have the "default" uid on the G5K API.
 
@@ -325,11 +329,6 @@ class G5kProdNetwork(G5kVlanNetwork):
         """
 
         super().__init__(roles, id, site, "DEFAULT")
-
-    @property
-    def cidr6(self) -> str:
-        self._check_info6()
-        return f"{self._info6['prefix']}::/64"
 
     def translate(
         self, fqdns: List[str], reverse: bool = False
@@ -375,7 +374,7 @@ class G5kProdNetwork(G5kVlanNetwork):
 
 class G5kSubnetNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, subnets: List[str]):
-        """Representation of a subnet of G5k (/16 or /22).
+        """Representation of a subnet resource of G5k (/16 or /22).
 
         .. info::
 

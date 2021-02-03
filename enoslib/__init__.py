@@ -2,9 +2,8 @@
 from enoslib.api import (
     ensure_python2,
     ensure_python3,
-    discover_networks,
+    sync_network_info,
     get_hosts,
-    get_roles_as_list,
     play_on,
     run,
     run_ansible,

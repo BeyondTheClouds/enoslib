@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Dict, MutableMapping, List, Tuple
+from typing import MutableMapping, List, Tuple
 
-from .objects import Host
+from .objects import Host, Network
 
 # FIXME remove this since we have an type for that now
-Network = Dict[Any, Any]
 Networks = List[Network]
 Role = str
 Roles = MutableMapping[Role, List[Host]]

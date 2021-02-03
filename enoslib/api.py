@@ -1,42 +1,35 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
 import copy
+import json
 import logging
 import os
 import tempfile
-from typing import Any, List, MutableMapping, Mapping, Optional, Union, Set
 import time
-import json
-import yaml
-
+from collections import namedtuple
+from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
 
 # These two imports are 2.9
 import ansible.constants as C
-from ansible.module_utils.common.collections import ImmutableDict
-from ansible import context
+import yaml
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
-
+from ansible.module_utils.common.collections import ImmutableDict
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
-
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
-from netaddr import IPAddress, IPSet
 
+from ansible import context
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
-from enoslib.utils import _check_tmpdir, get_roles_as_list
-from enoslib.errors import (
-    EnosFailedHostsError,
-    EnosUnreachableHostsError,
-    EnosSSHNotReady,
-)
-from enoslib.types import Roles, Networks, Host
+from enoslib.errors import (EnosFailedHostsError, EnosSSHNotReady,
+                            EnosUnreachableHostsError)
+from enoslib.types import Host, Networks, Roles
+from enoslib.utils import _check_tmpdir
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +56,7 @@ ANSIBLE_TOP_LEVEL = {
     "poll": "poll",
     "ignore_errors": "ignore_errors",
     "environment": "environment",
-    "when": "when"
+    "when": "when",
 }
 
 
@@ -224,7 +217,7 @@ def run_play(
         loader=loader,
         passwords=passwords,
         stdout_callback=callback,
-        forks=C.DEFAULT_FORKS
+        forks=C.DEFAULT_FORKS,
     )
 
     # create play
@@ -379,9 +372,7 @@ class play_on(object):
             )
 
     def __getattr__(self, module_name):
-        """Providers an handy way to use ansible module from python.
-
-        """
+        """Providers an handy way to use ansible module from python."""
 
         def _f(**kwargs):
             display_name = kwargs.pop("display_name", "__calling__ %s" % module_name)
@@ -559,7 +550,7 @@ def run_command(
         result = run_command("date", roles=roles, async=20, poll=0)
 
     Note that the actual result isn't available in the result file but will be
-    available through a file specified in the result object. """
+    available through a file specified in the result object."""
 
     def filter_results(results, status):
         _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
@@ -600,7 +591,7 @@ def run_command(
 def run(command, hosts, extra_vars=None, on_error_continue=False, **kwargs):
     """Run a shell command on some remote hosts.
 
-        This is a wrapper of :py:func:`enoslib.api.run_command`.
+    This is a wrapper of :py:func:`enoslib.api.run_command`.
     """
 
     return run_command(
@@ -778,64 +769,35 @@ def run_ansible(
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def discover_networks(
-    roles: Roles,
-    networks: Networks,
-    fake_interfaces: List[str] = None,
-    fake_networks: List[str] = None,
-) -> Roles:
-    """Checks the network interfaces on the nodes.
+def sync_network_info(roles: Roles, networks: Networks) -> Roles:
+    """Sync each host network information with their actual configuration
 
-    This enables to auto-discover the mapping interface name <-> network role.
+    If the command is successful each host extra_addresses attribute will be
+    populated. This allow the resync the enoslib Host representation with the
+    remote configuration.
+
+    This method is generic: should work for any provider and supports IPv4
+    and IPv6 addresses.
 
     Args:
         roles (dict): role->hosts mapping as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
         networks (list): network list as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
-        fake_interfaces (list): names of optionnal dummy interfaces to create
-        fake_networks (list): names of the roles to associate with the fake
-            interfaces. Like regular network interfaces, the mapping will be
-            added to the host vars. Internally this will be zipped with the
-            fake_interfaces to produce the mapping.
 
-    If the command is successful each host will be added some variables.
-    Assuming that one network whose role is `mynetwork` has been declared, the
-    following variables will be available through the ansible hostvars:
-
-    - ``mynetwork=eth1``, `eth1` has been discovered has the interface in the
-      network `mynetwork`.
-    - ``mynetwork_dev=eth1``, same as above with a different accessor names
-    - ``mynetwork_ip=192.168.42.42``, this indicates the ip in the network
-      `mynetwork` for this node
-
-    All of this variable can then be accessed by the other nodes through the
-    hostvars: ``hostvars[remote_node]["mynetwork_ip"]``
-    """
-
-    def get_devices(facts):
-        """Extract the network devices information from the facts."""
-        devices = []
-        for interface in facts["ansible_interfaces"]:
-            ansible_interface = "ansible_" + interface
-            # filter here (active/ name...)
-            if "ansible_" + interface in facts:
-                interface = facts[ansible_interface]
-                devices.append(interface)
-        return devices
+    Returns:
+        A copy of the original roles where each hosts.extra_addresses has
+        been modified. """
 
     wait_ssh(roles)
     tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
-    fake_interfaces = fake_interfaces or []
-    fake_networks = fake_networks or []
 
     utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
     facts_file = os.path.join(tmpdir, "facts.json")
     options = {
         "enos_action": "check_network",
         "facts_file": facts_file,
-        "fake_interfaces": fake_interfaces,
     }
     run_ansible(
         [utils_playbook], roles=roles, extra_vars=options, on_error_continue=False
@@ -843,17 +805,16 @@ def discover_networks(
 
     # Read the file
     # Match provider networks to interface names for each host
+    # preserve the host from being mutated wildly
+    _roles = copy.deepcopy(roles)
     with open(facts_file) as f:
         facts = json.load(f)
-        for _, host_facts in facts.items():
-            host_nets = _map_device_on_host_networks(networks, get_devices(host_facts))
-            # Add the mapping : networks <-> nic name
-            host_facts["networks"] = host_nets
+        for hosts in _roles.values():
+            for host in hosts:
+                host_facts = facts[host.alias]
+                host.set_addresses_from_ansible(networks, host_facts)
 
-    # Finally update the env with this information
-    # generate the extra_mapping for the fake interfaces
-    extra_mapping = dict(zip(fake_networks, fake_interfaces))
-    return _update_hosts(roles, facts, extra_mapping=extra_mapping)
+    return _roles
 
 
 def generate_inventory(
@@ -861,8 +822,6 @@ def generate_inventory(
     networks,
     inventory_path,
     check_networks=False,
-    fake_interfaces=None,
-    fake_networks=None,
 ):
     """Generate an inventory file in the ini format.
 
@@ -880,23 +839,12 @@ def generate_inventory(
         inventory_path (str): path to the inventory to generate
         check_networks (bool): True to enable the auto-discovery of the mapping
             interface name <-> network role
-        fake_interfaces (list): names of optionnal dummy interfaces to create
-            on the nodes
-        fake_networks (list): names of the roles to associate with the fake
-            interfaces. Like reguilar network interfaces, the mapping will be
-            added to the host vars. Internally this will be zipped with the
-            fake_interfaces to produce the mapping. """
-
+    """
     with open(inventory_path, "w") as f:
         f.write(_generate_inventory(roles))
 
     if check_networks:
-        _roles = discover_networks(
-            roles,
-            networks,
-            fake_interfaces=fake_interfaces,
-            fake_networks=fake_networks,
-        )
+        _roles = sync_network_info(roles, networks)
         with open(inventory_path, "w") as f:
             f.write(_generate_inventory(_roles))
 
@@ -955,68 +903,3 @@ def _generate_inventory(roles):
     """
     inventory = EnosInventory(roles=roles)
     return inventory.to_ini_string()
-
-
-def _update_hosts(roles, facts, extra_mapping=None):
-    # Update every hosts in roles
-    # NOTE(msimonin): due to the deserialization
-    # between phases, hosts in rsc are unique instance so we need to update
-    # every single host in every single role
-    _roles = copy.deepcopy(roles)
-    extra_mapping = extra_mapping or {}
-    for hosts in _roles.values():
-        for host in hosts:
-            networks = facts[host.alias]["networks"]
-            enos_devices = []
-            host.extra.update(extra_mapping)
-            for network in networks:
-                device = network["device"]
-                if device:
-                    for role in get_roles_as_list(network):
-                        # backward compatibility:
-                        # network_role=eth_name
-                        host.extra.update({role: device})
-                        # we introduce some shortcuts (avoid infinite ansible
-                        # templates) in other words, we sort of precompute them
-                        # network_role_dev=eth_name
-                        # network_role_ip=ip
-                        #
-                        # Use case:
-                        # - node1 has eth1 for role: r1,
-                        # - node2 has eth2 for role: r2
-                        # the conf in node2 must point to the ip of eth1 in
-                        # node1 node2 can use hostvars[node1].r1_ip as a
-                        # template Note this can happen often in g5k between
-                        # nodes of different clusters
-                        host.extra.update({"%s_dev" % role: device})
-                        key = "ansible_%s" % device
-                        ip = facts[host.alias][key]["ipv4"]["address"]
-                        host.extra.update({"%s_ip" % role: ip})
-
-                    enos_devices.append(device)
-
-            # Add the list of devices in used by Enos
-            host.extra.update({"enos_devices": enos_devices})
-    return _roles
-
-
-def _map_device_on_host_networks(provider_nets, devices):
-    """Decorate each networks with the corresponding nic name."""
-    import ipdb; ipdb.set_trace()
-    networks = copy.deepcopy(provider_nets)
-    for network in networks:
-        for device in devices:
-            network.setdefault("device", None)
-            ip_set = IPSet([network["cidr"]])
-            if "ipv4" not in device:
-                continue
-            ips = device["ipv4"]
-            if not isinstance(ips, list):
-                ips = [ips]
-            if len(ips) < 1:
-                continue
-            ip = IPAddress(ips[0]["address"])
-            if ip in ip_set:
-                network["device"] = device["device"]
-                continue
-    return networks
