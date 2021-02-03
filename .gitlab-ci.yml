@@ -23,14 +23,6 @@ variables:
 #
 ###############################################################################
 
-python3.6:
-  image: python:3.6
-  stage: test
-  tags: [qlf-ci.inria.fr]
-  script:
-  - pip install tox
-  - tox -e py36
-
 python3.7:
   image: python:3.7
   stage: test
