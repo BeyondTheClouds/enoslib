@@ -63,7 +63,7 @@ g5k_provider = G5k(g5k_conf)
 try:
     iotlab_roles, _ = iotlab_provider.init()
     g5k_roles, g5k_networks = g5k_provider.init()
-    g5k_roles = discover_networks(g5k_roles, g5k_networks)
+    g5k_roles = sync_network_info(g5k_roles, g5k_networks)
 
     print("Setting up VPN on A8 nodes to put them in the same network as Grid'5000")
     setup_vpn(iotlab_roles)

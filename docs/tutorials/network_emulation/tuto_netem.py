@@ -38,7 +38,7 @@ conf = (
 )
 provider = G5k(conf)
 roles, networks = provider.init()
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 # Building the network constraints
 emulation_conf = {

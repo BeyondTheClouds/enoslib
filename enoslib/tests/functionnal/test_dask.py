@@ -1,7 +1,7 @@
 import logging
 import os
 
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.service import Dask
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
@@ -37,7 +37,7 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 m = Dask(scheduler=roles["control"][0], worker=roles["control"])
 m.deploy()

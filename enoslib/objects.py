@@ -155,7 +155,7 @@ class Host(object):
     port: Optional[int] = None
     # Two Hosts have the same hash if we can SSH on each of them in
     # the same manner (don't consider extra info in `__hash__()` that
-    # are added, e.g., by enoslib.api.discover_networks).
+    # are added, e.g., by enoslib.api.sync_network_info).
     extra: Dict = field(default_factory=dict, hash=False)
     # Hold a list of known ip addresses
     # - discover_network can set this for you

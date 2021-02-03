@@ -46,7 +46,7 @@ conf = (
 
 provider = G5k(conf)
 roles, networks = provider.init()
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 # Retrieving subnet
 subnet = [n for n in networks if "my_subnet" in n["roles"]]

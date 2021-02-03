@@ -1,7 +1,7 @@
 import logging
 import os
 
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.service import Dask
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
@@ -36,7 +36,7 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Static(conf)
 
 roles, networks = provider.init()
-roles2 = discover_networks(roles, networks)
+roles2 = sync_network_info(roles, networks)
 # not network info attached to the nodes in roles
 print(roles)
 # some network info attached to the nodes in roles2

@@ -1,4 +1,4 @@
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import (Configuration,
                                                   NetworkConfiguration)
@@ -29,7 +29,7 @@ conf.add_network_conf(network)\
 provider = G5k(conf)
 roles, networks = provider.init()
 
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 m = Monitoring(collector=roles["control"], agent=roles["compute"], ui=roles["control"])
 m.deploy()

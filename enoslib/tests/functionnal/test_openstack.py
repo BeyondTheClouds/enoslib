@@ -1,4 +1,4 @@
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.infra.enos_openstack.provider import Openstack
 from enoslib.infra.enos_openstack.configuration import Configuration
 from enoslib.service import Netem
@@ -27,7 +27,7 @@ inventory = os.path.join(os.getcwd(), "hosts")
 conf = Configuration.from_dictionnary(provider_conf)
 provider = Openstack(conf)
 roles, networks = provider.init()
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 netem = Netem(tc, roles=roles)
 netem.deploy()
 netem.validate()

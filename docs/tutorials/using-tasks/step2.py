@@ -34,7 +34,7 @@ def up(force=True, env=None, **kwargs):
     conf = VagrantConf.from_dictionnary(provider_conf)
     provider = Vagrant(conf)
     roles, networks = provider.init()
-    roles = discover_networks(roles, networks)
+    roles = sync_network_info(roles, networks)
     env["roles"] = roles
     env["networks"] = networks
 

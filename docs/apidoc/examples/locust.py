@@ -20,7 +20,7 @@ conf = VagrantConf.from_dictionnary(provider_conf)
 provider = Vagrant(conf)
 roles, networks = provider.init()
 
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 l = Locust(master=roles["master"],
             agents=roles["agent"],
