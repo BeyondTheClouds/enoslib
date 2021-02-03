@@ -88,8 +88,12 @@ class DefaultNetwork(Network):
         dns: Optional[str] = None,
     ):
         super().__init__(roles=roles, address=address)
-        self._gateway = ip_address(gateway)
-        self._dns = ip_address(dns)
+        self._gateway = None
+        if gateway is not None:
+            self._gateway = ip_address(gateway)
+        self._dns = None
+        if self._dns is not None:
+            self._dns = ip_address(dns)
 
     @property
     def gateway(self) -> Optional[AddressInterfaceType]:
