@@ -3,8 +3,14 @@ import copy
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
-from ipaddress import (IPv4Address, IPv4Network, IPv6Address, IPv6Interface,
-                       IPv6Network, ip_interface, ip_network)
+from ipaddress import (
+    IPv4Address,
+    IPv6Address,
+    IPv6Interface,
+    ip_address,
+    ip_interface,
+    ip_network,
+)
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 NetworkType = Union[bytes, int, Tuple, str]
@@ -74,13 +80,24 @@ class Network(ABC):
 
 
 class DefaultNetwork(Network):
+    def __init__(
+        self,
+        roles: List[str],
+        address: NetworkType,
+        gateway: Optional[str] = None,
+        dns: Optional[str] = None,
+    ):
+        super().__init__(roles=roles, address=address)
+        self._gateway = ip_address(gateway)
+        self._dns = ip_address(dns)
+
     @property
     def gateway(self) -> Optional[AddressInterfaceType]:
-        return None
+        return self._gateway
 
     @property
     def dns(self) -> Optional[AddressInterfaceType]:
-        return None
+        return self._dns
 
     @property
     def has_free_ips(self):
