@@ -17,7 +17,7 @@ from grid5000.objects import VlanNodeManager
 from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
-from enoslib.objects import Network, NetworkType, AddressType
+from enoslib.objects import Network, NetworkType, AddressInterfaceType
 
 
 class G5kNetwork(ABC):
@@ -297,12 +297,12 @@ class G5kVlanNetwork(G5kNetwork):
         return [
             G5kEnosVlan4Network(
                 roles=self.roles,
-                network=ipaddress.ip_network(self.cidr),
+                address=self.cidr,
                 provider_network=self,
             ),
             G5kEnosVlan6Network(
                 roles=self.roles,
-                network=ipaddress.ip_network(self.cidr6),
+                addresss=self.cidr6,
                 provider_network=self,
             ),
         ]
@@ -358,12 +358,12 @@ class G5kProdNetwork(G5kVlanNetwork):
         return [
             G5kEnosProd4Network(
                 roles=self.roles,
-                network=ipaddress.ip_network(self.cidr),
+                address=self.cidr,
                 provider_network=self,
             ),
             G5kEnosProd6Network(
                 roles=self.roles,
-                network=ipaddress.ip_network(self.cidr6),
+                address=self.cidr6,
                 provider_network=self,
             ),
         ]
@@ -443,7 +443,7 @@ class G5kSubnetNetwork(G5kNetwork):
             nets.append(
                 G5kEnosSubnetNetwork(
                     roles=self.roles,
-                    network=ipaddress.ip_network(subnet),
+                    address=subnet,
                     provider_network=self,
                 )
             )
@@ -738,7 +738,7 @@ class G5kEnosVlan4Network(Network):
         return True
 
     @property
-    def free_ips(self) -> Iterable[AddressType]:
+    def free_ips(self) -> Iterable[AddressInterfaceType]:
         # On the network, the first IP are reserved to g5k machines.
         # For a routed vlan I don't know exactly how many ip are
         # reserved. However, the specification is clear about global

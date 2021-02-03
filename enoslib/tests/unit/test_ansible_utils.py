@@ -76,8 +76,8 @@ class TestGenerateInventoryString(EnosTest):
 class TestGetHostNet(EnosTest):
     def test__map_devices_all_match_single(self):
         networks = [
-            DefaultNetwork(roles=["a"], network=ip_network("1.2.3.0/24")),
-            DefaultNetwork(roles=["b"], network=ip_network("4.5.6.0/24")),
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
         # from ansible
         devices = [
@@ -112,8 +112,8 @@ class TestGetHostNet(EnosTest):
             },
         ]
         networks = [
-            DefaultNetwork(roles=["a"], network=ip_network("1.2.3.0/24")),
-            DefaultNetwork(roles=["b"], network=ip_network("4.5.6.0/24")),
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
         # only the last match is taken into account
         expected = [

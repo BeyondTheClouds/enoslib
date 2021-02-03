@@ -4,11 +4,11 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from ipaddress import (IPv4Address, IPv4Network, IPv6Address, IPv6Interface,
-                       IPv6Network, ip_interface)
+                       IPv6Network, ip_interface, ip_network)
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
-NetworkType = Union[IPv4Network, IPv6Network]
-AddressType = Union[IPv4Address, IPv6Address]
+NetworkType = Union[bytes, int, Tuple, str]
+AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 
 def _ansible_map_network_device(
@@ -38,18 +38,18 @@ def _ansible_map_network_device(
 
 
 class Network(ABC):
-    def __init__(self, roles: List[str], network: NetworkType):
+    def __init__(self, roles: List[str], address: NetworkType):
         self.roles = roles
-        self.network = network
+        self.network = ip_network(address)
 
     @property
     @abstractmethod
-    def gateway(self) -> Optional[AddressType]:
+    def gateway(self) -> Optional[AddressInterfaceType]:
         ...
 
     @property
     @abstractmethod
-    def dns(self) -> Optional[AddressType]:
+    def dns(self) -> Optional[AddressInterfaceType]:
         ...
 
     @property
@@ -59,7 +59,7 @@ class Network(ABC):
 
     @property
     @abstractmethod
-    def free_ips(self) -> Iterable[AddressType]:
+    def free_ips(self) -> Iterable[AddressInterfaceType]:
         yield from ()
 
     @property
@@ -75,11 +75,11 @@ class Network(ABC):
 
 class DefaultNetwork(Network):
     @property
-    def gateway(self) -> Optional[AddressType]:
+    def gateway(self) -> Optional[AddressInterfaceType]:
         return None
 
     @property
-    def dns(self) -> Optional[AddressType]:
+    def dns(self) -> Optional[AddressInterfaceType]:
         return None
 
     @property
@@ -87,7 +87,7 @@ class DefaultNetwork(Network):
         return False
 
     @property
-    def free_ips(self) -> Iterable[AddressType]:
+    def free_ips(self) -> Iterable[AddressInterfaceType]:
         yield from ()
 
     @property
