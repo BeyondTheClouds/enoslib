@@ -5,6 +5,10 @@ They use it
 Publications
 ============
 
+- Kubernetes WANWide: a Deployment Scenario to Expose and Use Edge Computing Resources?
+  Karim Manaouil, Adrien Lebre
+  IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
+
 - Daniel Rosendo, Pedro Silva, Matthieu Simonin, Alexandru Costan, Gabriel Antoniu. E2Clab: Exploring the Computing
   Continuum through Repeatable, Replicable and Reproducible Edge-to-Cloud Experiments. Cluster 2020 - The IEEE 2020
   International Conference on Cluster Computing, Sep 2020, Kobe, Japan. ⟨hal-02916032⟩
