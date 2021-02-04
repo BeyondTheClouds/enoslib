@@ -21,16 +21,18 @@ from enoslib.objects import Network, NetworkType, AddressInterfaceType
 
 
 class G5kNetwork(ABC):
-    """Base abstract class for a network."""
+    """Representation of an reservable network in G5k.
+
+    A G5kNetwork wraps the corresponding network resource of the G5k REST
+    API.
+
+    Args:
+        roles: roles/tags to give to this network (set by the application)
+        id: the id to give to this network (set by the application)
+        site: the site of this network
+    """
 
     def __init__(self, roles: List[str], id: str, site: str):
-        """Representation of an reservable network in G5k
-
-        Args:
-            roles: roles/tags to give to this network (set by the application)
-            id: the id to give to this network (set by the application)
-            site: the site of this network
-        """
         self.roles = roles
         self.id = id
         self.site = site

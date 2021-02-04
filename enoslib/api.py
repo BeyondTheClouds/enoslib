@@ -773,7 +773,7 @@ def sync_network_info(roles: Roles, networks: Networks) -> Roles:
     """Sync each host network information with their actual configuration
 
     If the command is successful each host extra_addresses attribute will be
-    populated. This allow the resync the enoslib Host representation with the
+    populated. This allows to resync the enoslib Host representation with the
     remote configuration.
 
     This method is generic: should work for any provider and supports IPv4

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -46,6 +45,16 @@ def _ansible_map_network_device(
 
 
 class Network(ABC):
+    """Base class for the library level network abstraction.
+
+    When one calls init on a provider, one takes ownership on nodes and
+    networks. This class reflect one network owned by the user for the
+    experiment lifetime. IPv4 and IPv6 networks can be reprensented by such
+    object.
+    Provider can inherit from this class or use the
+    :py:class:`DefaultNetwork` class which provides a good enough
+    implementation in most cases.
+    """
     def __init__(self, roles: List[str], address: NetworkType):
         self.roles = roles
         # accept cidr but coerce to IPNetwork
@@ -86,8 +95,18 @@ class DefaultNetwork(Network):
     """Good enough implementation of Network for most situations.
 
     Provides pooling for contiguous ips and/or macs.
-    """
+    Support IPv4 and IPv6.
 
+    Args:
+        roles: list of roles to assign to this role
+        address: network address (as in ipaddress.ip_interface)
+        gateway: (optionnal) the gateway for this network
+        dns: (optional) the dns address
+        ip_start: (optional) first ip in the ip pool
+        ip_end: (optional) last ip in the ip pool
+        mac_start: (optional) first mac in the mac pool
+        mac_end: (optional) last mac in the mac pool
+    """
     def __init__(
         self,
         roles: List[str],
@@ -99,6 +118,7 @@ class DefaultNetwork(Network):
         mac_start: str = None,
         mac_end: str = None,
     ):
+
         super().__init__(roles=roles, address=address)
         self._gateway = None
         if gateway is not None:
@@ -204,10 +224,33 @@ class IPAddress(object):
 class Host(object):
     """Abstract unit of computation.
 
-    A Host is anything EnosLib can SSH to and run shell commands on.
-    It is an abstraction notion of unit of computation that can be
-    bound to bare-metal machines, virtual machines, or containers.
+    A Host is anything EnosLib can access (e.g using SSH) to and run shell
+    commands on. It is an abstraction notion of unit of computation that can
+    be bound to bare-metal machines, virtual machines, or containers.
 
+
+    Note:
+
+        Internally EnOSlib is using Ansible to connect to the remote hosts.
+        By default SSH is used but it isn't the only connection method
+        supported. You can change the connection method to fit your needs by
+        setting the `ansible_connection` key in the extra field (and other
+        options if needed).
+        Ref: https://docs.ansible.com/ansible/latest/plugins/connection.html
+
+    Args:
+        address: host will be reached at this address (using SSH by default).
+        alias: a human readable alias
+        user: user to connect with (e.g using SSH)
+        keyfile: keyfile to use to authenticate (e.g when using SSH)
+        port: port to connect to (e.g using SSH)
+        extra: dictionnary of options. Will be passed to Ansible as host_vars.
+        extra_adddresses: list of network addresses configured on this host.
+            can be synced with the :py:func:`enoslib.api.sync_network_info`.
+
+    Note:
+        In the future we'd like the provider to populate the extra_addresses
+        to get a consistent initial representation of the hosts.
     """
 
     address: str
@@ -254,6 +297,7 @@ class Host(object):
         """Add an ip address to this host.
 
         If the IP already exists, replace it with the new value.
+        Mutate self, since it add/update the list of network addresses
 
         Args:
             address: The ip address to add (or update)
