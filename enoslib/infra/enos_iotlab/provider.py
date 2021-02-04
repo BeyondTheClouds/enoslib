@@ -6,7 +6,7 @@ from typing import List, Optional
 import iotlabcli.auth
 
 from enoslib.api import play_on
-from enoslib.objects import Host
+from enoslib.objects import Host, DefaultNetwork
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor
@@ -33,6 +33,7 @@ class Iotlab(Provider):
         self.client = IotlabAPI()
         self.hosts: List[IotlabHost] = []
         self.sensors: List[IotlabSensor] = []
+        self.networks: List[DefaultNetwork] = []
 
     def init(self):
         """
@@ -182,9 +183,73 @@ class Iotlab(Provider):
         else:
             self._populate_from_board_nodes(iotlab_nodes)
 
+        self._get_networks()
+
         logger.info("Finished reserving nodes: hosts %s, sensors %s" % (
             str(self.hosts), str(self.sensors)))
         return
+
+    def _get_networks(self):
+        """
+        Get networks used by A8 nodes on platform
+
+        By now use a fixed list of DefaultNetworks since the API
+        doesn't provide any information about networks in testbed.
+        """
+        net_data = {
+            "grenoble": [
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="10.0.12.0/21",
+                ),
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="2001:660:5307:3000::/64",
+                )
+            ],
+            "paris": [
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="10.0.68.0/21",
+                ),
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="2001:660:330f:a200::/64",
+                )
+            ],
+            "saclay": [
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="10.0.44.0/21",
+                ),
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="2001:660:3207:400::/64",
+                )
+            ],
+            "strasbourg": [
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="10.0.36.0/21",
+                ),
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="2001:660:4701:f080::/64",
+                )
+            ],
+            "lyon": [
+                DefaultNetwork(
+                    roles=["prod"],
+                    address="10.0.100.0/21",
+                )
+            ],
+        }
+        sites = set()
+        for host in self.hosts:
+            sites.add(host.site)
+
+        for site in sites:
+            self.networks.extend(net_data.get(site, []))
 
     def _profiles(self):
         """Create profiles"""
@@ -203,7 +268,6 @@ class Iotlab(Provider):
     def _to_enoslib(self):
         """Transform from provider specific resources to framework resources"""
         roles = {}
-        networks = []
         for host in self.hosts:
             for role in host.roles:
                 if host.ssh_address:
@@ -216,4 +280,4 @@ class Iotlab(Provider):
         for sensor in self.sensors:
             for role in sensor.roles:
                 roles.setdefault(role, []).append(sensor)
-        return roles, networks
+        return roles, self.networks

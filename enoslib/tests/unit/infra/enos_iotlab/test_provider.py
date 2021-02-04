@@ -12,6 +12,10 @@ from enoslib.infra.enos_iotlab.configuration import (
     BoardConfiguration,
     PhysNodeConfiguration,
 )
+from ipaddress import (
+    IPv4Network,
+    IPv6Network,
+)
 from enoslib.tests.unit import EnosTest
 
 from iotlabcli.experiment import AliasNodes, exp_resources
@@ -163,7 +167,7 @@ class TestSubmit(EnosTest):
         }
         # build a provider
         p = Iotlab(provider_config)
-        nodes, _ = p.init()
+        nodes, networks = p.init()
         mock_submit.assert_called_with(
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
@@ -176,6 +180,9 @@ class TestSubmit(EnosTest):
         )  # not ideal but the _alias depends on the test order...
 
         self.assertTrue(len(nodes["r2"]) == 2)
+        self.assertTrue(len(networks) == 2)
+        self.assertIsInstance(networks[0].network, IPv4Network)
+        self.assertIsInstance(networks[1].network, IPv6Network)
 
     @patch("iotlabcli.experiment.submit_experiment")
     def test_valid_phys_cfg(self, mock_submit):

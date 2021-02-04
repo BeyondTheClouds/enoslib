@@ -1,4 +1,5 @@
 from enoslib import run_command
+from enoslib.api import sync_network_info
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.configuration import Configuration
 
@@ -20,8 +21,8 @@ provider_conf = {
                 "archi": "a8:at86rf231",
                 "site": "grenoble",
                 "number": 2,
-            }]
-        }
+            }
+        ]}
     }
 
 conf = Configuration.from_dictionary(provider_conf)
@@ -29,6 +30,7 @@ conf = Configuration.from_dictionary(provider_conf)
 p = Iotlab(conf)
 try:
     roles, networks = p.init()
+    roles = sync_network_info(roles, networks)
     print(roles)
     print("A8 nodes have a simple linux OS. We can run 'date' command in them.")
     result = run_command(command="date", pattern_hosts="my_a8*", roles=roles)
