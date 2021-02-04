@@ -17,7 +17,7 @@ from grid5000.objects import VlanNodeManager
 from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
-from enoslib.objects import DefaultNetwork, Network, NetworkType, AddressInterfaceType
+from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
 
 
 class G5kNetwork(ABC):
