@@ -14,7 +14,7 @@ conf = (
     .add_machine(
         roles=["docker", "compute"],
         cluster="parapluie",
-        number=1,
+        number=2,
         flavour_desc={
             "core": 4,
             "mem": 4096
@@ -36,6 +36,7 @@ roles, networks = provider.init()
 print(roles)
 print(networks)
 
+wait_ssh(roles)
 # install docker on the nodes
 # bind /var/lib/docker to /tmp/docker to gain some places
 docker = Docker(agent=roles["docker"], bind_var_docker="/tmp/docker")

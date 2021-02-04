@@ -45,7 +45,7 @@ class TestG5kEnos(EnosTest):
     def test_production(self):
         enos_prod = ipaddress.ip_network("172.16.0.0/16")
         enos_network = G5kEnosProd4Network(
-            roles=["role1"], network=enos_prod, provider_network=self.g5k_prod
+            roles=["role1"], address=enos_prod, provider_network=self.g5k_prod
         )
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
@@ -55,7 +55,7 @@ class TestG5kEnos(EnosTest):
     def test_production6(self):
         enos_prod = ipaddress.ip_network("2001:660:4406:07::/64")
         enos_network = G5kEnosProd6Network(
-            roles=["role1"], network=enos_prod, provider_network=self.g5k_prod
+            roles=["role1"], address=enos_prod, provider_network=self.g5k_prod
         )
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
@@ -65,7 +65,7 @@ class TestG5kEnos(EnosTest):
     def test_kavlan(self):
         enos_kavlan = ipaddress.ip_network("10.24.0.0/18")
         enos_kavlan = G5kEnosVlan4Network(
-            roles=["role1"], network=enos_kavlan, provider_network=self.g5k_kavlan
+            roles=["role1"], address=enos_kavlan, provider_network=self.g5k_kavlan
         )
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
@@ -77,7 +77,7 @@ class TestG5kEnos(EnosTest):
     def test_kavlan6(self):
         enos_kavlan = ipaddress.ip_network("2001:660:4406:0790::/64")
         enos_kavlan = G5kEnosVlan6Network(
-            roles=["role1"], network=enos_kavlan, provider_network=self.g5k_kavlan
+            roles=["role1"], address=enos_kavlan, provider_network=self.g5k_kavlan
         )
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
@@ -94,7 +94,7 @@ class TestG5kEnos(EnosTest):
     def test_subnet(self):
         enos_subnet = ipaddress.ip_network("10.140.0.0/22")
         enos_subnet = G5kEnosSubnetNetwork(
-            roles=["role1"], network=enos_subnet, provider_network=self.g5k_subnet
+            roles=["role1"], address=enos_subnet, provider_network=self.g5k_subnet
         )
         self.assertTrue(enos_subnet.has_free_ips)
         # we get rid of the first and last address of the /22

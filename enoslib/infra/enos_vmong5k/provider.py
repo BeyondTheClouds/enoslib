@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
 import itertools
 import logging
-from operator import itemgetter
+import operator
 from typing import Dict, List, Mapping
 
 from netaddr import EUI, mac_unix_expanded
@@ -89,21 +90,22 @@ def _get_subnet_ip(mac):
     return IPv4Address(".".join(address))
 
 
-def _mac_range(g5k_subnets, skip=0, step=1):
-    skipped = 0
+def _mac_range(g5k_subnets: List[G5kEnosSubnetNetwork], skip=0, step=1):
     # be a bit defensive here by making sure the addresses sequence is
     # outputed deterministically
-    _g5k_subnets = sorted(g5k_subnets, key=itemgetter("mac_start"))
+    to_skip = skip
+    _g5k_subnets = sorted(g5k_subnets, key=operator.attrgetter("network"))
     for g5k_subnet in _g5k_subnets:
-        start = EUI(g5k_subnet["mac_start"])
-        stop = EUI(g5k_subnet["mac_end"])
+        it_mac = g5k_subnet.free_macs
         # we always skip the first one as this could not be a regular address
         # e.g 10.158.0.0
-        for item in range(int(start) + 1, int(stop), step):
-            if skipped < skip:
-                skipped = skipped + 1
-            else:
-                yield EUI(item, dialect=mac_unix_expanded)
+        next(it_mac)
+        emitted = False
+        for mac in itertools.islice(it_mac, to_skip, None, step):
+            yield EUI(mac, dialect=mac_unix_expanded)
+            emitted = True
+        if not emitted:
+            to_skip -= len(list(g5k_subnet.free_macs))
     raise StopIteration
 
 
@@ -203,7 +205,10 @@ def _index_by_host(roles):
     vms_by_host = defaultdict(list)
     for host, vms in virtual_machines_by_host.items():
         for virtual_machine in vms:
-            vms_by_host[host].append(virtual_machine.to_dict())
+            # beware the intend here is to get something that is json-serializable
+            # passing a set to ansible will basically fail so we take care of this here
+            vm_dict = virtual_machine.to_dict()
+            vms_by_host[host].append(vm_dict)
 
     return dict(vms_by_host), pms
 
@@ -260,8 +265,8 @@ class VirtualMachine(Host):
         d.update(
             core=self.core,
             mem=self.mem,
-            eui=str(self.eui),
             pm=self.pm.to_dict(),
+            eui=str(self.eui),
             extra_devices=self.extra_devices,
             disk=self.disk,
         )
@@ -283,7 +288,7 @@ class VMonG5k(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         self.g5k_roles, self.g5k_networks = g5k_provider.init()
-        g5k_subnets = [n for n in self.g5k_networks if "__subnet__" in n["roles"]]
+        g5k_subnets = [n for n in self.g5k_networks if "__subnet__" in n.roles]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:

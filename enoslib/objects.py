@@ -111,12 +111,12 @@ class DefaultNetwork(Network):
             self.pool_start = ip_address(ip_start)
         if ip_end is not None:
             self.pool_end = ip_address(ip_end)
-        self.mac_start = None
+        self.pool_mac_start: Optional[EUI] = None
         if mac_start is not None:
-            self.mac_start = EUI(mac_start)
-        self.mac_end = None
+            self.pool_mac_start = EUI(mac_start)
+        self.pool_mac_end: Optional[EUI] = None
         if mac_end is not None:
-            self.mac_end = EUI(mac_end)
+            self.pool_mac_end = EUI(mac_end)
 
     @property
     def gateway(self) -> Optional[AddressInterfaceType]:
@@ -132,16 +132,23 @@ class DefaultNetwork(Network):
 
     @property
     def free_ips(self) -> Iterable[AddressInterfaceType]:
-        for i in range(int(self.pool_start), int(self.pool_end)):
-            yield ip_address(i)
+        if self.has_free_ips:
+            assert self.pool_start is not None
+            assert self.pool_end is not None
+            for i in range(int(self.pool_start), int(self.pool_end)):
+                yield ip_address(i)
 
     @property
     def has_free_macs(self):
-        return self.mac_start and self.mac_end and self.mac_start < self.mac_end
+        return self.pool_mac_start and self.pool_mac_end and self.pool_mac_start < self.pool_mac_end
 
     @property
     def free_macs(self) -> Iterable[EUI]:
-        for item in range(int(self.mac_start) + 1, int(self.mac_end)):
+        if self.has_free_macs:
+            assert self.pool_mac_start is not None
+            assert self.pool_mac_end is not None
+        for item in range(int(self.pool_mac_start),
+                          int(self.pool_mac_end)):
             yield EUI(item)
 
 
@@ -181,9 +188,7 @@ class IPAddress(object):
             # is actually the prefix length
             # https://bugs.python.org/issue27860
             # cls((d["address"], d["netmask"])), roles, device)
-            return cls(
-                f"{d['address']}/{d['netmask']}", roles, device
-            )
+            return cls(f"{d['address']}/{d['netmask']}", roles, device)
         elif keys_2.issubset(d.keys()):
             return cls(f"{d['address']}/{d['prefix']}", roles, device)
         else:
@@ -226,9 +231,19 @@ class Host(object):
 
         if self.extra_addresses is None:
             self.extra_addresses = set()
+        self.extra_addresses = set(self.extra_addresses)
 
     def to_dict(self):
-        return copy.deepcopy(self.__dict__)
+        d = dict(
+            address=self.address,
+            alias=self.alias,
+            user=self.user,
+            keyfile=self.keyfile,
+            port=self.port,
+            extra=self.extra,
+            extra_addresses=list(self.extra_addresses),
+        )
+        return copy.deepcopy(d)
 
     def add_address(self, address: IPAddress):
         """Add an ip address to this host.

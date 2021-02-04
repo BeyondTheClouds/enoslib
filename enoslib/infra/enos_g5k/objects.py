@@ -296,14 +296,14 @@ class G5kVlanNetwork(G5kNetwork):
         """
         return [
             G5kEnosVlan4Network(
-                roles=self.roles,
-                address=self.cidr,
-                provider_network=self,
+                self.roles,
+                self.cidr,
+                self,
             ),
             G5kEnosVlan6Network(
-                roles=self.roles,
-                addresss=self.cidr6,
-                provider_network=self,
+                self.roles,
+                self.cidr6,
+                self,
             ),
         ]
 
@@ -357,14 +357,14 @@ class G5kProdNetwork(G5kVlanNetwork):
         """
         return [
             G5kEnosProd4Network(
-                roles=self.roles,
-                address=self.cidr,
-                provider_network=self,
+                self.roles,
+                self.cidr,
+                self,
             ),
             G5kEnosProd6Network(
-                roles=self.roles,
-                address=self.cidr6,
-                provider_network=self,
+                self.roles,
+                self.cidr6,
+                self,
             ),
         ]
 
@@ -442,9 +442,9 @@ class G5kSubnetNetwork(G5kNetwork):
         for subnet in self.subnets:
             nets.append(
                 G5kEnosSubnetNetwork(
-                    roles=self.roles,
-                    address=subnet,
-                    provider_network=self,
+                    self.roles,
+                    subnet,
+                    self,
                 )
             )
         return nets
@@ -674,9 +674,9 @@ class G5kEnosProd4Network(Network):
     """
 
     def __init__(
-        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
     ):
-        super().__init__(roles, network)
+        super().__init__(roles, address)
         self.provider_network = provider_network
 
     @property
@@ -728,9 +728,9 @@ class G5kEnosVlan4Network(Network):
     """
 
     def __init__(
-        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
     ):
-        super().__init__(roles, network)
+        super().__init__(roles, address)
         self.provider_network = provider_network
 
     @property
@@ -796,9 +796,9 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
     """
 
     def __init__(
-        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
     ):
-        super().__init__(roles, network, provider_network)
+        super().__init__(roles, address, provider_network)
 
     @property
     def free_ips(self):
@@ -834,9 +834,9 @@ class G5kEnosSubnetNetwork(Network):
     """
 
     def __init__(
-        self, roles: List[str], network: NetworkType, provider_network: G5kNetwork
+        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
     ):
-        super().__init__(roles, network)
+        super().__init__(roles, address)
         self.provider_network = provider_network
 
     @property
