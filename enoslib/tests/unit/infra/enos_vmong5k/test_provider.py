@@ -1,4 +1,4 @@
-from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
+from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork, G5kSubnetNetwork
 import mock
 from netaddr import EUI
 
@@ -51,7 +51,7 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = G5kEnosSubnetNetwork(roles=["a"], address="10.140.40.0/22", provider_network=None)
+        g5k_subnet = G5kEnosSubnetNetwork(["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25")
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(1, len(vmong5k_roles["r1"]))
@@ -70,7 +70,7 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = G5kEnosSubnetNetwork(roles=["a"], address="10.140.40.0/22", provider_network=None)
+        g5k_subnet = G5kEnosSubnetNetwork(["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25")
 
         vmong5k_roles = _distribute(machines, [g5k_subnet], skip=10)
         self.assertEqual(1, len(vmong5k_roles["r1"]))
@@ -89,7 +89,7 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = G5kEnosSubnetNetwork(roles=["a"], address="10.140.40.0/22", provider_network=None)
+        g5k_subnet = G5kEnosSubnetNetwork(["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25")
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))
@@ -112,7 +112,7 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = G5kEnosSubnetNetwork(roles=["a"], address="10.140.40.0/22", provider_network=None)
+        g5k_subnet = G5kEnosSubnetNetwork(["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25")
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))

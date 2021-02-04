@@ -17,7 +17,7 @@ from grid5000.objects import VlanNodeManager
 from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
-from enoslib.objects import Network, NetworkType, AddressInterfaceType
+from enoslib.objects import DefaultNetwork, Network, NetworkType, AddressInterfaceType
 
 
 class G5kNetwork(ABC):
@@ -64,6 +64,16 @@ class G5kNetwork(ABC):
         return self._dns
 
     @property
+    def dns6(self) -> Optional[str]:
+        """Gets the DNS address for this network. IPv6
+
+        We fallback to IPv4 for now
+        """
+        if self._dns is None:
+            self._dns = get_dns(self.site)
+        return self._dns
+
+    @property
     @abstractmethod
     def apinetwork(self) -> Optional[RESTObject]:
         """Gets the underlying RESTObject representing the network.
@@ -90,6 +100,16 @@ class G5kNetwork(ABC):
     @abstractmethod
     def gateway(self) -> Optional[str]:
         """Get the gateway for this network.
+
+        Returns:
+            The gateway address as a string.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def gateway6(self) -> Optional[str]:
+        """Get the gateway for this network (IPv6).
 
         Returns:
             The gateway address as a string.
@@ -243,6 +263,10 @@ class G5kVlanNetwork(G5kNetwork):
         return self._info["gateway"]
 
     @property
+    def gateway6(self) -> Optional[str]:
+        return None
+
+    @property
     def apinetwork(self) -> VlanNodeManager:
         self._check_apinetwork()
         return self._apinetwork
@@ -298,14 +322,10 @@ class G5kVlanNetwork(G5kNetwork):
         """
         return [
             G5kEnosVlan4Network(
-                self.roles,
-                self.cidr,
-                self,
+                self.roles, self.cidr, self.vlan_id, self.gateway, self.dns
             ),
             G5kEnosVlan6Network(
-                self.roles,
-                self.cidr6,
-                self,
+                self.roles, self.cidr, self.vlan_id, self.gateway6, self.dns6
             ),
         ]
 
@@ -358,16 +378,8 @@ class G5kProdNetwork(G5kVlanNetwork):
         we generate both generic network type here corresponding to this vlan.
         """
         return [
-            G5kEnosProd4Network(
-                self.roles,
-                self.cidr,
-                self,
-            ),
-            G5kEnosProd6Network(
-                self.roles,
-                self.cidr6,
-                self,
-            ),
+            G5kEnosProd4Network(self.roles, self.cidr, self.gateway, self.dns),
+            G5kEnosProd6Network(self.roles, self.cidr6, self.gateway6, self.dns6),
         ]
 
     def __repr__(self):
@@ -406,13 +418,34 @@ class G5kSubnetNetwork(G5kNetwork):
     def gateway(self):
         if self._gateway is None:
             self._gateway = get_subnet_gateway(self.site)
+        return self._gateway
+
+    @property
+    def gateway6(self):
+        return None
 
     @property
     def cidr(self):
+        """Not well defined.
+
+        Since subnets might be an aggregation of several smaller ones
+        it's difficult to know what to return here.
+
+        Note that the user will be given with as many Network as small
+        subnets we have. In this case the network address will be well
+        defined."""
         return None
 
     @property
     def cidr6(self):
+        """Not well defined (and no support for IPv6 now).
+
+        Since subnets might be an aggregation of several smaller ones
+        it's difficult to know what to return here.
+
+        Note that the user will be given with as many Network as small
+        subnets we have. In this case the network address will be well
+        defined."""
         return None
 
     @property
@@ -443,11 +476,7 @@ class G5kSubnetNetwork(G5kNetwork):
         nets = []
         for subnet in self.subnets:
             nets.append(
-                G5kEnosSubnetNetwork(
-                    self.roles,
-                    subnet,
-                    self,
-                )
+                G5kEnosSubnetNetwork(self.roles, subnet, self.gateway, self.dns)
             )
         return nets
 
@@ -669,41 +698,20 @@ class G5kHost:
         )
 
 
-class G5kEnosProd4Network(Network):
+class G5kEnosProd4Network(DefaultNetwork):
     """Implementation of the generic network type.
 
     IPv4 production network.
     """
 
     def __init__(
-        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
+        self,
+        roles: List[str],
+        address: NetworkType,
+        gateway: Optional[str] = None,
+        dns: Optional[str] = None,
     ):
-        super().__init__(roles, address)
-        self.provider_network = provider_network
-
-    @property
-    def has_free_ips(self):
-        return False
-
-    @property
-    def free_ips(self):
-        yield from ()
-
-    @property
-    def has_free_macs(self):
-        return False
-
-    @property
-    def free_macs(self):
-        yield from ()
-
-    @property
-    def gateway(self):
-        return ipaddress.ip_address(self.provider_network.gateway)
-
-    @property
-    def dns(self):
-        return ipaddress.ip_address(self.provider_network.dns)
+        super().__init__(roles, address, gateway=gateway, dns=dns)
 
 
 class G5kEnosProd6Network(G5kEnosProd4Network):
@@ -714,26 +722,25 @@ class G5kEnosProd6Network(G5kEnosProd4Network):
 
     @property
     def gateway(self):
-        # FIXME
-        return ipaddress.ip_address(self.provider_network.gateway)
-
-    @property
-    def dns(self):
-        # FIXME
-        return ipaddress.ip_address(self.provider_network.dns)
+        raise ValueError("Not implemented yet")
 
 
-class G5kEnosVlan4Network(Network):
+class G5kEnosVlan4Network(DefaultNetwork):
     """Implementation of the generic network type.
 
     IPv4 kavlan network
     """
 
     def __init__(
-        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
+        self,
+        roles: List[str],
+        address: NetworkType,
+        vlan_id: str,
+        gateway: Optional[str] = None,
+        dns: Optional[str] = None,
     ):
-        super().__init__(roles, address)
-        self.provider_network = provider_network
+        super().__init__(roles, address, gateway=gateway, dns=dns)
+        self.vlan_id = vlan_id
 
     @property
     def has_free_ips(self):
@@ -757,7 +764,7 @@ class G5kEnosVlan4Network(Network):
         # because some of ips are used for specific stuff such as
         # gateway, kavlan server...
         subnets = IPNetwork(str(self.network))
-        if self.provider_network.vlan_id in KAVLAN_LOCAL_IDS:
+        if self.vlan_id in KAVLAN_LOCAL_IDS:
             # vlan local
             subnets = list(subnets.subnet(24))
             subnets = subnets[4:7]
@@ -770,22 +777,6 @@ class G5kEnosVlan4Network(Network):
         for addr in IPSet(subnets).iprange():
             yield ipaddress.ip_address(addr)
 
-    @property
-    def has_free_macs(self):
-        return False
-
-    @property
-    def free_macs(self):
-        yield from ()
-
-    @property
-    def gateway(self):
-        return ipaddress.ip_address(self.provider_network.gateway)
-
-    @property
-    def dns(self):
-        return ipaddress.ip_address(self.provider_network.dns)
-
 
 class G5kEnosVlan6Network(G5kEnosVlan4Network):
     """Implementation of the generic network type
@@ -796,11 +787,6 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
     In my understanding taking a E part greater than max(cluster_index,
     site_index) will give us some free ips.
     """
-
-    def __init__(
-        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
-    ):
-        super().__init__(roles, address, provider_network)
 
     @property
     def free_ips(self):
@@ -815,11 +801,6 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
         # FIXME
         raise ValueError("Unsupported operation")
 
-    @property
-    def dns(self):
-        # FIXME
-        raise ValueError("Unsupported operation")
-
 
 def build_ipmac(subnet):
     network = IPNetwork(subnet)
@@ -829,17 +810,20 @@ def build_ipmac(subnet):
         yield ip, mac
 
 
-class G5kEnosSubnetNetwork(Network):
+class G5kEnosSubnetNetwork(DefaultNetwork):
     """Implementation of the generic network type.
 
     IPv4 only for now.
     """
 
     def __init__(
-        self, roles: List[str], address: NetworkType, provider_network: G5kNetwork
+        self,
+        roles: List[str],
+        address: NetworkType,
+        gateway: Optional[str] = None,
+        dns: Optional[str] = None,
     ):
-        super().__init__(roles, address)
-        self.provider_network = provider_network
+        super().__init__(roles, address, gateway=gateway, dns=dns)
 
     @property
     def has_free_ips(self):
@@ -858,13 +842,3 @@ class G5kEnosSubnetNetwork(Network):
     def free_macs(self):
         for _, mac in build_ipmac(str(self.network)):
             yield mac
-
-    @property
-    def gateway(self):
-        # FIXME
-        raise ValueError("Unsupported operation")
-
-    @property
-    def dns(self):
-        # FIXME
-        raise ValueError("Unsupported operation")

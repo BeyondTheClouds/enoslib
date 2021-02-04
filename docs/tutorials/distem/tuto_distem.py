@@ -3,7 +3,7 @@ from pathlib import Path
 
 from enoslib import *
 
-FORCE = True
+FORCE = False
 CLUSTER = "parapluie"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -40,7 +40,7 @@ roles, networks = provider.init()
 
 print(roles)
 print(networks)
-gateway = networks[0]['gateway']
+gateway = networks[0].gateway
 print("Gateway : %s" % gateway)
 
 roles = sync_network_info(roles, networks)

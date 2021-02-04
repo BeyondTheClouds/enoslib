@@ -98,14 +98,20 @@ class DefaultNetwork(Network):
     Support IPv4 and IPv6.
 
     Args:
-        roles: list of roles to assign to this role
-        address: network address (as in ipaddress.ip_interface)
-        gateway: (optionnal) the gateway for this network
-        dns: (optional) the dns address
-        ip_start: (optional) first ip in the ip pool
-        ip_end: (optional) last ip in the ip pool
+        roles    : list of roles to assign to this role
+        address  : network address (as in ipaddress.ip_interface)
+        gateway  : (optionnal) the gateway for this network
+                   (as in ipaddress.ip_address)
+        dns      : (optional) the dns address
+                   (as in ipaddress.ip_address)
+        ip_start : (optional) first ip in the ip pool
+                   (as in ipaddress.ip_address)
+        ip_end   : (optional) last ip in the ip pool
+                   (as in ipaddress.ip_address)
         mac_start: (optional) first mac in the mac pool
-        mac_end: (optional) last mac in the mac pool
+                   (as in netaddr.EUI)
+        mac_end  : (optional) last mac in the mac pool
+                   (as in netaddr.EUI)
     """
     def __init__(
         self,
@@ -147,8 +153,12 @@ class DefaultNetwork(Network):
         return self._dns
 
     @property
-    def has_free_ips(self):
-        return self.pool_start and self.pool_end and self.pool_start < self.pool_end
+    def has_free_ips(self) -> bool:
+        return (
+            self.pool_start is not None
+            and self.pool_end is not None
+            and self.pool_start < self.pool_end
+        )
 
     @property
     def free_ips(self) -> Iterable[AddressInterfaceType]:
@@ -160,10 +170,10 @@ class DefaultNetwork(Network):
         yield from ()
 
     @property
-    def has_free_macs(self):
+    def has_free_macs(self) -> bool:
         return (
-            self.pool_mac_start
-            and self.pool_mac_end
+            self.pool_mac_start is not None
+            and self.pool_mac_end is not None
             and self.pool_mac_start < self.pool_mac_end
         )
 
