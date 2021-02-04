@@ -2,7 +2,6 @@ import logging
 import os
 
 from enoslib.api import sync_network_info
-from enoslib.service import Dask
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
@@ -41,8 +40,3 @@ roles2 = sync_network_info(roles, networks)
 print(roles)
 # some network info attached to the nodes in roles2
 print(roles2)
-extra = roles2["control"][0].extra
-assert "local" in extra
-assert extra["local_dev"] == extra["local"]
-assert "local_ip" in extra
-assert extra["enos_devices"] == [extra["local_dev"]]

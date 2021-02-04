@@ -137,19 +137,24 @@ class DefaultNetwork(Network):
             assert self.pool_end is not None
             for i in range(int(self.pool_start), int(self.pool_end)):
                 yield ip_address(i)
+        yield from ()
 
     @property
     def has_free_macs(self):
-        return self.pool_mac_start and self.pool_mac_end and self.pool_mac_start < self.pool_mac_end
+        return (
+            self.pool_mac_start
+            and self.pool_mac_end
+            and self.pool_mac_start < self.pool_mac_end
+        )
 
     @property
     def free_macs(self) -> Iterable[EUI]:
         if self.has_free_macs:
             assert self.pool_mac_start is not None
             assert self.pool_mac_end is not None
-        for item in range(int(self.pool_mac_start),
-                          int(self.pool_mac_end)):
-            yield EUI(item)
+            for item in range(int(self.pool_mac_start), int(self.pool_mac_end)):
+                yield EUI(item)
+        yield from ()
 
 
 @dataclass(unsafe_hash=True)
