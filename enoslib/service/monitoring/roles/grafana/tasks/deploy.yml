@@ -38,7 +38,7 @@
 
 - name: Add Collector (Prometheus) in Grafana
   uri:
-    url: "http://[{{ hostvars[inventory_hostname]['ansible_default_ipv6']['address'] }}]:{{ ui_port }}/api/datasources"
+    url: "http://[{{ grafana_address }}]:{{ ui_port }}/api/datasources"
     user: admin
     password: admin
     force_basic_auth: yes
@@ -48,7 +48,7 @@
     body:
       name: telegraf
       type: prometheus
-      url: "http://[{{ hostvars[groups['prometheus'][0]]['ansible_default_ipv6']['address'] }}]:{{ collector_port }}"
+      url: "http://[{{ collector_address }}]:{{ collector_port }}"
       access: proxy
       database: telegraf
       isDefault: True

@@ -69,12 +69,12 @@ try:
     setup_vpn(iotlab_roles)
 
     print("Deploy monitoring stack on Grid'5000")
-    print("Install Grafana and InfluxDB at: %s" % str(g5k_roles["control"]))
+    print("Install Grafana and InfluxDB at: %s" % str(g5k_roles["control"][0]))
     print("Install Telegraf at: %s" % str(g5k_roles["compute"]))
-    m = Monitoring(collector=g5k_roles["control"], agent=g5k_roles["compute"]+iotlab_roles["a8"], ui=g5k_roles["control"])
+    m = TIGMonitoring(collector=g5k_roles["control"][0], agent=g5k_roles["compute"]+iotlab_roles["a8"], ui=g5k_roles["control"][0])
     m.deploy()
 
-    ui_address = g5k_roles["control"][0].extra["my_network_ip"]
+    ui_address = g5k_roles["control"][0].address
     print("The UI is available at http://%s:3000" % ui_address)
     print("user=admin, password=admin")
 

@@ -41,7 +41,7 @@ g5k_dict = {
             },
         ],
         "networks": [
-            {"id": "default", "type": "prod", "roles": ["my_network"], "site": "rennes"}
+            {"id": "default", "type": "prod", "roles": ["prod"], "site": "rennes"}
         ],
     },
 }
@@ -50,9 +50,10 @@ g5k_provider = G5k(g5k_conf)
 
 
 try:
-    iotlab_roles, _ = iotlab_provider.init()
+    iotlab_roles, iotlab_networks = iotlab_provider.init()
     g5k_roles, g5k_networks = g5k_provider.init()
-    g5k_roles = discover_networks(g5k_roles, g5k_networks)
+    g5k_roles = sync_network_info(g5k_roles, g5k_networks)
+    iotlab_roles = sync_network_info(iotlab_roles, iotlab_networks)
 
     print("Enabling IPv6 on Grid'5000 nodes")
     run_command("dhclient -6 br0", roles=g5k_roles)
@@ -60,10 +61,15 @@ try:
     print("Deploy monitoring stack on Grid'5000")
     print("Install Grafana and Prometheus at: %s" % str(g5k_roles["control"]))
     print("Install Telegraf at: %s" % str(g5k_roles["compute"]))
-    m = MonitoringIPv6(collector=g5k_roles["control"][0], agent=g5k_roles["compute"]+iotlab_roles["a8"], ui=g5k_roles["control"][0])
+    m = TPGMonitoring(
+            collector=g5k_roles["control"][0],
+            agent=g5k_roles["compute"]+iotlab_roles["a8"],
+            ui=g5k_roles["control"][0],
+            network=("prod", IPVersion.IPV6)
+    )
     m.deploy()
 
-    ui_address = g5k_roles["control"][0].extra["my_network_ip"]
+    ui_address = g5k_roles["control"][0].address
     print("The UI is available at http://%s:3000" % ui_address)
     print("user=admin, password=admin")
 

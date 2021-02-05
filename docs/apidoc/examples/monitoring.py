@@ -2,7 +2,7 @@ from enoslib.api import sync_network_info
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_g5k.configuration import (Configuration,
                                                   NetworkConfiguration)
-from enoslib.service import Monitoring
+from enoslib.service import TIGMonitoring
 
 import logging
 
@@ -31,10 +31,10 @@ roles, networks = provider.init()
 
 roles = sync_network_info(roles, networks)
 
-m = Monitoring(collector=roles["control"], agent=roles["compute"], ui=roles["control"])
+m = TIGMonitoring(collector=roles["control"][0], agent=roles["compute"], ui=roles["control"][0])
 m.deploy()
 
-ui_address = roles["control"][0].extra["my_network_ip"]
+ui_address = roles["control"][0].address
 print("The UI is available at http://%s:3000" % ui_address)
 print("user=admin, password=admin")
 

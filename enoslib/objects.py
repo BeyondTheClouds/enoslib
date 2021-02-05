@@ -376,5 +376,6 @@ class Host(object):
             "keyfile=%s" % self.keyfile,
             "port=%s" % self.port,
             "extra=%s" % self.extra,
+            "extra_addresses=%s" % self.extra_addresses,
         ]
         return "Host(%s)" % ", ".join(args)

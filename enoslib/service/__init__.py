@@ -1,5 +1,5 @@
 from .docker.docker import Docker  # noqa
-from .monitoring.monitoring import Monitoring  # noqa
+from .monitoring.monitoring import TIGMonitoring, TPGMonitoring, IPVersion  # noqa
 from .netem.netem import Netem, SimpleNetem  # noqa
 from .skydive.skydive import Skydive  # noqa
 from .locust.locust import Locust  # noqa
