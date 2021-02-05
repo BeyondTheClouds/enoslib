@@ -52,11 +52,13 @@ g5k_provider = G5k(g5k_conf)
 try:
     iotlab_roles, iotlab_networks = iotlab_provider.init()
     g5k_roles, g5k_networks = g5k_provider.init()
-    g5k_roles = sync_network_info(g5k_roles, g5k_networks)
-    iotlab_roles = sync_network_info(iotlab_roles, iotlab_networks)
 
     print("Enabling IPv6 on Grid'5000 nodes")
     run_command("dhclient -6 br0", roles=g5k_roles)
+
+    g5k_roles = sync_network_info(g5k_roles, g5k_networks)
+    iotlab_roles = sync_network_info(iotlab_roles, iotlab_networks)
+
 
     print("Deploy monitoring stack on Grid'5000")
     print("Install Grafana and Prometheus at: %s" % str(g5k_roles["control"]))

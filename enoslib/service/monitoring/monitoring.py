@@ -24,7 +24,7 @@ class IPVersion(Enum):
     IPV6 = 2
 
 
-def _get_address(host: Host, network: Union[str, Tuple[str, IPVersion]]) -> str:
+def _get_address(host: Host, network: Union[str, Tuple[str, IPVersion], None]) -> str:
     """Auxiliary function to get the IP address for the Host
 
     Gets IP address from Host class, depending on network parameter:
@@ -40,7 +40,8 @@ def _get_address(host: Host, network: Union[str, Tuple[str, IPVersion]]) -> str:
     """
     if network is None:
         return host.address
-    if isinstance(network, Tuple):
+
+    if isinstance(network, tuple):
         role = network[0]
         version = network[1]
     else:
@@ -134,12 +135,12 @@ class TIGMonitoring(Service):
         self.agent = agent
         assert self.agent is not None
         self.ui = ui
-        assert self.ui is not None
 
         self.network = network
         self._roles: Roles = {}
+        ui_list = [self.ui] if self.ui else []
         self._roles.update(
-            influxdb=[self.collector], telegraf=self.agent, grafana=[self.ui]
+            influxdb=[self.collector], telegraf=self.agent, grafana=ui_list
         )
         self.remote_working_dir = remote_working_dir
 
@@ -168,7 +169,9 @@ class TIGMonitoring(Service):
     def deploy(self):
         """Deploy the monitoring stack"""
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
-        ui_address = _get_address(self.ui, self.network)
+        ui_address = ""
+        if self.ui:
+            ui_address = _get_address(self.ui, self.network)
 
         extra_vars = {
             "enos_action": "deploy",
@@ -242,7 +245,7 @@ class TPGMonitoring(Service):
         agent: List[Host],
         *,
         ui: Host = None,
-        network: Union[str, Tuple] = None,
+        network: Union[str, Tuple[str, IPVersion]] = None,
         remote_working_dir: str = "/builds/monitoring",
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
@@ -284,12 +287,12 @@ class TPGMonitoring(Service):
         assert self.collector is not None
         self.agent = agent
         assert self.agent is not None
-        self.ui = ui if ui else []
-        assert self.ui is not None
+        self.ui = ui
 
         self._roles: Roles = {}
+        ui_list = [self.ui] if self.ui else []
         self._roles.update(
-            prometheus=[self.collector], telegraf=self.agent, grafana=[self.ui]
+            prometheus=[self.collector], telegraf=self.agent, grafana=ui_list
         )
         self.remote_working_dir = remote_working_dir
         self.prometheus_port = 9090
@@ -301,13 +304,17 @@ class TPGMonitoring(Service):
 
     def deploy(self):
         """Deploy the monitoring stack"""
+        ui_address = ""
+        if self.ui:
+            ui_address = _get_address(self.ui, self.network)
+
         extra_vars = {
             "enos_action": "deploy",
             "collector_type": "prometheus",
             "remote_working_dir": self.remote_working_dir,
             "collector_address": _get_address(self.collector, self.network),
             "collector_port": self.prometheus_port,
-            "grafana_address": _get_address(self.ui, self.network),
+            "ui_address": ui_address,
             "telegraf_targets": [_get_address(h, self.network) for h in self.agent]
         }
         extra_vars.update(self.extra_vars)
