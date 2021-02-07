@@ -64,12 +64,6 @@ def start_virtualmachines(
 
     """
 
-    def _to_hosts(roles: Mapping[str, List[VirtualMachine]]) -> Roles:
-        _roles = {}
-        for role, machines in roles.items():
-            _roles[role] = [m.to_host() for m in machines]
-        return _roles
-
     extra: Dict = {}
     if provider_conf.gateway:
         extra.update(gateway="access.grid5000.fr")
@@ -81,7 +75,7 @@ def start_virtualmachines(
 
     _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=force_deploy)
 
-    return _to_hosts(vmong5k_roles), g5k_subnets
+    return vmong5k_roles, g5k_subnets
 
 
 def _get_subnet_ip(mac):
