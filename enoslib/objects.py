@@ -36,7 +36,7 @@ def _ansible_map_network_device(
                     continue
                 for ip in ips:
                     host_addr = IPAddress.from_ansible(
-                        ip, roles=provider_net.roles, device=device["device"]
+                        ip, provider_net, provider_net.roles, device=device["device"]
                     )
                     if host_addr.ip in provider_net.network:
                         # found a map between a device on the host and a network
@@ -51,14 +51,26 @@ class Network(ABC):
     networks. This class reflect one network owned by the user for the
     experiment lifetime. IPv4 and IPv6 networks can be reprensented by such
     object.
-    Provider can inherit from this class or use the
+
+    Providers *must* inherit from this class or the
     :py:class:`DefaultNetwork` class which provides a good enough
     implementation in most cases.
+
+    Indeed, currently provenance (which provider created this) is encoded in
+    the __class__ attribute.
     """
     def __init__(self, roles: List[str], address: NetworkType):
         self.roles = roles
         # accept cidr but coerce to IPNetwork
         self.network = ip_interface(address).network
+
+    def __eq__(self, other: "Network") -> bool:
+        if self.__class__ != other.__class__:
+            return False
+        return self.network == other.network
+
+    def __hash__(self):
+        return hash(self.network)
 
     @property
     @abstractmethod
@@ -96,6 +108,8 @@ class DefaultNetwork(Network):
 
     Provides pooling for contiguous ips and/or macs.
     Support IPv4 and IPv6.
+
+    Providers *must* inherit from this class.
 
     Args:
         roles    : list of roles to assign to this role
@@ -191,13 +205,16 @@ class DefaultNetwork(Network):
 class IPAddress(object):
     """Representation of an address on a node.
 
-    Usually the same ip_address can't be assigned twice.
-    So equality and hash are based only on the ip field.
+    Usually the same ip_address can't be assigned twice. So equality and hash
+    are based on the ip field. Moreover in the case where two providers
+    network span the same ip range equality is also based on the netwrok
+    provenance.
     """
 
     address: InitVar[Union[bytes, int, Tuple, str]]
     roles: List[str] = field(compare=False, hash=False)
     device: str = field(compare=False, hash=False)
+    network: Network = field(compare=True, hash=True)
 
     # computed
     ip: Optional[Union[IPv4Interface, IPv6Interface]] = field(
@@ -209,7 +226,7 @@ class IPAddress(object):
         self.ip = ip_interface(address)
 
     @classmethod
-    def from_ansible(cls, d: Dict, roles: List[str], device: str):
+    def from_ansible(cls, d: Dict, network: Network, roles: List[str], device: str):
         """Build an IPAddress from ansible fact.
 
         Ansible fact corresponding section can be:
@@ -223,11 +240,23 @@ class IPAddress(object):
             # is actually the prefix length
             # https://bugs.python.org/issue27860
             # cls((d["address"], d["netmask"])), roles, device)
-            return cls(f"{d['address']}/{d['netmask']}", roles, device)
+            return cls(f"{d['address']}/{d['netmask']}", roles, device, network)
         elif keys_2.issubset(d.keys()):
-            return cls(f"{d['address']}/{d['prefix']}", roles, device)
+            return cls(f"{d['address']}/{d['prefix']}", roles, device, network)
         else:
             raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionnary")
+
+
+@dataclass
+class NetDevice(object):
+    """A network device."""
+    name: str
+
+
+@dataclass
+class Bridge(object):
+    name: str
+    interfaces: List[str] = field(default_factory=list)
 
 
 @dataclass(unsafe_hash=True)
@@ -277,6 +306,7 @@ class Host(object):
     # - also there's a plan to make the provider fill that for you when
     #   possible (e.g in G5K we can use the REST API)
     extra_addresses: Set[IPAddress] = field(default_factory=set, hash=False)
+    extra_devices: List[NetDevice] = field(default_factory=set, hash=False)
 
     def __post_init__(self):
         if not self.alias:
@@ -291,6 +321,10 @@ class Host(object):
             self.extra_addresses = set()
         self.extra_addresses = set(self.extra_addresses)
 
+        if self.extra_devices is None:
+            self.extra_devices = set()
+        self.extra_devices = set(self.extra_devices)
+
     def to_dict(self):
         d = dict(
             address=self.address,
@@ -300,6 +334,7 @@ class Host(object):
             port=self.port,
             extra=self.extra,
             extra_addresses=list(self.extra_addresses),
+            extra_devices=list(self.extra_devices)
         )
         return copy.deepcopy(d)
 

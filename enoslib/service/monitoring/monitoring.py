@@ -32,7 +32,7 @@ def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
     address = [
         ip_addr.ip.ip for net in networks
         for ip_addr in host.extra_addresses
-        if ip_addr.ip and ip_addr.ip.ip in net.network
+        if ip_addr.network == net
     ]
 
     if not address:
