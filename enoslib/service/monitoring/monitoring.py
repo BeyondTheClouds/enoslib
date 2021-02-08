@@ -1,11 +1,9 @@
 from pathlib import Path
 import os
-from typing import Dict, List, Optional, Union, Tuple
-from enum import Enum
-from ipaddress import IPv4Interface, IPv6Interface
+from typing import Dict, List, Optional
 
 from enoslib.api import run_ansible
-from enoslib.types import Host, Roles
+from enoslib.types import Host, Roles, Network
 from ..service import Service
 from ..utils import _check_path, _to_abs
 
@@ -19,48 +17,35 @@ DEFAULT_AGENT_IMAGE = "telegraf"
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
-class IPVersion(Enum):
-    IPV4 = 1
-    IPV6 = 2
-
-
-def _get_address(host: Host, network: Union[str, Tuple[str, IPVersion], None]) -> str:
+def _get_address(host: Host, network: Optional[List[Network]]) -> str:
     """Auxiliary function to get the IP address for the Host
-
-    Gets IP address from Host class, depending on network parameter:
-    - None: gets from host.address
-    - (role, ipv4): search in host.extra_addresses for an IPv4 with (role, ipv4)
-    - (role, version): search in host.extra_address for an IP with (role, version)
 
     Args:
         host: Host information
-        network: Network information
+        network: List of networks
     Returns:
         str: IP address from host
     """
     if network is None:
         return host.address
 
-    if isinstance(network, tuple):
-        role = network[0]
-        version = network[1]
-    else:
-        role = network
-        version = IPVersion.IPV4
+    address = [
+        ip_addr.ip.ip for net in network
+        for ip_addr in host.extra_addresses
+        if ip_addr.ip and ip_addr.ip.ip in net.network
+    ]
 
-    version_type = {
-        IPVersion.IPV4: IPv4Interface,
-        IPVersion.IPV6: IPv6Interface,
-    }
+    if not address:
+        raise ValueError(
+            f"IP address not found. Host: {host}, Networks: {network}"
+        )
 
-    for ip_addr in host.extra_addresses:
-        if (role in ip_addr.roles and isinstance(
-            ip_addr.ip, version_type[version])):
-            return str(ip_addr.ip.ip)
-
-    raise ValueError(
-        f"IP address not found. Host: {host}, Role: {role}, Version: {version}"
-    )
+    if len(address) > 1:
+        raise ValueError(
+            f"Cannot determine single IP address."
+            f"Options: {address} Host: {host}, Networks: {network}"
+        )
+    return str(address[0])
 
 
 class TIGMonitoring(Service):
@@ -70,7 +55,7 @@ class TIGMonitoring(Service):
         agent: List[Host],
         *,
         ui: Host = None,
-        network: Union[str, Tuple[str, IPVersion]] = None,
+        network: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
         collector_env: Optional[Dict] = None,
         agent_conf: Optional[str] = None,
@@ -102,14 +87,11 @@ class TIGMonitoring(Service):
                         The IP address is taken from :py:class:`enoslib.Host`, depending
                         on this parameter:
                         - None: IP address = host.address
-                        - str: Network role. Get the first IPv4 address available in
-                        host.extra_addresses with this network role.
-                        - Tuple(str, IPVersion). Network role and protocol version.
-                        Get the first IPVersion (ipv4 or ipv6) address in
-                        host.extra_ddresses with this network role and version.
+                        - List[Network]: Get the IP address available in
+                        host.extra_addresses which belongs to one of these networks
                         Note that this parameter depends on calling sync_network_info to
                         fill the extra_addresses structure.
-                        Raises an exception if no IP address is found
+                        Raises an exception if no or more than IP address is found
             remote_working_dir: path to a remote location that
                     will be used as working directory
             collector_env: environment variables to pass in the collector
@@ -245,7 +227,7 @@ class TPGMonitoring(Service):
         agent: List[Host],
         *,
         ui: Host = None,
-        network: Union[str, Tuple[str, IPVersion]] = None,
+        network: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
@@ -270,14 +252,11 @@ class TPGMonitoring(Service):
                         The IP address is taken from :py:class:`enoslib.Host`, depending
                         on this parameter:
                         - None: IP address = host.address
-                        - str: Network role. Get the first IPv4 address available in
-                        host.extra_addresses with this network role.
-                        - Tuple(str, IPVersion). Network role and protocol version.
-                        Get the first IPVersion (ipv4 or ipv6) address in
-                        host.extra_ddresses with this network role and version.
+                        - List[Network]: Get the first IP address available in
+                        host.extra_addresses which belongs to one of these networks
                         Note that this parameter depends on calling sync_network_info to
                         fill the extra_addresses structure.
-                        Raises an exception if no IP address is found
+                        Raises an exception if no or more than IP address is found
             remote_working_dir: path to a remote location that
                     will be used as working directory
         """

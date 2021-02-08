@@ -3,6 +3,7 @@ from enoslib import *
 import logging
 import sys
 import time
+from ipaddress import IPv6Network
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
@@ -67,7 +68,9 @@ try:
             collector=g5k_roles["control"][0],
             agent=g5k_roles["compute"]+iotlab_roles["a8"],
             ui=g5k_roles["control"][0],
-            network=("prod", IPVersion.IPV6)
+            network=[
+                n for n in g5k_networks+iotlab_networks if isinstance(n.network, IPv6Network)
+            ]
     )
     m.deploy()
 
