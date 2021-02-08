@@ -68,7 +68,7 @@ try:
             collector=g5k_roles["control"][0],
             agent=g5k_roles["compute"]+iotlab_roles["a8"],
             ui=g5k_roles["control"][0],
-            network=[
+            networks=[
                 n for n in g5k_networks+iotlab_networks if isinstance(n.network, IPv6Network)
             ]
     )

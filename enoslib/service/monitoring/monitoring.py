@@ -17,33 +17,33 @@ DEFAULT_AGENT_IMAGE = "telegraf"
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
-def _get_address(host: Host, network: Optional[List[Network]]) -> str:
+def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
     """Auxiliary function to get the IP address for the Host
 
     Args:
         host: Host information
-        network: List of networks
+        networks: List of networks
     Returns:
         str: IP address from host
     """
-    if network is None:
+    if networks is None:
         return host.address
 
     address = [
-        ip_addr.ip.ip for net in network
+        ip_addr.ip.ip for net in networks
         for ip_addr in host.extra_addresses
         if ip_addr.ip and ip_addr.ip.ip in net.network
     ]
 
     if not address:
         raise ValueError(
-            f"IP address not found. Host: {host}, Networks: {network}"
+            f"IP address not found. Host: {host}, Networks: {networks}"
         )
 
     if len(address) > 1:
         raise ValueError(
             f"Cannot determine single IP address."
-            f"Options: {address} Host: {host}, Networks: {network}"
+            f"Options: {address} Host: {host}, Networks: {networks}"
         )
     return str(address[0])
 
@@ -55,7 +55,7 @@ class TIGMonitoring(Service):
         agent: List[Host],
         *,
         ui: Host = None,
-        network: List[Network] = None,
+        networks: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
         collector_env: Optional[Dict] = None,
         agent_conf: Optional[str] = None,
@@ -80,7 +80,7 @@ class TIGMonitoring(Service):
                           be installed
             ui: :py:class:`enoslib.Host` where the UI will
                        be installed
-            network: network to use for the monitoring traffic.
+            networks: list of networks to use for the monitoring traffic.
                         Agents will send their metrics to the collector using
                         this IP address. In the same way, the ui will use this IP to
                         connect to collector.
@@ -118,7 +118,7 @@ class TIGMonitoring(Service):
         assert self.agent is not None
         self.ui = ui
 
-        self.network = network
+        self.networks = networks
         self._roles: Roles = {}
         ui_list = [self.ui] if self.ui else []
         self._roles.update(
@@ -153,11 +153,11 @@ class TIGMonitoring(Service):
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
         ui_address = ""
         if self.ui:
-            ui_address = _get_address(self.ui, self.network)
+            ui_address = _get_address(self.ui, self.networks)
 
         extra_vars = {
             "enos_action": "deploy",
-            "collector_address": _get_address(self.collector, self.network),
+            "collector_address": _get_address(self.collector, self.networks),
             "collector_port": collector_port,
             "collector_env": self.collector_env,
             "collector_type": "influxdb",
@@ -227,7 +227,7 @@ class TPGMonitoring(Service):
         agent: List[Host],
         *,
         ui: Host = None,
-        network: List[Network] = None,
+        networks: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
@@ -245,7 +245,7 @@ class TPGMonitoring(Service):
             ui: :py:class:`enoslib.Host` where the UI will be installed
             agent: list of :py:class:`enoslib.Host` where the agent
                     will be installed
-            network: network to use for the monitoring traffic.
+            networks: list of networks to use for the monitoring traffic.
                         Agents will send their metrics to the collector using
                         this IP address. In the same way, the ui will use this IP to
                         connect to collector.
@@ -276,7 +276,7 @@ class TPGMonitoring(Service):
         self.remote_working_dir = remote_working_dir
         self.prometheus_port = 9090
 
-        self.network = network
+        self.networks = networks
 
         # We force python3
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
@@ -285,16 +285,16 @@ class TPGMonitoring(Service):
         """Deploy the monitoring stack"""
         ui_address = ""
         if self.ui:
-            ui_address = _get_address(self.ui, self.network)
+            ui_address = _get_address(self.ui, self.networks)
 
         extra_vars = {
             "enos_action": "deploy",
             "collector_type": "prometheus",
             "remote_working_dir": self.remote_working_dir,
-            "collector_address": _get_address(self.collector, self.network),
+            "collector_address": _get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
             "ui_address": ui_address,
-            "telegraf_targets": [_get_address(h, self.network) for h in self.agent]
+            "telegraf_targets": [_get_address(h, self.networks) for h in self.agent]
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
@@ -336,7 +336,7 @@ class TPGMonitoring(Service):
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
-            "collector_address": _get_address(self.collector, self.network),
+            "collector_address": _get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
             "backup_dir": str(_backup_dir)
         }
