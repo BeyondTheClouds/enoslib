@@ -412,3 +412,57 @@ class TestConfiguration(EnosTest):
             ),
         )
         conf.finalize()
+
+
+class TestNetworkConfiguration(EnosTest):
+    def test_network_from_dictionary(self):
+        d = {
+            "resources": {
+                "machines": [{"roles": [], "hostname": ["a8"]}],
+                "networks": [
+                    {"id": "n1", "roles": ["r1"], "site": "grenoble", "type": "prod"}
+                ]
+            },
+        }
+
+        conf = Configuration.from_dictionary(d)
+        self.assertTrue(len(conf.networks) == 1)
+        self.assertEqual(conf.networks[0].id, "n1")
+        self.assertEqual(conf.networks[0].roles, ["r1"])
+        self.assertEqual(conf.networks[0].site, "grenoble")
+        self.assertEqual(conf.networks[0].type, "prod")
+
+    def test_network_prog(self):
+        conf = Configuration()
+        conf.add_machine_conf(
+            PhysNodeConfiguration(
+                roles=["r2"],
+                hostname=["m3-1.grenoble.iot-lab.info"],
+                image="test_profile",
+            )
+        ).add_network(
+            id="n1",
+            roles=["r1"],
+            site="grenoble",
+            type="prod",
+        )
+        conf.finalize()
+
+        self.assertTrue(len(conf.networks) == 1)
+        self.assertEqual(conf.networks[0].id, "n1")
+        self.assertEqual(conf.networks[0].roles, ["r1"])
+        self.assertEqual(conf.networks[0].site, "grenoble")
+        self.assertEqual(conf.networks[0].type, "prod")
+
+    def test_network_invalid(self):
+        d = {
+            "resources": {
+                "machines": [{"roles": [], "hostname": ["a8"]}],
+                "networks": [
+                    {"id": "n1", "roles": ["r1"], "site": "grenoble", "type": "vlan"}
+                ]
+            },
+        }
+
+        with self.assertRaises(ValidationError):
+            Configuration.from_dictionary(d)

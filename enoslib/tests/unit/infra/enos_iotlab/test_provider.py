@@ -11,6 +11,7 @@ from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     BoardConfiguration,
     PhysNodeConfiguration,
+    NetworkConfiguration,
 )
 from ipaddress import (
     IPv4Network,
@@ -225,6 +226,31 @@ class TestSubmit(EnosTest):
         p.init()
         p.destroy()
         mock_stop.assert_called_with(api=mock.ANY, exp_id=666)
+
+    @patch("iotlabcli.experiment.submit_experiment")
+    def test_deploy_with_network(self, mock_submit):
+        list_nodes = ["a8-1.grenoble.iot-lab.info"]
+        provider_config = (
+            Configuration()
+            .add_machine_conf(
+                PhysNodeConfiguration(roles=[], hostname=list_nodes)
+            )
+            .add_network_conf(
+                NetworkConfiguration(
+                    id="network1",
+                    roles=["n1"],
+                    type="prod",
+                    site="Grenoble",
+                )
+            )
+        )
+        # build a provider
+        p = Iotlab(provider_config)
+        nodes, networks = p.init()
+        print(networks)
+        self.assertTrue(len(networks) == 2)
+        self.assertEqual(networks[0].roles, ["n1"])
+        self.assertEqual(networks[1].roles, ["n1"])
 
 
 class TestDeploy(EnosTest):

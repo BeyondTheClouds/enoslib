@@ -12,6 +12,7 @@ from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor
 from enoslib.infra.utils import mk_pools, pick_things
 
+from enoslib.infra.enos_iotlab.constants import PROD
 from enoslib.infra.enos_iotlab.configuration import (
     PhysNodeConfiguration,
 )
@@ -196,60 +197,45 @@ class Iotlab(Provider):
         By now use a fixed list of DefaultNetworks since the API
         doesn't provide any information about networks in testbed.
         """
-        net_data = {
+        networks_info = {
             "grenoble": [
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="10.0.12.0/21",
-                ),
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="2001:660:5307:3000::/64",
-                )
+                "10.0.12.0/21",
+                "2001:660:5307:3000::/64",
             ],
             "paris": [
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="10.0.68.0/21",
-                ),
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="2001:660:330f:a200::/64",
-                )
+                "10.0.68.0/21",
+                "2001:660:330f:a200::/64",
             ],
             "saclay": [
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="10.0.44.0/21",
-                ),
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="2001:660:3207:400::/64",
-                )
+                "10.0.44.0/21",
+                "2001:660:3207:400::/64",
             ],
             "strasbourg": [
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="10.0.36.0/21",
-                ),
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="2001:660:4701:f080::/64",
-                )
+                "10.0.36.0/21",
+                "2001:660:4701:f080::/64",
             ],
             "lyon": [
-                DefaultNetwork(
-                    roles=["prod"],
-                    address="10.0.100.0/21",
-                )
+                "10.0.100.0/21",
             ],
         }
         sites = set()
         for host in self.hosts:
             sites.add(host.site)
 
+        # add networks from user
+        for net in self.provider_conf.networks:
+            self.networks.extend([
+                DefaultNetwork(roles=net.roles, address=addr)
+                for addr in networks_info.get(net.site.lower(), [])
+            ])
+            sites.discard(net.site.lower())
+
+        # add default networks not in conf
         for site in sites:
-            self.networks.extend(net_data.get(site, []))
+            self.networks.extend([
+                DefaultNetwork(roles=[PROD], address=addr)
+                for addr in networks_info.get(site.lower(), [])
+            ])
 
     def _profiles(self):
         """Create profiles"""
