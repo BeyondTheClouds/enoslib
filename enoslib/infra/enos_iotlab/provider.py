@@ -20,6 +20,16 @@ from enoslib.infra.enos_iotlab.configuration import (
 logger = logging.getLogger(__name__)
 
 
+class IotlabNetwork(DefaultNetwork):
+    """Iotlab network class.
+
+    Empty by now.
+    Needed to be compliant with
+    :py:class:`~enoslib.objects.DefaultNetwork`
+    """
+    pass
+
+
 class Iotlab(Provider):
     """
     The provider to be used when deploying on FIT/IoT-LAB testbed
@@ -34,7 +44,7 @@ class Iotlab(Provider):
         self.client = IotlabAPI()
         self.hosts: List[IotlabHost] = []
         self.sensors: List[IotlabSensor] = []
-        self.networks: List[DefaultNetwork] = []
+        self.networks: List[IotlabNetwork] = []
 
     def init(self):
         """
@@ -194,7 +204,7 @@ class Iotlab(Provider):
         """
         Get networks used by A8 nodes on platform
 
-        By now use a fixed list of DefaultNetworks since the API
+        By now use a fixed list of addresses since the API
         doesn't provide any information about networks in testbed.
         """
         networks_info = {
@@ -225,7 +235,7 @@ class Iotlab(Provider):
         # add networks from user
         for net in self.provider_conf.networks:
             self.networks.extend([
-                DefaultNetwork(roles=net.roles, address=addr)
+                IotlabNetwork(roles=net.roles, address=addr)
                 for addr in networks_info.get(net.site.lower(), [])
             ])
             sites.discard(net.site.lower())
@@ -233,7 +243,7 @@ class Iotlab(Provider):
         # add default networks not in conf
         for site in sites:
             self.networks.extend([
-                DefaultNetwork(roles=[PROD], address=addr)
+                IotlabNetwork(roles=[PROD], address=addr)
                 for addr in networks_info.get(site.lower(), [])
             ])
 
