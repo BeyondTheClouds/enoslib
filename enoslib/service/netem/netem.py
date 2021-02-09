@@ -1,5 +1,6 @@
 from collections import defaultdict
 import copy
+from enoslib.objects import Network
 import logging
 import re
 import os
@@ -86,8 +87,7 @@ def _same(g1, g2):
 
 
 def _generate_default_grp_constraints(roles, network_constraints):
-    """Generate default symetric grp constraints.
-    """
+    """Generate default symetric grp constraints."""
     default_delay = network_constraints.get("default_delay")
     default_rate = network_constraints.get("default_rate")
     default_loss = network_constraints.get("default_loss", 0)
@@ -117,8 +117,7 @@ def _generate_default_grp_constraints(roles, network_constraints):
 
 
 def _generate_actual_grp_constraints(network_constraints):
-    """Generate the user specified constraints
-    """
+    """Generate the user specified constraints"""
     if "constraints" not in network_constraints:
         return []
 
@@ -164,36 +163,11 @@ def _build_grp_constraints(roles, network_constraints):
     return constraints
 
 
-def _gen_devices(
-    all_devices: List[Dict], enos_devices: List[str]
-) -> Generator[Dict, None, None]:
-    """Get the name of the physical device attached to this device.
-
-    Args:
-        devices: list of the devices to extract the names from
-
-    If the device is a physical one return it
-    If the device is a "virtual" one (e.g bridge) returns the
-    corresponding physical ones.
-    """
-    # TODO(msimonin) we can filter here which network we want more precisely
-    for device in enos_devices:
-        # get the device caracteristic
-        _device = [d for d in all_devices if d["device"] == device][0]
-        if _device["type"] == "bridge":
-            for interface in _device["interfaces"]:
-                _d = [d for d in all_devices if d["device"] == interface]
-                yield _d[0]
-        else:
-            yield _device
-
-
-def _build_ip_constraints(roles, ips, constraints):
+def _build_ip_constraints(roles, networks, constraints):
     """Generate the constraints at the ip/device level.
 
     Those constraints are those used by ansible to enforce tc/netem rules.
     """
-    local_ips = copy.deepcopy(ips)
     ip_constraints = {}
     for constraint in constraints:
         gsrc = constraint["src"]
@@ -203,46 +177,40 @@ def _build_ip_constraints(roles, ips, constraints):
         gloss = constraint["loss"]
         for s in roles[gsrc]:
             # one possible source
-            local_devices = []
-            if "network" in constraint:
-                # Get only the devices specified in the network constraint
-                local_devices = filter(
-                    lambda x: x["device"] == s.extra[constraint["network"]],
-                    local_ips[s.alias]["devices"],
-                )
-            else:
-                # Get all the active devices for this source
-                local_devices = _gen_devices(
-                    local_ips[s.alias]["devices"], local_ips[s.alias]["enos_devices"]
-                )
+
+            # 1) we get all the devices for the wanted networks
+            nets = None
+            if "networks" in constraints and networks is not None:
+                nets = [
+                    network
+                    for network in networks
+                    if set(constraints["networks"]).issubset(network.roles)
+                ]
+            local_devices = s.filter_interfaces(nets, include_unknown=False)
+
             # we record the source host
             ip_constraints.setdefault(s.alias, {})
             ip_constraints[s.alias]["self"] = s
             for sdevice in local_devices:
                 ip_constraints[s.alias].setdefault("devices", [])
                 # don't add a new device if it still there for the corresponding node
-                check = [
-                    d
-                    for d in ip_constraints[s.alias]["devices"]
-                    if d["device"] == sdevice["device"]
-                ]
+                check = [d for d in ip_constraints[s.alias]["devices"] if d == sdevice]
                 if not check:
                     ip_constraints[s.alias]["devices"].append(sdevice)
                 # one possible device
                 for d in roles[gdst]:
                     # one possible destination
-                    dallips = local_ips[d.alias]["all_ipv4_addresses"]
+                    dall_addrs = d.filter_addresses(networks, include_unknown=False)
                     # Let's keep docker bridge out of this
-                    dallips = filter(lambda x: x != "172.17.0.1", dallips)
-                    for dip in dallips:
+                    for daddr in dall_addrs:
                         ip_constraints[s.alias].setdefault("tc", []).append(
                             {
                                 # source identifies the inventory hostname
                                 # used by ansible
                                 "source": s.alias,
                                 # Below is used for setting the right tc rules
-                                "target": dip,
-                                "device": sdevice["device"],
+                                "target": str(daddr.ip.ip),
+                                "device": sdevice,
                                 "delay": gdelay,
                                 "rate": grate,
                                 "loss": gloss,
@@ -261,9 +229,8 @@ def _build_commands(ips_with_constraints):
         # generate devices based command (remove + add qdisc)
         constraints = ips_with_constraints[alias]
         host = ips_with_constraints[alias]["self"]
-        active_devices = [d for d in constraints["devices"] if d["active"]]
-        for device_info in active_devices:
-            dev = device_info["device"]
+        active_devices = [d for d in constraints["devices"]]
+        for dev in active_devices:
             # remove
             cmd = f"tc qdisc del dev {dev} root || true"
             _remove[host].append(cmd)
@@ -273,45 +240,45 @@ def _build_commands(ips_with_constraints):
             # handle now all the rules
             tcs = constraints["tc"]
             # adding the rate limit in a dedicated htb class
-        for idx, tc in enumerate(tcs):
-            # rate limit
-            device = tc["device"]
-            rate = tc["rate"]
-            delay = tc["delay"]
-            loss = tc["loss"]
-            cmd = (
-                f"tc class add dev {device} "
-                "parent 1: "
-                f"classid 1:{idx + 1} "
-                f"htb rate {rate}"
-            )
-            _rate[host].append(cmd)
-            # delay/loss limit
-            if loss == 0:
+            for idx, tc in enumerate(tcs):
+                # rate limit
+                device = tc["device"]
+                rate = tc["rate"]
+                delay = tc["delay"]
+                loss = tc["loss"]
                 cmd = (
-                    f"tc qdisc add dev {device} "
-                    f"parent 1:{idx + 1} "
-                    f"handle {idx + 10}: "
-                    f"netem delay {delay}"
+                    f"tc class add dev {device} "
+                    "parent 1: "
+                    f"classid 1:{idx + 1} "
+                    f"htb rate {rate}"
                 )
-            else:
+                _rate[host].append(cmd)
+                # delay/loss limit
+                if loss == 0:
+                    cmd = (
+                        f"tc qdisc add dev {device} "
+                        f"parent 1:{idx + 1} "
+                        f"handle {idx + 10}: "
+                        f"netem delay {delay}"
+                    )
+                else:
+                    cmd = (
+                        f"tc qdisc add dev {device} "
+                        f"parent 1:{idx + 1} "
+                        f"handle {idx + 10}: "
+                        f"netem delay {delay} "
+                        f"loss {loss}"
+                    )
+                _delay[host].append(cmd)
+                # filter destination
+                dst = tc["target"]
                 cmd = (
-                    f"tc qdisc add dev {device} "
-                    f"parent 1:{idx + 1} "
-                    f"handle {idx + 10}: "
-                    f"netem delay {delay} "
-                    f"loss {loss}"
+                    f"tc filter add dev {device} "
+                    "parent 1: "
+                    f"protocol ip u32 match ip dst {dst} "
+                    f"flowid 1:{idx + 1}"
                 )
-            _delay[host].append(cmd)
-            # filter destination
-            dst = tc["target"]
-            cmd = (
-                f"tc filter add dev {device} "
-                "parent 1: "
-                f"protocol ip u32 match ip dst {dst} "
-                f"flowid 1:{idx + 1}"
-            )
-            _filter[host].append(cmd)
+                _filter[host].append(cmd)
     return _remove, _add, _rate, _delay, _filter
 
 
@@ -339,33 +306,40 @@ def _validate(roles, output_dir, extra_vars=None):
     run_ansible([_playbook], roles=roles, extra_vars=options)
 
 
-def _build_ips_file(roles, extra_vars):
-    """Get a representation of all the devices and associated ips."""
-    logger.debug("Getting the ips of all nodes")
-    _check_tmpdir(TMP_DIR)
-    ips_file = os.path.join(TMP_DIR, "ips.txt")
-    options = _build_options(
-        extra_vars, {"enos_action": "tc_ips", "ips_file": ips_file}
-    )
-    run_ansible([PLAYBOOK], roles=roles, extra_vars=options)
-    return ips_file
-
-
 class SimpleNetem(Service):
     def __init__(
-        self, options: str, network: str, *, hosts: List[Host] = None, extra_vars=None
+        self, options: str, hosts: List[Host], networks: List[Network], extra_vars=None
     ):
         """Set homogeneous network constraints between your hosts.
 
+        Setting bandwith/delay limitations is about running:
+
+        .. code-block:: bash
+
+            tc qdisc add dev <device_name> root netem <netem_options>
+
+        If you live in an ideal world, you'll know in advance the mapping
+        between nodes and interface names and you probably won't need this
+        Service. Just run the above command on each node. On G5k you could
+        use the API for that if your network configuration is *static*.
+
+        But the world isn't that ideal, in my opinion. If you don't want to
+        put to much burden in your experimental code just use this. This will
+        ensure that constraints are put on all the relevant network cards. For
+        example this will work the same if you move from one cluster to
+        another, from one job_type to another (on G5k), from one provider to
+        another. At least this is the intent of this Service.
 
         Note that the network constraints are set in all the nodes for
         outgoing packets only.
 
         Args:
-            options: raw netem options as described here:
-                     http://man7.org/linux/man-pages/man8/tc-netem.8.html
-            network: on which network the constraints will be applied (role name)
-            hosts: list of host on which the constraints will be applied
+            options   : raw netem options as described here:
+                        http://man7.org/linux/man-pages/man8/tc-netem.8.html
+            networks  : list of the networks to consider. Any interface with an
+                        ip address on one of those network will be considered.
+            hosts     : list of host on which the constraints will be applied
+            extra_vars: extra variable to inject during the ansible run
 
         Example:
 
@@ -373,47 +347,29 @@ class SimpleNetem(Service):
               :language: python
               :linenos:
 
-    """
+        """
         self.options = options
-        self.network = network
         self.hosts = hosts if hosts else []
+        self.networks = networks
         self.extra_vars = extra_vars if extra_vars is not None else {}
 
     def deploy(self):
         """Apply the constraints on all the hosts."""
 
-        # First get the list of all the devices,
-        # we'll need to set the constraints on the physical ones, not the bridge
-        # so we're reusing some logic from the Netem Service.
-        _hosts = copy.deepcopy(self.hosts)
-        _roles = {"all": _hosts}
-        ips_file = _build_ips_file(_roles, self.extra_vars)
+        # For each node get, the NIC to take into account
+        for host in self.hosts:
+            interfaces = host.get_interfaces_for(self.networks)
+            host.extra.update(__netem_devices__=interfaces)
+            host.extra.update(__netem_options__=self.options)
 
-        # This will hold the constraints
-        # we inject a new variable on each host that represent the rule to apply
-        with open(ips_file) as f:
-            ips = yaml.safe_load(f)
-            for s in _hosts:
-                # for each sources
-                # get the device corresponding to the network
-                network_device = s.extra[self.network]
-                # get the corresponding device where the rule must be applied
-                # we reuse an internal function from Netem to detect bridges
-                # for instance
-                local_devices = _gen_devices(ips[s.alias]["devices"], [network_device])
-                # There must be only one local_devices
-                # We inject this as host variable as __netem_device__ may differ from
-                # one host to another
-                s.extra.update(
-                    __netem_options__=self.options,
-                    __netem_device__=next(local_devices)["device"],
-                )
         # 88 chars!
-        cmd = "tc qdisc add dev {{ __netem_device__ }} root netem {{__netem_options__}}"
-        with play_on(roles=_roles) as p:
+        cmd = "tc qdisc add dev {{ item }} root netem {{__netem_options__}}"
+        with play_on(roles=dict(all=self.hosts)) as p:
             p.apt(name="iproute2", state="present")
-            p.shell("tc qdisc del dev {{ __netem_device__ }} root || true")
-            p.shell(cmd)
+            p.shell(
+                "tc qdisc del dev {{ item }} root || true", loop="{{__netem_devices__}}"
+            )
+            p.shell(cmd, loop="{{ __netem_devices__ }}")
 
     def backup(self):
         pass
@@ -434,8 +390,9 @@ class Netem(Service):
         network_constraints: Dict[Any, Any],
         *,
         roles: Roles = None,
+        networks: List[Network] = None,
         extra_vars: Dict[Any, Any] = None,
-        chunk_size: int = 100
+        chunk_size: int = 100,
     ):
         """Set heterogeneous constraints between your hosts.
 
@@ -533,6 +490,7 @@ class Netem(Service):
         Netem.is_valid(network_constraints)
         self.network_constraints = network_constraints
         self.roles = roles if roles is not None else []
+        self.networks = networks
         self.extra_vars = extra_vars if extra_vars is not None else {}
         self.chunk_size = chunk_size
 
@@ -543,29 +501,18 @@ class Netem(Service):
 
     def deploy(self):
         """Enforce network links emulation."""
-        # 1. Retrieve the list of ips for all nodes (Ansible)
-        # 2. Build all the constraints (Python)
+        # 1. Build all the constraints (Python)
         #    {source:src, target: ip_dest, device: if, rate:x,  delay:y}
-        # 3. Generate the sequence of tc commands to run on the hosts (Python)
-        # 4. Run those commands (Ansible)
-
-        # 1. getting  ips/devices information
-        ips_file = _build_ips_file(self.roles, self.extra_vars)
+        # 2. Generate the sequence of tc commands to run on the hosts (Python)
+        # 3. Run those commands (Ansible)
 
         # 2.a building the group constraints
         logger.debug("Building all the constraints")
         constraints = _build_grp_constraints(self.roles, self.network_constraints)
         # 2.b Building the ip/device level constaints
-        with open(ips_file) as f:
-            ips = yaml.safe_load(f)
-            # will hold every single constraint
-            ips_with_constraints = _build_ip_constraints(self.roles, ips, constraints)
-            # dumping it for debugging purpose
-            ips_with_constraints_file = os.path.join(
-                TMP_DIR, "ips_with_constraints.yml"
-            )
-            with open(ips_with_constraints_file, "w") as g:
-                yaml.dump(ips_with_constraints, g)
+
+        # will hold every single constraint
+        ips_with_constraints = _build_ip_constraints(self.roles, self.networks, constraints)
 
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
@@ -573,7 +520,7 @@ class Netem(Service):
         def _chunks(_list, size):
             """Chunk a list in smaller pieces."""
             for i in range(0, len(_list), size):
-                yield _list[i:i + size]
+                yield _list[i : i + size]
 
         def _combine(*args):
             """Build the commands indexed by host"""

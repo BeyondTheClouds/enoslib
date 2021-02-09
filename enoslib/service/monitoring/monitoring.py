@@ -29,11 +29,7 @@ def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
     if networks is None:
         return host.address
 
-    address = [
-        ip_addr.ip.ip for net in networks
-        for ip_addr in host.extra_addresses
-        if ip_addr.network == net
-    ]
+    address = host.filter_addresses(networks, include_unknown=False)
 
     if not address:
         raise ValueError(

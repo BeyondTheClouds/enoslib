@@ -7,7 +7,7 @@ from enoslib.service.netem.netem import (
     _build_grp_constraints,
     _merge_constraints,
 )
-from enoslib.objects import Host
+from enoslib.objects import DefaultNetwork, Host
 from enoslib.tests.unit import EnosTest
 
 
@@ -280,9 +280,7 @@ class TestMergeConstraints(EnosTest):
 
 class TestBuildIpConstraints(EnosTest):
     def setUp(self):
-        self.n1 = Host("node1")
-        self.n2 = Host("node2")
-        self.rsc = {"grp1": [self.n1], "grp2": [self.n2]}
+        # we need some constraints
         constraint = {
             "src": "grp1",
             "dst": "grp2",
@@ -291,94 +289,141 @@ class TestBuildIpConstraints(EnosTest):
             "loss": "0.1%",
         }
         self.constraints = [constraint]
-        self.ips = {
-            "node1": {
-                "all_ipv4_addresses": ["ip11", "ip12"],
-                "devices": [
-                    {"device": "eth0", "active": True, "type": "ether"},
-                    {"device": "eth1", "active": True, "type": "ether"},
-                ],
-                "enos_devices": ["eth0", "eth1"],
+        # we need some networks
+        self.networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="5.6.7.0/24"),
+        ]
+        # we need some hosts
+        self.n1 = Host("node1").sync_from_ansible(
+            self.networks,
+            {
+                "ansible_interfaces": ["eth0"],
+                "ansible_eth0": {
+                    "device": "eth0",
+                    "ipv4": [
+                        {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    ],
+                    "type": "ether",
+                },
             },
-            "node2": {
-                "all_ipv4_addresses": ["ip21", "ip21"],
-                "devices": [
-                    {"device": "eth0", "active": True, "type": "ether"},
-                    {"device": "eth1", "active": True, "type": "ether"},
-                ],
-                "enos_devices": ["eth0", "eth1"],
-            },
-        }
+        )
 
-        self.ips_with_bridge = {
-            "node1": {
-                "all_ipv4_addresses": ["ip11", "ip12"],
-                "devices": [
-                    {"device": "eth0", "active": True, "type": "ether"},
-                    {
-                        "device": "br0",
-                        "active": True,
-                        "type": "bridge",
-                        "interfaces": ["eth0"],
-                    },
-                ],
-                "enos_devices": ["br0"],
+        self.n2 = Host("node2").sync_from_ansible(
+            self.networks,
+            {
+                "ansible_interfaces": ["eth0"],
+                "ansible_eth0": {
+                    "device": "eth1",
+                    "ipv4": [
+                        {"address": "1.2.3.5", "netmask": "255.255.255.0"},
+                    ],
+                    "type": "ether",
+                },
             },
-            "node2": {
-                "all_ipv4_addresses": ["ip21", "ip22"],
-                "devices": [
-                    {"device": "eth0", "active": True, "type": "ether"},
-                    {
-                        "device": "br0",
-                        "active": True,
-                        "type": "bridge",
-                        "interfaces": ["eth0"],
-                    },
-                ],
-                "enos_devices": ["br0"],
-            },
-        }
+        )
+        self.rsc1 = {"grp1": [self.n1], "grp2": [self.n2]}
 
-    def test_build_ip_constraints(self):
-        ips_with_tc = _build_ip_constraints(self.rsc, self.ips, self.constraints)
+        # we need some hosts with bridge
+        nn1 = Host("node1").sync_from_ansible(
+            self.networks,
+            {
+                "ansible_interfaces": ["eth0"],
+                "ansible_eth0": {
+                    "device": "br0",
+                    "ipv4": [
+                        {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    ],
+                    "type": "bridge",
+                    "interfaces": ["eth0", "eth1"],
+                },
+            },
+        )
+
+        nn2 = Host("node2").sync_from_ansible(
+            self.networks,
+            {
+                "ansible_interfaces": ["eth0"],
+                "ansible_eth0": {
+                    "device": "eth1",
+                    "ipv4": [
+                        {"address": "1.2.3.5", "netmask": "255.255.255.0"},
+                    ],
+                    "type": "ether",
+                },
+            },
+        )
+        self.rsc_bridge = dict(grp1=[nn1], grp2=[nn2])
+
+    def test_build_ip_constraints_one_source_one_dest(self):
+        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks, self.constraints)
         # tc rules are applied on the source only
         self.assertFalse("node2" in ips_with_tc)
         # devices
         self.assertTrue("devices" in ips_with_tc["node1"])
-        self.assertEqual(2, len(ips_with_tc["node1"]["devices"]))
+        self.assertEqual(1, len(ips_with_tc["node1"]["devices"]))
         self.assertTrue("tc" in ips_with_tc["node1"])
         tcs = ips_with_tc["node1"]["tc"]
         # one rule per dest ip and source device
-        self.assertEqual(2 * 2, len(tcs))
+        self.assertEqual(1 * 1, len(tcs))
+
+        # we target the same if no network is given
+        ips_with_tc = _build_ip_constraints(self.rsc1, None, self.constraints)
+        # tc rules are applied on the source only
+        self.assertFalse("node2" in ips_with_tc)
+        # devices
+        self.assertTrue("devices" in ips_with_tc["node1"])
+        self.assertEqual(1, len(ips_with_tc["node1"]["devices"]))
+        self.assertTrue("tc" in ips_with_tc["node1"])
+        tcs = ips_with_tc["node1"]["tc"]
+        # one rule per dest ip and source device
+        self.assertEqual(1 * 1, len(tcs))
 
     def test_build_ip_constraints_bridge(self):
         ips_with_tc = _build_ip_constraints(
-            self.rsc, self.ips_with_bridge, self.constraints
+            self.rsc_bridge, self.networks, self.constraints
         )
         # tc rules are applied on the source only
         self.assertTrue("tc" in ips_with_tc["node1"])
         tcs = ips_with_tc["node1"]["tc"]
         # one rule per dest ip and source device
-        self.assertEqual(1 * 2, len(tcs))
-        # br0 isn't use but eth0 is
+        self.assertEqual(2 * 1, len(tcs))
+        # br0 isn't use but eth0 and eth1 are
         devices = set()
         for tc in tcs:
             devices.add(tc["device"])
-        self.assertCountEqual(["eth0"], list(devices))
+        self.assertCountEqual(["eth0", "eth1"], list(devices))
 
-    def test_build_commands(self):
+        # we target the same if no network is given
+        ips_with_tc = _build_ip_constraints(self.rsc_bridge, None, self.constraints)
+        # tc rules are applied on the source only
+        self.assertTrue("tc" in ips_with_tc["node1"])
+        tcs = ips_with_tc["node1"]["tc"]
+        # one rule per dest ip and source device
+        self.assertEqual(2 * 1, len(tcs))
+        # br0 isn't use but eth0 and eth1 are
+        devices = set()
+        for tc in tcs:
+            devices.add(tc["device"])
+        self.assertCountEqual(["eth0", "eth1"], list(devices))
+
+    def test_build_commands_with_symetric(self):
         self.constraints[0]["symetric"] = True
-        ips_with_tc = _build_ip_constraints(self.rsc, self.ips, self.constraints)
+        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks, self.constraints)
         remove, add, rate, delay, filtr = _build_commands(ips_with_tc)
-        self.assertEqual(2, len(remove[self.n1]))
+
+        # as many remove as devices
+        self.assertEqual(1, len(remove[self.n1]))
         # symetric cases are handled prior to _build_ip_constraints
-        # so are we aren't symetric unless we add a symetric constraint
+        # so we aren't symetric unless we add a symetric constraint
         self.assertEqual(0, len(remove[self.n2]))
-        self.assertEqual(2, len(add[self.n1]))
+
+        # as many add as devices
+        self.assertEqual(1, len(add[self.n1]))
         self.assertEqual(0, len(add[self.n2]))
         # we have as many rate class as possible (device, dest)
-        self.assertEqual(2 * 2, len(rate[self.n1]))
+        self.assertEqual(1 * 1, len(rate[self.n1]))
         # delay
-        self.assertEqual(2 * 2, len(delay[self.n1]))
+        self.assertEqual(1 * 1, len(delay[self.n1]))
         # we put filter on every (device, dest) possible
-        self.assertEqual(2 * 2, len(filtr[self.n1]))
+        self.assertEqual(1 * 1, len(filtr[self.n1]))

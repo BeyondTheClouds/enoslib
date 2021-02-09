@@ -812,7 +812,7 @@ def sync_network_info(roles: Roles, networks: Networks) -> Roles:
         for hosts in _roles.values():
             for host in hosts:
                 host_facts = facts[host.alias]
-                host.set_addresses_from_ansible(networks, host_facts)
+                host.sync_from_ansible(networks, host_facts)
 
     return _roles
 

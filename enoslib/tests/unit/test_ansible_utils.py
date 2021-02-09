@@ -1,6 +1,13 @@
 from ipaddress import ip_interface, ip_network
 from enoslib.errors import *
-from enoslib.objects import Host, IPAddress, DefaultNetwork, _ansible_map_network_device
+from enoslib.objects import (
+    BridgeDevice,
+    Host,
+    IPAddress,
+    DefaultNetwork,
+    NetDevice,
+    _build_devices,
+)
 from enoslib.enos_inventory import EnosInventory
 from enoslib.tests.unit import EnosTest
 
@@ -80,46 +87,114 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
         # from ansible
-        devices = [
-            {
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
                 "device": "eth0",
-                "ipv4": [{"address": "1.2.3.5", "netmask": "255.255.255.0"}],
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
             },
-            {
+            "ansible_eth1": {
                 "device": "eth1",
                 "ipv4": [{"address": "4.5.6.7", "netmask": "255.255.255.0"}],
+                "type": "ether",
             },
-        ]
+        }
         expected = [
-            {"cidr": "4.5.6.7/24", "device": "eth1"},
-            {"cidr": "1.2.3.4/24", "device": "eth0"},
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
+            NetDevice("eth1", set([IPAddress("4.5.6.7/24", networks[1])])),
         ]
-        expected = [
-            (networks[0], IPAddress("1.2.3.5/24", roles=["a"], device="eth0")),
-            (networks[1], IPAddress("4.5.6.7/24", roles=["b"], device="eth1")),
-        ]
-        self.assertCountEqual(expected, _ansible_map_network_device(networks, devices))
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
 
     def test__map_devices_all_match_multiple(self):
-        devices = [
-            {
-                "device": "eth0",
-                "ipv4": [{"address": "1.2.3.5", "netmask": "255.255.255.0"}],
-            },
-            {
-                "device": "eth1",
-                "ipv4": [{"address": "1.2.3.254", "netmask": "255.255.255.0"}],
-            },
-        ]
         networks = [
             DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
             DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+            "ansible_eth1": {
+                "device": "eth1",
+                "ipv4": [{"address": "1.2.3.254", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+        }
         expected = [
-            (networks[0], IPAddress("1.2.3.5/24", roles=["a"], device="eth0")),
-            (networks[0], IPAddress("1.2.3.254/24", roles=["a"], device="eth1")),
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
+            NetDevice("eth1", set([IPAddress("1.2.3.254/24", networks[0])])),
         ]
-        self.assertCountEqual(expected, _ansible_map_network_device(networks, devices))
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
+    def test__map_devices_same_device(self):
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        ]
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [
+                    {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    {"address": "1.2.3.5", "netmask": "255.255.255.0"},
+                ],
+                "type": "ether",
+            },
+        }
+        expected = [
+            NetDevice(
+                "eth0",
+                set(
+                    [
+                        IPAddress("1.2.3.5/24", networks[0]),
+                        IPAddress("1.2.3.4/24", networks[0]),
+                    ]
+                ),
+            ),
+        ]
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
+    def test_map_devices_bridge(self):
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        ]
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "br0",
+                "ipv4": [
+                    {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    {"address": "1.2.3.5", "netmask": "255.255.255.0"},
+                ],
+                "type": "bridge",
+                "interfaces": ["eth0", "eth1"],
+            },
+        }
+        expected = [
+            BridgeDevice(
+                "br0",
+                set(
+                    [
+                        IPAddress("1.2.3.5/24", networks[0]),
+                        IPAddress("1.2.3.4/24", networks[0]),
+                    ]
+                ),
+                ["eth0", "eth1"],
+            ),
+        ]
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
+    # todo bridge
 
 
 class TestEqHosts(EnosTest):

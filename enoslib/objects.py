@@ -18,30 +18,15 @@ AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 
-def _ansible_map_network_device(
-    provider_nets: List["Network"], devices: List[Dict]
-) -> List[Tuple["Network", "IPAddress"]]:
-    """Map networks to ansible devices."""
-    matches = []
-    for provider_net in provider_nets:
-        for device in devices:
-            versions = ["ipv4", "ipv6"]
-            for version in versions:
-                if version not in device:
-                    continue
-                ips = device[version]
-                if not isinstance(ips, list):
-                    ips = [ips]
-                if len(ips) < 1:
-                    continue
-                for ip in ips:
-                    host_addr = IPAddress.from_ansible(
-                        ip, provider_net, provider_net.roles, device=device["device"]
-                    )
-                    if host_addr.ip in provider_net.network:
-                        # found a map between a device on the host and a network
-                        matches.append((provider_net, host_addr))
-    return matches
+def _build_devices(facts, networks):
+    """Extract the network devices information from the facts."""
+    devices = set()
+    for interface in facts["ansible_interfaces"]:
+        ansible_interface = "ansible_" + interface
+        # filter here (active/ name...)
+        if ansible_interface in facts:
+            devices.add(NetDevice.sync_from_ansible(facts[ansible_interface], networks))
+    return devices
 
 
 class Network(ABC):
@@ -59,12 +44,13 @@ class Network(ABC):
     Indeed, currently provenance (which provider created this) is encoded in
     the __class__ attribute.
     """
+
     def __init__(self, roles: List[str], address: NetworkType):
         self.roles = roles
         # accept cidr but coerce to IPNetwork
         self.network = ip_interface(address).network
 
-    def __eq__(self, other: "Network") -> bool:
+    def __eq__(self, other) -> bool:
         if self.__class__ != other.__class__:
             return False
         return self.network == other.network
@@ -127,6 +113,7 @@ class DefaultNetwork(Network):
         mac_end  : (optional) last mac in the mac pool
                    (as in netaddr.EUI)
     """
+
     def __init__(
         self,
         roles: List[str],
@@ -207,14 +194,12 @@ class IPAddress(object):
 
     Usually the same ip_address can't be assigned twice. So equality and hash
     are based on the ip field. Moreover in the case where two providers
-    network span the same ip range equality is also based on the netwrok
+    network span the same ip range equality is also based on the network
     provenance.
     """
 
     address: InitVar[Union[bytes, int, Tuple, str]]
-    roles: List[str] = field(compare=False, hash=False)
-    device: str = field(compare=False, hash=False)
-    network: Network = field(compare=True, hash=True)
+    network: Optional[Network] = field(default=None, compare=True, hash=True)
 
     # computed
     ip: Optional[Union[IPv4Interface, IPv6Interface]] = field(
@@ -225,8 +210,15 @@ class IPAddress(object):
         # transform to ip interface
         self.ip = ip_interface(address)
 
+    @property
+    def roles(self):
+        if self.network is not None:
+            return self.network.roles
+        else:
+            return []
+
     @classmethod
-    def from_ansible(cls, d: Dict, network: Network, roles: List[str], device: str):
+    def from_ansible(cls, d: Dict, network: Optional[Network]):
         """Build an IPAddress from ansible fact.
 
         Ansible fact corresponding section can be:
@@ -240,23 +232,120 @@ class IPAddress(object):
             # is actually the prefix length
             # https://bugs.python.org/issue27860
             # cls((d["address"], d["netmask"])), roles, device)
-            return cls(f"{d['address']}/{d['netmask']}", roles, device, network)
+            return cls(f"{d['address']}/{d['netmask']}", network)
         elif keys_2.issubset(d.keys()):
-            return cls(f"{d['address']}/{d['prefix']}", roles, device, network)
+            return cls(f"{d['address']}/{d['prefix']}", network)
         else:
             raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionnary")
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class NetDevice(object):
-    """A network device."""
-    name: str
+    """A network device.
+
+    Note: two NetDevices are equal iff they have the same name and all the
+    addresses are equals.
+    """
+
+    name: str = field(compare=True, hash=True)
+    addresses: Set[IPAddress] = field(default_factory=set, compare=True, hash=False)
+
+    @classmethod
+    def sync_from_ansible(cls, device: Dict, networks: List[Network]):
+        """
+            "ansible_enx106530ad1e3f": {
+            "active": true,
+                "device": "enx106530ad1e3f",
+                "ipv4": {
+                    "address": "192.168.1.14",
+                    "broadcast": "192.168.1.255",
+                    "netmask": "255.255.255.0",
+                    "network": "192.168.1.0"
+                }
+                "macaddress": "10:65:30:ad:1e:3f",
+                "module": "r8152",
+                "mtu": 1500,
+                "pciid": "2-1.2:1.0",
+                "promisc": false,
+                "speed": 1000,
+                "type": "ether"
+        }
+        """
+        # build all ips
+        addresses = set()
+        versions = ["ipv4", "ipv6"]
+        for version in versions:
+            if version not in device:
+                continue
+            ips = device[version]
+            if not isinstance(ips, list):
+                ips = [ips]
+            if len(ips) < 1:
+                continue
+            for ip in ips:
+                _net = None
+                for provider_net in networks:
+                    # build an IPAddress /a priori/
+                    addr = IPAddress.from_ansible(ip, provider_net)
+                    if addr.ip in provider_net.network:
+                        _net = provider_net
+                addresses.add(IPAddress.from_ansible(ip, _net))
+        # addresses contains all the addresses for this devices
+        # even those that doesn't correspond to an enoslib network
+
+        # detect if that's a bridge
+        if device["type"] == "bridge":
+            return BridgeDevice(
+                name=device["device"], addresses=addresses, bridged=device["interfaces"]
+            )
+        else:
+            # regular "ether"
+            return cls(name=device["device"], addresses=addresses)
+
+    @property
+    def interfaces(self):
+        return [self.name]
+
+    def filter_addresses(
+        self, networks: Optional[Network] = None, include_unknown: bool = False
+    ) -> List[IPAddress]:
+        """Filter address based on the passed network list.
+
+        Args:
+            networks: a list of networks to further filter the request
+                      If None, all the interfaces with at least one network attached
+                      will be returned. This doesn't return interfaces
+                      attached to network unknown from EnOSlib.
+            include_unknown: True iff we want all the interface that are not
+                      attached to an EnOSlib network. Ignored if ``networks`` is not
+                      None.
+
+        Return:
+            A list of addresses
+        """
+        if networks is not None:
+            # return only known addresses
+            return [
+                addr
+                for addr in self.addresses
+                for network in networks
+                if addr.ip in network.network
+            ]
+        # return all the addresses known to enoslib (those that belong to one network)
+        addresses = [addr for addr in self.addresses if addr.network is not None]
+        if include_unknown:
+            return addresses + [addr for addr in self.addresses if addr.network is None]
+        return addresses
 
 
-@dataclass
-class Bridge(object):
-    name: str
-    interfaces: List[str] = field(default_factory=list)
+@dataclass(unsafe_hash=True)
+class BridgeDevice(NetDevice):
+    bridged: List[str] = field(default_factory=list, compare=False, hash=False)
+
+    @property
+    def interfaces(self) -> List[str]:
+        """Get all the interfaces that are bridged here."""
+        return self.bridged
 
 
 @dataclass(unsafe_hash=True)
@@ -305,8 +394,7 @@ class Host(object):
     # - discover_network can set this for you
     # - also there's a plan to make the provider fill that for you when
     #   possible (e.g in G5K we can use the REST API)
-    extra_addresses: Set[IPAddress] = field(default_factory=set, hash=False)
-    extra_devices: List[NetDevice] = field(default_factory=set, hash=False)
+    extra_devices: Set[NetDevice] = field(default_factory=set, hash=False)
 
     def __post_init__(self):
         if not self.alias:
@@ -316,10 +404,6 @@ class Host(object):
         # see for example https://gitlab.inria.fr/discovery/enoslib/-/issues/74
         if self.extra is not None:
             self.extra = copy.deepcopy(self.extra)
-
-        if self.extra_addresses is None:
-            self.extra_addresses = set()
-        self.extra_addresses = set(self.extra_addresses)
 
         if self.extra_devices is None:
             self.extra_devices = set()
@@ -333,57 +417,91 @@ class Host(object):
             keyfile=self.keyfile,
             port=self.port,
             extra=self.extra,
-            extra_addresses=list(self.extra_addresses),
-            extra_devices=list(self.extra_devices)
+            extra_devices=list(self.extra_devices),
         )
         return copy.deepcopy(d)
 
-    def add_address(self, address: IPAddress):
-        """Add an ip address to this host.
-
-        If the IP already exists, replace it with the new value.
-        Mutate self, since it add/update the list of network addresses
-
-        Args:
-            address: The ip address to add (or update)
-        """
-        try:
-            self.extra_addresses.remove(address)
-        except KeyError:
-            pass
-        self.extra_addresses.add(address)
-
-    def set_addresses_from_ansible(
+    def sync_from_ansible(
         self, networks: List[Network], host_facts: Dict, clear: bool = True
     ):
-        """Set the ip_addresses based on ansible fact.
+        """Set the devices based on ansible fact.s
 
-        Mutate self, since it add/update the list of network addresses
+        Mutate self, since it add/update the list of network devices
+        Currently the dict must be compatible with the ansible hosts facts.
         """
 
-        def get_devices(facts):
-            """Extract the network devices information from the facts."""
-            devices = []
-            for interface in facts["ansible_interfaces"]:
-                ansible_interface = "ansible_" + interface
-                # filter here (active/ name...)
-                if "ansible_" + interface in facts:
-                    interface = facts[ansible_interface]
-                    devices.append(interface)
-            return devices
-
         if clear:
-            self.extra_addresses = set()
-        matches = _ansible_map_network_device(networks, get_devices(host_facts))
-        for _, addr in matches:
-            self.add_address(addr)
+            self.extra_devices = set()
+        self.extra_devices = _build_devices(host_facts, networks)
+        return self
+
+    @property
+    def netdevice_addresses(self):
+        """Get all the ip_addresses associated with some roles/network"""
+        return [
+            (device.name, address)
+            for device in self.extra_devices
+            for address in device.addresses
+            if address.network is not None
+        ]
+
+    @property
+    def addresses(self):
+        return [na[1] for na in self.netdevice_addresses]
+
+    def filter_addresses(
+        self, networks: Optional[List[Network]] = None, include_unknown=False
+    ) -> List[IPAddress]:
+        """Get some of the addresses assigned to this host.
+
+        Args:
+            networks: a list of networks to further filter the request
+                      If None, all the interfaces with at least one network attached
+                      will be returned. This doesn't return interfaces
+                      attached to network unknown from EnOSlib.
+            include_unknown: True iff we want all the interface that are not
+                      attached to an EnOSlib network. Ignored if ``networks`` is not
+                      None.
+
+        Return:
+            A list of addresses
+        """
+        addresses = []
+        for net_device in self.extra_devices:
+            addresses +=  net_device.filter_addresses(networks, include_unknown=include_unknown)
+        return addresses
+
+    def filter_interfaces(
+        self, networks: Optional[List[Network]] = None, include_unknown=False
+    ) -> str:
+        """Get some of the device interfaces.
+
+        Args:
+            networks: a list of networks to further filter the request
+                      If None, all the interfaces with at least one network attached
+                      will be returned. This doesn't return interfaces
+                      attached to network unknown from EnOSlib.
+            include_unknown: True iff we want all the interface that are not
+                      attached to an EnOSlib network. Ignored if ``networks`` is not
+                      None.
+
+        Return:
+            A list of interface names.
+        """
+        interfaces = []
+        for net_device in self.extra_devices:
+            if net_device.filter_addresses(networks, include_unknown=include_unknown):
+                # at least one address in this network
+                # or networks is None and we got all the known addresses
+                interfaces.extend(net_device.interfaces)
+        return interfaces
 
     def get_network_roles(self):
         """Index the address by network roles."""
         roles = defaultdict(list)
-        for address in self.extra_addresses:
+        for device, address in self.netdevice_addresses:
             for role in address.roles:
-                roles[role].append(address)
+                roles[role].append((device, address))
         return roles
 
     @classmethod
@@ -411,6 +529,6 @@ class Host(object):
             "keyfile=%s" % self.keyfile,
             "port=%s" % self.port,
             "extra=%s" % self.extra,
-            "extra_addresses=%s" % self.extra_addresses,
+            "extra_addresses=%s" % self.extra_devices,
         ]
         return "Host(%s)" % ", ".join(args)

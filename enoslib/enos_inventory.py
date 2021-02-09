@@ -5,7 +5,7 @@ from ansible.parsing.dataloader import DataLoader
 from enoslib.objects import Host
 
 
-def _legacy_stuffs(host, machine):
+def _legacy_stuffs(host, machine: Host):
     # generate shortcut informations
     # -- legacy reasons
     # ipv4 only
@@ -17,17 +17,17 @@ def _legacy_stuffs(host, machine):
         # ensure some idempotency in this process
         ipv4s = sorted(
             [
-                addr
-                for addr in addresses
+                (device, addr)
+                for device, addr in addresses
                 if isinstance(addr.ip, IPv4Interface)
             ]
         )
         if len(ipv4s) > 0:
-            ipv4 = ipv4s[0]
-            host.set_variable(network_role, ipv4.device)
+            device, ipv4 = ipv4s[0]
+            host.set_variable(network_role, device)
             host.set_variable(f"{network_role}_ip", ipv4.ip.ip)
-            host.set_variable(f"{network_role}_dev", ipv4.device)
-            enos_devices.add(ipv4.device)
+            host.set_variable(f"{network_role}_dev", device)
+            enos_devices.add(device)
     if enos_devices:
         host.set_variable("enos_devices", list(enos_devices))
 
