@@ -303,11 +303,11 @@ class NetDevice(object):
             return cls(name=device["device"], addresses=addresses)
 
     @property
-    def interfaces(self):
+    def interfaces(self) -> List[str]:
         return [self.name]
 
     def filter_addresses(
-        self, networks: Optional[Network] = None, include_unknown: bool = False
+        self, networks: Optional[List[Network]] = None, include_unknown: bool = False
     ) -> List[IPAddress]:
         """Filter address based on the passed network list.
 
@@ -468,12 +468,14 @@ class Host(object):
         """
         addresses = []
         for net_device in self.extra_devices:
-            addresses +=  net_device.filter_addresses(networks, include_unknown=include_unknown)
+            addresses += net_device.filter_addresses(
+                networks, include_unknown=include_unknown
+            )
         return addresses
 
     def filter_interfaces(
         self, networks: Optional[List[Network]] = None, include_unknown=False
-    ) -> str:
+    ) -> List[str]:
         """Get some of the device interfaces.
 
         Args:

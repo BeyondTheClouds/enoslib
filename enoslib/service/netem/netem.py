@@ -1,11 +1,9 @@
 from collections import defaultdict
-import copy
 from enoslib.objects import Network
 import logging
 import re
 import os
-from typing import Any, Dict, List, Generator
-import yaml
+from typing import Any, Dict, List
 
 from jsonschema import validate
 
@@ -512,7 +510,9 @@ class Netem(Service):
         # 2.b Building the ip/device level constaints
 
         # will hold every single constraint
-        ips_with_constraints = _build_ip_constraints(self.roles, self.networks, constraints)
+        ips_with_constraints = _build_ip_constraints(
+            self.roles, self.networks, constraints
+        )
 
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
@@ -520,7 +520,7 @@ class Netem(Service):
         def _chunks(_list, size):
             """Chunk a list in smaller pieces."""
             for i in range(0, len(_list), size):
-                yield _list[i : i + size]
+                yield _list[i: i + size]
 
         def _combine(*args):
             """Build the commands indexed by host"""

@@ -5,7 +5,7 @@ from ipaddress import IPv4Address
 import itertools
 import logging
 import operator
-from typing import Dict, List, Mapping
+from typing import Dict, List
 
 from netaddr import EUI, mac_unix_expanded
 
@@ -14,7 +14,7 @@ from enoslib.objects import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from enoslib.types import Networks, Roles, RolesNetworks
+from enoslib.types import Networks, RolesNetworks
 from .configuration import Configuration
 from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
 from ..provider import Provider
