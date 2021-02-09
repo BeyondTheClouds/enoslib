@@ -38,5 +38,7 @@ roles, networks = provider.init()
 roles2 = sync_network_info(roles, networks)
 # not network info attached to the nodes in roles
 print(roles)
+assert len(roles["control"][0].filter_addresses()) == 0
 # some network info attached to the nodes in roles2
 print(roles2)
+assert len(roles2["control"][0].filter_addresses()) == 1
