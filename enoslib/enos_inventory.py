@@ -11,7 +11,7 @@ def _legacy_stuffs(host, machine: Host):
     # ipv4 only
     # FIXME: get rid of this but that would need to change at least the
     # netem implem
-    network_roles = machine.get_network_roles()
+    network_roles = machine._get_network_roles()
     enos_devices = set()
     for network_role, addresses in network_roles.items():
         # ensure some idempotency in this process

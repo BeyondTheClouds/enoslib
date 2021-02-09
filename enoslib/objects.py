@@ -435,20 +435,6 @@ class Host(object):
         self.extra_devices = _build_devices(host_facts, networks)
         return self
 
-    @property
-    def netdevice_addresses(self):
-        """Get all the ip_addresses associated with some roles/network"""
-        return [
-            (device.name, address)
-            for device in self.extra_devices
-            for address in device.addresses
-            if address.network is not None
-        ]
-
-    @property
-    def addresses(self):
-        return [na[1] for na in self.netdevice_addresses]
-
     def filter_addresses(
         self, networks: Optional[List[Network]] = None, include_unknown=False
     ) -> List[IPAddress]:
@@ -499,9 +485,22 @@ class Host(object):
         return interfaces
 
     def get_network_roles(self):
-        """Index the address by network roles."""
+        """Index the address by network roles.
+
+        Note: this function is called only when generating the
+        inventory. It adds some legacy extra_vars in the host vars.
+        That may not be needed in the future, if so, drop this method.
+        """
+        def netdevice_addresses():
+            """Get all the ip_addresses associated with some roles/network"""
+            return [
+                (device.name, address)
+                for device in self.extra_devices
+                for address in device.addresses
+                if address.network is not None
+            ]
         roles = defaultdict(list)
-        for device, address in self.netdevice_addresses:
+        for device, address in netdevice_addresses():
             for role in address.roles:
                 roles[role].append((device, address))
         return roles
