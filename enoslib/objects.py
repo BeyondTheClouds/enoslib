@@ -484,7 +484,7 @@ class Host(object):
                 interfaces.extend(net_device.interfaces)
         return interfaces
 
-    def get_network_roles(self):
+    def _get_network_roles(self):
         """Index the address by network roles.
 
         Note: this function is called only when generating the
