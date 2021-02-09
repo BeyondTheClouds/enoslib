@@ -15,7 +15,7 @@
     service_name: skydive-analyzer
     exec_start_pre: /usr/bin/{{ skydive_container_cli }} stop skydive-analyzer-{{ ansible_hostname }}
     exec_start: |
-      /usr/bin/{{ skydive_container_cli }} run --rm \
+      /usr/bin/{{ skydive_container_cli }} run  \
         {{ skydive_analyzer_docker_extra_env }} --name=skydive-analyzer-{{ ansible_hostname }} \
         --net=host \
         --user {{ skydive_sysuser_result.uid }}:{{ skydive_sysuser_result.group }} \

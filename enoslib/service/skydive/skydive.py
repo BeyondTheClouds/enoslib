@@ -21,7 +21,7 @@ DEFAULT_VARS = {
     # there a skydive_fabric variable to do that
     "skydive_auto_fabric": "no",
     # force python3
-    "ansible_python_interpreter": "/usr/bin/python3"
+    "ansible_python_interpreter": "/usr/bin/python3",
 }
 
 
@@ -62,9 +62,9 @@ class Skydive(Service):
 
         """
         self.analyzers = analyzers if analyzers is not None else []
-        assert(self.analyzers is not None)
-        self.agents = agents if agents is not None else []
-        assert(self.agents is not None)
+        assert self.analyzers is not None
+        self.agents = list(set(agents)) if agents is not None else []
+        assert self.agents is not None
         self.skydive = self.analyzers + self.agents
         self.roles: Dict = {}
         self.networks = networks
@@ -82,41 +82,46 @@ class Skydive(Service):
             self.extra_vars.update(skydive_fabric=self.fabric_opts)
 
     def build_fabric(self):
-        def fabric_for_role(network_role, desc):
+        def fabric_for_role(network):
             fabric = []
             for agent in self.agents:
-                device = agent.extra.get("%s_dev" % network_role)
-                if device is not None:
-                    infos = "cidr=%s, gateway=%s, dns=%s" % (
-                        desc["cidr"],
-                        desc["gateway"],
-                        desc["dns"],
-                    )
-                    infos = "%s, roles=%s" % (infos, "-".join(desc["roles"]))
-                    local_port = "%s-%s" % (network_role, int(len(fabric) / 2))
-                    fabric.append("%s[%s] -> %s" % (desc["cidr"], infos, local_port))
-                    fabric.append(
-                        "%s -> *[Type=host, Hostname=%s]/%s"
-                        % (local_port, agent.alias, device)
-                    )
+                devices = agent.filter_interfaces([network])
+                for device in devices:
+                    if device is not None:
+                        infos = f"cidr={network.network}"
+                        infos = "%s, roles=%s" % (infos, "-".join(network.roles))
+                        local_port = "%s-%s" % (
+                            "-".join(network.roles),
+                            int(len(fabric) / 2),
+                        )
+                        fabric.append(
+                            "%s[%s] -> %s" % (network.network, infos, local_port)
+                        )
+                        fabric.append(
+                            "%s -> *[Type=host, Hostname=%s]/%s"
+                            % (local_port, agent.alias, device)
+                        )
             return fabric
 
         fabric = []
         if self.networks is None:
             return fabric
 
-        for n in self.networks:
-            roles = n["roles"]
-            for role in roles:
-                # we use the first role to be able to get the associated device
-                fabric.extend(fabric_for_role(role, n))
-                break
+        for network in self.networks:
+            # we use the first role to be able to get the associated device
+            fabric.extend(fabric_for_role(network))
+
         return fabric
 
     def deploy(self):
         """Deploy Skydive service."""
         # Some requirements
-        with play_on(pattern_hosts="all", roles=self.roles, priors=self.priors) as p:
+        with play_on(
+            pattern_hosts="all",
+            roles=self.roles,
+            priors=self.priors,
+            extra_vars=self.extra_vars,
+        ) as p:
             p.pip(display_name="[Preinstall] Installing pyyaml", name="pyyaml")
         _playbook = os.path.join(SERVICE_PATH, "skydive", "skydive.yml")
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
