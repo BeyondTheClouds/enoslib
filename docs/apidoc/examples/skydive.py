@@ -29,7 +29,7 @@ s = Skydive(analyzers=roles["control"],
             agents=roles["compute"] + roles["control"])
 s.deploy()
 
-ui_address = roles["control"][0].extra["mynetwork_ip"]
+ui_address = roles["control"][0].address
 print("The UI is available at http://%s:8082" % ui_address)
 
 s.backup()
