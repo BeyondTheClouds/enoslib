@@ -30,7 +30,11 @@ from enoslib.infra.enos_g5k.constants import (
 )
 from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
-from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork, get_api_username
+from enoslib.infra.enos_g5k.g5k_api_utils import (
+    OarNetwork,
+    get_api_username,
+    _do_synchronise_jobs,
+)
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
     G5kNetwork,
@@ -259,6 +263,27 @@ class G5kTunnel(object):
         self.close()
 
 
+def synchronise(*confs):
+    """Find a suitable reservation date for all the confs passed."""
+
+    def max_walltime(w1, w2):
+        """lexicographic order on string XX:YY:ZZ
+
+        string must be well-formed."""
+        if w1 < w2:
+            return w2
+        else:
+            return w1
+
+    machines = []
+    walltime = "00:00:00"
+    for conf in confs:
+        machines.extend(conf.machines)
+        walltime = max(walltime, conf.walltime)
+
+    return _do_synchronise_jobs(walltime, machines, force=True)
+
+
 class G5k(Provider):
     """The provider to use when deploying on Grid'5000."""
 
@@ -343,8 +368,8 @@ class G5k(Provider):
             # even if they won't do much with enoslib in this case.
             self.grant_root_access()
 
-    def reserve(self):
-        oar_nodes, oar_networks = self.driver.reserve()
+    def reserve(self) -> List[G5kHost]:
+        oar_nodes, oar_networks = self.driver.reserve(wait=True)
         machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
         self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
         self.hosts = _join(machines, self.networks)
@@ -352,6 +377,13 @@ class G5k(Provider):
         for h in self.hosts:
             h.mirror_state()
         return self.hosts
+
+    def reserve_async(self):
+        """Reserve but don't wait.
+
+        No node/network information can't be retrieved at this moment.
+        """
+        self.driver.reserve(wait=False)
 
     def deploy(self):
         def _key(host):

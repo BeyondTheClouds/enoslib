@@ -590,7 +590,11 @@ def can_start_on_cluster(
     return False
 
 
+<<<<<<< HEAD
 def _do_synchronise_jobs(walltime, machines):
+=======
+def _do_synchronise_jobs(walltime, machines, force=False):
+>>>>>>> 1e9c5d0... G5k: expose a method to sync different confs
     """This returns a common reservation date for all the jobs.
 
     This reservation date is really only a hint and will be supplied to each
@@ -599,6 +603,10 @@ def _do_synchronise_jobs(walltime, machines):
     running. But this doens't prevent the start of a job on one site to drift
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
+    To address https://gitlab.inria.fr/discovery/enoslib/-/issues/104 we add
+    a force option. Indeed machines can come from different job_types (and
+    synchronisation is mandatory in this case even for nodes on the same
+    site).
     """
     offset = SYNCHRONISATION_OFFSET
     start = time.time() + offset
@@ -617,16 +625,16 @@ def _do_synchronise_jobs(walltime, machines):
         demands[cluster] += number
         exact_nodes[cluster].extend(exact)
 
-    # Early leave if only one cluster is there
-    if len(list(demands.keys())) <= 1:
+    # Early leave if only one cluster is there (and not force set)
+    if not force and len(list(demands.keys())) <= 1:
         logger.debug("Only one cluster detected: no synchronisation needed")
         return None
 
     clusters = clusters_sites_obj(list(demands.keys()))
 
-    # Early leave if only one site is concerned
+    # Early leave if only one site is concerned (and not force set
     sites = set(list(clusters.values()))
-    if len(sites) <= 1:
+    if not force and len(sites) <= 1:
         logger.debug("Only one site detected: no synchronisation needed")
         return None
 
@@ -698,7 +706,15 @@ def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[s
 
 
 def grid_get_or_create_job(
-    job_name, walltime, reservation_date, queue, job_type, project, machines, networks
+    job_name,
+    walltime,
+    reservation_date,
+    queue,
+    job_type,
+    project,
+    machines,
+    networks,
+    wait=True,
 ):
     jobs = grid_reload_from_name(job_name)
     if len(jobs) == 0:
@@ -712,9 +728,10 @@ def grid_get_or_create_job(
             machines,
             networks,
         )
-    wait_for_jobs(jobs)
-
-    return build_resources(jobs)
+    if wait:
+        wait_for_jobs(jobs)
+        return build_resources(jobs)
+    return None
 
 
 def _build_reservation_criteria(machines, networks):
