@@ -1,7 +1,7 @@
 ---
 - name: Snapshot Prometheus database
   uri:
-    url: "http://[{{ collector_address }}]:{{ collector_port }}/api/v1/admin/tsdb/snapshot"
+    url: "http://{{ collector_address | ipwrap }}:{{ collector_port }}/api/v1/admin/tsdb/snapshot"
     method: POST
     status_code: [200]
   register: snapshot
