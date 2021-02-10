@@ -12,7 +12,18 @@ SCHEMA = {
         "force_deploy": {"type": "boolean"},
         "env_name": {"type": "string"},
         "job_name": {"type": "string"},
-        "job_type": {"type": "string", "enum": JOB_TYPES},
+        "job_type": {
+            "anyOf": [
+            {
+                "type": "string",
+                "enum": JOB_TYPES
+            },
+            {
+                "type": "array",
+                "items": {"type": "string", "enum": JOB_TYPES}
+            }
+    ]
+        },
         "key": {"type": "string"},
         "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},
         "project": {"type": "string"},

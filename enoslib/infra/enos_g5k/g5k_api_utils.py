@@ -748,12 +748,14 @@ def _do_grid_make_reservation(
     criterias, job_name, walltime, reservation_date, queue, job_type, project
 ):
     job_specs = []
+    if isinstance(job_type, str):
+        job_type = [job_type]
     for site, criteria in criterias.items():
         resources = "+".join(criteria)
         resources = "%s,walltime=%s" % (resources, walltime)
         job_spec = {
             "name": job_name,
-            "types": [job_type],
+            "types": job_type,
             "resources": resources,
             "command": "sleep 31536000",
             "queue": queue,
