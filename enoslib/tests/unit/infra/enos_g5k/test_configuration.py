@@ -17,7 +17,7 @@ class TestConfiguration(EnosTest):
         conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
-        self.assertEqual(constants.DEFAULT_JOB_TYPE, conf.job_type)
+        self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
         self.assertEqual(constants.DEFAULT_QUEUE, conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertEqual([], conf.machines)
@@ -32,9 +32,31 @@ class TestConfiguration(EnosTest):
         conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual("test", conf.job_name)
-        self.assertEqual(constants.DEFAULT_JOB_TYPE, conf.job_type)
+        self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
         self.assertEqual("production", conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
+
+    def test_from_dictionnary_job_types(self):
+        d = {
+            "job_name": "test",
+            "queue": "production",
+            "job_type": "allow_classic_ssh",
+            "resources": {"machines": [], "networks": []},
+        }
+        conf = Configuration.from_dictionnary(d)
+        self.assertEqual(["allow_classic_ssh"], conf.job_type)
+
+        d["job_type"] = "bla"
+        with self.assertRaises(ValidationError):
+            conf = Configuration.from_dictionnary(d)
+
+        d["job_type"] = ["allow_classic_ssh"]
+        conf = Configuration.from_dictionnary(d)
+        self.assertEqual(["allow_classic_ssh"], conf.job_type)
+
+        d["job_type"] = ["allow_classic_ssh", "bla"]
+        with self.assertRaises(ValidationError):
+            conf = Configuration.from_dictionnary(d)
 
     def test_from_dictionnary_invalid_walltime(self):
         d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}

@@ -1,6 +1,14 @@
 Changelog
 ===========
 
+5.5.1
+-----
+
+- G5k: support for ``exotic`` job type. If you want to reserve a node on
+  exotic hardware, you can pass either ``job_type=[allow_classic_ssh, exotic]``
+  or ``job_type=[deploy, exotic]``. Passing a single string to ``job_type`` is
+  also possible (backward compatibility)
+
 5.5.0
 -----
 

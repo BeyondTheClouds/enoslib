@@ -24,7 +24,12 @@ class Configuration(BaseConfiguration):
         self.force_deploy = False
         self.env_name = DEFAULT_ENV_NAME
         self.job_name = DEFAULT_JOB_NAME
-        self.job_type = DEFAULT_JOB_TYPE
+        # since https://gitlab.inria.fr/discovery/enoslib/-/issues/103
+        # we need to be able to pass ["allow_classic_ssh", "exotic"]
+        # so we wrap this in an array. This is also a chance to align this with
+        # the G5k api which requires an array.
+        # At some point we'll need to rename this to job_type*s*
+        self.job_type = [DEFAULT_JOB_TYPE]
         self.key = DEFAULT_SSH_KEYFILE
         self.oargrid_jobids = None
         self.project = None
@@ -51,11 +56,13 @@ class Configuration(BaseConfiguration):
             G5kValidator.validate(dictionnary)
 
         self = cls()
-
+        # populating the attributes
         for k in self.__dict__.keys():
             v = dictionnary.get(k)
             if v is not None:
                 setattr(self, k, v)
+        if isinstance(self.job_type, str):
+            self.job_type = [self.job_type]
 
         _resources = dictionnary["resources"]
         _machines = _resources["machines"]

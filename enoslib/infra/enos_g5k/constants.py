@@ -32,7 +32,7 @@ PROD = "prod"
 PROD_VLAN_ID = "DEFAULT"
 
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPES
-JOB_TYPES = ["deploy", "allow_classic_ssh"]
+JOB_TYPES = ["deploy", "allow_classic_ssh", "exotic"]
 QUEUE_TYPES = ["default", "production", "testing"]
 
 
