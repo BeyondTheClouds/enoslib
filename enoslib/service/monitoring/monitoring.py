@@ -31,7 +31,7 @@ def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
 
     address = host.filter_addresses(networks, include_unknown=False)
 
-    if not address:
+    if not address or not address[0].ip:
         raise ValueError(
             f"IP address not found. Host: {host}, Networks: {networks}"
         )
