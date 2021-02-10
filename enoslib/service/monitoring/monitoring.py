@@ -41,7 +41,7 @@ def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
             f"Cannot determine single IP address."
             f"Options: {address} Host: {host}, Networks: {networks}"
         )
-    return str(address[0])
+    return str(address[0].ip.ip)
 
 
 class TIGMonitoring(Service):

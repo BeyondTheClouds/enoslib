@@ -811,6 +811,9 @@ def sync_network_info(roles: Roles, networks: Networks) -> Roles:
         facts = json.load(f)
         for hosts in _roles.values():
             for host in hosts:
+                # only sync if host is really a Host (not a Sensor for example)
+                if (not isinstance(host, Host)):
+                    continue
                 host_facts = facts[host.alias]
                 host.sync_from_ansible(networks, host_facts)
 
