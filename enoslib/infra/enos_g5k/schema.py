@@ -14,15 +14,9 @@ SCHEMA = {
         "job_name": {"type": "string"},
         "job_type": {
             "anyOf": [
-            {
-                "type": "string",
-                "enum": JOB_TYPES
-            },
-            {
-                "type": "array",
-                "items": {"type": "string", "enum": JOB_TYPES}
-            }
-    ]
+                {"type": "string", "enum": JOB_TYPES},
+                {"type": "array", "items": {"type": "string", "enum": JOB_TYPES}},
+            ]
         },
         "key": {"type": "string"},
         "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},

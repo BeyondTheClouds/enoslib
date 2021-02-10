@@ -29,7 +29,11 @@ from enoslib.infra.enos_g5k.constants import (
 )
 from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
-from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork, get_api_username
+from enoslib.infra.enos_g5k.g5k_api_utils import (
+    OarNetwork,
+    get_api_username,
+    _do_synchronise_jobs,
+)
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
     G5kNetwork,
@@ -220,8 +224,7 @@ class G5kTunnel(object):
     """
 
     def __init__(self, address: str, port: int):
-        """
-        """
+        """"""
         self.address = address
         self.port = port
 
@@ -257,6 +260,27 @@ class G5kTunnel(object):
 
     def __exit__(self, *args):
         self.close()
+
+
+def synchronise(*confs):
+    """Find a suitable reservation date for all the confs passed."""
+
+    def max_walltime(w1, w2):
+        """lexicographic order on string XX:YY:ZZ
+
+        string must be well-formed."""
+        if w1 < w2:
+            return w2
+        else:
+            return w1
+
+    machines = []
+    walltime = "00:00:00"
+    for conf in confs:
+        machines.extend(conf.machines)
+        walltime = max(walltime, conf.walltime)
+
+    return _do_synchronise_jobs(walltime, machines, force=True)
 
 
 class G5k(Provider):
@@ -321,7 +345,7 @@ class G5k(Provider):
         Returns:
             Two dictionnaries (roles, networks) representing the inventory of
             resources.
-           """
+        """
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         self.launch()
@@ -343,8 +367,8 @@ class G5k(Provider):
             # even if they won't do much with enoslib in this case.
             self.grant_root_access()
 
-    def reserve(self):
-        oar_nodes, oar_networks = self.driver.reserve()
+    def reserve(self) -> List[G5kHost]:
+        oar_nodes, oar_networks = self.driver.reserve(wait=True)
         machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
         self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
         self.hosts = _join(machines, self.networks)
@@ -353,11 +377,16 @@ class G5k(Provider):
             h.mirror_state()
         return self.hosts
 
+    def reserve_async(self):
+        """Reserve but don't wait.
+
+        No node/network information can't be retrieved at this moment.
+        """
+        self.driver.reserve(wait=False)
+
     def deploy(self):
         def _key(host):
-            """Get the site and the primary network of a concrete description
-
-            """
+            """Get the site and the primary network of a concrete description"""
             site, _, _ = host._where
             return site, host.primary_network
 

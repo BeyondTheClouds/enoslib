@@ -29,7 +29,7 @@ class Driver:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def reserve(self):
+    def reserve(self, wait=True):
         pass
 
     @abstractmethod
@@ -59,7 +59,7 @@ class OargridStaticDriver(Driver):
     def __init__(self, oargrid_jobids):
         self.oargrid_jobids = oargrid_jobids
 
-    def reserve(self):
+    def reserve(self, wait=True):
         nodes, networks = grid_reload_from_ids(self.oargrid_jobids)
         return nodes, networks
 
@@ -99,8 +99,8 @@ class OargridDynamicDriver(Driver):
         self.machines = machines
         self.networks = networks
 
-    def reserve(self):
-        nodes, networks = grid_get_or_create_job(
+    def reserve(self, wait=True):
+        return grid_get_or_create_job(
             self.job_name,
             self.walltime,
             self.reservation_date,
@@ -109,9 +109,8 @@ class OargridDynamicDriver(Driver):
             self.project,
             self.machines,
             self.networks,
+            wait=wait,
         )
-
-        return nodes, networks
 
     def destroy(self):
         grid_destroy_from_name(self.job_name)
@@ -121,10 +120,9 @@ class OargridDynamicDriver(Driver):
 
 
 def get_driver(
-    configuration: Configuration
+    configuration: Configuration,
 ) -> Union[OargridDynamicDriver, OargridStaticDriver]:
-    """Build an instance of the driver to interact with G5K
-    """
+    """Build an instance of the driver to interact with G5K"""
     machines = configuration.machines
     networks = configuration.networks
     oargrid_jobids = configuration.oargrid_jobids
