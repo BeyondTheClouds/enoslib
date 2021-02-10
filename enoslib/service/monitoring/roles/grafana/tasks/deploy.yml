@@ -38,7 +38,7 @@
 
 - name: Add Collector (Prometheus) in Grafana
   uri:
-    url: "http://[{{ ui_address }}]:{{ ui_port }}/api/datasources"
+    url: "http://{{ ui_address | ipwrap }}:{{ ui_port }}/api/datasources"
     user: admin
     password: admin
     force_basic_auth: yes
