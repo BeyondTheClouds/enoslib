@@ -14,7 +14,7 @@
 
 - name: Waiting for InfluxDB to be ready
   wait_for:
-    host: "{{ collector_address | ipwrap }}"
+    host: "{{ collector_address }}"
     port: "{{ collector_port }}"
     state: started
     delay: 2
