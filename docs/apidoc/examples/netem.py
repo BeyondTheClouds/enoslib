@@ -22,7 +22,7 @@ provider = Vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 tc = {
     "enable": True,

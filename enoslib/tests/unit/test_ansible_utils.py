@@ -1,8 +1,14 @@
+from ipaddress import ip_interface, ip_network
 from enoslib.errors import *
-from enoslib.host import Host
-from enoslib.api import _update_hosts, _map_device_on_host_networks
+from enoslib.objects import (
+    BridgeDevice,
+    Host,
+    IPAddress,
+    DefaultNetwork,
+    NetDevice,
+    _build_devices,
+)
 from enoslib.enos_inventory import EnosInventory
-from enoslib.utils import gen_rsc
 from enoslib.tests.unit import EnosTest
 
 
@@ -76,133 +82,119 @@ class TestGenerateInventoryString(EnosTest):
 
 class TestGetHostNet(EnosTest):
     def test__map_devices_all_match_single(self):
-        networks = [{"cidr": "1.2.3.4/24"}, {"cidr": "4.5.6.7/24"}]
-        devices = [
-            {"device": "eth0", "ipv4": [{"address": "1.2.3.5"}]},
-            {"device": "eth1", "ipv4": [{"address": "4.5.6.7"}]},
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
+        # from ansible
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+            "ansible_eth1": {
+                "device": "eth1",
+                "ipv4": [{"address": "4.5.6.7", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+        }
         expected = [
-            {"cidr": "4.5.6.7/24", "device": "eth1"},
-            {"cidr": "1.2.3.4/24", "device": "eth0"},
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
+            NetDevice("eth1", set([IPAddress("4.5.6.7/24", networks[1])])),
         ]
-        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
 
     def test__map_devices_all_match_multiple(self):
-        networks = [{"cidr": "1.2.3.4/24"}, {"cidr": "4.5.6.7/24"}]
-        devices = [
-            {"device": "eth0", "ipv4": [{"address": "1.2.3.5"}]},
-            {"device": "eth1", "ipv4": [{"address": "1.2.3.254"}]},
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
-        # only the last match is taken into account
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+            "ansible_eth1": {
+                "device": "eth1",
+                "ipv4": [{"address": "1.2.3.254", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+        }
         expected = [
-            {"cidr": "1.2.3.4/24", "device": "eth1"},
-            {"cidr": "4.5.6.7/24", "device": None},
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
+            NetDevice("eth1", set([IPAddress("1.2.3.254/24", networks[0])])),
         ]
-        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
 
-    def test__map_devices_net_veth(self):
-        networks = [{"cidr": "1.2.3.4/24"}, {"cidr": "4.5.6.7/24"}]
-        devices = [
-            {"device": "eth0", "ipv4": [{"address": "1.2.3.5"}]},
-            {"device": "veth0", "ipv4": []},
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
+    def test__map_devices_same_device(self):
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
         ]
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [
+                    {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    {"address": "1.2.3.5", "netmask": "255.255.255.0"},
+                ],
+                "type": "ether",
+            },
+        }
         expected = [
-            {"cidr": "4.5.6.7/24", "device": None},
-            {"cidr": "1.2.3.4/24", "device": "eth0"},
+            NetDevice(
+                "eth0",
+                set(
+                    [
+                        IPAddress("1.2.3.5/24", networks[0]),
+                        IPAddress("1.2.3.4/24", networks[0]),
+                    ]
+                ),
+            ),
         ]
-        self.assertCountEqual(expected, _map_device_on_host_networks(networks, devices))
 
+        self.assertCountEqual(expected, _build_devices(facts, networks))
 
-class TestUpdateHosts(EnosTest):
-    def test__update_hosts(self):
-        rsc = {"control": [Host("1.2.3.4", alias="foo"), Host("1.2.3.5", alias="bar")]}
+    def test_map_devices_bridge(self):
+        networks = [
+            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
+            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        ]
         facts = {
-            "foo": {
-                "ansible_eth0": {"ipv4": {"address": "1.2.3.1"}},
-                "ansible_eth1": {"ipv4": {"address": "2.2.3.1"}},
-                "networks": [
-                    {"cidr": "1.2.3.0/24", "device": "eth0", "roles": ["network1"]},
-                    {"cidr": "2.2.3.0/24", "device": "eth1", "roles": ["network2"]},
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "br0",
+                "ipv4": [
+                    {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                    {"address": "1.2.3.5", "netmask": "255.255.255.0"},
                 ],
-            },
-            "bar": {
-                "ansible_eth0": {"ipv4": {"address": "1.2.3.1"}},
-                "ansible_eth1": {"ipv4": {"address": "2.2.3.1"}},
-                "networks": [
-                    {"cidr": "1.2.3.0/24", "device": "eth0", "roles": ["network1"]},
-                    {"cidr": "2.2.3.0/24", "device": "eth1", "roles": ["network2"]},
-                ],
+                "type": "bridge",
+                "interfaces": ["eth0", "eth1"],
             },
         }
+        expected = [
+            BridgeDevice(
+                "br0",
+                set(
+                    [
+                        IPAddress("1.2.3.5/24", networks[0]),
+                        IPAddress("1.2.3.4/24", networks[0]),
+                    ]
+                ),
+                ["eth0", "eth1"],
+            ),
+        ]
 
-        roles = _update_hosts(rsc, facts)
-        for host in gen_rsc(roles):
-            self.assertEqual("eth0", host.extra["network1"])
-            self.assertEqual("eth0", host.extra["network1_dev"])
-            self.assertEqual("eth1", host.extra["network2"])
-            self.assertEqual("eth1", host.extra["network2_dev"])
+        self.assertCountEqual(expected, _build_devices(facts, networks))
 
-    def test__update_hosts_inverted(self):
-        rsc = {"control": [Host("1.2.3.4", alias="foo"), Host("1.2.3.5", alias="bar")]}
-        facts = {
-            "foo": {
-                # since 2.2.1 we need extra facts to be present
-                "ansible_eth0": {"ipv4": {"address": "1.2.3.1"}},
-                "ansible_eth1": {"ipv4": {"address": "2.2.3.1"}},
-                "networks": [
-                    {"cidr": "1.2.3.0/24", "device": "eth0", "roles": ["network1"]},
-                    {"cidr": "2.2.3.0/24", "device": "eth1", "roles": ["network2"]},
-                ],
-            },
-            "bar": {
-                # since 2.2.1 we need extra facts to be present
-                "ansible_eth0": {"ipv4": {"address": "2.2.3.2"}},
-                "ansible_eth1": {"ipv4": {"address": "1.2.3.2"}},
-                "networks": [
-                    {"cidr": "1.2.3.0/24", "device": "eth1", "roles": ["network1"]},
-                    {"cidr": "2.2.3.0/24", "device": "eth0", "roles": ["network2"]},
-                ],
-            },
-        }
-
-        roles = _update_hosts(rsc, facts)
-        for host in gen_rsc(roles):
-            if host.alias == "foo":
-                self.assertEqual("eth0", host.extra["network1"])
-                self.assertEqual("eth0", host.extra["network1_dev"])
-                self.assertEqual("1.2.3.1", host.extra["network1_ip"])
-                self.assertEqual("eth1", host.extra["network2"])
-                self.assertEqual("eth1", host.extra["network2_dev"])
-                self.assertEqual("2.2.3.1", host.extra["network2_ip"])
-            elif host.alias == "bar":
-                self.assertEqual("eth1", host.extra["network1"])
-                self.assertEqual("eth1", host.extra["network1_dev"])
-                self.assertEqual("1.2.3.2", host.extra["network1_ip"])
-                self.assertEqual("eth0", host.extra["network2"])
-                self.assertEqual("eth0", host.extra["network2_dev"])
-                self.assertEqual("2.2.3.2", host.extra["network2_ip"])
-
-    def test__update_hosts_unmatch(self):
-        rsc = {"control": [Host("1.2.3.4", alias="foo")]}
-        facts = {
-            "foo": {
-                "ansible_eth0": {"ipv4": {"address": "1.2.3.1"}},
-                "ansible_eth1": {"ipv4": {"address": "2.2.3.2"}},
-                "networks": [
-                    {"cidr": "1.2.3.0/24", "device": "eth0", "roles": ["network1"]},
-                    {"cidr": "2.2.3.0/24", "device": None},
-                ],
-            }
-        }
-
-        roles = _update_hosts(rsc, facts)
-        for host in gen_rsc(roles):
-            self.assertEqual("eth0", host.extra["network1"])
-            self.assertEqual("eth0", host.extra["network1_dev"])
-            self.assertEqual("1.2.3.1", host.extra["network1_ip"])
-            self.assertTrue("network2" not in host.extra)
-            self.assertTrue("network2_dev" not in host.extra)
-            self.assertTrue("network2_ip" not in host.extra)
+    # todo bridge
 
 
 class TestEqHosts(EnosTest):
@@ -242,6 +234,17 @@ class TestEqHosts(EnosTest):
             "(we do not look at `extra` for SSH)",
         )
 
+        h1 = TestEqHosts._make_host()
+        h2 = TestEqHosts._make_host()
+        h2.extra_devices = set([NetDevice(name="eth0")])
+        self.assertEqual(
+            h1.__hash__(),
+            h2.__hash__(),
+            "Hosts have the same hash because we can "
+            "SSH on each of them in the same manner "
+            "(we do not look at `extra_devices` for SSH)",
+        )
+
     def test__extra(self):
         extra1 = {"extra_ip": "5.6.7.8"}
         extra2 = {"extra_ip": "5.6.7.8"}
@@ -260,3 +263,91 @@ class TestEqHosts(EnosTest):
         extra1.update(extra_ip="1.2.3.4")
         h2 = TestEqHosts._make_host(extra1)
         self.assertNotEqual(h1, h2, "Extra is not shared across Hosts")
+
+
+class TestFilterAddresses(EnosTest):
+    def test_filter_addresses(self):
+        h1 = Host("1.2.3.4")
+        self.assertCountEqual(
+            [], h1.filter_addresses(), "No device attached means" "No address to get"
+        )
+
+        h1 = Host("1.2.3.4")
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set())])
+        self.assertCountEqual(
+            [],
+            h1.filter_addresses(),
+            "One device attached but no address" "No address to get",
+        )
+
+        h1 = Host("1.2.3.4")
+        address = IPAddress("1.2.3.4", None)
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        self.assertCountEqual(
+            [],
+            h1.filter_addresses(),
+            "One device attached with one address but no network attached"
+            "No address to get",
+        )
+        self.assertCountEqual(
+            [address],
+            h1.filter_addresses(include_unknown=True),
+            "One device attached with one address but no network attached"
+            "One address to get if include_unknown=True",
+        )
+
+        h1 = Host("1.2.3.4")
+        address = IPAddress(
+            "1.2.3.4", DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+        )
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        self.assertCountEqual(
+            [address],
+            h1.filter_addresses(),
+            "One device attached with one address and a known network"
+            "One address to get",
+        )
+
+        h1 = Host("1.2.3.4")
+        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+        address = IPAddress(
+            "1.2.3.4", network
+        )
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        self.assertCountEqual(
+            [address],
+            h1.filter_addresses([network]),
+            "One device attached with one address and a known network"
+            "One address to get (not filtered out)",
+        )
+
+        h1 = Host("1.2.3.4")
+        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+        network2 = DefaultNetwork(roles=["a"], address="1.2.4.0/24")
+        address = IPAddress(
+            "1.2.3.4", network
+        )
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        self.assertCountEqual(
+            [],
+            h1.filter_addresses([network2]),
+            "One device attached with one address and a known network"
+            "No address to get (filtered out)",
+        )
+
+        h1 = Host("1.2.3.4")
+        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+        network2 = DefaultNetwork(roles=["a"], address="1.2.4.0/24")
+        address = IPAddress(
+            "1.2.3.4", network
+        )
+        address2 = IPAddress(
+            "1.2.4.4", network2
+        )
+        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address, address2]))])
+        self.assertCountEqual(
+            [address],
+            h1.filter_addresses([network]),
+            "One device attached with two addresses on two known network"
+            "One address to get (one filtered out)",
+        )

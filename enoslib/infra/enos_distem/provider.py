@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from enoslib.api import play_on
-from enoslib.host import Host
+from enoslib.objects import Host
 import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -78,7 +78,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
         queue=distemong5k_conf.queue,
         job_type="deploy",
         force_deploy=distemong5k_conf.force_deploy,
-        env_name="debian9-x64-nfs",
+        env_name="debian10-x64-nfs",
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site
@@ -130,7 +130,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
     # outside directly ? extra = {}
     extra = {"gateway": distem.serveraddr, "gateway_user": "root"}
 
-    distem.vnetwork_create(SUBNET_NAME, g5k_subnet["cidr"])
+    distem.vnetwork_create(SUBNET_NAME, g5k_subnet.network.with_prefixlen)
     total = 0
     for machine in provider_conf.machines:
         pms = machine.undercloud
@@ -230,7 +230,9 @@ def distem_bootstrap(roles, path_sshkeys):
             path="/root/.ssh/authorized_keys", line=open(path_sshkeys["public"]).read()
         )
 
-        repo = "deb [allow_insecure=yes] http://distem.gforge.inria.fr/deb-stretch ./"
+        repo = (
+            "deb [allow_insecure=yes] http://packages.grid5000.fr/deb/distem/buster/ ./"
+        )
         # instal Distem from the debian package
         p.apt_repository(repo=repo, update_cache="no", state="present")
         p.shell("apt-get update")
@@ -281,7 +283,7 @@ class Distem(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
-        g5k_subnets = [n for n in g5k_networks if "__subnet__" in n["roles"]]
+        g5k_subnets = [n for n in g5k_networks if "__subnet__" in n.roles]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:

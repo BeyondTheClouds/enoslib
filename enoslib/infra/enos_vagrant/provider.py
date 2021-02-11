@@ -1,3 +1,4 @@
+from ipaddress import ip_interface
 import logging
 import os
 
@@ -6,7 +7,7 @@ from netaddr import IPNetwork
 
 import vagrant
 
-from enoslib.host import Host
+from enoslib.objects import DefaultNetwork, Host
 from enoslib.infra.provider import Provider
 
 from .constants import DEFAULT_NAME_PREFIX
@@ -17,9 +18,12 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+class VagrantNetwork(DefaultNetwork):
+    pass
+
+
 class Enos_vagrant(Provider):
-    """The provider to use when working with vagrant (local machine).
-    """
+    """The provider to use when working with vagrant (local machine)."""
 
     def init(self, force_deploy=False):
         """Reserve and deploys the vagrant boxes.
@@ -105,14 +109,13 @@ class Enos_vagrant(Provider):
                 )
 
         networks = [
-            {
-                "cidr": str(n["cidr"]),
-                "start": str(n["netpool"][0]),
-                "end": str(n["netpool"][-1]),
-                "dns": "8.8.8.8",
-                "gateway": str(n["gateway"]),
-                "roles": n["roles"],
-            }
+            VagrantNetwork(
+                roles=n["roles"],
+                # remove host bits set
+                address=str(ip_interface(n["cidr"]).network),
+                gateway=str(n["gateway"]),
+                dns="8.8.8.8",
+            )
             for n in _networks
         ]
         logger.debug(roles)

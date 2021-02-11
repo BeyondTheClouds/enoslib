@@ -18,6 +18,7 @@ class Configuration(BaseConfiguration):
         self.profiles = None
 
         self._machine_cls = GroupConfiguration
+        self._network_cls = NetworkConfiguration
 
     def add_machine(self, *args, **kwargs):
         # we need to discriminate between phys node and board
@@ -51,6 +52,12 @@ class Configuration(BaseConfiguration):
             GroupConfiguration.from_dictionary(m) for m in _machines
         ]
 
+        if "networks" in _resources:
+            _networks = _resources["networks"]
+            self.networks = [
+                NetworkConfiguration.from_dictionnary(n) for n in _networks
+            ]
+
         if "monitoring" in dictionary:
             _monit = dictionary["monitoring"]
             _profiles = _monit["profiles"]
@@ -76,6 +83,7 @@ class Configuration(BaseConfiguration):
         d.update(
             resources={
                 "machines": [m.to_dict() for m in self.machines],
+                "networks": [n.to_dict() for n in self.networks],
             },
         )
         if self.profiles is not None:
@@ -311,3 +319,26 @@ class ConsumptionConfiguration():
                 setattr(self, k, v)
 
         return self
+
+
+class NetworkConfiguration:
+    def __init__(self, *, id=None, roles=None, type=None, site=None):
+        self.roles = roles
+        self.id = id
+        self.roles = roles
+        self.type = type
+        self.site = site
+
+    @classmethod
+    def from_dictionnary(cls, dictionnary):
+        id = dictionnary["id"]
+        type = dictionnary["type"]
+        roles = dictionnary["roles"]
+        site = dictionnary["site"]
+
+        return cls(id=id, roles=roles, type=type, site=site)
+
+    def to_dict(self):
+        d = {}
+        d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
+        return d

@@ -1,8 +1,8 @@
 import logging
 import os
 
-from enoslib.api import discover_networks
-from enoslib.service import Monitoring
+from enoslib.api import sync_network_info
+from enoslib.service import TIGMonitoring, TPGMonitoring
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
@@ -37,10 +37,17 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
-m = Monitoring(collector=roles["control"], agent=roles["control"], ui=roles["control"])
-m.deploy()
-m.backup()
+# testing TIG stack
+m_tig = TIGMonitoring(collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0])
+m_tig.deploy()
+m_tig.backup()
 # test whether the backup is ok...
-m.destroy()
+m_tig.destroy()
+
+# testing TGP stack
+m_tpg = TPGMonitoring(collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0], networks=networks)
+m_tpg.deploy()
+m_tpg.backup()
+m_tpg.destroy()

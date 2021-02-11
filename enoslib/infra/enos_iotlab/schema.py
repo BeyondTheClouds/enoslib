@@ -5,7 +5,8 @@ from .constants import (
     PROFILE_ARCHI_TYPES,
     RADIO_MODE_TYPES,
     CONSUMPTION_PERIOD_TYPES,
-    CONSUMPTION_AVERAGE_TYPES
+    CONSUMPTION_AVERAGE_TYPES,
+    NETWORK_TYPES,
 )
 
 SCHEMA = {
@@ -39,6 +40,11 @@ SCHEMA = {
                     },
                 ]
             },
+            "networks": {
+                "type": "array",
+                "items": {"$ref": "#/network"},
+                "uniqueItems": True,
+            },
         },
         "additionalProperties": False,
         "required": ["machines"],
@@ -66,6 +72,16 @@ SCHEMA = {
             "profile": {"type": "string"},
         },
         "required": ["roles", "hostname"],
+    },
+    "network": {
+        "type": "object",
+        "properties": {
+            "id": {"type": "string"},
+            "type": {"enum": NETWORK_TYPES},
+            "roles": {"type": "array", "items": {"type": "string"}},
+            "site": {"type": "string"},
+        },
+        "required": ["id", "type", "roles", "site"],
     },
     # Inspired on https://api.iot-lab.info/swagger.yaml#/components/schemas/Profile
     "monitoring": {

@@ -13,7 +13,7 @@ from enoslib.errors import EnosFilePathError
 # Following this bug
 # https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=10266
 # we force the task to know about host
-from enoslib.host import Host  # noqa
+from enoslib.objects import Host  # noqa
 
 
 logger = logging.getLogger(__name__)

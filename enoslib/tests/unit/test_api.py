@@ -4,7 +4,7 @@ import mock
 
 from . import EnosTest
 from enoslib.api import *
-from enoslib.host import Host
+from enoslib.objects import Host
 
 
 class TestSSH(EnosTest):

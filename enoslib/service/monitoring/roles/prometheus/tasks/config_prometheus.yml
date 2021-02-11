@@ -1,0 +1,11 @@
+---
+- name: "Creating remote directory"
+  file:
+    path: "{{ remote_working_dir }}"
+    state: directory
+    mode: u=rwX,g=rwX,o=rwX
+
+- name: "Generating the prometheus configuration file"
+  ansible.builtin.template:
+    src: "prometheus.yml.j2"
+    dest: "{{ remote_working_dir }}/prometheus.yml"

@@ -225,6 +225,40 @@ the external network and M3 sensors in the platform.
 
         $ python tuto_iotlab_m3_ipv6.py
 
+.. _IoT-LAB Monitoring IPv6:
+
+Monitoring A8 nodes - IPv6
+--------------------------
+
+This example shows how to install a monitoring stack (Grafana/Prometheus/Telegraf)
+on Grid'5000 and FIT/IoT-LAB nodes to collect infrastructure metrics. By using the
+IPv6 network and Prometheus, we're able to collect data from both testbed. Note that
+IPv6 connection from Grid'5000 to IoT-LAB is allowed (the inverse isn't true).
+
+Summarizing, the example does the following:
+
+- Install Grafana in a node: Grafana accepts connections in the port 3000, user: admin, password: admin.
+
+- Install Prometheus database in a node: accessible at port 9090. It is installed
+  with the following parameters (scrape_interval: 10s, scrape_timeout: 10s, eval_interval: 15s).
+  They are defined at: enoslib/service/monitoring/roles/prometheus/defaults/main.yml).
+  
+- Install Telegraf on remaining nodes: Telegraf is configured to receive incoming
+  connections from Prometheus at port 9273.
+
+.. literalinclude:: iotlab/tuto_iotlab_ipv6_monitoring.py
+   :language: python
+   :linenos:
+
+.. note::
+
+    The Prometheus database is compressed and saved in the current folder.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_ipv6_monitoring.py
 
 Monitoring A8 nodes - Telegraf
 ------------------------------
@@ -253,7 +287,7 @@ Note that the openvpn client is already available in A8 nodes and no installatio
     This tutorial assumes that the files Grid5000_VPN.ovpn, .crt, .key are located on the FIT frontend.
     Moreover it also assumes that no passphrase is given to the private key.
     You private key is very sensitive so you must protect it the best you can (chmod 600).
-    Prefer using IPv6 if you can: :ref:`IoT-LAB IPv6`
+    Prefer using IPv6 if you can: :ref:`IoT-LAB Monitoring IPv6`
 
 .. literalinclude:: iotlab/tuto_iotlab_a8_monitoring.py
    :language: python

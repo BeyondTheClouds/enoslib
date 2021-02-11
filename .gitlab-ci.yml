@@ -23,14 +23,6 @@ variables:
 #
 ###############################################################################
 
-python3.6:
-  image: python:3.6
-  stage: test
-  tags: [qlf-ci.inria.fr]
-  script:
-  - pip install tox
-  - tox -e py36
-
 python3.7:
   image: python:3.7
   stage: test
@@ -57,7 +49,7 @@ pep8:
   - tox -e pep8
 
 typecheck:
-  image: python:3.6
+  image: python:3.7
   stage: test
   allow_failure: true
   tags: [qlf-ci.inria.fr]
@@ -175,30 +167,30 @@ test_dstat$debian$:
 
 ## ubuntu 1804
 #-----------------------------------------------
-test_static_run_command$ubuntu1804$: &ubuntu1804
+test_static_run_command$ubuntu1804$: &ubuntu2004
   <<: *debian10
-  image: ubuntu:18.04
+  image: ubuntu:20.04
 
 test_static_gather_facts$ubuntu1804$:
-  <<: *ubuntu1804
+  <<: *ubuntu2004
 
 test_static_play_on$ubuntu1804$:
-  <<: *ubuntu1804
+  <<: *ubuntu2004
 
 test_static_run_ansible$ubuntu1804$:
-  <<: *ubuntu1804
+  <<: *ubuntu2004
 
-test_monitoring_service$ubuntu1804$:
-  <<: *ubuntu1804
+test_monitoring_service$ubuntu2004$:
+  <<: *ubuntu2004
 
-test_static_tasks$ubuntu1804$:
-  <<: *ubuntu1804
+test_static_tasks$ubuntu2004$:
+  <<: *ubuntu2004
 
 test_discover_networks$debian$:
-  <<: *ubuntu1804
+  <<: *ubuntu2004
 
 test_dstat$debian$:
-  <<: *ubuntu1804
+  <<: *ubuntu2004
 
 ## ubuntu latest
 #-----------------------------------------------

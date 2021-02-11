@@ -1,0 +1,22 @@
+---
+- name: Snapshot Prometheus database
+  uri:
+    url: "http://{{ collector_address | ipwrap }}:{{ collector_port }}/api/v1/admin/tsdb/snapshot"
+    method: POST
+    status_code: [200]
+  register: snapshot
+
+- debug:
+    var: snapshot
+
+- name: Archiving the data volume
+  archive:
+    path: "{{ remote_working_dir }}/snapshots/{{ snapshot.json.data.name }}/"
+    dest: "{{ remote_working_dir }}/{{ snapshot.json.data.name }}.tar.gz"
+
+- name: Fetching the data volume
+  fetch:
+    src: "{{ remote_working_dir }}/{{ snapshot.json.data.name }}.tar.gz"
+    dest: "{{ backup_dir }}/"
+    flat: yes
+

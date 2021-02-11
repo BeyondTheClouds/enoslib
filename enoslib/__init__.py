@@ -2,9 +2,8 @@
 from enoslib.api import (
     ensure_python2,
     ensure_python3,
-    discover_networks,
+    sync_network_info,
     get_hosts,
-    get_roles_as_list,
     play_on,
     run,
     run_ansible,
@@ -20,7 +19,7 @@ from enoslib.service.docker.docker import Docker
 from enoslib.service.dstat.dstat import Dstat
 from enoslib.service.locust.locust import Locust
 from enoslib.service.k3s.k3s import K3s
-from enoslib.service.monitoring.monitoring import Monitoring
+from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
 from enoslib.service.netem.netem import Netem, SimpleNetem
 from enoslib.service.skydive.skydive import Skydive
 

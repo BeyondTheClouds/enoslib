@@ -100,8 +100,8 @@ class NetworkConfiguration:
 
         return cls(
             roles=dictionnary["roles"],
-            start=dictionnary["start"],
-            end=dictionnary["end"],
+            start=dictionnary.get("start"),
+            end=dictionnary.get("end"),
             cidr=dictionnary["cidr"],
             gateway=dictionnary["gateway"],
             dns=dictionnary["dns"],
@@ -111,10 +111,12 @@ class NetworkConfiguration:
         d = {}
         d.update(
             roles=self.roles,
-            start=self.start,
-            end=self.end,
             cidr=self.cidr,
             gateway=self.gateway,
             dns=self.dns,
         )
+        if self.start:
+            d.update(start=self.start)
+        if self.end:
+            d.update(end=self.end)
         return d

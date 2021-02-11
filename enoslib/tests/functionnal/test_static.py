@@ -1,4 +1,4 @@
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
 from enoslib.infra.enos_static.provider import Static
@@ -48,7 +48,7 @@ resources["networks"] = networks
 
 provider = Static(StaticConf.from_dictionnary({"resources": resources}))
 roles, networks = provider.init()
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 netem = Netem(tc, roles=roles)
 netem.deploy()
 netem.validate()

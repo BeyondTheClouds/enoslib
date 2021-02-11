@@ -1,0 +1,4 @@
+prometheus_scrape_interval: 10s
+prometheus_scrape_timeout: 10s
+prometheus_eval_interval: 15s
+telegraf_port: 9273

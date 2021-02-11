@@ -42,6 +42,6 @@ SCHEMA = {
             "gateway": {"type": "string"},
             "dns": {"type": "string"},
         },
-        "required": ["roles", "start", "end", "cidr", "gateway", "dns"],
+        "required": ["roles", "cidr", "gateway", "dns"],
     },
 }

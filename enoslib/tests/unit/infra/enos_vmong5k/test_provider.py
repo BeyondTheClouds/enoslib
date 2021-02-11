@@ -1,7 +1,8 @@
+from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork, G5kSubnetNetwork
 import mock
 from netaddr import EUI
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 from enoslib.infra.enos_vmong5k.provider import (
     _do_build_g5k_conf,
@@ -50,13 +51,17 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = {"mac_start": "00:16:3E:9E:44:00", "mac_end": "00:16:3E:9E:47:FE"}
+        g5k_subnet = G5kEnosSubnetNetwork(
+            ["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25"
+        )
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(1, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac
-        self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 1), vm.eui)
+        it_mac = g5k_subnet.free_macs
+        next(it_mac)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host, vm.pm)
 
     def test_distribute_minimal_skip(self):
@@ -67,13 +72,18 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = {"mac_start": "00:16:3E:9E:44:00", "mac_end": "00:16:3E:9E:47:FE"}
+        g5k_subnet = G5kEnosSubnetNetwork(
+            ["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25"
+        )
 
         vmong5k_roles = _distribute(machines, [g5k_subnet], skip=10)
         self.assertEqual(1, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac + 10 more
-        self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 11), vm.eui)
+        it_mac = g5k_subnet.free_macs
+        for i in range(11):
+            next(it_mac)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host, vm.pm)
 
     def test_distribute_2_vms_1_host(self):
@@ -83,17 +93,21 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = {"mac_start": "00:16:3E:9E:44:00", "mac_end": "00:16:3E:9E:47:FE"}
+        g5k_subnet = G5kEnosSubnetNetwork(
+            ["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25"
+        )
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac
-        self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 1), vm.eui)
+        it_mac = g5k_subnet.free_macs
+        next(it_mac)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host, vm.pm)
 
         vm = vmong5k_roles["r1"][1]
-        self.assertEqual(EUI(int(EUI(g5k_subnet["mac_start"])) + 2), vm.eui)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host, vm.pm)
 
     def test_distribute_2_vms_2_hosts(self):
@@ -104,18 +118,19 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        g5k_subnet = {
-            "mac_start": EUI("00:16:3E:9E:44:00"),
-            "mac_end": EUI("00:16:3E:9E:47:FE"),
-        }
+        g5k_subnet = G5kEnosSubnetNetwork(
+            ["a"], "10.140.40.0/22", "172.16.11.254", "172.16.11.25"
+        )
 
         vmong5k_roles = _distribute(machines, [g5k_subnet])
         self.assertEqual(2, len(vmong5k_roles["r1"]))
         vm = vmong5k_roles["r1"][0]
         # we skip the first mac
-        self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 1), vm.eui)
+        it_mac = g5k_subnet.free_macs
+        next(it_mac)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host0, vm.pm)
 
         vm = vmong5k_roles["r1"][1]
-        self.assertEqual(EUI(int(g5k_subnet["mac_start"]) + 2), vm.eui)
+        self.assertEqual(next(it_mac), vm.eui)
         self.assertEqual(host1, vm.pm)

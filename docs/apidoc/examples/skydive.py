@@ -23,13 +23,13 @@ provider = Vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 s = Skydive(analyzers=roles["control"],
             agents=roles["compute"] + roles["control"])
 s.deploy()
 
-ui_address = roles["control"][0].extra["mynetwork_ip"]
+ui_address = roles["control"][0].address
 print("The UI is available at http://%s:8082" % ui_address)
 
 s.backup()

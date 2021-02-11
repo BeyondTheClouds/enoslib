@@ -1,0 +1,3 @@
+ui_port: 3000
+ui_address: 172.17.0.1
+ui_env: { "GF_SERVER_HTTP_PORT": "{{ ui_port | quote }}" }

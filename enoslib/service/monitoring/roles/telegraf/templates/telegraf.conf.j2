@@ -31,5 +31,10 @@
   endpoint = "unix:///var/run/docker.sock"
 [[inputs.netstat]]
   interval = "30s"
+{% if collector_type is defined and collector_type == 'prometheus' %}
+[[outputs.prometheus_client]]
+  listen = "{{ agent_listen_address }}"
+{% else %}
 [[outputs.influxdb]]
-  urls = ["http://{{ collector_address }}:8086"]
+  urls = ["http://{{ collector_address }}:{{ collector_port }}"]
+{% endif %}

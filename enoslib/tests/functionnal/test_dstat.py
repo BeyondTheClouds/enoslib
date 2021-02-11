@@ -2,7 +2,7 @@ import logging
 import os
 import time
 
-from enoslib.api import discover_networks
+from enoslib.api import sync_network_info
 from enoslib.service import Dstat
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
@@ -38,7 +38,7 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-roles = discover_networks(roles, networks)
+roles = sync_network_info(roles, networks)
 
 m = Dstat(nodes=roles["control"])
 m.deploy()

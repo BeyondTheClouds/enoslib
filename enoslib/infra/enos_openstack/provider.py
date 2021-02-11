@@ -12,7 +12,7 @@ from keystoneauth1 import session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
 
-from enoslib.host import Host
+from enoslib.objects import Host
 from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.infra.provider import Provider
 from .constants import (

@@ -38,7 +38,7 @@ def bench(parameter: Dict) -> None:
     provider = VMonG5k(conf)
 
     roles, networks = provider.init()
-    roles = discover_networks(roles, networks)
+    roles = sync_network_info(roles, networks)
 
     servers = roles["server"]
     clients = roles["client"]

@@ -68,7 +68,7 @@ Monitoring Service Class
 
 
 .. automodule:: enoslib.service.monitoring.monitoring
-    :members: Monitoring
+    :members: TIGMonitoring, TPGMonitoring
 
 
 Network Emulation (Netem & SimpleNetem)

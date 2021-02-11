@@ -1,0 +1,17 @@
+global:
+  scrape_interval: {{ prometheus_scrape_interval }}
+  scrape_timeout: {{ prometheus_scrape_timeout }}
+  evaluation_interval: {{ prometheus_eval_interval }}
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+        - "{{ collector_address |ipwrap }}:{{ collector_port }}"
+  
+  - job_name: telegraf
+    static_configs:
+      - targets:
+{% for host in telegraf_targets %}
+        - "{{ host | ipwrap }}:{{ telegraf_port }}"
+{% endfor %}
