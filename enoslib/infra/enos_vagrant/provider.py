@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+class VagrantNetwork(DefaultNetwork):
+    pass
+
+
 class Enos_vagrant(Provider):
     """The provider to use when working with vagrant (local machine)."""
 
@@ -105,7 +109,7 @@ class Enos_vagrant(Provider):
                 )
 
         networks = [
-            DefaultNetwork(
+            VagrantNetwork(
                 roles=n["roles"],
                 # remove host bits set
                 address=str(ip_interface(n["cidr"]).network),
