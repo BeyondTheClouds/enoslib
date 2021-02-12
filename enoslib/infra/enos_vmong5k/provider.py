@@ -10,11 +10,10 @@ from typing import Dict, List
 from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
-from enoslib.objects import Host
+from enoslib.objects import Host, Network, RolesNetworks
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from enoslib.types import Networks, RolesNetworks
 from .configuration import Configuration
 from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
 from ..provider import Provider
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def start_virtualmachines(
     provider_conf: Configuration,
-    g5k_subnets: Networks,
+    g5k_subnets: List[Network],
     skip: int = 0,
     force_deploy: bool = False,
 ) -> RolesNetworks:
@@ -75,7 +74,7 @@ def start_virtualmachines(
 
     _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=force_deploy)
 
-    return vmong5k_roles, g5k_subnets
+    return vmong5k_roles, dict(__subnet__=g5k_subnets)
 
 
 def _get_subnet_ip(mac):
@@ -282,7 +281,7 @@ class VMonG5k(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         self.g5k_roles, self.g5k_networks = g5k_provider.init()
-        g5k_subnets = [n for n in self.g5k_networks if "__subnet__" in n.roles]
+        g5k_subnets = self.g5k_networks["__subnet__"]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:

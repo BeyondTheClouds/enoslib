@@ -3,7 +3,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import run_ansible
-from enoslib.types import Host, Roles, Network
+from enoslib.objects import Host, Network, Roles
 from ..service import Service
 from ..utils import _check_path, _to_abs
 

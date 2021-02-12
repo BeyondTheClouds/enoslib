@@ -45,7 +45,7 @@ class TestG5kEnos(EnosTest):
     def test_production(self):
         enos_prod = ipaddress.ip_network("172.16.0.0/16")
         enos_network = G5kEnosProd4Network(
-            ["role1"], enos_prod, "172.16.0.254", "172.16.0.25"
+            enos_prod, "172.16.0.254", "172.16.0.25"
         )
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
@@ -54,7 +54,7 @@ class TestG5kEnos(EnosTest):
 
     def test_production6(self):
         enos_prod = ipaddress.ip_network("2001:660:4406:07::/64")
-        enos_network = G5kEnosProd6Network(["role1"], enos_prod, "::1", "::2")
+        enos_network = G5kEnosProd6Network(enos_prod, "::1", "::2")
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
         self.assertFalse(enos_network.has_free_macs)
@@ -63,7 +63,7 @@ class TestG5kEnos(EnosTest):
     def test_kavlan(self):
         enos_kavlan = ipaddress.ip_network("10.24.0.0/18")
         enos_kavlan = G5kEnosVlan4Network(
-            ["role1"], enos_kavlan, "172.16.0.254", "172.16.0.25", "4"
+            enos_kavlan, "172.16.0.254", "172.16.0.25", "4"
         )
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
@@ -74,7 +74,7 @@ class TestG5kEnos(EnosTest):
 
     def test_kavlan6(self):
         enos_kavlan = ipaddress.ip_network("2001:660:4406:0790::/64")
-        enos_kavlan = G5kEnosVlan6Network(["role1"], enos_kavlan, "1::", "2::", 4)
+        enos_kavlan = G5kEnosVlan6Network(enos_kavlan, "1::", "2::", 4)
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
         # (/20 network == local vlan) => some /24 contiguous subnet
@@ -90,7 +90,7 @@ class TestG5kEnos(EnosTest):
     def test_subnet(self):
         enos_subnet = ipaddress.ip_network("10.140.0.0/22")
         enos_subnet = G5kEnosSubnetNetwork(
-            ["role1"], enos_subnet, "172.16.42.254", "172.16.42.25"
+            enos_subnet, "172.16.42.254", "172.16.42.25"
         )
         self.assertTrue(enos_subnet.has_free_ips)
         # we get rid of the first and last address of the /22

@@ -1,6 +1,5 @@
 import copy
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from ipaddress import (
     IPv4Address,
@@ -11,11 +10,26 @@ from ipaddress import (
     ip_interface,
 )
 from netaddr import EUI
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 NetworkType = Union[bytes, int, Tuple, str]
 AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
+
+Role = str
+Roles = MutableMapping[Role, List["Host"]]
+Networks = Mapping[Role, List["Network"]]
+RolesNetworks = Tuple[Roles, Networks]
 
 
 def _build_devices(facts, networks):
@@ -45,8 +59,7 @@ class Network(ABC):
     the __class__ attribute.
     """
 
-    def __init__(self, roles: List[str], address: NetworkType):
-        self.roles = roles
+    def __init__(self, address: NetworkType):
         # accept cidr but coerce to IPNetwork
         self.network = ip_interface(address).network
 
@@ -98,7 +111,6 @@ class DefaultNetwork(Network):
     Providers *must* inherit from this class.
 
     Args:
-        roles    : list of roles to assign to this role
         address  : network address (as in ipaddress.ip_interface)
         gateway  : (optionnal) the gateway for this network
                    (as in ipaddress.ip_address)
@@ -116,7 +128,6 @@ class DefaultNetwork(Network):
 
     def __init__(
         self,
-        roles: List[str],
         address: NetworkType,
         gateway: Optional[str] = None,
         dns: Optional[str] = None,
@@ -126,7 +137,7 @@ class DefaultNetwork(Network):
         mac_end: str = None,
     ):
 
-        super().__init__(roles=roles, address=address)
+        super().__init__(address=address)
         self._gateway = None
         if gateway is not None:
             self._gateway = ip_address(gateway)
@@ -210,13 +221,6 @@ class IPAddress(object):
         # transform to ip interface
         self.ip = ip_interface(address)
 
-    @property
-    def roles(self):
-        if self.network is not None:
-            return self.network.roles
-        else:
-            return []
-
     @classmethod
     def from_ansible(cls, d: Dict, network: Optional[Network]):
         """Build an IPAddress from ansible fact.
@@ -231,12 +235,15 @@ class IPAddress(object):
             # there's a bug/feature in early python3.7, and the second argument
             # is actually the prefix length
             # https://bugs.python.org/issue27860
-            # cls((d["address"], d["netmask"])), roles, device)
+            # cls((d["address"], d["netmask"])), device)
             return cls(f"{d['address']}/{d['netmask']}", network)
         elif keys_2.issubset(d.keys()):
             return cls(f"{d['address']}/{d['prefix']}", network)
         else:
             raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionnary")
+
+    def to_dict(self):
+        return dict(ip=str(self.ip))
 
 
 @dataclass(unsafe_hash=True)
@@ -251,7 +258,7 @@ class NetDevice(object):
     addresses: Set[IPAddress] = field(default_factory=set, compare=True, hash=False)
 
     @classmethod
-    def sync_from_ansible(cls, device: Dict, networks: List[Network]):
+    def sync_from_ansible(cls, device: Dict, networks: Networks):
         """
             "ansible_enx106530ad1e3f": {
             "active": true,
@@ -284,11 +291,12 @@ class NetDevice(object):
                 continue
             for ip in ips:
                 _net = None
-                for provider_net in networks:
-                    # build an IPAddress /a priori/
-                    addr = IPAddress.from_ansible(ip, provider_net)
-                    if addr.ip in provider_net.network:
-                        _net = provider_net
+                for _, provider_nets in networks.items():
+                    for provider_net in provider_nets:
+                        # build an IPAddress /a priori/
+                        addr = IPAddress.from_ansible(ip, provider_net)
+                        if addr.ip in provider_net.network:
+                            _net = provider_net
                 addresses.add(IPAddress.from_ansible(ip, _net))
         # addresses contains all the addresses for this devices
         # even those that doesn't correspond to an enoslib network
@@ -337,6 +345,11 @@ class NetDevice(object):
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
+    def to_dict(self):
+        return dict(device=self.name,
+                    addresses=[address.to_dict() for address in self.addresses],
+                    type="ether")
+
 
 @dataclass(unsafe_hash=True)
 class BridgeDevice(NetDevice):
@@ -346,6 +359,12 @@ class BridgeDevice(NetDevice):
     def interfaces(self) -> List[str]:
         """Get all the interfaces that are bridged here."""
         return self.bridged
+
+    def to_dict(self):
+        d = super().to_dict()
+        d.update(
+            type="bridge",
+            interfaces=self.interfaces)
 
 
 @dataclass(unsafe_hash=True)
@@ -417,12 +436,12 @@ class Host(object):
             keyfile=self.keyfile,
             port=self.port,
             extra=self.extra,
-            extra_devices=list(self.extra_devices),
+            extra_devices=[device.to_dict() for device in self.extra_devices],
         )
         return copy.deepcopy(d)
 
     def sync_from_ansible(
-        self, networks: List[Network], host_facts: Dict, clear: bool = True
+        self, networks: Networks, host_facts: Dict, clear: bool = True
     ):
         """Set the devices based on ansible fact.s
 
@@ -483,27 +502,6 @@ class Host(object):
                 # or networks is None and we got all the known addresses
                 interfaces.extend(net_device.interfaces)
         return interfaces
-
-    def _get_network_roles(self):
-        """Index the address by network roles.
-
-        Note: this function is called only when generating the
-        inventory. It adds some legacy extra_vars in the host vars.
-        That may not be needed in the future, if so, drop this method.
-        """
-        def netdevice_addresses():
-            """Get all the ip_addresses associated with some roles/network"""
-            return [
-                (device.name, address)
-                for device in self.extra_devices
-                for address in device.addresses
-                if address.network is not None
-            ]
-        roles = defaultdict(list)
-        for device, address in netdevice_addresses():
-            for role in address.roles:
-                roles[role].append((device, address))
-        return roles
 
     @classmethod
     def from_dict(cls, d):

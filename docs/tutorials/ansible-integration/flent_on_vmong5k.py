@@ -29,7 +29,6 @@ conf = (
 provider = VMonG5k(conf)
 
 roles, networks = provider.init()
-import ipdb; ipdb.set_trace()
 
 roles = sync_network_info(roles, networks)
 with play_on(roles=roles) as p:

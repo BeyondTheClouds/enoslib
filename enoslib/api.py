@@ -28,7 +28,7 @@ from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
 from enoslib.errors import (EnosFailedHostsError, EnosSSHNotReady,
                             EnosUnreachableHostsError)
-from enoslib.types import Host, Networks, Roles
+from enoslib.objects import Host, Networks, Roles
 from enoslib.utils import _check_tmpdir
 
 logger = logging.getLogger(__name__)
@@ -821,9 +821,9 @@ def sync_network_info(roles: Roles, networks: Networks) -> Roles:
 
 
 def generate_inventory(
-    roles,
-    networks,
-    inventory_path,
+    roles: Roles,
+    networks: Networks,
+    inventory_path: str,
     check_networks=False,
 ):
     """Generate an inventory file in the ini format.
@@ -835,13 +835,12 @@ def generate_inventory(
     have their IP set.
 
     Args:
-        roles (dict): role->hosts mapping as returned by
-            :py:meth:`enoslib.infra.provider.Provider.init`
-        networks (list): network list as returned by
-            :py:meth:`enoslib.infra.provider.Provider.init`
-        inventory_path (str): path to the inventory to generate
-        check_networks (bool): True to enable the auto-discovery of the mapping
-            interface name <-> network role
+        roles         : role->hosts mapping as returned by
+                        :py:meth:`enoslib.infra.provider.Provider.init`
+        networks      : role->networks mapping as returned by
+                        :py:meth:`enoslib.infra.provider.Provider.init`
+        inventory_path: path to the inventory to generate
+        check_networks: True to sync the hosts before dumping the inventory.
     """
     with open(inventory_path, "w") as f:
         f.write(_generate_inventory(roles))

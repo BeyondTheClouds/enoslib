@@ -2,7 +2,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, __python3__
-from enoslib.types import Host
+from enoslib.objects import Host
 from ..service import Service
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))

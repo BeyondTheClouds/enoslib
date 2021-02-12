@@ -1,3 +1,4 @@
+from collections import defaultdict
 from ipaddress import ip_interface
 import logging
 import os
@@ -92,7 +93,7 @@ class Enos_vagrant(Provider):
 
         v.up()
         v.provision()
-        roles = {}
+        roles = defaultdict(list)
         for role, machines in vagrant_roles.items():
             for machine in machines:
                 keyfile = v.keyfile(vm_name=machine["name"])
@@ -107,17 +108,16 @@ class Enos_vagrant(Provider):
                         keyfile=keyfile,
                     )
                 )
+        networks = defaultdict(list)
+        for network in _networks:
+            for role in network["roles"]:
+                vagrant_net = VagrantNetwork(
+                    address=str(ip_interface(network["cidr"]).network),
+                    gateway=str(network["gateway"]),
+                    dns="8.8.8.8",
+                )
+                networks[role].append(vagrant_net)
 
-        networks = [
-            VagrantNetwork(
-                roles=n["roles"],
-                # remove host bits set
-                address=str(ip_interface(n["cidr"]).network),
-                gateway=str(n["gateway"]),
-                dns="8.8.8.8",
-            )
-            for n in _networks
-        ]
         logger.debug(roles)
         logger.debug(networks)
 

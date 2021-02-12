@@ -82,10 +82,11 @@ class TestGenerateInventoryString(EnosTest):
 
 class TestGetHostNet(EnosTest):
     def test__map_devices_all_match_single(self):
-        networks = [
-            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
-            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        n1, n2 = [
+            DefaultNetwork(address="1.2.3.0/24"),
+            DefaultNetwork(address="4.5.6.0/24"),
         ]
+        networks = dict(role1=[n1, n2])
         # from ansible
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
@@ -101,17 +102,16 @@ class TestGetHostNet(EnosTest):
             },
         }
         expected = [
-            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
-            NetDevice("eth1", set([IPAddress("4.5.6.7/24", networks[1])])),
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
+            NetDevice("eth1", set([IPAddress("4.5.6.7/24", n2)])),
         ]
 
         self.assertCountEqual(expected, _build_devices(facts, networks))
 
     def test__map_devices_all_match_multiple(self):
-        networks = [
-            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
-            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
-        ]
+        n1 = DefaultNetwork(address="1.2.3.0/24")
+        n2 = DefaultNetwork(address="4.5.6.0/24")
+        networks = dict(role1=[n1, n2])
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {
@@ -126,17 +126,18 @@ class TestGetHostNet(EnosTest):
             },
         }
         expected = [
-            NetDevice("eth0", set([IPAddress("1.2.3.4/24", networks[0])])),
-            NetDevice("eth1", set([IPAddress("1.2.3.254/24", networks[0])])),
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
+            NetDevice("eth1", set([IPAddress("1.2.3.254/24", n1)])),
         ]
 
         self.assertCountEqual(expected, _build_devices(facts, networks))
 
     def test__map_devices_same_device(self):
-        networks = [
-            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
-            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        n1, n2 = [
+            DefaultNetwork(address="1.2.3.0/24"),
+            DefaultNetwork(address="4.5.6.0/24"),
         ]
+        networks = dict(role1=[n1, n2])
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {
@@ -153,8 +154,8 @@ class TestGetHostNet(EnosTest):
                 "eth0",
                 set(
                     [
-                        IPAddress("1.2.3.5/24", networks[0]),
-                        IPAddress("1.2.3.4/24", networks[0]),
+                        IPAddress("1.2.3.5/24", n1),
+                        IPAddress("1.2.3.4/24", n1)
                     ]
                 ),
             ),
@@ -163,10 +164,11 @@ class TestGetHostNet(EnosTest):
         self.assertCountEqual(expected, _build_devices(facts, networks))
 
     def test_map_devices_bridge(self):
-        networks = [
-            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
-            DefaultNetwork(roles=["b"], address="4.5.6.0/24"),
+        n1, n2 = [
+            DefaultNetwork(address="1.2.3.0/24"),
+            DefaultNetwork(address="4.5.6.0/24"),
         ]
+        networks = dict(role1=[n1, n2])
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {
@@ -184,8 +186,8 @@ class TestGetHostNet(EnosTest):
                 "br0",
                 set(
                     [
-                        IPAddress("1.2.3.5/24", networks[0]),
-                        IPAddress("1.2.3.4/24", networks[0]),
+                        IPAddress("1.2.3.5/24", n1),
+                        IPAddress("1.2.3.4/24", n1),
                     ]
                 ),
                 ["eth0", "eth1"],
@@ -298,7 +300,7 @@ class TestFilterAddresses(EnosTest):
 
         h1 = Host("1.2.3.4")
         address = IPAddress(
-            "1.2.3.4", DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+            "1.2.3.4", DefaultNetwork(address="1.2.3.0/24")
         )
         h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
@@ -309,7 +311,7 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
+        network = DefaultNetwork(address="1.2.3.0/24")
         address = IPAddress(
             "1.2.3.4", network
         )
@@ -322,8 +324,8 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
-        network2 = DefaultNetwork(roles=["a"], address="1.2.4.0/24")
+        network = DefaultNetwork(address="1.2.3.0/24")
+        network2 = DefaultNetwork(address="1.2.4.0/24")
         address = IPAddress(
             "1.2.3.4", network
         )
@@ -336,8 +338,8 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        network = DefaultNetwork(roles=["a"], address="1.2.3.0/24")
-        network2 = DefaultNetwork(roles=["a"], address="1.2.4.0/24")
+        network = DefaultNetwork(address="1.2.3.0/24")
+        network2 = DefaultNetwork(address="1.2.4.0/24")
         address = IPAddress(
             "1.2.3.4", network
         )

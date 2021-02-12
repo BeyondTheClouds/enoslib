@@ -4,8 +4,8 @@ from typing import List, Optional, Any
 import os
 
 from enoslib.api import play_on, run_command
+from enoslib.objects import Host
 from ..service import Service
-from enoslib.types import Host
 
 
 import yaml

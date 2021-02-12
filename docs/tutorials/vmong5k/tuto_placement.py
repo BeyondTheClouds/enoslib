@@ -3,7 +3,7 @@ from pathlib import Path
 
 from enoslib import *
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
@@ -49,7 +49,7 @@ roles, networks = provider.init()
 roles = sync_network_info(roles, networks)
 
 # Retrieving subnet
-subnet = [n for n in networks if "my_subnet" in n["roles"]]
+subnet = networks["my_subnet"]
 logging.info(subnet)
 
 # We describe the VMs types and placement in the following

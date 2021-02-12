@@ -1,35 +1,7 @@
-from ipaddress import IPv4Interface
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 
 from enoslib.objects import Host
-
-
-def _legacy_stuffs(host, machine: Host):
-    # generate shortcut informations
-    # -- legacy reasons
-    # ipv4 only
-    # FIXME: get rid of this but that would need to change at least the
-    # netem implem
-    network_roles = machine._get_network_roles()
-    enos_devices = set()
-    for network_role, addresses in network_roles.items():
-        # ensure some idempotency in this process
-        ipv4s = sorted(
-            [
-                (device, addr)
-                for device, addr in addresses
-                if isinstance(addr.ip, IPv4Interface)
-            ]
-        )
-        if len(ipv4s) > 0:
-            device, ipv4 = ipv4s[0]
-            host.set_variable(network_role, device)
-            host.set_variable(f"{network_role}_ip", ipv4.ip.ip)
-            host.set_variable(f"{network_role}_dev", device)
-            enos_devices.add(device)
-    if enos_devices:
-        host.set_variable("enos_devices", list(enos_devices))
 
 
 class EnosInventory(Inventory):
@@ -93,8 +65,6 @@ class EnosInventory(Inventory):
                 for k, v in machine.extra.items():
                     if k not in ["gateway", "gateway_user", "forward_agent"]:
                         host.set_variable(k, v)
-
-                _legacy_stuffs(host, machine)
 
                 self.reconcile_inventory()
 

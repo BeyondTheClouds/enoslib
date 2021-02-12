@@ -1,5 +1,9 @@
 import jsonschema
+import logging
 from typing import Dict, Optional, Any
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseConfiguration:
@@ -45,8 +49,7 @@ class BaseConfiguration:
     def finalize(self):
         d = self.to_dict()
         import json
-
-        print(json.dumps(d, indent=4))
+        logger.debug(json.dumps(d, indent=4))
         self.validate(d)
         return self
 

@@ -320,14 +320,13 @@ class G5kVlanNetwork(G5kNetwork):
         A vlan in G5k has 2 flavours IPv4 and IPv6 so
         we generate both generic network type here corresponding to this vlan.
         """
-        return [
-            G5kEnosVlan4Network(
-                self.roles, self.cidr, self.vlan_id, self.gateway, self.dns
-            ),
-            G5kEnosVlan6Network(
-                self.roles, self.cidr, self.vlan_id, self.gateway6, self.dns6
-            ),
-        ]
+        return (
+            self.roles,
+            [
+                G5kEnosVlan4Network(self.cidr, self.vlan_id, self.gateway, self.dns),
+                G5kEnosVlan6Network(self.cidr, self.vlan_id, self.gateway6, self.dns6),
+            ],
+        )
 
     def __repr__(self):
         return (
@@ -377,10 +376,13 @@ class G5kProdNetwork(G5kVlanNetwork):
         A production network in G5k has 2 flavours IPv4 and IPv6 so
         we generate both generic network type here corresponding to this vlan.
         """
-        return [
-            G5kEnosProd4Network(self.roles, self.cidr, self.gateway, self.dns),
-            G5kEnosProd6Network(self.roles, self.cidr6, self.gateway6, self.dns6),
-        ]
+        return (
+            self.roles,
+            [
+                G5kEnosProd4Network(self.cidr, self.gateway, self.dns),
+                G5kEnosProd6Network(self.cidr6, self.gateway6, self.dns6),
+            ],
+        )
 
     def __repr__(self):
         return "<G5kProdNetwork(" f"roles={self.roles}, " f"site={self.site}"
@@ -475,10 +477,8 @@ class G5kSubnetNetwork(G5kNetwork):
         """
         nets = []
         for subnet in self.subnets:
-            nets.append(
-                G5kEnosSubnetNetwork(self.roles, subnet, self.gateway, self.dns)
-            )
-        return nets
+            nets.append(G5kEnosSubnetNetwork(subnet, self.gateway, self.dns))
+        return self.roles, nets
 
     def __repr__(self):
         return (
@@ -706,12 +706,11 @@ class G5kEnosProd4Network(DefaultNetwork):
 
     def __init__(
         self,
-        roles: List[str],
         address: NetworkType,
         gateway: Optional[str] = None,
         dns: Optional[str] = None,
     ):
-        super().__init__(roles, address, gateway=gateway, dns=dns)
+        super().__init__(address, gateway=gateway, dns=dns)
 
 
 class G5kEnosProd6Network(G5kEnosProd4Network):
@@ -733,13 +732,12 @@ class G5kEnosVlan4Network(DefaultNetwork):
 
     def __init__(
         self,
-        roles: List[str],
         address: NetworkType,
         vlan_id: str,
         gateway: Optional[str] = None,
         dns: Optional[str] = None,
     ):
-        super().__init__(roles, address, gateway=gateway, dns=dns)
+        super().__init__(address, gateway=gateway, dns=dns)
         self.vlan_id = vlan_id
 
     @property
@@ -818,12 +816,11 @@ class G5kEnosSubnetNetwork(DefaultNetwork):
 
     def __init__(
         self,
-        roles: List[str],
         address: NetworkType,
         gateway: Optional[str] = None,
         dns: Optional[str] = None,
     ):
-        super().__init__(roles, address, gateway=gateway, dns=dns)
+        super().__init__(address, gateway=gateway, dns=dns)
 
     @property
     def has_free_ips(self):

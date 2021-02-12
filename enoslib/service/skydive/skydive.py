@@ -7,8 +7,7 @@ from enoslib.api import (
     __python3__,
     __docker__,
 )
-from enoslib.types import Host
-
+from enoslib.objects import Host, Network
 from ..service import Service
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
@@ -31,7 +30,7 @@ class Skydive(Service):
         *,
         analyzers: List[Host] = None,
         agents: List[Host] = None,
-        networks: List[Host] = None,
+        networks: List[Network] = None,
         priors: List[play_on] = [__python3__, __docker__],
         extra_vars: Dict = None,
     ):

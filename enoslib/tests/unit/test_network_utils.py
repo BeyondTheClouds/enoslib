@@ -290,10 +290,10 @@ class TestBuildIpConstraints(EnosTest):
         }
         self.constraints = [constraint]
         # we need some networks
-        self.networks = [
-            DefaultNetwork(roles=["a"], address="1.2.3.0/24"),
-            DefaultNetwork(roles=["b"], address="5.6.7.0/24"),
-        ]
+        self.networks = dict(role1=[
+            DefaultNetwork(address="1.2.3.0/24"),
+            DefaultNetwork(address="5.6.7.0/24"),
+        ])
         # we need some hosts
         self.n1 = Host("node1").sync_from_ansible(
             self.networks,
@@ -356,7 +356,7 @@ class TestBuildIpConstraints(EnosTest):
         self.rsc_bridge = dict(grp1=[nn1], grp2=[nn2])
 
     def test_build_ip_constraints_one_source_one_dest(self):
-        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks, self.constraints)
+        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
         # tc rules are applied on the source only
         self.assertFalse("node2" in ips_with_tc)
         # devices
@@ -381,7 +381,7 @@ class TestBuildIpConstraints(EnosTest):
 
     def test_build_ip_constraints_bridge(self):
         ips_with_tc = _build_ip_constraints(
-            self.rsc_bridge, self.networks, self.constraints
+            self.rsc_bridge, self.networks["role1"], self.constraints
         )
         # tc rules are applied on the source only
         self.assertTrue("tc" in ips_with_tc["node1"])
@@ -409,7 +409,7 @@ class TestBuildIpConstraints(EnosTest):
 
     def test_build_commands_with_symetric(self):
         self.constraints[0]["symetric"] = True
-        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks, self.constraints)
+        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
         remove, add, rate, delay, filtr = _build_commands(ips_with_tc)
 
         # as many remove as devices
