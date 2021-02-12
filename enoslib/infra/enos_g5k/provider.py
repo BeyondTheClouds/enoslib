@@ -359,7 +359,7 @@ class G5k(Provider):
     def launch(self):
         # drop in replacement for Resource.launch
         self.reserve()
-        if self.provider_conf.job_type == JOB_TYPE_DEPLOY:
+        if JOB_TYPE_DEPLOY in self.provider_conf.job_type:
             self.deploy()
             self.dhcp_networks()
         else:
