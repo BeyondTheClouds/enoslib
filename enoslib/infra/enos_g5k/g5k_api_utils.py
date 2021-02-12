@@ -590,11 +590,7 @@ def can_start_on_cluster(
     return False
 
 
-<<<<<<< HEAD
-def _do_synchronise_jobs(walltime, machines):
-=======
 def _do_synchronise_jobs(walltime, machines, force=False):
->>>>>>> 1e9c5d0... G5k: expose a method to sync different confs
     """This returns a common reservation date for all the jobs.
 
     This reservation date is really only a hint and will be supplied to each
