@@ -2,7 +2,7 @@ from enoslib.api import play_on, run_command
 from typing import List
 
 from ..service import Service
-from enoslib.types import Host
+from enoslib.objects import Host
 
 
 class K3s(Service):

@@ -6,7 +6,7 @@ from unittest.mock import patch
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 
-from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME
+from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME, PROD
 from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     BoardConfiguration,
@@ -181,9 +181,9 @@ class TestSubmit(EnosTest):
         )  # not ideal but the _alias depends on the test order...
 
         self.assertTrue(len(nodes["r2"]) == 2)
-        self.assertTrue(len(networks) == 2)
-        self.assertIsInstance(networks[0].network, IPv4Network)
-        self.assertIsInstance(networks[1].network, IPv6Network)
+        self.assertTrue(len(networks) == 1)
+        self.assertIsInstance(networks[PROD][0].network, IPv4Network)
+        self.assertIsInstance(networks[PROD][1].network, IPv6Network)
 
     @patch("iotlabcli.experiment.submit_experiment")
     def test_valid_phys_cfg(self, mock_submit):
@@ -247,10 +247,8 @@ class TestSubmit(EnosTest):
         # build a provider
         p = Iotlab(provider_config)
         nodes, networks = p.init()
-        print(networks)
-        self.assertTrue(len(networks) == 2)
-        self.assertEqual(networks[0].roles, ["n1"])
-        self.assertEqual(networks[1].roles, ["n1"])
+        self.assertTrue(len(networks) == 1)
+        self.assertTrue(len(networks["n1"]) == 2)
 
 
 class TestDeploy(EnosTest):

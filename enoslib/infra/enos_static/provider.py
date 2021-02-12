@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 
 from enoslib.objects import DefaultNetwork, Host
 from enoslib.infra.provider import Provider
@@ -15,7 +16,7 @@ class Static(Provider):
 
     def init(self, force_deploy=False):
         machines = self.provider_conf.machines
-        roles = {}
+        roles = defaultdict(list)
         for machine in machines:
             for r in machine.roles:
                 roles.setdefault(r, []).append(
@@ -29,17 +30,20 @@ class Static(Provider):
                     )
                 )
 
-        return roles, [
-            DefaultNetwork(
-                roles=n.roles,
-                address=n.cidr,
-                gateway=n.gateway,
-                dns=n.dns,
-                ip_start=n.start,
-                ip_end=n.end,
-            )
-            for n in self.provider_conf.networks
-        ]
+        networks = defaultdict(list)
+        for n in self.provider_conf.networks:
+            for role in n.roles:
+                networks[role].append(
+                    DefaultNetwork(
+                        address=n.cidr,
+                        gateway=n.gateway,
+                        dns=n.dns,
+                        ip_start=n.start,
+                        ip_end=n.end,
+                    )
+                )
+
+        return roles, networks
 
     def destroy(self):
         pass

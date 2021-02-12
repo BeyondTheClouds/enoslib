@@ -64,13 +64,17 @@ try:
     print("Deploy monitoring stack on Grid'5000")
     print("Install Grafana and Prometheus at: %s" % str(g5k_roles["control"]))
     print("Install Telegraf at: %s" % str(g5k_roles["compute"]))
+    def get_nets(networks, net_type):
+        """ Aux method to filter networs from roles """
+        return [
+            n for net_list in networks.values() for n in net_list
+            if isinstance(n.network, net_type)
+        ]
     m = TPGMonitoring(
             collector=g5k_roles["control"][0],
             agent=g5k_roles["compute"]+iotlab_roles["a8"],
             ui=g5k_roles["control"][0],
-            networks=[
-                n for n in g5k_networks+iotlab_networks if isinstance(n.network, IPv6Network)
-            ]
+            networks=get_nets(g5k_networks, IPv6Network) + get_nets(iotlab_networks, IPv6Network)
     )
     m.deploy()
 

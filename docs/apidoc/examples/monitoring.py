@@ -26,11 +26,7 @@ conf.add_network_conf(network)\
 provider = G5k(conf)
 roles, networks = provider.init()
 
-run_command("dhclient -6 br0", roles=roles)
-roles = sync_network_info(roles, networks)
-
-network = [n for n in networks if isinstance(n.network, IPv6Network)]
-m = TIGMonitoring(collector=roles["control"][0], agent=roles["compute"], ui=roles["control"][0], networks=network)
+m = TIGMonitoring(collector=roles["control"][0], agent=roles["compute"], ui=roles["control"][0])
 m.destroy()
 m.deploy()
 

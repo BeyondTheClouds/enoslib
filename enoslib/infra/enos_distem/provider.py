@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from typing import List
+from enoslib.infra.enos_distem.configuration import Configuration
 import itertools
 import logging
 import os
@@ -10,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from enoslib.api import play_on
-from enoslib.objects import Host
+from enoslib.objects import Host, Network, Roles
 import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -22,11 +24,13 @@ from ..provider import Provider
 logger = logging.getLogger(__name__)
 
 
-def start_containers(g5k_roles, provider_conf, g5k_subnets):
+def start_containers(
+    g5k_roles: Roles, provider_conf: Configuration, g5k_subnets: List[Network]
+):
     """Starts containers on G5K.
 
     Args:
-        g5k_roles (dict): physical machines to start the containers on.
+        g5k_roles: physical machines to start the containers on.
         provider_conf(Configuration):
             :py:class:`enoslib.infra.enos_distem.configuraton.Configuration`
             This is the abstract description of your overcloud (containers). Each
@@ -53,7 +57,7 @@ def start_containers(g5k_roles, provider_conf, g5k_subnets):
     # For now we only consider a single subnet
     distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem, keys_path)
 
-    return distem_roles, g5k_subnets
+    return distem_roles, dict(__subnet__=g5k_subnets)
 
 
 def _get_host_cores(cluster):
@@ -283,7 +287,7 @@ class Distem(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
-        g5k_subnets = [n for n in g5k_networks if "__subnet__" in n.roles]
+        g5k_subnets = g5k_networks["__subnet__"]
 
         # we concretize the virtualmachines
         for machine in self.provider_conf.machines:

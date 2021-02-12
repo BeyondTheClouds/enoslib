@@ -1,5 +1,5 @@
 from collections import defaultdict
-from enoslib.objects import Network
+from enoslib.objects import Network, Roles
 import logging
 import re
 import os
@@ -9,7 +9,7 @@ from jsonschema import validate
 
 from enoslib.api import run_ansible, play_on
 from enoslib.constants import TMP_DIRNAME
-from enoslib.types import Host, Roles
+from enoslib.objects import Host
 from enoslib.utils import _check_tmpdir
 from .schema import SCHEMA
 from ..service import Service

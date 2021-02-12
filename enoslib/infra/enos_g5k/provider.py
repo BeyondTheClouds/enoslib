@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 import copy
 import logging
 import operator
@@ -448,15 +449,19 @@ class G5k(Provider):
 
     def _to_enoslib(self):
         """Transform from provider specific resources to framework resources."""
-        roles = {}
+        # index the host by their associated roles
+        hosts = defaultdict(list)
         for host in self.hosts:
             for role in host.roles:
                 h = Host(host.ssh_address, user="root")
-                roles.setdefault(role, []).append(h)
-        networks = []
+                hosts[role].append(h)
+        # doing the same on networks
+        networks = defaultdict(list)
         for network in self.networks:
-            networks.extend(network.to_enos())
-        return roles, networks
+            roles, enos_networks = network.to_enos()
+            for role in roles:
+                networks[role].extend(enos_networks)
+        return hosts, networks
 
     @staticmethod
     def tunnel(address: str, port: int):

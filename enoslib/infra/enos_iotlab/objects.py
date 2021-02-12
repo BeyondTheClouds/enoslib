@@ -6,7 +6,7 @@ import logging
 
 import iotlabcli.auth
 
-from enoslib.objects import Host
+from enoslib.objects import Host, DefaultNetwork
 from enoslib.api import play_on
 from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
@@ -117,6 +117,14 @@ class IotlabSensor(Sensor):
         Resets this sensor
         """
         self.iotlab_client.send_cmd_node(cmd="reset", nodes=[self.address])
+
+
+class IotlabNetwork(DefaultNetwork):
+    """Iotlab network class.
+    """
+    def __init__(self, roles: List[str], *args, **kargs):
+        super().__init__(*args, **kargs)
+        self.roles = roles
 
 
 class IotlabSerial():

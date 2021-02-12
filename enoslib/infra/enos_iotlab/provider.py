@@ -6,10 +6,10 @@ from typing import List, Optional
 import iotlabcli.auth
 
 from enoslib.api import play_on
-from enoslib.objects import Host, DefaultNetwork
+from enoslib.objects import Host
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
-from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor
+from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork
 from enoslib.infra.utils import mk_pools, pick_things
 
 from enoslib.infra.enos_iotlab.constants import PROD
@@ -18,16 +18,6 @@ from enoslib.infra.enos_iotlab.configuration import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class IotlabNetwork(DefaultNetwork):
-    """Iotlab network class.
-
-    Empty by now.
-    Needed to be compliant with
-    :py:class:`~enoslib.objects.DefaultNetwork`
-    """
-    pass
 
 
 class Iotlab(Provider):
@@ -262,7 +252,7 @@ class Iotlab(Provider):
             )
 
     def _to_enoslib(self):
-        """Transform from provider specific resources to framework resources"""
+        """Transform from provider specific resources to library-level resources"""
         roles = {}
         for host in self.hosts:
             for role in host.roles:
@@ -276,4 +266,10 @@ class Iotlab(Provider):
         for sensor in self.sensors:
             for role in sensor.roles:
                 roles.setdefault(role, []).append(sensor)
-        return roles, self.networks
+
+        networks = {}
+        for network in self.networks:
+            for role in network.roles:
+                networks.setdefault(role, []).append(network)
+
+        return roles, networks

@@ -3,7 +3,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, __python3__
-from enoslib.types import Host
+from enoslib.objects import Host
 from ..service import Service
 from ..utils import _check_path
 
