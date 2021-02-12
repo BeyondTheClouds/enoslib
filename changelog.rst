@@ -1,6 +1,25 @@
 Changelog
 ===========
 
+6.0.0 (IPv6 release !)
+----------------------
+
+- Networks from the various providers deserved a true abstraction: it's done.
+
+  - ``provider.init` now returns two similar data structures: Compute roles
+    (aka ``roles``) and networks roles (``aka networks``). Both are
+    dictionnaries of ``Host`` (resp. ``Networks``) indexed by the user provided
+    tags.
+
+  - Networks returned by a provider encompass IPv4 and IPv6 networks. User
+    can filter them afterwards based on the wanted type.
+    For instance a user reserving a vlan on Grid'5000 will be given two networks
+    corresponding to the IPv4 kavlan network and its IPv6 counterpart.
+
+- Most of services have been updated to support the above change.
+
+- Note that the Openstack provider is broken currently.
+
 5.5.1
 -----
 
