@@ -6,7 +6,7 @@ Changelog
 
 - Networks from the various providers deserved a true abstraction: it's done.
 
-  - ``provider.init` now returns two similar data structures: Compute roles
+  - ``provider.init`` now returns two similar data structures: Compute roles
     (aka ``roles``) and networks roles (``aka networks``). Both are
     dictionnaries of ``Host`` (resp. ``Networks``) indexed by the user provided
     tags.
