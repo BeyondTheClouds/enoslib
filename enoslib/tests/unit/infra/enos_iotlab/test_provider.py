@@ -237,9 +237,9 @@ class TestSubmit(EnosTest):
             )
             .add_network_conf(
                 NetworkConfiguration(
-                    id="network1",
+                    net_id="network1",
                     roles=["n1"],
-                    type="prod",
+                    net_type="prod",
                     site="Grenoble",
                 )
             )

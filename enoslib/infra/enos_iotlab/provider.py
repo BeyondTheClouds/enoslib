@@ -36,7 +36,7 @@ class Iotlab(Provider):
         self.sensors: List[IotlabSensor] = []
         self.networks: List[IotlabNetwork] = []
 
-    def init(self):
+    def init(self, force_deploy: bool = False):
         """
         Take ownership over FIT/IoT-LAB resources
 
@@ -86,12 +86,12 @@ class Iotlab(Provider):
         for host in self.hosts:
             sites.add(host.site)
 
-        user, passwd = iotlabcli.auth.get_user_credentials()
+        user, _ = iotlabcli.auth.get_user_credentials()
         roles = {
             "frontend": [Host(site + ".iot-lab.info", user=user) for site in sites]
         }
         logger.info(
-            "Collecting experiment data from sites. Saving in folder: %s" % dest_dir
+            "Collecting experiment data from sites. Saving in folder: %s", dest_dir
         )
         with play_on(roles=roles, on_error_continue=True) as p:
             filename = "%d-{{ inventory_hostname }}.tar.gz" % (exp_id)
@@ -101,17 +101,15 @@ class Iotlab(Provider):
                     % (filename, exp_id))
             p.fetch(src=".iot-lab/" + filename, dest=dest_dir + "/", flat=True)
             p.shell("cd .iot-lab/; rm -f %s" % filename)
-        return
 
     def destroy(self):
         """Destroys the job and monitoring profiles"""
         self.client.stop_experiment()
         self.client.del_profile()
-        return
 
     def _assert_clear_pool(self, pool_nodes):
         """Auxialiry method to verify that all nodes from the pool were used"""
-        for i, nodes in pool_nodes.items():
+        for nodes in pool_nodes.values():
             assert len(nodes) == 0
 
     def _populate_from_board_nodes(self, iotlab_nodes: list):
@@ -186,9 +184,8 @@ class Iotlab(Provider):
 
         self._get_networks()
 
-        logger.info("Finished reserving nodes: hosts %s, sensors %s" % (
-            str(self.hosts), str(self.sensors)))
-        return
+        logger.info("Finished reserving nodes: hosts %s, sensors %s",
+            str(self.hosts), str(self.sensors))
 
     def _get_networks(self):
         """
@@ -243,7 +240,7 @@ class Iotlab(Provider):
             return
 
         for profile in self.provider_conf.profiles:
-            if (profile.radio is None and profile.consumption is None):
+            if profile.radio is None and profile.consumption is None:
                 continue
 
             self.client.create_profile(

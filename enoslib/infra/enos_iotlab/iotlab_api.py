@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Set
 
 import iotlabcli
 import iotlabcli.experiment
@@ -30,7 +30,7 @@ class IotlabAPI():
 
     def __init__(self):
         user, passwd = iotlabcli.auth.get_user_credentials()
-        if (user is None):
+        if user is None:
             raise(EnosIotlabCfgError("""Error initializing iotlab client,
             no username/password available. EnOSlib depends on the cli-tools.
             Please create the IoT-LAB password file (~/.iotlabrc) using
@@ -43,12 +43,14 @@ class IotlabAPI():
         self.profiles: Set[str] = set()
         self.nodes = []
 
-    def _walltime_to_minutes(self, walltime: str) -> int:
+    @staticmethod
+    def _walltime_to_minutes(walltime: str) -> int:
         """ Convert from string format (HH:MM) to minutes """
         _t = walltime.split(":")
         return int(_t[0]) * 60 + int(_t[1])
 
-    def _translate_resources(self, resources: List[GroupConfiguration]) -> list:
+    @staticmethod
+    def _translate_resources(resources: List[GroupConfiguration]) -> list:
         """ Convert from node Configuration to a list of resources acceptable by FIT/IoT-LAB
 
         Args:
@@ -58,14 +60,14 @@ class IotlabAPI():
         """
         converted = []
         for cfg in resources:
-            if (isinstance(cfg, BoardConfiguration)):
+            if isinstance(cfg, BoardConfiguration):
                 converted.append(
                     iotlabcli.experiment.exp_resources(
                         nodes=iotlabcli.experiment.AliasNodes(nbnodes=cfg.number,
                         site=cfg.site, archi=cfg.archi), profile_name=cfg.profile,
                     )
                 )
-            elif (isinstance(cfg, PhysNodeConfiguration)):
+            elif isinstance(cfg, PhysNodeConfiguration):
                 converted.append(
                     iotlabcli.experiment.exp_resources(
                         nodes=cfg.hostname, profile_name=cfg.profile,
@@ -92,8 +94,8 @@ class IotlabAPI():
             resources: List of nodes in job
         """
         converted = self._translate_resources(resources)
-        logger.info("Submitting FIT/IoT-LAB: job id: %s, duration: %s, resources: %s" %
-                    (name, walltime, str(converted)))
+        logger.info("Submitting FIT/IoT-LAB: job id: %s, duration: %s, resources: %s",
+                    name, walltime, str(converted))
 
         json_res = iotlabcli.experiment.submit_experiment(
             api=self.api, name=name, duration=self._walltime_to_minutes(walltime),
@@ -103,7 +105,7 @@ class IotlabAPI():
         # OK: {'id': 237179}
         self.job_id = json_res['id']
         self.walltime = self._walltime_to_minutes(walltime)
-        logger.info("Job submitted: %d" % self.job_id)
+        logger.info("Job submitted: %d", self.job_id)
 
     def _check_job_running(self, name: str) -> Tuple[int, int]:
         """
@@ -126,9 +128,9 @@ class IotlabAPI():
 
         for job in act_jobs['items']:
             if job['name'] == name:
-                return (job['id'], job['submitted_duration'])
+                return job['id'], job['submitted_duration']
 
-        return (None, None)
+        return None, None
 
     def get_resources(
         self, name: str, walltime: str, resources: List[GroupConfiguration]
@@ -147,11 +149,11 @@ class IotlabAPI():
             list: List with nodes name
         """
         self.job_id, self.walltime = self._check_job_running(name)
-        if (self.job_id is None):
+        if self.job_id is None:
             self.submit_experiment(name, walltime, resources)
-        logger.info("Waiting for job id (%d) to be in running state" % (self.job_id))
+        logger.info("Waiting for job id (%d) to be in running state", self.job_id)
         iotlabcli.experiment.wait_experiment(api=self.api, exp_id=self.job_id)
-        logger.info("Job id (%d) is running" % (self.job_id))
+        logger.info("Job id (%d) is running", self.job_id)
         job_info = iotlabcli.experiment.get_experiment(
             api=self.api, exp_id=self.job_id, option="nodes")
         # output example: {'items': [{'site': 'grenoble', 'archi': 'a8:at86rf231',
@@ -166,7 +168,7 @@ class IotlabAPI():
     def stop_experiment(self):
         """Stop experiment if it's running"""
         if self.job_id:
-            logger.info("Stopping experiment id (%d)" % self.job_id)
+            logger.info("Stopping experiment id (%d)", self.job_id)
             iotlabcli.experiment.stop_experiment(api=self.api, exp_id=self.job_id)
 
     def collect_data_experiment(self, exp_dir: str):
@@ -179,7 +181,7 @@ class IotlabAPI():
         if self.job_id is None:
             return
 
-        logger.info("API exp info saved in %s/%d.tar.gz file." % (exp_dir, self.job_id))
+        logger.info("API exp info saved in %s/%d.tar.gz file.", exp_dir, self.job_id)
         result = self.api.get_experiment_info(expid=self.job_id, option="data")
         with open('%s/%s.tar.gz' % (exp_dir, self.job_id), 'wb') as archive:
             archive.write(result)
@@ -193,7 +195,7 @@ class IotlabAPI():
             nodes: List of nodes to flash image
         """
 
-        logger.info("Flashing image (%s) on nodes (%s)" % (image, str(nodes)))
+        logger.info("Flashing image (%s) on nodes (%s)", image, str(nodes))
         iotlabcli.node.node_command(
             api=self.api, command="flash", exp_id=self.job_id,
             nodes_list=nodes, cmd_opt=image)
@@ -209,9 +211,9 @@ class IotlabAPI():
             nodes: list of nodes (ssh_address in the format node-a8...)
         """
 
-        if (len(nodes) == 0):
+        if len(nodes) == 0:
             return
-        logger.info("Waiting A8 nodes to boot: %s" % str(nodes))
+        logger.info("Waiting A8 nodes to boot: %s", str(nodes))
         res = iotlabsshcli.open_linux.wait_for_boot(
             {'user': self.user, 'exp_id': self.job_id},
             nodes
@@ -227,7 +229,7 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
 
         if ('0' in res['wait-for-boot']
             and len(res['wait-for-boot']['0']) > 0):
-            logger.info("A8 nodes initialized: %s" % res['wait-for-boot']['0'])
+            logger.info("A8 nodes initialized: %s", res['wait-for-boot']['0'])
 
     def send_cmd_node(self, cmd: str, nodes: List[str]):
         """
@@ -244,7 +246,7 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
             sys.exit("Invalid command: %s, nodes: %s" % (cmd, str(nodes)))
             return
 
-        logger.info("Executing command (%s) on nodes (%s)" % (cmd, str(nodes)))
+        logger.info("Executing command (%s) on nodes (%s)", cmd, str(nodes))
         iotlabcli.node.node_command(
             api=self.api, command=cmd, exp_id=self.job_id,
             nodes_list=nodes)
@@ -281,7 +283,7 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
             "custom": iotlabcli.profile.ProfileCustom,
         }
         if self._check_profile_exists(name):
-            logger.info("Profile: %s, already exists. Skipping creation." % name)
+            logger.info("Profile: %s, already exists. Skipping creation.", name)
             self.profiles.add(name)
             return
 
@@ -302,14 +304,14 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
             )
 
         res = self.api.add_profile(profile)
-        logger.info("Submitting profile: %s, got %s" % (name, str(res)))
+        logger.info("Submitting profile: %s, got %s", name, str(res))
         self.profiles.add(name)
         return
 
     def del_profile(self):
         """Deletes the profiles from testbed"""
         for profile in self.profiles:
-            logger.info("Deleting monitoring profile: %s" % profile)
+            logger.info("Deleting monitoring profile: %s", profile)
             self.api.del_profile(name=profile)
         self.profiles.clear()
         return

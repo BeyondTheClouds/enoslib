@@ -441,10 +441,10 @@ class TestNetworkConfiguration(EnosTest):
                 image="test_profile",
             )
         ).add_network(
-            id="n1",
+            net_id="n1",
             roles=["r1"],
             site="grenoble",
-            type="prod",
+            net_type="prod",
         )
         conf.finalize()
 
