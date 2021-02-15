@@ -30,7 +30,6 @@ provider = VMonG5k(conf)
 
 roles, networks = provider.init()
 
-roles = sync_info(roles, networks)
 with play_on(roles=roles) as p:
     # flent requires python3, so we default python to python3
     p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
@@ -43,9 +42,10 @@ with play_on(pattern_hosts="server", roles=roles) as p:
     p.shell("nohup netperf &")
 
 with play_on(pattern_hosts="client", roles=roles) as p:
+    server_address = roles["server"][0].address
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
+            + f"-H { server_address } "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",
