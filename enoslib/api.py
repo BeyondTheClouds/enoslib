@@ -769,7 +769,7 @@ def run_ansible(
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
 
-def sync_network_info(roles: Roles, networks: Networks) -> Roles:
+def sync_info(roles: Roles, networks: Networks) -> Roles:
     """Sync each host network information with their actual configuration
 
     If the command is successful each host extra_devices attribute will be
@@ -846,7 +846,7 @@ def generate_inventory(
         f.write(_generate_inventory(roles))
 
     if check_networks:
-        _roles = sync_network_info(roles, networks)
+        _roles = sync_info(roles, networks)
         with open(inventory_path, "w") as f:
             f.write(_generate_inventory(_roles))
 

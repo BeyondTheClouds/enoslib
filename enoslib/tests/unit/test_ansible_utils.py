@@ -238,7 +238,7 @@ class TestEqHosts(EnosTest):
 
         h1 = TestEqHosts._make_host()
         h2 = TestEqHosts._make_host()
-        h2.extra_devices = set([NetDevice(name="eth0")])
+        h2.net_devices = set([NetDevice(name="eth0")])
         self.assertEqual(
             h1.__hash__(),
             h2.__hash__(),
@@ -275,7 +275,7 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set())])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set())])
         self.assertCountEqual(
             [],
             h1.filter_addresses(),
@@ -284,7 +284,7 @@ class TestFilterAddresses(EnosTest):
 
         h1 = Host("1.2.3.4")
         address = IPAddress("1.2.3.4", None)
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [],
             h1.filter_addresses(),
@@ -302,7 +302,7 @@ class TestFilterAddresses(EnosTest):
         address = IPAddress(
             "1.2.3.4", DefaultNetwork(address="1.2.3.0/24")
         )
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [address],
             h1.filter_addresses(),
@@ -315,7 +315,7 @@ class TestFilterAddresses(EnosTest):
         address = IPAddress(
             "1.2.3.4", network
         )
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [address],
             h1.filter_addresses([network]),
@@ -329,7 +329,7 @@ class TestFilterAddresses(EnosTest):
         address = IPAddress(
             "1.2.3.4", network
         )
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [],
             h1.filter_addresses([network2]),
@@ -346,7 +346,7 @@ class TestFilterAddresses(EnosTest):
         address2 = IPAddress(
             "1.2.4.4", network2
         )
-        h1.extra_devices = set([NetDevice(name="eth0", addresses=set([address, address2]))])
+        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address, address2]))])
         self.assertCountEqual(
             [address],
             h1.filter_addresses([network]),

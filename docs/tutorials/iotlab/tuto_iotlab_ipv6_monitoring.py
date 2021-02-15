@@ -57,8 +57,8 @@ try:
     print("Enabling IPv6 on Grid'5000 nodes")
     run_command("dhclient -6 br0", roles=g5k_roles)
 
-    g5k_roles = sync_network_info(g5k_roles, g5k_networks)
-    iotlab_roles = sync_network_info(iotlab_roles, iotlab_networks)
+    g5k_roles = sync_info(g5k_roles, g5k_networks)
+    iotlab_roles = sync_info(iotlab_roles, iotlab_networks)
 
 
     print("Deploy monitoring stack on Grid'5000")

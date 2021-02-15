@@ -23,7 +23,7 @@ provider = Vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
 s = Skydive(analyzers=roles["control"],
             agents=roles["compute"] + roles["control"])

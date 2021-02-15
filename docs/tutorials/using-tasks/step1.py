@@ -34,7 +34,7 @@ conf = VagrantConf.from_dictionnary(provider_conf)
 provider = Vagrant(conf)
 roles, networks = provider.init()
 
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
 netem = Netem(tc, roles=roles)
 # apply network constraints

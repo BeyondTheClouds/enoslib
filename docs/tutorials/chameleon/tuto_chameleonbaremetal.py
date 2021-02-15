@@ -31,7 +31,7 @@ provider = CBM(conf)
 
 roles, networks = provider.init()
 
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
 # Experimentation logic starts here
 with play_on(roles=roles) as p:

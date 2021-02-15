@@ -1,7 +1,7 @@
 import logging
 import os
 
-from enoslib.api import sync_network_info
+from enoslib.api import sync_info
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
@@ -35,7 +35,7 @@ conf = Configuration.from_dictionnary(provider_conf)
 provider = Static(conf)
 
 roles, networks = provider.init()
-roles2 = sync_network_info(roles, networks)
+roles2 = sync_info(roles, networks)
 # not network info attached to the nodes in roles
 print(roles)
 assert len(roles["control"][0].filter_addresses()) == 0

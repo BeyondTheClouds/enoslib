@@ -2,7 +2,7 @@
 from enoslib.api import (
     ensure_python2,
     ensure_python3,
-    sync_network_info,
+    sync_info,
     get_hosts,
     play_on,
     run,

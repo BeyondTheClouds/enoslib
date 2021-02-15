@@ -342,6 +342,7 @@ class NetDevice(object):
         # return all the addresses known to enoslib (those that belong to one network)
         addresses = [addr for addr in self.addresses if addr.network is not None]
         if include_unknown:
+            # we return all addresses
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
@@ -365,6 +366,16 @@ class BridgeDevice(NetDevice):
         d.update(
             type="bridge",
             interfaces=self.interfaces)
+
+
+@dataclass()
+class Processor(object):
+    cores: int
+    count: int
+    threads_per_core: int
+
+    def __post_init__(self):
+        self.vcpus = self.cores * self.count * self.threads_per_core
 
 
 @dataclass(unsafe_hash=True)
@@ -392,11 +403,11 @@ class Host(object):
         keyfile: keyfile to use to authenticate (e.g when using SSH)
         port: port to connect to (e.g using SSH)
         extra: dictionnary of options. Will be passed to Ansible as host_vars.
-        extra_devices: list of network devices configured on this host.
+        net_devices: list of network devices configured on this host.
             can be synced with the :py:func:`enoslib.api.sync_network_info`.
 
     Note:
-        In the future we'd like the provider to populate the extra_devices
+        In the future we'd like the provider to populate the net_devices
         to get a consistent initial representation of the hosts.
     """
 
@@ -413,7 +424,7 @@ class Host(object):
     # - discover_network can set this for you
     # - also there's a plan to make the provider fill that for you when
     #   possible (e.g in G5K we can use the REST API)
-    extra_devices: Set[NetDevice] = field(default_factory=set, hash=False)
+    net_devices: Set[NetDevice] = field(default_factory=set, hash=False)
 
     def __post_init__(self):
         if not self.alias:
@@ -424,9 +435,13 @@ class Host(object):
         if self.extra is not None:
             self.extra = copy.deepcopy(self.extra)
 
-        if self.extra_devices is None:
-            self.extra_devices = set()
-        self.extra_devices = set(self.extra_devices)
+        if self.net_devices is None:
+            self.net_devices = set()
+        self.net_devices = set(self.net_devices)
+
+        # write by the sync_from_ansible_method
+        # read by specific host accessor (e.g processor, memory)
+        self.__facts = None
 
     def to_dict(self):
         d = dict(
@@ -436,7 +451,7 @@ class Host(object):
             keyfile=self.keyfile,
             port=self.port,
             extra=self.extra,
-            extra_devices=[device.to_dict() for device in self.extra_devices],
+            net_devices=[device.to_dict() for device in self.net_devices],
         )
         return copy.deepcopy(d)
 
@@ -448,10 +463,10 @@ class Host(object):
         Mutate self, since it add/update the list of network devices
         Currently the dict must be compatible with the ansible hosts facts.
         """
-
+        self.__facts = host_facts
         if clear:
-            self.extra_devices = set()
-        self.extra_devices = _build_devices(host_facts, networks)
+            self.net_devices = set()
+        self.net_devices = _build_devices(host_facts, networks)
         return self
 
     def filter_addresses(
@@ -472,7 +487,7 @@ class Host(object):
             A list of addresses
         """
         addresses = []
-        for net_device in self.extra_devices:
+        for net_device in self.net_devices:
             addresses += net_device.filter_addresses(
                 networks, include_unknown=include_unknown
             )
@@ -496,12 +511,21 @@ class Host(object):
             A list of interface names.
         """
         interfaces = []
-        for net_device in self.extra_devices:
+        for net_device in self.net_devices:
             if net_device.filter_addresses(networks, include_unknown=include_unknown):
                 # at least one address in this network
                 # or networks is None and we got all the known addresses
                 interfaces.extend(net_device.interfaces)
         return interfaces
+
+    @property
+    def processor(self) -> Optional[Processor]:
+        if self.__facts is not None:
+            cores = self.__facts["ansible_processor_cores"]
+            count = self.__facts["ansible_processor_count"]
+            tpc = self.__facts["ansible_processor_threads_per_core"]
+            return Processor(cores=cores, count=count, threads_per_core=tpc)
+        return None
 
     @classmethod
     def from_dict(cls, d):
@@ -528,6 +552,6 @@ class Host(object):
             "keyfile=%s" % self.keyfile,
             "port=%s" % self.port,
             "extra=%s" % self.extra,
-            "extra_addresses=%s" % self.extra_devices,
+            "net_devices=%s" % self.net_devices,
         ]
         return "Host(%s)" % ", ".join(args)

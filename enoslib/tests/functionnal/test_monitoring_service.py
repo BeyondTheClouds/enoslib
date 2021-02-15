@@ -1,7 +1,7 @@
 import logging
 import os
 
-from enoslib.api import sync_network_info
+from enoslib.api import sync_info
 from enoslib.service import TIGMonitoring, TPGMonitoring
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
@@ -37,7 +37,7 @@ provider = Static(conf)
 
 roles, networks = provider.init()
 
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
 # testing TIG stack
 m_tig = TIGMonitoring(collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0])

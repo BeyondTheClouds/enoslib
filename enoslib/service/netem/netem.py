@@ -288,7 +288,9 @@ def _build_options(extra_vars, options):
     return _options
 
 
-def _validate(roles, output_dir, extra_vars=None):
+def _validate(
+    roles: Roles, output_dir: str, all_addresses: List[str], extra_vars: Dict = None
+):
     logger.debug("Checking the constraints")
     if not output_dir:
         output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
@@ -299,7 +301,12 @@ def _validate(roles, output_dir, extra_vars=None):
     _check_tmpdir(output_dir)
     _playbook = os.path.join(SERVICE_PATH, "netem.yml")
     options = _build_options(
-        extra_vars, {"enos_action": "tc_validate", "tc_output_dir": output_dir}
+        extra_vars,
+        dict(
+            enos_action="tc_validate",
+            tc_output_dir=output_dir,
+            all_addresses=all_addresses,
+        ),
     )
     run_ansible([_playbook], roles=roles, extra_vars=options)
 
@@ -350,13 +357,13 @@ class SimpleNetem(Service):
         self.hosts = hosts if hosts else []
         self.networks = networks
         self.extra_vars = extra_vars if extra_vars is not None else {}
+        self.roles = dict(all=self.hosts)
 
     def deploy(self):
         """Apply the constraints on all the hosts."""
-
         # For each node get, the NIC to take into account
         for host in self.hosts:
-            interfaces = host.get_interfaces_for(self.networks)
+            interfaces = host.filter_interfaces(self.networks)
             host.extra.update(__netem_devices__=interfaces)
             host.extra.update(__netem_options__=self.options)
 
@@ -373,8 +380,11 @@ class SimpleNetem(Service):
         pass
 
     def validate(self, output_dir=None):
-        _roles = {"all": self.hosts}
-        _validate(_roles, output_dir)
+        all_addresses = []
+        for host in self.hosts:
+            addresses = host.filter_addresses(self.networks)
+            all_addresses.extend([str(addr.ip.ip) for addr in addresses])
+        _validate(self.roles, output_dir, all_addresses)
 
     def destroy(self):
         # We need to know the exact device
@@ -585,5 +595,11 @@ class Netem(Service):
             output_dir(str): directory where validation files will be stored.
                 Default to: py: const: `enoslib.constants.TMP_DIRNAME`.
         """
-
-        _validate(self.roles, output_dir=output_dir)
+        all_addresses = set()
+        for hosts in self.roles.values():
+            for host in hosts:
+                addresses = host.filter_addresses(self.networks)
+                all_addresses = all_addresses.union(
+                    set([str(addr.ip.ip) for addr in addresses])
+                )
+        _validate(self.roles, output_dir, list(all_addresses))

@@ -20,7 +20,7 @@ provider = Vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
 docker = Docker(registry=roles["control"], agent=roles["compute"])
 docker.deploy()
