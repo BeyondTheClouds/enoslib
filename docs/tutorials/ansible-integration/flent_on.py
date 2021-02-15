@@ -50,9 +50,11 @@ with play_on(pattern_hosts="server", roles=roles) as p:
     p.shell("nohup netperf &")
 
 with play_on(pattern_hosts="client", roles=roles) as p:
+    # get the address of server
+    server_address = roles["server"][0].address
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
+            + f"-H { server_address } "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",

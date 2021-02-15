@@ -1,31 +1,45 @@
-EnosLib
-=======
+**************************************************
+EnOSlib: Surviving the ☆homoterogeneous☆ world
+**************************************************
 
 |Build Status| |License| |Pypi|
 
-* Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
-* Source: https://gitlab.inria.fr/discovery/enoslib
-* Chat: https://framateam.org/enoslib
 
-EnOSlib is a library to help you with your experiments. The main parts of your
-experiment logic is made **reusable** by the following EnOSlib building blocks:
+What the ☆homoterogeneous☆ ?
+----------------------------
 
-- **Reusable infrastructure configuration**: The provider abstraction allows you to
-  run your experiment on different environments (locally with Vagrant, Grid'5000,
-  Chameleon and more)
-- **Reusable software provisioning**: In order to configure your nodes, EnOSlib
-  exposes different APIs with different level of expressivity.
-  For instance EnOSlib's modules let you run remote atomic actions safely on remote
-  hosts while EnOSlib's services can deploy complex software stacks with few lines
-  of code.
-- **Reusable experiment facilities**: Tasks help you to organize your
-  experimentation workflow.
+Distributed systems practitioners on bare-metal testbeds know it: resources
+(e.g. computes, networks) on a bare-metal infrastructure may have these slight
+differences between each others that experimental code can become hairy. For
+such code, achieving practical portability (e.g changing the infrastructure
+parameters) is thus a tedious time consuming task.
 
-EnOSlib is designed for experimentation purpose: benchmark in a controlled
-environment, academic validation ...
 
-EnOSLib has been initially developed in the context of the
-`Discovery <https://beyondtheclouds.github.io/>`_ initiative
+☆Homoterogeneous☆ has been coined to express the gap between the idea
+we have of a computing infrastructure, where resources have
+static/predictable setup, and the reality of interacting with them on a daily
+basis.
+
+EnOSlib smoothes the experimenter's code dealing with various platforms (e.g.
+local machine, scientific testbed, virtualized environments). It helps in
+deploying various piece of software (e.g instrumentation, observability
+tools). It also integrates well with interactive development environment like
+Jupyter.
+
+Licence
+-------
+
+EnOSLib has been initially developed in the context of the `Discovery
+<https://beyondtheclouds.github.io/>`_ initiative and is released under the
+GPLv3 licence.
+
+Links
+-----
+
+- Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
+- Source: https://gitlab.inria.fr/discovery/enoslib
+- Chat: https://framateam.org/enoslib
+
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines

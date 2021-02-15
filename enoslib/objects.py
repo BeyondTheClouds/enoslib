@@ -392,11 +392,11 @@ class Host(object):
         keyfile: keyfile to use to authenticate (e.g when using SSH)
         port: port to connect to (e.g using SSH)
         extra: dictionnary of options. Will be passed to Ansible as host_vars.
-        extra_adddresses: list of network addresses configured on this host.
+        extra_devices: list of network devices configured on this host.
             can be synced with the :py:func:`enoslib.api.sync_network_info`.
 
     Note:
-        In the future we'd like the provider to populate the extra_addresses
+        In the future we'd like the provider to populate the extra_devices
         to get a consistent initial representation of the hosts.
     """
 

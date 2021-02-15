@@ -772,7 +772,7 @@ def run_ansible(
 def sync_network_info(roles: Roles, networks: Networks) -> Roles:
     """Sync each host network information with their actual configuration
 
-    If the command is successful each host extra_addresses attribute will be
+    If the command is successful each host extra_devices attribute will be
     populated. This allows to resync the enoslib Host representation with the
     remote configuration.
 

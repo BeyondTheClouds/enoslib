@@ -8,28 +8,23 @@ logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
-network = G5kNetworkConf(
-    id="n1",
-    type="kavlan",
-    roles=["mynetwork"],
-    site="rennes"
-)
-
+prod_network = G5kNetworkConf(id="id", roles=["mynetwork"], type="prod", site="rennes")
 conf = (
     G5kConf
-    .from_settings(job_name=job_name)
-    .add_network_conf(network)
+    .from_settings(job_name=job_name,
+                   job_type="allow_classic_ssh")
+    .add_network_conf(prod_network)
     .add_machine(
         roles=["server"],
         cluster="parapluie",
         nodes=1,
-        primary_network=network
+        primary_network=prod_network
     )
     .add_machine(
         roles=["client"],
         cluster="parapluie",
         nodes=1,
-        primary_network=network
+        primary_network=prod_network
     )
     .finalize()
 )
@@ -49,9 +44,10 @@ with play_on(pattern_hosts="server", roles=roles) as p:
     p.shell("nohup netperf &")
 
 with play_on(pattern_hosts="client", roles=roles) as p:
+    server_address = roles["server"][0].address
     p.shell("flent rrul -p all_scaled "
             + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
+            + f"-H { server_address } "
             + "-t 'bufferbloat test' "
             + "-o result.png")
     p.fetch(src="result.png",
