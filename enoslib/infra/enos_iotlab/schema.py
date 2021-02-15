@@ -138,6 +138,7 @@ IotlabFormatChecker = FormatChecker()
 
 @IotlabFormatChecker.checks("walltime", raises=EnosIotlabWalltimeFormatError)
 def is_valid_walltime(instance):
+    """Auxiliary function to check walltime format"""
     if not isinstance(instance, str):
         return False
     try:

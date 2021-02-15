@@ -8,6 +8,7 @@ from .schema import SCHEMA, IotlabValidator
 
 
 class Configuration(BaseConfiguration):
+    """Global class for parsing IoT-LAB configuration"""
 
     _SCHEMA = SCHEMA
 
@@ -103,7 +104,7 @@ class Configuration(BaseConfiguration):
 
 
 class GroupConfiguration:
-    """Base class for a group of machine."""
+    """Base class for a group of machines"""
 
     def __init__(
         self,
@@ -167,6 +168,11 @@ class GroupConfiguration:
 
 
 class PhysNodeConfiguration(GroupConfiguration):
+    """
+    Represents a specific node.
+
+    Selects the node with given address (hostname)
+    """
     def __init__(self, *, hostname=None, **kwargs):
         super().__init__(**kwargs)
         self.hostname = hostname
@@ -178,6 +184,11 @@ class PhysNodeConfiguration(GroupConfiguration):
 
 
 class BoardConfiguration(GroupConfiguration):
+    """
+    Generic node configuration.
+
+    Any node, which  from testbed can be selected
+    """
     def __init__(self, *, archi=None, site=None, number=None, **kwargs):
         super().__init__(**kwargs)
         self.archi = archi
@@ -194,6 +205,7 @@ class BoardConfiguration(GroupConfiguration):
 
 
 class ProfileConfiguration():
+    """Base for monitoring profiles"""
     def __init__(
         self,
         *,
@@ -224,11 +236,11 @@ class ProfileConfiguration():
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
-        return ProfileConfiguration.from_dictionary(dictionnary, validate)
+    def from_dictionnary(cls, dictionnary):
+        return ProfileConfiguration.from_dictionary(dictionnary)
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary):
         self = ProfileConfiguration(
             name=dictionary["name"],
             archi=dictionary["archi"],
@@ -244,6 +256,7 @@ class ProfileConfiguration():
 
 
 class RadioConfiguration():
+    """Defines a radio monitoring profile"""
     def __init__(
         self,
         *,
@@ -266,11 +279,11 @@ class RadioConfiguration():
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
-        return RadioConfiguration.from_dictionary(dictionnary, validate)
+    def from_dictionnary(cls, dictionnary):
+        return RadioConfiguration.from_dictionary(dictionnary)
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary):
         self = cls()
 
         for k in self.__dict__.keys():
@@ -282,6 +295,7 @@ class RadioConfiguration():
 
 
 class ConsumptionConfiguration():
+    """Defines a consumption monitoring profile"""
     def __init__(
         self,
         *,
@@ -306,11 +320,11 @@ class ConsumptionConfiguration():
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
-        return ConsumptionConfiguration.from_dictionary(dictionnary, validate)
+    def from_dictionnary(cls, dictionnary):
+        return ConsumptionConfiguration.from_dictionary(dictionnary)
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary):
         self = cls()
 
         for k in self.__dict__.keys():
@@ -322,21 +336,22 @@ class ConsumptionConfiguration():
 
 
 class NetworkConfiguration:
-    def __init__(self, *, id=None, roles=None, type=None, site=None):
+    """Class for network configuration"""
+    def __init__(self, *, net_id=None, roles=None, net_type=None, site=None):
         self.roles = roles
-        self.id = id
+        self.id = net_id
         self.roles = roles
-        self.type = type
+        self.type = net_type
         self.site = site
 
     @classmethod
     def from_dictionnary(cls, dictionnary):
-        id = dictionnary["id"]
-        type = dictionnary["type"]
+        my_id = dictionnary["id"]
+        my_type = dictionnary["type"]
         roles = dictionnary["roles"]
         site = dictionnary["site"]
 
-        return cls(id=id, roles=roles, type=type, site=site)
+        return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 
     def to_dict(self):
         d = {}

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from typing import List, Optional
-import sshtunnel
 import socket
 import logging
 
+import sshtunnel
 import iotlabcli.auth
 
 from enoslib.objects import Host, DefaultNetwork
@@ -40,7 +40,7 @@ class IotlabHost(Host):
         self._ssh_address: Optional[str] = None
 
         # by now, only A8 nodes
-        if ("a8" in self.archi):
+        if "a8" in self.archi:
             self._ssh_address = "node-%s" % self.address
 
     @property
@@ -224,7 +224,8 @@ class IotlabSerial():
             Remember to call disable_logging_serial, in order to stop
             serial_aggregator tool running on the frontend.
         """
-        timeout = self.sensor.iotlab_client.get_walltime() * 60  # to seconds
+        # convert to seconds
+        timeout = self.sensor.iotlab_client.get_walltime() * 60
 
         roles = {
             "frontend": [Host(
@@ -279,7 +280,7 @@ class IotlabSerial():
             logger.error("Not in interactive mode, impossible to write on serial")
             return
 
-        logger.info("IotlabSerial(%s): Writing: %s" % (self.sensor.alias, content))
+        logger.info("IotlabSerial(%s): Writing: %s", self.sensor.alias, content)
         self._serial_socket.sendall(content.encode())
 
     def read(self, size: int = 1024) -> str:
@@ -323,8 +324,9 @@ class IotlabSniffer():
         """
         self.sensor = sensor
         self.timeout = timeout
-        if (timeout == -1):
-            self.timeout = self.sensor.iotlab_client.get_walltime() * 60  # to seconds
+        if timeout == -1:
+            # convert to seconds
+            self.timeout = self.sensor.iotlab_client.get_walltime() * 60
         self._filename = "~/.iot-lab/%d/sniffer/%s.pcap" % (
             self.sensor.exp_id, self.sensor.alias)
 
