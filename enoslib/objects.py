@@ -260,28 +260,30 @@ class NetDevice(object):
     @classmethod
     def sync_from_ansible(cls, device: Dict, networks: Networks):
         """
-            "ansible_enx106530ad1e3f": {
-            "active": true,
-                "device": "enx106530ad1e3f",
-                "ipv4": {
-                    "address": "192.168.1.14",
-                    "broadcast": "192.168.1.255",
-                    "netmask": "255.255.255.0",
-                    "network": "192.168.1.0"
+
+        "ansible_br0": {
+            "ipv4": {
+                "address": "172.16.99.11",
+                "broadcast": "172.16.111.255",
+                "netmask": "255.255.240.0",
+                "network": "172.16.96.0"
+            },
+            "ipv4_secondaries": [
+                {
+                    "address": "10.158.0.2",
+                    "broadcast": "",
+                    "netmask": "255.255.252.0",
+                    "network": "10.158.0.0"
                 }
-                "macaddress": "10:65:30:ad:1e:3f",
-                "module": "r8152",
-                "mtu": 1500,
-                "pciid": "2-1.2:1.0",
-                "promisc": false,
-                "speed": 1000,
-                "type": "ether"
+            ],
+            "ipv6": [{...}
+            ]
         }
         """
         # build all ips
         addresses = set()
-        versions = ["ipv4", "ipv6"]
-        for version in versions:
+        keys = ["ipv4", "ipv4_secondaries", "ipv6"]
+        for version in keys:
             if version not in device:
                 continue
             ips = device[version]

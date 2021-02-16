@@ -81,6 +81,29 @@ class TestGenerateInventoryString(EnosTest):
 
 
 class TestGetHostNet(EnosTest):
+    def test_map_devices_with_secondary_ipv4(self):
+        n1, n2 = [
+            DefaultNetwork(address="1.2.3.0/24"),
+            DefaultNetwork(address="4.5.6.0/24"),
+        ]
+        networks = dict(role1=[n1, n2])
+        # from ansible
+        facts = {
+            "ansible_interfaces": ["eth0", "eth1"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": {"address": "1.2.3.4", "netmask": "255.255.255.0"},
+                "ipv4_secondaries": [{"address": "4.5.6.7", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+        }
+        expected = [
+            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
+            NetDevice("eth0", set([IPAddress("4.5.6.7/24", n2)])),
+        ]
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
     def test__map_devices_all_match_single(self):
         n1, n2 = [
             DefaultNetwork(address="1.2.3.0/24"),
