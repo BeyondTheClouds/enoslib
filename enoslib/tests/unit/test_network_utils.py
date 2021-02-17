@@ -356,74 +356,54 @@ class TestBuildIpConstraints(EnosTest):
         self.rsc_bridge = dict(grp1=[nn1], grp2=[nn2])
 
     def test_build_ip_constraints_one_source_one_dest(self):
-        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
+        htb_sources = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
         # tc rules are applied on the source only
-        self.assertFalse("node2" in ips_with_tc)
+        self.assertEqual(1, len(htb_sources))
+        self.assertNotEqual("node2", htb_sources[0].host.alias)
         # devices
-        self.assertTrue("devices" in ips_with_tc["node1"])
-        self.assertEqual(1, len(ips_with_tc["node1"]["devices"]))
-        self.assertTrue("tc" in ips_with_tc["node1"])
-        tcs = ips_with_tc["node1"]["tc"]
-        # one rule per dest ip and source device
-        self.assertEqual(1 * 1, len(tcs))
+        self.assertEqual(1, len(htb_sources[0].constraints))
 
         # we target the same if no network is given
-        ips_with_tc = _build_ip_constraints(self.rsc1, None, self.constraints)
+        htb_sources = _build_ip_constraints(self.rsc1, None, self.constraints)
         # tc rules are applied on the source only
-        self.assertFalse("node2" in ips_with_tc)
+        self.assertEqual(1, len(htb_sources))
+        self.assertNotEqual("node2", htb_sources[0].host.alias)
         # devices
-        self.assertTrue("devices" in ips_with_tc["node1"])
-        self.assertEqual(1, len(ips_with_tc["node1"]["devices"]))
-        self.assertTrue("tc" in ips_with_tc["node1"])
-        tcs = ips_with_tc["node1"]["tc"]
-        # one rule per dest ip and source device
-        self.assertEqual(1 * 1, len(tcs))
+        self.assertEqual(1, len(htb_sources[0].constraints))
 
     def test_build_ip_constraints_bridge(self):
-        ips_with_tc = _build_ip_constraints(
+        htb_sources = _build_ip_constraints(
             self.rsc_bridge, self.networks["role1"], self.constraints
         )
         # tc rules are applied on the source only
-        self.assertTrue("tc" in ips_with_tc["node1"])
-        tcs = ips_with_tc["node1"]["tc"]
         # one rule per dest ip and source device
-        self.assertEqual(2 * 1, len(tcs))
+        self.assertEqual(1, len(htb_sources), "one source from grp1")
         # br0 isn't use but eth0 and eth1 are
-        devices = set()
-        for tc in tcs:
-            devices.add(tc["device"])
-        self.assertCountEqual(["eth0", "eth1"], list(devices))
+        self.assertCountEqual(["eth0", "eth1"], [c.device for c in htb_sources[0].constraints])
 
         # we target the same if no network is given
-        ips_with_tc = _build_ip_constraints(self.rsc_bridge, None, self.constraints)
-        # tc rules are applied on the source only
-        self.assertTrue("tc" in ips_with_tc["node1"])
-        tcs = ips_with_tc["node1"]["tc"]
-        # one rule per dest ip and source device
-        self.assertEqual(2 * 1, len(tcs))
+        htb_sources = _build_ip_constraints(self.rsc_bridge, None, self.constraints)
+        self.assertEqual(1, len(htb_sources), "one source from grp1")
         # br0 isn't use but eth0 and eth1 are
-        devices = set()
-        for tc in tcs:
-            devices.add(tc["device"])
-        self.assertCountEqual(["eth0", "eth1"], list(devices))
+        self.assertCountEqual(["eth0", "eth1"], [c.device for c in htb_sources[0].constraints])
 
     def test_build_commands_with_symetric(self):
         self.constraints[0]["symetric"] = True
-        ips_with_tc = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
-        remove, add, rate, delay, filtr = _build_commands(ips_with_tc)
+        htb_sources = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
+        remove, add, rate, delay, filtr = _build_commands(htb_sources)
 
         # as many remove as devices
-        self.assertEqual(1, len(remove[self.n1]))
+        self.assertEqual(1, len(remove[self.n1.alias]))
         # symetric cases are handled prior to _build_ip_constraints
         # so we aren't symetric unless we add a symetric constraint
-        self.assertEqual(0, len(remove[self.n2]))
+        self.assertEqual(0, len(remove[self.n2.alias]))
 
         # as many add as devices
-        self.assertEqual(1, len(add[self.n1]))
-        self.assertEqual(0, len(add[self.n2]))
+        self.assertEqual(1, len(add[self.n1.alias]))
+        self.assertEqual(0, len(add[self.n2.alias]))
         # we have as many rate class as possible (device, dest)
-        self.assertEqual(1 * 1, len(rate[self.n1]))
+        self.assertEqual(1 * 1, len(rate[self.n1.alias]))
         # delay
-        self.assertEqual(1 * 1, len(delay[self.n1]))
+        self.assertEqual(1 * 1, len(delay[self.n1.alias]))
         # we put filter on every (device, dest) possible
-        self.assertEqual(1 * 1, len(filtr[self.n1]))
+        self.assertEqual(1 * 1, len(filtr[self.n1.alias]))

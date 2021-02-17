@@ -380,7 +380,7 @@ class Processor(object):
         self.vcpus = self.cores * self.count * self.threads_per_core
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(unsafe_hash=True, order=True)
 class Host(object):
     """Abstract unit of computation.
 
@@ -413,7 +413,7 @@ class Host(object):
         to get a consistent initial representation of the hosts.
     """
 
-    address: str
+    address: str = field(compare=True)
     alias: Optional[str] = field(default=None)
     user: Optional[str] = None
     keyfile: Optional[str] = None

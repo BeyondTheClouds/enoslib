@@ -88,7 +88,7 @@ Netem and SimpleNetem Class
 ***************************
 
 .. automodule:: enoslib.service.netem.netem
-    :members: Netem, SimpleNetem
+    :members: netem_htb, HTBSource, HTBConstraint, Netem, SimpleNetem
 
 
 Skydive

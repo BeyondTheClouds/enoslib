@@ -1,9 +1,12 @@
 from collections import defaultdict
-from enoslib.objects import Network, Roles
+from dataclasses import dataclass, field
+from itertools import groupby
+from operator import attrgetter
+from enoslib.objects import Network, Networks, Roles
 import logging
 import re
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set
 
 from jsonschema import validate
 
@@ -161,122 +164,209 @@ def _build_grp_constraints(roles, network_constraints):
     return constraints
 
 
-def _build_ip_constraints(roles, networks, constraints):
+DEFAULT_RATE = "10gbit"
+
+DEFAULT_LOSS = "0"
+
+
+@dataclass(eq=True, frozen=True)
+class HTBConstraint(object):
+    """An HTB constraint.
+
+    Args:
+        target: the target ip
+        device: the device name where the qdisc will be added
+        delay: the delay (e.g 10ms)
+        rate: the rate (e.g 10gbit)
+        loss: the loss (e.g "0.05" == "5%")
+    """
+
+    target: str
+    device: str
+    delay: str
+    rate: str = DEFAULT_RATE
+    loss: str = DEFAULT_LOSS
+
+
+@dataclass
+class HTBSource(object):
+    """Modelize the tc options to apply on a source(Host)
+
+    Args
+        host: Host where the constraint will be applied
+        constaints: list of :py:class:`enoslib.service.netem.netem.HTBConstraint`
+
+    .. note ::
+
+        Consistency check (such as device names) between the host and the
+        constraints are left to the application.
+    """
+
+    host: Host
+    constraints: Set[HTBConstraint] = field(default_factory=set)
+
+    @property
+    def devices(self) -> Iterable[str]:
+        """Get the list of devices involved."""
+        return set([c.device for c in self.constraints])
+
+    def add_constraint(self, *args, **kwargs):
+        """Add a constraint.
+
+        *args and **kwargs are those from
+        :py:class:`enoslib.service.netem.netem.HTBConstraint`
+        """
+        self.constraints.add(HTBConstraint(*args, **kwargs))
+
+    def add_constraints(self, constraints: Iterable[HTBConstraint]):
+        """Add some constraints.
+
+        constraints: iterable of
+                     :py:class:`enoslib.service.netem.netem.HTBConstraint`
+        """
+        self.constraints = self.constraints.union(set(constraints))
+
+    def remove_command(self):
+        cmds = []
+        for device in self.devices:
+            cmds.append(f"tc qdisc del dev {device} root || true")
+        return cmds
+
+    def add_command(self):
+        cmds = []
+        for device in self.devices:
+            cmds.append(f"tc qdisc add dev {device} root handle 1: htb")
+        return cmds
+
+    def command(self):
+        htb_cmds = []
+        netem_cmds = []
+        filter_cmds = []
+        for idx, tc in enumerate(self.constraints):
+            # rate limit
+            device = tc.device
+            rate = tc.rate
+            loss = tc.loss
+            delay = tc.delay
+            htb_cmds.append(
+                (
+                    f"tc class add dev {device} "
+                    "parent 1: "
+                    f"classid 1:{idx + 1} "
+                    f"htb rate {rate}"
+                )
+            )
+            if loss == 0:
+                cmd = (
+                    f"tc qdisc add dev {device} "
+                    f"parent 1:{idx + 1} "
+                    f"handle {idx + 10}: "
+                    f"netem delay {delay}"
+                )
+            else:
+                cmd = (
+                    f"tc qdisc add dev {device} "
+                    f"parent 1:{idx + 1} "
+                    f"handle {idx + 10}: "
+                    f"netem delay {delay} "
+                    f"loss {loss}"
+                )
+            netem_cmds.append(cmd)
+            dst = tc.target
+            cmd = (
+                f"tc filter add dev {device} "
+                "parent 1: "
+                f"protocol ip u32 match ip dst {dst} "
+                f"flowid 1:{idx + 1}"
+            )
+            filter_cmds.append(cmd)
+        return htb_cmds, netem_cmds, filter_cmds
+
+    def commands(self):
+        """all in one."""
+        r = self.remove_command()
+        a = self.add_command()
+        h, n, f = self.command()
+        return r, a, h, n, f
+
+
+def _build_ip_constraints(
+    roles: Roles, networks: Networks, constraints: Mapping
+) -> List[HTBSource]:
     """Generate the constraints at the ip/device level.
 
     Those constraints are those used by ansible to enforce tc/netem rules.
     """
-    ip_constraints = {}
+    host_htbs = []
     for constraint in constraints:
         gsrc = constraint["src"]
         gdst = constraint["dst"]
         gdelay = constraint["delay"]
         grate = constraint["rate"]
         gloss = constraint["loss"]
-        for s in roles[gsrc]:
+        for source_host in roles[gsrc]:
             # one possible source
 
             # 1) we get all the devices for the wanted networks
             nets = None
             if "networks" in constraints and networks is not None:
-                nets = [
-                    network
-                    for network in networks
-                    if set(constraints["networks"]).issubset(network.roles)
+                _netss = [
+                    networks
+                    for role, networks in networks.items()
+                    if {role}.issubset(set(constraints["networks"]))
                 ]
-            local_devices = s.filter_interfaces(nets, include_unknown=False)
+                nets = []
+                for _nets in _netss:
+                    nets.extend(_nets)
+            local_devices = source_host.filter_interfaces(nets, include_unknown=False)
 
-            # we record the source host
-            ip_constraints.setdefault(s.alias, {})
-            ip_constraints[s.alias]["self"] = s
+            host_htb = HTBSource(host=source_host)
             for sdevice in local_devices:
-                ip_constraints[s.alias].setdefault("devices", [])
-                # don't add a new device if it still there for the corresponding node
-                check = [d for d in ip_constraints[s.alias]["devices"] if d == sdevice]
-                if not check:
-                    ip_constraints[s.alias]["devices"].append(sdevice)
                 # one possible device
                 for d in roles[gdst]:
                     # one possible destination
-                    dall_addrs = d.filter_addresses(networks, include_unknown=False)
+                    dall_addrs = d.filter_addresses(nets, include_unknown=False)
                     # Let's keep docker bridge out of this
                     for daddr in dall_addrs:
-                        ip_constraints[s.alias].setdefault("tc", []).append(
-                            {
-                                # source identifies the inventory hostname
-                                # used by ansible
-                                "source": s.alias,
-                                # Below is used for setting the right tc rules
-                                "target": str(daddr.ip.ip),
-                                "device": sdevice,
-                                "delay": gdelay,
-                                "rate": grate,
-                                "loss": gloss,
-                            }
+                        assert daddr.ip is not None
+                        host_htb.add_constraint(
+                            target=str(daddr.ip.ip),
+                            device=str(sdevice),
+                            delay=gdelay,
+                            rate=grate,
+                            loss=gloss,
                         )
-    return ip_constraints
+            host_htbs.append(host_htb)
+    return host_htbs
 
 
-def _build_commands(ips_with_constraints):
+def _build_commands(htb_hosts: List[HTBSource]):
     _remove = defaultdict(list)
     _add = defaultdict(list)
     _rate = defaultdict(list)
     _delay = defaultdict(list)
     _filter = defaultdict(list)
-    for alias in ips_with_constraints.keys():
+    # intent make sure there's only one htbhost per host( = per alias)
+    _htb_hosts = sorted(htb_hosts, key=attrgetter("host"))
+    grouped = groupby(_htb_hosts, key=attrgetter("host"))
+
+    new_htb_hosts = []
+    for alias, group in grouped:
+        new_htb_host = HTBSource(alias)
+        for _htb_host in group:
+            new_htb_host.add_constraints(_htb_host.constraints)
+        new_htb_hosts.append(new_htb_host)
+
+    for htb_host in new_htb_hosts:
         # generate devices based command (remove + add qdisc)
-        constraints = ips_with_constraints[alias]
-        host = ips_with_constraints[alias]["self"]
-        active_devices = [d for d in constraints["devices"]]
-        for dev in active_devices:
-            # remove
-            cmd = f"tc qdisc del dev {dev} root || true"
-            _remove[host].append(cmd)
-            # add
-            cmd = f"tc qdisc add dev {dev} root handle 1: htb"
-            _add[host].append(cmd)
-            # handle now all the rules
-            tcs = constraints["tc"]
-            # adding the rate limit in a dedicated htb class
-            for idx, tc in enumerate(tcs):
-                # rate limit
-                device = tc["device"]
-                rate = tc["rate"]
-                delay = tc["delay"]
-                loss = tc["loss"]
-                cmd = (
-                    f"tc class add dev {device} "
-                    "parent 1: "
-                    f"classid 1:{idx + 1} "
-                    f"htb rate {rate}"
-                )
-                _rate[host].append(cmd)
-                # delay/loss limit
-                if loss == 0:
-                    cmd = (
-                        f"tc qdisc add dev {device} "
-                        f"parent 1:{idx + 1} "
-                        f"handle {idx + 10}: "
-                        f"netem delay {delay}"
-                    )
-                else:
-                    cmd = (
-                        f"tc qdisc add dev {device} "
-                        f"parent 1:{idx + 1} "
-                        f"handle {idx + 10}: "
-                        f"netem delay {delay} "
-                        f"loss {loss}"
-                    )
-                _delay[host].append(cmd)
-                # filter destination
-                dst = tc["target"]
-                cmd = (
-                    f"tc filter add dev {device} "
-                    "parent 1: "
-                    f"protocol ip u32 match ip dst {dst} "
-                    f"flowid 1:{idx + 1}"
-                )
-                _filter[host].append(cmd)
+        alias = htb_host.host.alias
+        (
+            _remove[alias],
+            _add[alias],
+            _rate[alias],
+            _delay[alias],
+            _filter[alias],
+        ) = htb_host.commands()
     return _remove, _add, _rate, _delay, _filter
 
 
@@ -309,6 +399,84 @@ def _validate(
         ),
     )
     run_ansible([_playbook], roles=roles, extra_vars=options)
+
+
+def _chunks(_list, size):
+    """Chunk a list in smaller pieces."""
+    for i in range(0, len(_list), size):
+        yield _list[i: i + size]
+
+
+def _combine(*args, chunk_size=100):
+    """Build the commands indexed by host."""
+    c = defaultdict(list)
+    _args = args
+    for a in list(_args):
+        for s, l in a.items():
+            c[s] = c[s] + l
+    commands = defaultdict(list)
+    for alias in c.keys():
+        for chunk in list(_chunks(c[alias], chunk_size)):
+            commands[alias].append(" ; ".join(chunk))
+    return commands
+
+
+def netem_htb(
+    htb_hosts: List[HTBSource],
+    extra_vars: Optional[Mapping] = None,
+    chunk_size: int = 100,
+):
+    """Helper function to enforce heterogeneous limitations on hosts.
+
+    This function do the heavy lifting of building the qdisc tree for each
+    node and add filters based on the ip destination of the packet.
+    Ref: https://tldp.org/HOWTO/Traffic-Control-HOWTO/classful-qdiscs.html
+
+    This function is used internally by the
+    :py:class:`enoslib.service.netem.netem.Netem` service. Here, you must
+    ensure that the various :py:class:`enoslib.service.netem.netem.HTBSource`
+    are consistent (e.g device names.) with the host.
+    Symetric limitations can be achieved by adding both end of the
+    communication to the list.
+    The same host can appear multiple times in the list, all the constraints
+    will be concatenated.
+
+    This method is optimized toward execution time: enforcing thousands of
+    atomic constraints (= tc commands) shouldn't be a problem. Commands are
+    sent by batch and ``chunk_size`` controls the size of the batch.
+
+    Idempotency note: the existing qdiscs are removed before applying new
+    ones. This must be safe in most of the cases to consider that this is a
+    form of idempotency.
+
+    Args:
+        htb_hosts : list of constraints to apply.
+        extra_vars: extra variable to pass to Ansible when enforcing the constraints
+        chunk_size: size of the chunk to use
+
+    Examples:
+
+        .. literalinclude:: ../tutorials/network_emulation/tuto_netem_htb.py
+            :language: python
+            :linenos:
+
+
+    """
+    if extra_vars is None:
+        extra_vars = dict()
+    # tc_commands are indexed by host alias == inventory_hostname
+    tc_commands = _combine(*_build_commands(htb_hosts), chunk_size=chunk_size)
+    options = _build_options(extra_vars, {"tc_commands": tc_commands})
+
+    # Run the commands on the remote hosts (only those involved)
+    roles = dict(all=[htb_host.host for htb_host in htb_hosts])
+    with play_on(roles=roles, extra_vars=options) as p:
+        p.shell(
+            "{{ item }}",
+            when="tc_commands[inventory_hostname] is defined",
+            loop="{{ tc_commands[inventory_hostname] }}",
+            display_name="Applying the network constraints",
+        )
 
 
 class SimpleNetem(Service):
@@ -398,7 +566,7 @@ class Netem(Service):
         network_constraints: Dict[Any, Any],
         *,
         roles: Roles = None,
-        networks: List[Network] = None,
+        networks: Networks = None,
         extra_vars: Dict[Any, Any] = None,
         chunk_size: int = 100,
     ):
@@ -520,43 +688,12 @@ class Netem(Service):
         # 2.b Building the ip/device level constaints
 
         # will hold every single constraint
-        ips_with_constraints = _build_ip_constraints(
-            self.roles, self.networks, constraints
-        )
+        host_htbs = _build_ip_constraints(self.roles, self.networks, constraints)
 
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
 
-        def _chunks(_list, size):
-            """Chunk a list in smaller pieces."""
-            for i in range(0, len(_list), size):
-                yield _list[i: i + size]
-
-        def _combine(*args):
-            """Build the commands indexed by host"""
-            c = defaultdict(list)
-            _args = args
-            for a in list(_args):
-                for s, l in a.items():
-                    c[s.alias] = c[s.alias] + l
-            commands = defaultdict(list)
-            for alias in c.keys():
-                for chunk in list(_chunks(c[alias], self.chunk_size)):
-                    commands[alias].append(" ; ".join(chunk))
-            return commands
-
-        # tc_commands are indexed by host alias == inventory_hostname
-        tc_commands = _combine(*_build_commands(ips_with_constraints))
-        options = _build_options(self.extra_vars, {"tc_commands": tc_commands})
-
-        # 4. Run the commands on the remote hosts (only those involved)
-        with play_on(roles=self.roles, extra_vars=options) as p:
-            p.shell(
-                "{{ item }}",
-                when="tc_commands[inventory_hostname] is defined",
-                loop="{{ tc_commands[inventory_hostname] }}",
-                display_name="Applying the network constraints",
-            )
+        netem_htb(host_htbs, self.extra_vars)
 
     def backup(self):
         """(Not Implemented) Backup.
@@ -584,7 +721,7 @@ class Netem(Service):
         """Validate the network parameters(latency, bandwidth ...)
 
         Performs ping tests to validate the constraints set by
-        : py: meth: `enoslib.service.netem.Netem.deploy`.
+        :py:meth:`enoslib.service.netem.Netem.deploy`.
         Reports are available in the tmp directory
         used by enos.
 
