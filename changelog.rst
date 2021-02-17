@@ -1,7 +1,7 @@
 Changelog
 ===========
 
-6.0.0 (IPv6 release !)
+6.0.0 (the IPv6 release !)
 ----------------------
 
 - Networks from the various providers deserved a true abstraction: it's done.
@@ -16,7 +16,11 @@ Changelog
     For instance a user reserving a vlan on Grid'5000 will be given two networks
     corresponding to the IPv4 kavlan network and its IPv6 counterpart.
 
-- Most of services have been updated to support the above change.
+  - Most of services have been updated to support the above change.
+
+- Netem: expose ``netem_htb``: enforce custom network limitation based on
+  HTB. This is an alternative to the ``Netem`` service which offer more
+  flexibility. This works at the IP level (not the role level).
 
 - Note that the Openstack provider is broken currently.
 
