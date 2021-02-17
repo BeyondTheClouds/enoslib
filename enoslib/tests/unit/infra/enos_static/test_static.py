@@ -35,4 +35,6 @@ class TestBuildResources(EnosTest):
         self.assertEqual(2, len(roles["role1"]))
         self.assertEqual(1, len(roles["role2"]))
         self.assertEqual(2, len(networks))
-        self.assertTrue(str(networks["net1"][0].network) in ["1.2.3.0/24", "2.2.3.0/24"])
+        self.assertTrue(
+            str(networks["net1"][0].network) in ["1.2.3.0/24", "2.2.3.0/24"]
+        )

@@ -44,9 +44,7 @@ class TestG5kEnos(EnosTest):
 
     def test_production(self):
         enos_prod = ipaddress.ip_network("172.16.0.0/16")
-        enos_network = G5kEnosProd4Network(
-            enos_prod, "172.16.0.254", "172.16.0.25"
-        )
+        enos_network = G5kEnosProd4Network(enos_prod, "172.16.0.254", "172.16.0.25")
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
         self.assertFalse(enos_network.has_free_macs)
@@ -89,9 +87,7 @@ class TestG5kEnos(EnosTest):
 
     def test_subnet(self):
         enos_subnet = ipaddress.ip_network("10.140.0.0/22")
-        enos_subnet = G5kEnosSubnetNetwork(
-            enos_subnet, "172.16.42.254", "172.16.42.25"
-        )
+        enos_subnet = G5kEnosSubnetNetwork(enos_subnet, "172.16.42.254", "172.16.42.25")
         self.assertTrue(enos_subnet.has_free_ips)
         # we get rid of the first and last address of the /22
         # which leaves us with 1022 addresses

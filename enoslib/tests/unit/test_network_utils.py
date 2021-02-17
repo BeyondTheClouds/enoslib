@@ -290,10 +290,12 @@ class TestBuildIpConstraints(EnosTest):
         }
         self.constraints = [constraint]
         # we need some networks
-        self.networks = dict(role1=[
-            DefaultNetwork(address="1.2.3.0/24"),
-            DefaultNetwork(address="5.6.7.0/24"),
-        ])
+        self.networks = dict(
+            role1=[
+                DefaultNetwork(address="1.2.3.0/24"),
+                DefaultNetwork(address="5.6.7.0/24"),
+            ]
+        )
         # we need some hosts
         self.n1 = Host("node1").sync_from_ansible(
             self.networks,
@@ -356,7 +358,9 @@ class TestBuildIpConstraints(EnosTest):
         self.rsc_bridge = dict(grp1=[nn1], grp2=[nn2])
 
     def test_build_ip_constraints_one_source_one_dest(self):
-        htb_sources = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
+        htb_sources = _build_ip_constraints(
+            self.rsc1, self.networks["role1"], self.constraints
+        )
         # tc rules are applied on the source only
         self.assertEqual(1, len(htb_sources))
         self.assertNotEqual("node2", htb_sources[0].host.alias)
@@ -379,17 +383,23 @@ class TestBuildIpConstraints(EnosTest):
         # one rule per dest ip and source device
         self.assertEqual(1, len(htb_sources), "one source from grp1")
         # br0 isn't use but eth0 and eth1 are
-        self.assertCountEqual(["eth0", "eth1"], [c.device for c in htb_sources[0].constraints])
+        self.assertCountEqual(
+            ["eth0", "eth1"], [c.device for c in htb_sources[0].constraints]
+        )
 
         # we target the same if no network is given
         htb_sources = _build_ip_constraints(self.rsc_bridge, None, self.constraints)
         self.assertEqual(1, len(htb_sources), "one source from grp1")
         # br0 isn't use but eth0 and eth1 are
-        self.assertCountEqual(["eth0", "eth1"], [c.device for c in htb_sources[0].constraints])
+        self.assertCountEqual(
+            ["eth0", "eth1"], [c.device for c in htb_sources[0].constraints]
+        )
 
     def test_build_commands_with_symetric(self):
         self.constraints[0]["symetric"] = True
-        htb_sources = _build_ip_constraints(self.rsc1, self.networks["role1"], self.constraints)
+        htb_sources = _build_ip_constraints(
+            self.rsc1, self.networks["role1"], self.constraints
+        )
         remove, add, rate, delay, filtr = _build_commands(htb_sources)
 
         # as many remove as devices

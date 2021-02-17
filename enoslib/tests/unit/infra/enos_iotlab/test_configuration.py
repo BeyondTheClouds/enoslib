@@ -421,7 +421,7 @@ class TestNetworkConfiguration(EnosTest):
                 "machines": [{"roles": [], "hostname": ["a8"]}],
                 "networks": [
                     {"id": "n1", "roles": ["r1"], "site": "grenoble", "type": "prod"}
-                ]
+                ],
             },
         }
 
@@ -460,7 +460,7 @@ class TestNetworkConfiguration(EnosTest):
                 "machines": [{"roles": [], "hostname": ["a8"]}],
                 "networks": [
                     {"id": "n1", "roles": ["r1"], "site": "grenoble", "type": "vlan"}
-                ]
+                ],
             },
         }
 

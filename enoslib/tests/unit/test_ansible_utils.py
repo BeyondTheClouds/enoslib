@@ -93,13 +93,16 @@ class TestGetHostNet(EnosTest):
             "ansible_eth0": {
                 "device": "eth0",
                 "ipv4": {"address": "1.2.3.4", "netmask": "255.255.255.0"},
-                "ipv4_secondaries": [{"address": "4.5.6.7", "netmask": "255.255.255.0"}],
+                "ipv4_secondaries": [
+                    {"address": "4.5.6.7", "netmask": "255.255.255.0"}
+                ],
                 "type": "ether",
             },
         }
         expected = [
-            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
-            NetDevice("eth0", set([IPAddress("4.5.6.7/24", n2)])),
+            NetDevice(
+                "eth0", set([IPAddress("1.2.3.4/24", n1), IPAddress("4.5.6.7/24", n2)])
+            ),
         ]
 
         self.assertCountEqual(expected, _build_devices(facts, networks))
@@ -175,12 +178,7 @@ class TestGetHostNet(EnosTest):
         expected = [
             NetDevice(
                 "eth0",
-                set(
-                    [
-                        IPAddress("1.2.3.5/24", n1),
-                        IPAddress("1.2.3.4/24", n1)
-                    ]
-                ),
+                set([IPAddress("1.2.3.5/24", n1), IPAddress("1.2.3.4/24", n1)]),
             ),
         ]
 
@@ -322,9 +320,7 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        address = IPAddress(
-            "1.2.3.4", DefaultNetwork(address="1.2.3.0/24")
-        )
+        address = IPAddress("1.2.3.4", DefaultNetwork(address="1.2.3.0/24"))
         h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [address],
@@ -335,9 +331,7 @@ class TestFilterAddresses(EnosTest):
 
         h1 = Host("1.2.3.4")
         network = DefaultNetwork(address="1.2.3.0/24")
-        address = IPAddress(
-            "1.2.3.4", network
-        )
+        address = IPAddress("1.2.3.4", network)
         h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [address],
@@ -349,9 +343,7 @@ class TestFilterAddresses(EnosTest):
         h1 = Host("1.2.3.4")
         network = DefaultNetwork(address="1.2.3.0/24")
         network2 = DefaultNetwork(address="1.2.4.0/24")
-        address = IPAddress(
-            "1.2.3.4", network
-        )
+        address = IPAddress("1.2.3.4", network)
         h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
         self.assertCountEqual(
             [],
@@ -363,13 +355,11 @@ class TestFilterAddresses(EnosTest):
         h1 = Host("1.2.3.4")
         network = DefaultNetwork(address="1.2.3.0/24")
         network2 = DefaultNetwork(address="1.2.4.0/24")
-        address = IPAddress(
-            "1.2.3.4", network
+        address = IPAddress("1.2.3.4", network)
+        address2 = IPAddress("1.2.4.4", network2)
+        h1.net_devices = set(
+            [NetDevice(name="eth0", addresses=set([address, address2]))]
         )
-        address2 = IPAddress(
-            "1.2.4.4", network2
-        )
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address, address2]))])
         self.assertCountEqual(
             [address],
             h1.filter_addresses([network]),

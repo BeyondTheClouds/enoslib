@@ -232,9 +232,7 @@ class TestSubmit(EnosTest):
         list_nodes = ["a8-1.grenoble.iot-lab.info"]
         provider_config = (
             Configuration()
-            .add_machine_conf(
-                PhysNodeConfiguration(roles=[], hostname=list_nodes)
-            )
+            .add_machine_conf(PhysNodeConfiguration(roles=[], hostname=list_nodes))
             .add_network_conf(
                 NetworkConfiguration(
                     net_id="network1",
