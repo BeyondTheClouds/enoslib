@@ -16,5 +16,4 @@
    apidoc/index.rst
    performance_tuning.rst
    theyuseit.rst
-   contributing.rst
    changelog.rst

@@ -1,13 +1,17 @@
 EnOSlib primer
 ==============
 
+
+
 Let's consider a user called Alice or Bob.
 
 
 {{ user }} would like to start a network benchmark between the nodes of an
-infrastructure. {{ user }} chooses to go with `flent <https://flent.org/>`_ and
-thus writes the following:
+infrastructure. {{ user }} chooses to go with `flent <https://flent.org/>`_
+and prototypes all the thing on the local machine using Vagrant.
 
+Using Vagrant
+--------------
 
 .. literalinclude:: tutorials/ansible-integration/flent_on.py
    :language: python
@@ -26,6 +30,10 @@ finds:
 runs are faster because the machines are already up and everything is
 `idempotent <https://en.wikipedia.org/wiki/Idempotence>`_.
 
+Moving to Grid'5000
+-------------------
+
+
 {{ user }} now would like to go in a `real` testbed (e.g Grid'5000). Good news ! {{ user }}
 only have to adapt the configuration phase and the provider used in the script.
 The experimentation logic can remain the same. Thus, one can write the following:
@@ -37,6 +45,10 @@ The experimentation logic can remain the same. Thus, one can write the following
 
 
 .. image:: ./result_g5k.png
+
+
+Going further
+-------------
 
 
 Now where {{ user }} can go from here depends on the needs:

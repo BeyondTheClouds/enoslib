@@ -18,6 +18,18 @@ Changelog
 
   - Most of services have been updated to support the above change.
 
+- Introduce ``enoslib.objects`` to organise library level objects. You'll
+  find there ``Host`` and ``Network`` data structure and some other objects definitions.
+
+- ``Host`` now have a ``net_devices`` attribute. This attribute is
+  populated by ``sync_info`` API function with the actual network devices
+  information (IPv4/IPv6 addresses, device type...).
+
+- ``Host`` now have a ``processor`` attribute. This attribute is populated by
+  ``sync_info`` API function with the actual processor information (number of
+  cores, number of threads...)
+
+
 - Netem: expose ``netem_htb``: enforce custom network limitation based on
   HTB. This is an alternative to the ``Netem`` service which offer more
   flexibility. This works at the IP level (not the role level).
