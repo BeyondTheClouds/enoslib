@@ -30,9 +30,9 @@ conf = (
 )
 provider = G5k(conf)
 roles, networks = provider.init()
-roles = sync_network_info(roles, networks)
+roles = sync_info(roles, networks)
 
-netem = SimpleNetem("delay 10ms", "my_network", hosts=roles["city"])
+netem = SimpleNetem("delay 10ms", hosts=roles["city"], networks=networks["my_network"])
 netem.deploy()
 netem.validate()
 netem.destroy()

@@ -87,8 +87,17 @@ can be used to set homogeneous constraints between your hosts.
 Netem and SimpleNetem Class
 ***************************
 
+.. automodule:: enoslib.service.netem
+
 .. automodule:: enoslib.service.netem.netem
-    :members: netem_htb, HTBSource, HTBConstraint, Netem, SimpleNetem
+    :members: netem_htb, Netem, SimpleNetem
+
+Netem objects
+*************
+
+.. automodule:: enoslib.service.netem.objects
+    :members: HTBSource, HTBConstraint, NetemInConstraint, NetemOutConstraint, NetemInOutSource
+
 
 
 Skydive

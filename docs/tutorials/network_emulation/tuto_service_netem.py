@@ -17,19 +17,19 @@ conf = (
     G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_machine(
-        roles=["city", "paris"],
+        roles=["paris"],
         cluster="parapluie",
         nodes=1,
         primary_network=prod_network
     )
     .add_machine(
-        roles=["city", "berlin"],
+        roles=["berlin"],
         cluster="parapluie",
         nodes=1,
         primary_network=prod_network
     )
     .add_machine(
-        roles=["city", "londres"],
+        roles=["londres"],
         cluster="parapluie",
         nodes=1,
         primary_network=prod_network
@@ -38,13 +38,24 @@ conf = (
 )
 provider = G5k(conf)
 roles, networks = provider.init()
+roles = sync_info(roles, networks)
 
-sources = []
-for idx, host in enumerate(roles["city"]):
-    delay = 5 * idx
-    print(f"{host.alias} <-> {delay}")
-    inbound = NetemInConstraint(device="br0", options=f"delay {delay}ms")
-    outbound = NetemOutConstraint(device="br0", options=f"delay {delay}ms")
-    sources.append(NetemInOutSource(host, inbounds=[inbound], outbounds=[outbound]))
+# Building the network constraints
+emulation_conf = {
+    "default_delay": "20ms",
+    "default_rate": "1gbit",
+    "except": [],
+    "constraints": [{
+        "src": "paris",
+        "dst": "londres",
+        "symetric": True,
+        "delay": "10ms"
+    }]
+}
 
-netem(sources)
+logging.info(emulation_conf)
+
+netem = Netem(emulation_conf, roles=roles)
+netem.deploy()
+netem.validate()
+# netem.destroy()
