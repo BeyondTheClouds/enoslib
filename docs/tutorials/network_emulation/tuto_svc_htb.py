@@ -55,7 +55,7 @@ emulation_conf = {
 
 logging.info(emulation_conf)
 
-netem = Netem(emulation_conf, roles=roles)
+netem = NetemHTB(emulation_conf, roles=roles)
 netem.deploy()
 netem.validate()
 # netem.destroy()

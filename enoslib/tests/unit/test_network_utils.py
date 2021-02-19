@@ -1,12 +1,12 @@
-from enoslib.service.netem.netem import (
+from enoslib.service.emul.utils import (
     _build_commands,
-    _build_ip_constraints,
     _expand_description,
     _generate_default_grp_constraints,
     _generate_actual_grp_constraints,
     _build_grp_constraints,
     _merge_constraints,
 )
+from enoslib.service.emul.htb import _build_ip_constraints
 from enoslib.objects import DefaultNetwork, Host
 from enoslib.tests.unit import EnosTest
 
@@ -400,7 +400,7 @@ class TestBuildIpConstraints(EnosTest):
         htb_sources = _build_ip_constraints(
             self.rsc1, self.networks["role1"], self.constraints
         )
-        remove, add, rate, delay, filtr = _build_commands(htb_sources)
+        remove, add, cmds = _build_commands(htb_sources)
 
         # as many remove as devices
         self.assertEqual(1, len(remove[self.n1.alias]))
@@ -411,9 +411,5 @@ class TestBuildIpConstraints(EnosTest):
         # as many add as devices
         self.assertEqual(1, len(add[self.n1.alias]))
         self.assertEqual(0, len(add[self.n2.alias]))
-        # we have as many rate class as possible (device, dest)
-        self.assertEqual(1 * 1, len(rate[self.n1.alias]))
-        # delay
-        self.assertEqual(1 * 1, len(delay[self.n1.alias]))
-        # we put filter on every (device, dest) possible
-        self.assertEqual(1 * 1, len(filtr[self.n1.alias]))
+        # rate, filter, class
+        self.assertEqual(3 * 1, len(cmds[self.n1.alias]))

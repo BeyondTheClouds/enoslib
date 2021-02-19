@@ -20,9 +20,8 @@ from enoslib.service.dstat.dstat import Dstat
 from enoslib.service.locust.locust import Locust
 from enoslib.service.k3s.k3s import K3s
 from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
-from enoslib.service.netem import Netem, SimpleNetem
-from enoslib.service.netem.htb import HTBSource, HTBConstraint, netem_htb
-from enoslib.service.netem.netem import NetemInOutSource, NetemInConstraint, NetemOutConstraint, netem
+from enoslib.service.emul.netem import Netem, netem, NetemOutConstraint, NetemInOutSource, NetemInConstraint
+from enoslib.service.emul.htb import NetemHTB, HTBConstraint, HTBSource
 
 from enoslib.service.skydive.skydive import Skydive
 

@@ -71,34 +71,6 @@ Monitoring Service Class
     :members: TIGMonitoring, TPGMonitoring
 
 
-Network Emulation (Netem & SimpleNetem)
-=======================================
-
-.. _netem:
-
-Netem & SimpleNetem Service Class
----------------------------------
-
-To enforce network constraint, |enoslib| provides two different services: the
-Netem Service and the SimpleNetem Service. The former tends to be used when
-heterogeneous constraints are required between your hosts while the latter
-can be used to set homogeneous constraints between your hosts.
-
-Netem and SimpleNetem Class
-***************************
-
-.. automodule:: enoslib.service.netem
-
-.. automodule:: enoslib.service.netem.netem
-    :members: netem_htb, Netem, SimpleNetem
-
-Netem objects
-*************
-
-.. automodule:: enoslib.service.netem.objects
-    :members: HTBSource, HTBConstraint, NetemInConstraint, NetemOutConstraint, NetemInOutSource
-
-
 
 Skydive
 =======

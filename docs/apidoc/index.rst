@@ -15,3 +15,4 @@ API documentation
    service.rst
    infra.rst
    task.rst
+   netem.rst
