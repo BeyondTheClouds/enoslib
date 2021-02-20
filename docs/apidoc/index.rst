@@ -16,3 +16,4 @@ API documentation
    infra.rst
    task.rst
    netem.rst
+   monitoring.rst
