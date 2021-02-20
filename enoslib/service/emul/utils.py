@@ -1,4 +1,5 @@
 import copy
+from typing import Dict, List
 from enoslib.api import run_ansible
 from enoslib.utils import _check_tmpdir
 from enoslib.constants import TMP_DIRNAME
@@ -8,10 +9,8 @@ from itertools import groupby
 from operator import attrgetter
 import os
 import re
-from typing import Dict, List, Sequence
 
 from enoslib.objects import Roles
-from .objects import Source
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
@@ -48,7 +47,7 @@ def _build_options(extra_vars, options):
     return _options
 
 
-def _build_commands(sources: Sequence[Source]):
+def _build_commands(sources):
     """Source agnostic way of recombining the list of constraints."""
     _remove = defaultdict(list)
     _add = defaultdict(list)

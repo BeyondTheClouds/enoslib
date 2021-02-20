@@ -3,15 +3,14 @@ from enoslib.utils import _check_tmpdir
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Set
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 from enoslib.api import play_on, run_ansible
 from enoslib.constants import TMP_DIRNAME
-from enoslib.objects import Networks, Roles
+from enoslib.objects import Host, Networks, Roles
 from jsonschema import validate
 
 from ..service import Service
-from .objects import Constraint, Source
 from .schema import SCHEMA
 from .utils import (
     _build_commands,
@@ -84,7 +83,7 @@ def _build_ip_constraints(
 
 
 @dataclass(eq=True, frozen=True)
-class HTBConstraint(Constraint):
+class HTBConstraint(object):
     """An HTB constraint.
 
     .. note ::
@@ -159,7 +158,7 @@ class HTBConstraint(Constraint):
 
 
 @dataclass
-class HTBSource(Source):
+class HTBSource(object):
     """Model a host and all the htb constraints.
 
     Args
@@ -172,6 +171,7 @@ class HTBSource(Source):
         constraints are left to the application.
     """
 
+    host: Host
     constraints: Set[HTBConstraint] = field(default_factory=set)
 
     def add_constraint(self, *args, **kwargs):
@@ -182,13 +182,7 @@ class HTBSource(Source):
         """
         self.constraints.add(HTBConstraint(*args, **kwargs))
 
-    # type: ignore[override]
     def add_constraints(self, constraints: Iterable[HTBConstraint]):
-        """Add some constraints.
-
-        constraints: iterable of
-                     :py:class:`enoslib.service.netem.netem.HTBConstraint`
-        """
         self.constraints = self.constraints.union(set(constraints))
 
     def add_commands(self) -> List[str]:
@@ -209,6 +203,9 @@ class HTBSource(Source):
             # rate limit
             htb_cmds.extend(tc.commands(idx))
         return htb_cmds
+
+    def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
+        return self.remove_commands(), self.add_commands(), self.commands()
 
 
 def netem_htb(
@@ -366,7 +363,7 @@ class NetemHTB(Service):
               :language: python
               :linenos:
 
-                """
+        """
         NetemHTB.is_valid(network_constraints)
         self.network_constraints = network_constraints
         self.roles = roles if roles is not None else []

@@ -1,19 +1,22 @@
 import logging
 from dataclasses import dataclass, field
-from typing import List, Mapping, Optional
+from typing import Iterable, List, Mapping, Optional, Set, Tuple
 
 from enoslib.api import play_on
 from enoslib.objects import Host, Network
 from enoslib.service.service import Service
 
-from .objects import Constraint, Source
 from .utils import _build_commands, _build_options, _combine, _validate
 
 logger = logging.getLogger(__name__)
 
 
+class NetemConstraint(object):
+    pass
+
+
 @dataclass(eq=True, frozen=True)
-class NetemOutConstraint(Constraint):
+class NetemOutConstraint(NetemConstraint):
     """A Constraint on the egress part of a device.
 
     Args:
@@ -44,25 +47,10 @@ class NetemInConstraint(NetemOutConstraint):
     """A Constraint on the ingress part of a device.
 
     Inbound limitations works differently.
-    Quoted from https://wiki.linuxfoundation.org/networking/netem
+    see https://wiki.linuxfoundation.org/networking/netem
 
-    > How can I use netem on incoming traffic?
-
-    > You need to use the Intermediate Functional Block pseudo-device IFB .
-      This network device allows attaching queuing discplines to incoming
-      packets.
-
-    .. code-block:: bash
-
-        modprobe ifb
-        ip link set dev ifb0 up
-        tc qdisc add dev eth0 ingress
-        tc filter add dev eth0 parent ffff: \
-        protocol ip u32 match u32 0 0 flowid 1:1 action mirred egress redirect dev ifb0
-        tc qdisc add dev ifb0 root netem delay 750ms
-
-    Assuming that the modprobe is already done this is exactly what we'll do
-    to enforce the inbound constraints.
+    We'll create an ifb, redirect incoming traffic to it and apply some
+    queuing discipline using netem.
 
     Args:
         ifb: the ifb name (e.g. ifb0) that will be used. That means that the
@@ -70,12 +58,15 @@ class NetemInConstraint(NetemOutConstraint):
     """
 
     def add_commands(self, ifb: str) -> List[str]:
+        """Return the commands that adds the ifb."""
         return [f"ip link set dev {ifb} up", f"tc qdisc add dev {self.device} ingress"]
 
     def remove_commands(self, ifb: str) -> List[str]:
+        """Return the commands that remove the qdisc from the ifb and the net device."""
         return super().remove_commands(ifb) + [f"tc qdisc del dev {ifb} root"]
 
     def commands(self, ifb: str) -> List[str]:
+        """Return the commands that redirect and apply netem constraints on the ifb."""
         return [
             (
                 f"tc filter add dev {self.device} parent ffff: "
@@ -87,8 +78,8 @@ class NetemInConstraint(NetemOutConstraint):
 
 
 @dataclass
-class NetemInOutSource(Source):
-    """Model a host and the constraints on its networkd devices.
+class NetemInOutSource(object):
+    """Model a host and the constraints on its network devices.
 
     Args:
         inbound : The constraints to set on the ingress part of the host
@@ -96,15 +87,26 @@ class NetemInOutSource(Source):
         outbound: The constraints to set on the egress part of the host
                   devices
     """
-    inbounds: List[NetemOutConstraint] = field(default_factory=list)
-    outbounds: List[NetemInConstraint] = field(default_factory=list)
+
+    host: Host
+    constraints: Set[NetemConstraint] = field(default_factory=set)
 
     def _commands(self, _c: str) -> List[str]:
         cmds = []
-        for xgress in [self.inbounds, self.outbounds]:
-            for idx, constraint in enumerate(xgress):
-                cmds.extend(getattr(constraint, _c)(f"ifb{idx}"))
+        for idx, constraint in enumerate(self.constraints):
+            cmds.extend(getattr(constraint, _c)(f"ifb{idx}"))
         return cmds
+
+    @property
+    def inbounds(self) -> List[NetemInConstraint]:
+        return [c for c in self.constraints if isinstance(c, NetemInConstraint)]
+
+    @property
+    def outbounds(self) -> List[NetemOutConstraint]:
+        return [c for c in self.constraints if isinstance(c, NetemOutConstraint)]
+
+    def add_constraints(self, constraints: Iterable[NetemInConstraint]):
+        self.constraints = self.constraints.union(set(constraints))
 
     def add_commands(self) -> List[str]:
         return self._commands("add_commands")
@@ -115,13 +117,8 @@ class NetemInOutSource(Source):
     def commands(self) -> List[str]:
         return self._commands("commands")
 
-    # type: ignore[override]
-    def add_constraints(self, constraints: List[Constraint]):
-        if len(constraints) == 0 or len(constraints) > 2:
-            raise ValueError("One or two constraints must be passed")
-        self.inbounds.append(constraints[0])
-        if len(constraints) == 2:
-            self.outbounds.append(constraints[1])
+    def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
+        return self.remove_commands(), self.add_commands(), self.commands()
 
 
 def netem(
@@ -167,8 +164,7 @@ def netem(
     # by default modprobe provision 2, so we default to this value
     numifbs = 2
     for source in sources:
-        numifbs = max(numifbs, len(source.inbounds), len(source.outbounds))
-
+        numifbs = max(numifbs, len(source.constraints))
     # Run the commands on the remote hosts (only those involved)
     # First allocate a sufficient number of ifbs
     with play_on(roles=roles, extra_vars=options) as p:
@@ -245,7 +241,6 @@ class Netem(Service):
                 source.add_constraints(constraints)
             total_ifbs = max(total_ifbs, len(interfaces))
             sources.append(source)
-
         netem(sources, self.extra_vars, chunk_size)
 
     def backup(self):

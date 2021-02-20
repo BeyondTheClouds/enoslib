@@ -1,15 +1,14 @@
-Network Emulation
-=================
+Network Emulation API
+=====================
 
 Introduction
 ------------
-
 
 .. automodule:: enoslib.service.emul
 
 .. _emul:
 
-Netem Emulation
+Netem emulation
 ---------------
 
 .. automodule:: enoslib.service.emul.netem
