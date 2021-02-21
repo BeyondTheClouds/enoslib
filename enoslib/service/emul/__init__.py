@@ -35,6 +35,15 @@ function.
   not regular in the general case.
 
 
+.. note::
+
+  Requirements:
+
+    - ``ifb`` module loaded on the remote hosts for ``Netem`` service and
+      `netem` function.
+    - ``tc`` tool available (install ``iproute2`` package on debian based
+      distribution)
+
 .. topic:: links:
 
     .. [#1] https://en.wikipedia.org/wiki/Network_emulation

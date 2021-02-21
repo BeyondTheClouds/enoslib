@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def _chunks(_list, size):
     """Chunk a list in smaller pieces."""
     for i in range(0, len(_list), size):
-        yield _list[i: i + size]
+        yield _list[i : i + size]
 
 
 def _combine(*args, separator=";", chunk_size=100):

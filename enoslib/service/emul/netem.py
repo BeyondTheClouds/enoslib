@@ -59,7 +59,11 @@ class NetemInConstraint(NetemOutConstraint):
 
     def add_commands(self, ifb: str) -> List[str]:
         """Return the commands that adds the ifb."""
-        return [f"ip link set dev {ifb} up", f"tc qdisc add dev {self.device} ingress"]
+        return [
+            f"tc qdisc add dev {self.device} ingress",
+            f"ip link add {ifb} type ifb",
+            f"ip link set dev {ifb} up",
+        ]
 
     def remove_commands(self, ifb: str) -> List[str]:
         """Return the commands that remove the qdisc from the ifb and the net device."""
@@ -160,15 +164,9 @@ def netem(
     tc_commands = _combine(*_build_commands(sources), chunk_size=chunk_size)
     options = _build_options(extra_vars, {"tc_commands": tc_commands})
 
-    # find out how many ifbs we'll have to provision
-    # by default modprobe provision 2, so we default to this value
-    numifbs = 2
-    for source in sources:
-        numifbs = max(numifbs, len(source.constraints))
     # Run the commands on the remote hosts (only those involved)
     # First allocate a sufficient number of ifbs
-    with play_on(roles=roles, extra_vars=options) as p:
-        p.raw(f"modprobe ifb numifbs={numifbs}")
+    with play_on(roles=roles, gather_facts=False, extra_vars=options) as p:
         p.raw(
             "{{ item }}",
             when="tc_commands[inventory_hostname] is defined",
