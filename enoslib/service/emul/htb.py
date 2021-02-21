@@ -258,7 +258,7 @@ def netem_htb(
     # Run the commands on the remote hosts (only those involved)
     roles = dict(all=[htb_host.host for htb_host in htb_hosts])
     with play_on(roles=roles, extra_vars=options) as p:
-        p.shell(
+        p.raw(
             "{{ item }}",
             when="tc_commands[inventory_hostname] is defined",
             loop="{{ tc_commands[inventory_hostname] }}",
