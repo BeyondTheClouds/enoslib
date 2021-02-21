@@ -12,8 +12,8 @@ API documentation
    :caption: Contents:
 
    api.rst
-   service.rst
-   infra.rst
-   task.rst
    netem.rst
    monitoring.rst
+   infra.rst
+   task.rst
+   service.rst
