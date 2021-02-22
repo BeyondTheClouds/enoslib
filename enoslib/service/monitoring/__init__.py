@@ -4,9 +4,10 @@ may need [#1]_.
 
 |enoslib| provides two monitoring stacks out of the box:
 
-- Telegraf [#2]_ /InfluxDB [#3]_ /Grafana [#4]_ (TIG) stack. This stack follows a push model
-  where Telegraf agents are continuously a pushing metrics the the InfluxDB
-  collector. Grafana is used as a dashboard for visualizing the metrics.
+- Telegraf [#2]_ /InfluxDB [#3]_ /Grafana [#4]_ (TIG) stack. This stack
+  follows a push model where Telegraf agents are continuously a pushing metrics
+  the the InfluxDB collector. Grafana is used as a dashboard for visualizing
+  the metrics.
 
 - Telegraf/Promotheus [#5]_ /Grafana (TPG) stack. This stack follows a pull model
   where the Prometheus collector are polling the Telegraf agents for new
