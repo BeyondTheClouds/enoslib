@@ -1,6 +1,6 @@
 """
-This module exposes different ways of doing network emulation [#1]_ based on
-``tc`` [#2]_ of the ``iproute2`` tool and use ``netem`` [#3]_ as cornerstone.
+This module exposes different ways of doing network emulation [#e1]_ based on
+``tc`` [#e2]_ of the ``iproute2`` tool and use ``netem`` [#e3]_ as cornerstone.
 
 Different kinds of network topologies can be built and different level of
 abstractions can be used.
@@ -44,11 +44,11 @@ function.
     - ``tc`` tool available (install ``iproute2`` package on debian based
       distribution)
 
-.. topic:: links:
+.. topic:: Links:
 
-    .. [#1] https://en.wikipedia.org/wiki/Network_emulation
-    .. [#2] https://www.lartc.org/lartc.html
-    .. [#3] https://wiki.linuxfoundation.org/networking/netem
-    .. [#4] https://tldp.org/HOWTO/Traffic-Control-HOWTO/classful-qdiscs.html
+    .. [#e1] https://en.wikipedia.org/wiki/Network_emulation
+    .. [#e2] https://www.lartc.org/lartc.html
+    .. [#e3] https://wiki.linuxfoundation.org/networking/netem
+    .. [#e4] https://tldp.org/HOWTO/Traffic-Control-HOWTO/classful-qdiscs.html
 """
 pass

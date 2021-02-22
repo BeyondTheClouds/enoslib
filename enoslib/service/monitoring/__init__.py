@@ -1,26 +1,26 @@
 """
 A monitoring stack is part of the observability tools that the experimenter
-may need [#1]_.
+may need [#m1]_.
 
 |enoslib| provides two monitoring stacks out of the box:
 
-- Telegraf [#2]_ /InfluxDB [#3]_ /Grafana [#4]_ (TIG) stack. This stack
+- Telegraf [#m2]_ /InfluxDB [#m3]_ /Grafana [#m4]_ (TIG) stack. This stack
   follows a push model where Telegraf agents are continuously a pushing metrics
   the the InfluxDB collector. Grafana is used as a dashboard for visualizing
   the metrics.
 
-- Telegraf/Promotheus [#5]_ /Grafana (TPG) stack. This stack follows a pull model
+- Telegraf/Promotheus [#m5]_ /Grafana (TPG) stack. This stack follows a pull model
   where the Prometheus collector are polling the Telegraf agents for new
   metrics. For instance, this model allows to overcome a limitation when the
   deployment spans Grid'5000 and FIT/IOTlab platform.
 
 .. topic:: links
 
-    .. [#1] https://sre.google/sre-book/monitoring-distributed-systems/
-    .. [#2] https://www.influxdata.com/time-series-platform/telegraf/
-    .. [#3] https://www.influxdata.com/products/influxdb/
-    .. [#4] https://grafana.com/
-    .. [#5] https://prometheus.io/
+    .. [#m1] https://sre.google/sre-book/monitoring-distributed-systems/
+    .. [#m2] https://www.influxdata.com/time-series-platform/telegraf/
+    .. [#m3] https://www.influxdata.com/products/influxdb/
+    .. [#m4] https://grafana.com/
+    .. [#m5] https://prometheus.io/
 
 """
 pass

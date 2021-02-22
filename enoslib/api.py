@@ -1,4 +1,19 @@
-# -*- coding: utf-8 -*-
+"""Need to run some actions on you nodes ? This module is tailored for this
+purpose.
+
+Remote actions rely heavily on Ansible [#a1]_ used as a library through its
+python API. Among other things a convenient context manager is brought to the
+experimenter (see :py:class:`play_on`) to run arbitrary Ansible code without
+leaving the python world.
+
+These function can be fed with library-level objects (see :ref:`objects
+<objects>`) and are thus provider agnostic.
+
+.. topic:: Links
+
+    .. [#a1] https://docs.ansible.com/ansible/latest/index.html
+
+"""
 import copy
 import json
 import logging
@@ -303,7 +318,8 @@ class play_on(object):
                     :language: python
                     :linenos:
 
-        Hint
+        .. hint::
+
             - Module can be run asynchronously using the corresponding Ansible options
               Note that not all the modules support asynchronous execution.
 

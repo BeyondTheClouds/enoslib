@@ -1,3 +1,18 @@
+"""
+.. _objects:
+
+This modules is made of the **library-level** objects. These are provider
+agnostic objects that can be fed into most of the |enoslib| functions.
+
+Currently the main abstractions of this module are the
+:py:class:`enoslib.objects.Host` and the :py:class:`enoslib.objects.Network`.
+They abstract away the notion of compute servers (something you can access
+and run some actions on) and networks (something you can get IPs from).
+
+Most likely you'll interact with Hosts and Networks right after calling
+``provider.init()``: this is indeed a provider responsability to turn your
+abstract resource description into concrete library level objects.
+"""
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import InitVar, dataclass, field

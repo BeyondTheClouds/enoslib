@@ -1,6 +1,6 @@
-************
-Service APIs
-************
+********************
+ Other Services APIs
+********************
 
 Base Service Class
 ==================
@@ -57,20 +57,6 @@ Locust Service Class
 
 .. automodule:: enoslib.service.locust.locust
     :members: Locust
-
-Monitoring
-==========
-
-Monitoring Service Class
-------------------------
-
-.. _monitoring:
-
-
-.. automodule:: enoslib.service.monitoring.monitoring
-    :members: TIGMonitoring, TPGMonitoring
-
-
 
 Skydive
 =======

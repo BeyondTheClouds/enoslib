@@ -11,7 +11,8 @@ API documentation
    :maxdepth: 2
    :caption: Contents:
 
-   api.rst
+   objects.rst
+   global_api.rst
    netem.rst
    monitoring.rst
    infra.rst

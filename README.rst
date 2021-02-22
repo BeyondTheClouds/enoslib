@@ -26,12 +26,14 @@ deploying various piece of software (e.g instrumentation, observability
 tools). It also integrates well with interactive development environment like
 Jupyter.
 
-Licence
--------
+The software
+------------
 
-EnOSLib has been initially developed in the context of the `Discovery
+EnOSlib has been initially developed in the context of the `Discovery
 <https://beyondtheclouds.github.io/>`_ initiative and is released under the
-GPLv3 licence.
+GPLv3 licence. It's a library written in Python: you are free to import it in
+your code and cherry-pick any of its functions.
+
 
 Links
 -----
