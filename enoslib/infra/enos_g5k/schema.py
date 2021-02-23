@@ -144,7 +144,9 @@ def is_valid_walltime(instance):
     from datetime import datetime
 
     try:
-        datetime.strptime(instance, "%H:%M:%S")
+        [hours, minutes_seconds] = instance.split(':', 1)
+        int(hours)
+        datetime.strptime(minutes_seconds, "%M:%S")
         return True
     except ValueError:
         raise EnosG5kWalltimeFormatError()
