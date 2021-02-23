@@ -36,7 +36,7 @@ roles, networks = provider.init()
 print(roles)
 print(networks)
 
-wait_ssh(roles)
+wait_for(roles)
 # install docker on the nodes
 # bind /var/lib/docker to /tmp/docker to gain some places
 docker = Docker(agent=roles["docker"], bind_var_docker="/tmp/docker")

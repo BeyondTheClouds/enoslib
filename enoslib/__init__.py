@@ -9,7 +9,7 @@ from enoslib.api import (
     run_ansible,
     run_command,
     run_play,
-    wait_ssh,
+    wait_for,
 )
 
 # Services

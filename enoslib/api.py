@@ -805,7 +805,7 @@ def sync_info(roles: Roles, networks: Networks) -> Roles:
         A copy of the original roles where each hosts.extra_addresses has
         been modified. """
 
-    wait_ssh(roles)
+    wait_for(roles)
     tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
 
@@ -888,14 +888,16 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     return [h for h in all_hosts if h.address in ansible_addresses]
 
 
-def wait_ssh(roles: Roles, retries: int = 100, interval: int = 30) -> None:
-    """Wait for all the machines to be ssh-reachable
+def wait_for(roles: Roles, retries: int = 100, interval: int = 30) -> None:
+    """Wait for all the machines to be ready to run some commands.
 
-    Let ansible initiates a communication and retries if needed.
+    Let Ansible initiates a communication and retries if needed.
+    Communication backend depends on the connection plugin used. This is most
+    likely SSH.
 
     Args:
         roles: Roles to wait for
-        retries: Number of time we'll be retrying an SSH connection
+        retries: Number of time we'll be retrying a connection
         interval: Interval to wait in seconds between two retries
     """
     for i in range(0, retries):
