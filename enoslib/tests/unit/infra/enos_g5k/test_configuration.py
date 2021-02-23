@@ -62,6 +62,10 @@ class TestConfiguration(EnosTest):
         d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}
         with self.assertRaises(ValidationError):
             Configuration.from_dictionnary(d)
+    
+    def test_from_dictionnary_big_walltime(self):
+        d = {"walltime": "200:00:00", "resources": {"machines": [], "networks": []}}
+        self.assertTrue(Configuration.from_dictionnary(d))
 
     def test_missing_cluster_and_servers(self):
         d = {
