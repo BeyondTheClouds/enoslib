@@ -14,6 +14,5 @@
    primer.rst
    tutorials/index.rst
    apidoc/index.rst
-   performance_tuning.rst
    theyuseit.rst
    changelog.rst

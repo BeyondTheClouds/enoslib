@@ -893,7 +893,9 @@ def wait_for(roles: Roles, retries: int = 100, interval: int = 30) -> None:
 
     Let Ansible initiates a communication and retries if needed.
     Communication backend depends on the connection plugin used. This is most
-    likely SSH.
+    likely SSH but alternative backend can be used
+    (see `connection plugins
+    <https://docs.ansible.com/ansible/latest/plugins/connection.html>`_)
 
     Args:
         roles: Roles to wait for

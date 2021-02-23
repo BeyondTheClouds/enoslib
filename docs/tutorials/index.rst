@@ -1,6 +1,6 @@
-*********
-Tutorials
-*********
+******************************
+Patterns for the experimenters
+******************************
 
 .. toctree::
     :maxdepth: 2
@@ -18,3 +18,4 @@ Tutorials
     network_emulation
     parameters_exploration
     quickstart
+    performance_tuning
