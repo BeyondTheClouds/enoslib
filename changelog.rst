@@ -4,6 +4,7 @@ Changelog
 6.0.0 (the IPv6 release !)
 ----------------------
 
+- Beware this versions has breaking changes in various places
 - Networks from the various providers deserved a true abstraction: it's done.
 
   - ``provider.init`` now returns two similar data structures: Compute roles
@@ -29,10 +30,17 @@ Changelog
   ``sync_info`` API function with the actual processor information (number of
   cores, number of threads...)
 
+- Netem service has been split in two parts. First, you can enforce in and
+  out limitations on remote NIC cards (see ``netem`` module). Ingress
+  limitations use virtual ifbs. Second do the same but allow to add filters
+  (based on Hierarchical Token Bucket) on the queuing discipline to set
+  heterogeneous limitations on a single NIC card (see ``htb`` module).
 
-- Netem: expose ``netem_htb``: enforce custom network limitation based on
-  HTB. This is an alternative to the ``Netem`` service which offer more
-  flexibility. This works at the IP level (not the role level).
+- API: ``wait_for`` is the new name for ``wait_ssh``. The rationale is that
+  we actually defer the connection to one Ansible plugin (which may or may not
+  be the SSH plugin)
+
+- Documentation has been reorganized and now uses a new theme (pydata-sphinx-theme)
 
 - Note that the Openstack provider is broken currently.
 
