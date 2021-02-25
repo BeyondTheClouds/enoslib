@@ -22,9 +22,10 @@ Changelog
 - Introduce ``enoslib.objects`` to organise library level objects. You'll
   find there ``Host`` and ``Network`` data structure and some other objects definitions.
 
-- ``Host`` now have a ``net_devices`` attribute. This attribute is
-  populated by ``sync_info`` API function with the actual network devices
-  information (IPv4/IPv6 addresses, device type...).
+- ``Host`` now have a ``net_devices`` and ``processor`` attributes. These
+  attributes is populated by ``sync_info`` API function with the actual network
+  devices information (IPv4/IPv6 addresses, device type...) and processor
+  information.
 
 - ``Host`` now have a ``processor`` attribute. This attribute is populated by
   ``sync_info`` API function with the actual processor information (number of
@@ -35,6 +36,8 @@ Changelog
   limitations use virtual ifbs. Second do the same but allow to add filters
   (based on Hierarchical Token Bucket) on the queuing discipline to set
   heterogeneous limitations on a single NIC card (see ``htb`` module).
+
+- API: ``discover_networks`` is now ``sync_info`` as it syncs more than networks.
 
 - API: ``wait_for`` is the new name for ``wait_ssh``. The rationale is that
   we actually defer the connection to one Ansible plugin (which may or may not
