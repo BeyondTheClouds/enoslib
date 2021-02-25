@@ -3,7 +3,7 @@ from enoslib.utils import _check_tmpdir
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Set, Tuple
 
 from enoslib.api import play_on, run_ansible
 from enoslib.constants import TMP_DIRNAME
@@ -208,11 +208,7 @@ class HTBSource(object):
         return self.remove_commands(), self.add_commands(), self.commands()
 
 
-def netem_htb(
-    htb_hosts: List[HTBSource],
-    chunk_size: int = 100,
-    **kwargs
-):
+def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
     """Helper function to enforce heterogeneous limitations on hosts.
 
     This function do the heavy lifting of building the qdisc tree for each
@@ -273,7 +269,7 @@ class NetemHTB(Service):
         roles: Roles = None,
         networks: Networks = None,
         chunk_size: int = 100,
-        **kwargs
+        **kwargs,
     ):
         """Set heterogeneous constraints between your hosts.
 

@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List
+from typing import List
 from enoslib.api import run_ansible
 from enoslib.utils import _check_tmpdir
 from enoslib.constants import TMP_DIRNAME

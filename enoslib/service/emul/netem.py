@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Iterable, List, Set, Tuple
 
 from enoslib.api import play_on
 from enoslib.objects import Host, Network
@@ -125,11 +125,7 @@ class NetemInOutSource(object):
         return self.remove_commands(), self.add_commands(), self.commands()
 
 
-def netem(
-    sources: List[NetemInOutSource],
-    chunk_size: int = 100,
-    **kwargs
-):
+def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
     """Helper function to enforce in/out limitations on host devices.
 
     Nodes can be seen as the vertices of a star topology where the center is the
@@ -181,7 +177,7 @@ class Netem(Service):
         hosts: List[Host],
         networks: List[Network],
         symetric: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """Set homogeneous network constraints between your hosts.
 

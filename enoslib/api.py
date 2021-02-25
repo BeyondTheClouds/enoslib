@@ -21,7 +21,7 @@ import os
 import tempfile
 import time
 from collections import namedtuple
-from typing import Any, List, Mapping, MutableMapping, Optional, Set, Union
+from typing import Any, Dict, List, Mapping, Optional, Set, Union
 
 # These two imports are 2.9
 import ansible.constants as C
@@ -728,7 +728,7 @@ def run_ansible(
     on_error_continue=False,
     basedir=".",
     ansible_retries: int = 0,
-    extra_vars: Optional[Mapping] = None
+    extra_vars: Optional[Mapping] = None,
 ):
     """Run Ansible.
 
@@ -760,7 +760,7 @@ def run_ansible(
         tags=tags,
         basedir=basedir,
     )
-    passwords = {}
+    passwords: Dict = {}
     for path in playbooks:
         logger.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
         pbex = PlaybookExecutor(
@@ -807,7 +807,10 @@ def run_ansible(
             # this can be potentially harmfull id cross facts are used.
             # But since it fails in the first place, retries can't be worth
             updated_roles = remove_hosts(roles, failed_hosts + unreachable_hosts)
-            logger.info(f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)} hosts [{ansible_retries}]")
+            logger.info(
+                f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)}"
+                f"hosts [{ansible_retries}]"
+            )
             run_ansible(
                 playbooks,
                 inventory_path=inventory_path,
