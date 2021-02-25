@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 import os
 
 from enoslib.errors import EnosFilePathError
@@ -33,3 +34,12 @@ def _check_tmpdir(tmpdir):
             raise EnosFilePathError("%s is not a directory" % tmpdir)
         else:
             pass
+
+
+def remove_hosts(roles, hosts_to_keep):
+    updated_roles = defaultdict(list)
+    for role, hosts in roles.items():
+        for host in hosts:
+            if host.alias in hosts_to_keep:
+                updated_roles[role].append(host)
+    return updated_roles

@@ -127,8 +127,8 @@ class NetemInOutSource(object):
 
 def netem(
     sources: List[NetemInOutSource],
-    extra_vars: Optional[Mapping] = None,
     chunk_size: int = 100,
+    **kwargs
 ):
     """Helper function to enforce in/out limitations on host devices.
 
@@ -146,8 +146,8 @@ def netem(
 
     Args:
         sources: list of constraints to apply as a list of Source
-        extra_vars: extra variable to pass to Ansible when enforcing the constraints
         chunk_size: size of the chunk to use
+        kwargs: keyword argument to pass to  :py:fun:`enoslib.api.run_ansible`.
 
 
     Example:
@@ -156,17 +156,16 @@ def netem(
             :language: python
             :linenos:
     """
-    if extra_vars is None:
-        extra_vars = dict()
 
     # provision a sufficient number of ifbs
     roles = dict(all=[htb_host.host for htb_host in sources])
     tc_commands = _combine(*_build_commands(sources), chunk_size=chunk_size)
+    extra_vars = kwargs.pop("extra_vars", {})
     options = _build_options(extra_vars, {"tc_commands": tc_commands})
 
     # Run the commands on the remote hosts (only those involved)
     # First allocate a sufficient number of ifbs
-    with play_on(roles=roles, gather_facts=False, extra_vars=options) as p:
+    with play_on(roles=roles, gather_facts=False, extra_vars=options, **kwargs) as p:
         p.raw(
             "{{ item }}",
             when="tc_commands[inventory_hostname] is defined",
@@ -182,7 +181,7 @@ class Netem(Service):
         hosts: List[Host],
         networks: List[Network],
         symetric: bool = False,
-        extra_vars=None,
+        **kwargs
     ):
         """Set homogeneous network constraints between your hosts.
 
@@ -201,7 +200,7 @@ class Netem(Service):
                         ip address on one of those network will be considered.
             hosts     : list of host on which the constraints will be applied
             symetric  : Wheter we'll want limitations on inbound and outbound traffic.
-            extra_vars: extra variable to inject during the ansible run
+             kwargs   : keyword arguments to pass to :py:fun:`enoslib.api.run_ansible`
 
         Example:
 
@@ -214,7 +213,7 @@ class Netem(Service):
         self.hosts = hosts if hosts else []
         self.networks = networks
         self.symetric = symetric
-        self.extra_vars = extra_vars if extra_vars is not None else {}
+        self.kwargs = kwargs
         self.roles = dict(all=self.hosts)
 
     def deploy(self, chunk_size=100):
@@ -239,7 +238,7 @@ class Netem(Service):
                 source.add_constraints(constraints)
             total_ifbs = max(total_ifbs, len(interfaces))
             sources.append(source)
-        netem(sources, self.extra_vars, chunk_size)
+        netem(sources, self.extra_vars, chunk_size, **self.kwargs)
 
     def backup(self):
         pass
@@ -249,7 +248,7 @@ class Netem(Service):
         for host in self.hosts:
             addresses = host.filter_addresses(self.networks)
             all_addresses.extend([str(addr.ip.ip) for addr in addresses])
-        _validate(self.roles, output_dir, all_addresses)
+        _validate(self.roles, output_dir, all_addresses, **self.kwargs)
 
     def destroy(self):
         # We need to know the exact device

@@ -40,6 +40,13 @@ Changelog
   we actually defer the connection to one Ansible plugin (which may or may not
   be the SSH plugin)
 
+- API: ``run_ansible`` implements a retry logic independent to the connection
+  plugin used.
+
+- API: functions that calls ``run_ansible`` now accepts keyword arguments
+  that are passed down the stack (instead of being explicit). This includes
+  ``extra_vars``ansible_retries``.
+
 - Documentation has been reorganized and now uses a new theme (pydata-sphinx-theme)
 
 - Note that the Openstack provider is broken currently.

@@ -210,8 +210,8 @@ class HTBSource(object):
 
 def netem_htb(
     htb_hosts: List[HTBSource],
-    extra_vars: Optional[Mapping] = None,
     chunk_size: int = 100,
+    **kwargs
 ):
     """Helper function to enforce heterogeneous limitations on hosts.
 
@@ -238,8 +238,8 @@ def netem_htb(
 
     Args:
         htb_hosts : list of constraints to apply.
-        extra_vars: extra variable to pass to Ansible when enforcing the constraints
         chunk_size: size of the chunk to use
+        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
     Examples:
 
@@ -249,15 +249,14 @@ def netem_htb(
 
 
     """
-    if extra_vars is None:
-        extra_vars = dict()
     # tc_commands are indexed by host alias == inventory_hostname
     tc_commands = _combine(*_build_commands(htb_hosts), chunk_size=chunk_size)
+    extra_vars = kwargs.pop("extra_vars", {})
     options = _build_options(extra_vars, {"tc_commands": tc_commands})
 
     # Run the commands on the remote hosts (only those involved)
     roles = dict(all=[htb_host.host for htb_host in htb_hosts])
-    with play_on(roles=roles, extra_vars=options) as p:
+    with play_on(roles=roles, extra_vars=options, **kwargs) as p:
         p.raw(
             "{{ item }}",
             when="tc_commands[inventory_hostname] is defined",
@@ -273,8 +272,8 @@ class NetemHTB(Service):
         *,
         roles: Roles = None,
         networks: Networks = None,
-        extra_vars: Dict[Any, Any] = None,
         chunk_size: int = 100,
+        **kwargs
     ):
         """Set heterogeneous constraints between your hosts.
 
@@ -286,10 +285,9 @@ class NetemHTB(Service):
             network_constraints: the decription of the wanted constraints
                 (see the schema below)
             roles: the enoslib roles to consider
-            extra_vars: extra variables to pass to Ansible when running (e.g.
-                callback options)
             chunk_size: For large deployments, the commands to apply can become too
                 long. It can be split in chunks of size chunk_size.
+            kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
         *Network constraint schema:*
 
@@ -368,7 +366,7 @@ class NetemHTB(Service):
         self.network_constraints = network_constraints
         self.roles = roles if roles is not None else []
         self.networks = networks
-        self.extra_vars = extra_vars if extra_vars is not None else {}
+        self.kwargs = kwargs
         self.chunk_size = chunk_size
 
     @classmethod
@@ -394,7 +392,7 @@ class NetemHTB(Service):
         # 3. Building the sequence of tc commands
         logger.info("Enforcing the constraints")
 
-        netem_htb(host_htbs, self.extra_vars)
+        netem_htb(host_htbs, chunk_size=self.chunk_size, **self.kwargs)
 
     def backup(self):
         """(Not Implemented) Backup.

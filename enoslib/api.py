@@ -29,11 +29,13 @@ import yaml
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.module_utils.common.collections import ImmutableDict
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
@@ -41,10 +43,13 @@ from ansible.vars.manager import VariableManager
 from ansible import context
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
-from enoslib.errors import (EnosFailedHostsError, EnosSSHNotReady,
-                            EnosUnreachableHostsError)
+from enoslib.errors import (
+    EnosFailedHostsError,
+    EnosSSHNotReady,
+    EnosUnreachableHostsError,
+)
 from enoslib.objects import Host, Networks, Roles
-from enoslib.utils import _check_tmpdir
+from enoslib.utils import _check_tmpdir, remove_hosts
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +78,9 @@ ANSIBLE_TOP_LEVEL = {
     "environment": "environment",
     "when": "when",
 }
+
+# Change the default stdout callback to be more compact
+C.DEFAULT_STDOUT_CALLBACK = "dense"
 
 
 def _split_args(**kwargs):
@@ -276,11 +284,10 @@ class play_on(object):
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
         roles: Optional[Roles] = None,
-        extra_vars: Optional[MutableMapping[Any, Any]] = None,
-        on_error_continue: bool = False,
         gather_facts: Union[str, bool] = True,
         priors: Optional[List["play_on"]] = None,
         run_as: Optional[str] = None,
+        **kwargs,
     ):
         """Constructor.
 
@@ -299,6 +306,7 @@ class play_on(object):
             priors: tasks in each prior will be prepended in the playbook
             run_as: A shortcut that injects become and become_user to each task.
                     become* at the task level has the precedence over this parameter
+            anisble_retries: number of retries. see :py:fun:`enoslib.api.run_ansible`
 
 
         Examples:
@@ -333,9 +341,9 @@ class play_on(object):
         self.pattern_hosts = pattern_hosts
         self.inventory_path = inventory_path
         self.roles = roles
-        self.extra_vars = extra_vars if extra_vars is not None else {}
-        self.on_error_continue = on_error_continue
         self.priors = priors if priors is not None else []
+
+        self.kwargs = kwargs
 
         # Handle modification of task level kwargs
         if run_as is not None:
@@ -383,8 +391,7 @@ class play_on(object):
             run_ansible(
                 [_pb.name],
                 roles=self.roles,
-                extra_vars=self.extra_vars,
-                on_error_continue=self.on_error_continue,
+                **self.kwargs,
             )
 
     def __getattr__(self, module_name):
@@ -717,10 +724,11 @@ def run_ansible(
     playbooks,
     inventory_path=None,
     roles=None,
-    extra_vars=None,
     tags=None,
     on_error_continue=False,
     basedir=".",
+    ansible_retries: int = 0,
+    extra_vars: Optional[Mapping] = None
 ):
     """Run Ansible.
 
@@ -731,6 +739,10 @@ def run_ansible(
         tags (list): list of tags to run
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
+        basedir: Ansible basedir
+        ansible_retries: a generic retry mecanism. Set this to a positive
+                         value if the connection plugin doesn't have this retry
+                         mecanism (ssh does have one)
 
     Raises:
         :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
@@ -739,6 +751,8 @@ def run_ansible(
             unreachable (through ssh) and ``on_error_continue==False``
     """
 
+    if not extra_vars:
+        extra_vars = {}
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path,
         roles=roles,
@@ -757,12 +771,12 @@ def run_ansible(
             passwords=passwords,
         )
 
-        code = pbex.run()
+        _ = pbex.run()
         stats = pbex._tqm._stats
         hosts = stats.processed.keys()
-        result = [{h: stats.summarize(h)} for h in hosts]
-        results = {"code": code, "result": result, "playbook": path}
-        print(results)
+        # result = [{h: stats.summarize(h)} for h in hosts]
+        # results = {"code": code, "result": result, "playbook": path}
+        # print(results)
 
         failed_hosts = []
         unreachable_hosts = []
@@ -775,17 +789,38 @@ def run_ansible(
             if t["unreachable"] > 0:
                 unreachable_hosts.append(h)
 
-        if len(failed_hosts) > 0:
+        if len(failed_hosts) > 0 and ansible_retries == 0:
             logger.error("Failed hosts: %s" % failed_hosts)
             if not on_error_continue:
                 raise EnosFailedHostsError(failed_hosts)
-        if len(unreachable_hosts) > 0:
+        if len(unreachable_hosts) > 0 and ansible_retries == 0:
             logger.error("Unreachable hosts: %s" % unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
+        if (
+            len(failed_hosts) > 0 or len(unreachable_hosts) > 0
+        ) and ansible_retries > 0:
+            # keep retrying until the number of retries is reached
+            # if an inventory is passed, the whole inventory will be retested
+            # if roles are passed only host that failed are retried
+            # this can be potentially harmfull id cross facts are used.
+            # But since it fails in the first place, retries can't be worth
+            updated_roles = remove_hosts(roles, failed_hosts + unreachable_hosts)
+            logger.info(f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)} hosts [{ansible_retries}]")
+            run_ansible(
+                playbooks,
+                inventory_path=inventory_path,
+                roles=updated_roles,
+                extra_vars=extra_vars,
+                tags=tags,
+                on_error_continue=on_error_continue,
+                basedir=basedir,
+                ansible_retries=ansible_retries - 1,
+            )
 
-def sync_info(roles: Roles, networks: Networks) -> Roles:
+
+def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
     """Sync each host network information with their actual configuration
 
     If the command is successful each host extra_devices attribute will be
@@ -800,12 +835,13 @@ def sync_info(roles: Roles, networks: Networks) -> Roles:
             :py:meth:`enoslib.infra.provider.Provider.init`
         networks (list): network list as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
+        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
     Returns:
         A copy of the original roles where each hosts.extra_addresses has
-        been modified. """
+        been modified."""
 
-    wait_for(roles)
+    wait_for(roles, **kwargs)
     tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
     _check_tmpdir(tmpdir)
 
@@ -816,7 +852,11 @@ def sync_info(roles: Roles, networks: Networks) -> Roles:
         "facts_file": facts_file,
     }
     run_ansible(
-        [utils_playbook], roles=roles, extra_vars=options, on_error_continue=False
+        [utils_playbook],
+        roles=roles,
+        extra_vars=options,
+        on_error_continue=False,
+        **kwargs,
     )
 
     # Read the file
@@ -828,7 +868,7 @@ def sync_info(roles: Roles, networks: Networks) -> Roles:
         for hosts in _roles.values():
             for host in hosts:
                 # only sync if host is really a Host (not a Sensor for example)
-                if (not isinstance(host, Host)):
+                if not isinstance(host, Host):
                     continue
                 host_facts = facts[host.alias]
                 host.sync_from_ansible(networks, host_facts)
@@ -888,7 +928,7 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     return [h for h in all_hosts if h.address in ansible_addresses]
 
 
-def wait_for(roles: Roles, retries: int = 100, interval: int = 30) -> None:
+def wait_for(roles: Roles, retries: int = 100, interval: int = 30, **kwargs) -> None:
     """Wait for all the machines to be ready to run some commands.
 
     Let Ansible initiates a communication and retries if needed.
@@ -901,10 +941,13 @@ def wait_for(roles: Roles, retries: int = 100, interval: int = 30) -> None:
         roles: Roles to wait for
         retries: Number of time we'll be retrying a connection
         interval: Interval to wait in seconds between two retries
+        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
     """
     for i in range(0, retries):
         try:
-            with play_on(roles=roles, gather_facts=False, on_error_continue=False) as p:
+            with play_on(
+                roles=roles, gather_facts=False, on_error_continue=False, **kwargs
+            ) as p:
                 # We use the raw module because we can't assumed at this point that
                 # python is installed
                 p.raw("hostname")

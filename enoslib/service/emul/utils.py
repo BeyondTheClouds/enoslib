@@ -78,14 +78,13 @@ def _build_commands(sources):
 
 
 def _validate(
-    roles: Roles, output_dir: str, all_addresses: List[str], extra_vars: Dict = None
+    roles: Roles, output_dir: str, all_addresses: List[str], **kwargs
 ):
     logger.debug("Checking the constraints")
     if not output_dir:
         output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
-    if not extra_vars:
-        extra_vars = {}
 
+    extra_vars = kwargs.pop("extra_vars", {})
     output_dir = os.path.abspath(output_dir)
     _check_tmpdir(output_dir)
     _playbook = os.path.join(SERVICE_PATH, "netem.yml")
@@ -97,7 +96,7 @@ def _validate(
             all_addresses=all_addresses,
         ),
     )
-    run_ansible([_playbook], roles=roles, extra_vars=options)
+    run_ansible([_playbook], roles=roles, extra_vars=options, **kwargs)
 
 
 def expand_groups(grp):

@@ -67,7 +67,3 @@ Now where {{ user }} can go from here depends on the needs:
 
 - Deploying a monitoring stack can be convenient to track some system metrics. |enoslib| offers
   some services that can be used easily -- see :ref:`[5] <monitoring>` or :ref:`[6] <skydive>`.
-
-- Contributing to this project would be wonderful. {{ user }} doesn't need to do much,
-  improving the documentation would be very helpful -- see :ref:`[5] <contributing>`.
-
