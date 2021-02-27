@@ -762,7 +762,7 @@ def run_ansible(
     )
     passwords: Dict = {}
     for path in playbooks:
-        logger.info("Running playbook %s with vars:\n%s" % (path, extra_vars))
+        logger.debug("Running playbook %s with vars:\n%s" % (path, extra_vars))
         pbex = PlaybookExecutor(
             playbooks=[path],
             inventory=inventory,

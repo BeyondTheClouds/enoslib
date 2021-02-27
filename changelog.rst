@@ -50,6 +50,9 @@ Changelog
   that are passed down the stack (instead of being explicit). This includes
   ``extra_vars``ansible_retries``.
 
+- Providers: Any provider can now be used using a context manager. The
+  resources will be release when leaving the context.
+
 - Documentation has been reorganized and now uses a new theme (pydata-sphinx-theme)
 
 - Note that the Openstack provider is broken currently.
