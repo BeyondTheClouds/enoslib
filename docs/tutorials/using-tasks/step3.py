@@ -52,7 +52,7 @@ def up(force, env=None, **kwargs):
 def emulate(env=None, **kwargs):
     """Emulates the network."""
     roles = env["roles"]
-    netem = Netem(tc, roles=roles)
+    netem = NetemHTB(tc, roles=roles)
     netem.deploy()
 
 
@@ -61,7 +61,7 @@ def emulate(env=None, **kwargs):
 def validate(env=None, **kwargs):
     """Validates the network constraints."""
     roles = env["roles"]
-    netem = Netem(tc, roles=roles)
+    netem = NetemHTB(tc, roles=roles)
     netem.validate()
 
 

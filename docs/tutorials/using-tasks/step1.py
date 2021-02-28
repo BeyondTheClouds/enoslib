@@ -36,7 +36,7 @@ roles, networks = provider.init()
 
 roles = sync_info(roles, networks)
 
-netem = Netem(tc, roles=roles)
+netem = NetemHTB(tc, roles=roles)
 # apply network constraints
 netem.deploy()
 

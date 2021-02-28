@@ -407,8 +407,9 @@ class NetemHTB(Service):
         _check_tmpdir(TMP_DIR)
 
         _playbook = os.path.join(SERVICE_PATH, "netem.yml")
+        extra_vars = self.kwargs.pop("extra_vars", {})
         options = _build_options(
-            self.extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
+            extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
         )
         run_ansible([_playbook], roles=self.roles, extra_vars=options)
 

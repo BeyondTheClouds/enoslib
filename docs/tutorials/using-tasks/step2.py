@@ -42,14 +42,14 @@ def up(force=True, env=None, **kwargs):
 @enostask()
 def emulate(env=None, **kwargs):
     roles = env["roles"]
-    netem = Netem(tc, roles=roles)
+    netem = NetemHTB(tc, roles=roles)
     netem.deploy()
 
 
 @enostask()
 def validate(env=None, **kwargs):
     roles = env["roles"]
-    netem = Netem(tc, roles=roles)
+    netem = NetemHTB(tc, roles=roles)
     netem.validate()
 
 
