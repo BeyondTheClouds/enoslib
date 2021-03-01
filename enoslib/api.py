@@ -72,15 +72,12 @@ ANSIBLE_TOP_LEVEL = {
     "become": "become",
     "become_user": "become_user",
     "become_method": "become_method",
+    "environment": "environment",
+    "ignore_errors": "ignore_errors",
     "loop": "loop",
     "poll": "poll",
-    "ignore_errors": "ignore_errors",
-    "environment": "environment",
     "when": "when",
 }
-
-# Change the default stdout callback to be more compact
-C.DEFAULT_STDOUT_CALLBACK = "dense"
 
 
 def _split_args(**kwargs):
@@ -284,9 +281,10 @@ class play_on(object):
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
         roles: Optional[Roles] = None,
-        gather_facts: Union[str, bool] = True,
+        gather_facts: Union[str, bool] = False,
         priors: Optional[List["play_on"]] = None,
         run_as: Optional[str] = None,
+        strategy: str = "linear",
         **kwargs,
     ):
         """Constructor.
@@ -306,7 +304,9 @@ class play_on(object):
             priors: tasks in each prior will be prepended in the playbook
             run_as: A shortcut that injects become and become_user to each task.
                     become* at the task level has the precedence over this parameter
-            anisble_retries: number of retries. see :py:fun:`enoslib.api.run_ansible`
+            strategy: ansible execution strategy
+                see https://docs.ansible.com/ansible/latest/user_guide/playbooks_strategies.html
+            kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
 
 
         Examples:
@@ -342,6 +342,7 @@ class play_on(object):
         self.inventory_path = inventory_path
         self.roles = roles
         self.priors = priors if priors is not None else []
+        self.strategy = strategy
 
         self.kwargs = kwargs
 
@@ -367,7 +368,7 @@ class play_on(object):
     def __exit__(self, *args):
         gather_source = dict(hosts=[], gather_facts=False, tasks=[])
         play_source = dict(
-            hosts=self.pattern_hosts, tasks=self._tasks, gather_facts=False
+            hosts=self.pattern_hosts, tasks=self._tasks, gather_facts=False, strategy=self.strategy
         )
 
         if isinstance(self.gather_facts, str):
@@ -808,7 +809,7 @@ def run_ansible(
             # But since it fails in the first place, retries can't be worth
             updated_roles = remove_hosts(roles, failed_hosts + unreachable_hosts)
             logger.info(
-                f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)}"
+                f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)} "
                 f"hosts [{ansible_retries}]"
             )
             run_ansible(
