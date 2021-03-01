@@ -1,4 +1,19 @@
-# -*- coding: utf-8 -*-
+"""
+Tasks, in ENOSLIB, enable iterative development of the artifact. They are
+designed to allow experimenters to repeat their executions until a desired
+state is reached. By using tasks an experimenter can leave the python runtime
+and come back later (e.g. after fixing the code). Tasks act as checkpoint of
+the experimental workflow. The states of the experiment is stored in the
+*Environment* and it's the artifact's responsability to determine the relevant
+states to store.
+
+Tasks definition comes as a function decorator. Once decorated a function
+will first load the environment and make it available through a keyword
+argument. Environment is a dict-like data structure that is restored (resp.
+saved) at the beginning of a task (resp. at the end of a task).
+
+These operations rely on pickling the object stored in the environment.
+"""
 from datetime import datetime
 from functools import wraps
 import logging
