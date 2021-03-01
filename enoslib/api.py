@@ -305,7 +305,6 @@ class play_on(object):
             run_as: A shortcut that injects become and become_user to each task.
                     become* at the task level has the precedence over this parameter
             strategy: ansible execution strategy
-                see https://docs.ansible.com/ansible/latest/user_guide/playbooks_strategies.html
             kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
 
 
@@ -368,7 +367,10 @@ class play_on(object):
     def __exit__(self, *args):
         gather_source = dict(hosts=[], gather_facts=False, tasks=[])
         play_source = dict(
-            hosts=self.pattern_hosts, tasks=self._tasks, gather_facts=False, strategy=self.strategy
+            hosts=self.pattern_hosts,
+            tasks=self._tasks,
+            gather_facts=False,
+            strategy=self.strategy,
         )
 
         if isinstance(self.gather_facts, str):
