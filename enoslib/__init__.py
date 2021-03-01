@@ -12,6 +12,9 @@ from enoslib.api import (
     wait_for,
 )
 
+from enoslib.objects import Host, Network, Roles, Networks
+from enoslib.docker import DockerHost, get_dockers
+
 # Services
 from enoslib.service.conda.conda import Dask, in_conda_cmd
 
