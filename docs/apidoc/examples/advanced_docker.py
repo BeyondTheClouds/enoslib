@@ -1,3 +1,11 @@
+"""
+Example that makes use of the DockerHost data structure.
+
+This is an advanced example where
+- docker containers will be started on g5k machines
+- network emulation will be enforced between those docker containers by
+reusing |enoslib| api functions.
+"""
 import logging
 from pathlib import Path
 
@@ -24,9 +32,12 @@ provider = en.G5k(conf)
 
 # Get actual resources
 roles, networks = provider.init()
+
+# Install docker
 d = en.Docker(agent=roles["control"], bind_var_docker="/tmp/docker")
 d.deploy()
 
+# Start some containers
 N = 25
 with en.play_on(roles=roles) as p:
     p.raw("modprobe ifb")
@@ -39,7 +50,11 @@ with en.play_on(roles=roles) as p:
             capabilities=["NET_ADMIN"],
         )
 
+# Get all the dockers running on the remote hosts
 dockers = en.get_dockers(roles=roles)
+
+# Build the network contraints to apply on the remote docker
+# We assume here the interface name in docker to be eth0
 sources = []
 for idx, host in enumerate(dockers):
     delay = idx

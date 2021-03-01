@@ -1,7 +1,7 @@
 """Manage remote docker containers as first class citizens.
 
 A possible workflow would be to start your containers using the method of
-your choice and build the list of available docker using the
+your choice and build the list of available dockers using the
 :py:func:`enoslib.docker.get_dockers` function.
 
 A ``DockerHost`` is a specialization of a ``Host`` and thus can be fed into
@@ -54,6 +54,7 @@ class DockerHost(Host):
         host : the host where the container can be found
         proto: how to connect to the remote host
                 (DockerHost.PROTO_TCP/DockerHost.PROTO_SSH)
+                [Default DockerHost.PROTO_SSH]
         state: dict representing the state as returned by ``docker inspect``
     """
     PROTO_SSH = "ssh"
