@@ -50,6 +50,10 @@ Changelog
   that are passed down the stack (instead of being explicit). This includes
   ``extra_vars``ansible_retries``.
 
+- Introduce ``enoslib.docker`` module to manage docker containers as first
+  class citizens. In particular, ``DockerHost`` is a specialization of
+  ``Host``.
+
 - Providers: Any provider can now be used using a context manager. The
   resources will be release when leaving the context.
 
