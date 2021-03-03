@@ -364,9 +364,11 @@ class NetDevice(object):
         return addresses
 
     def to_dict(self):
-        return dict(device=self.name,
-                    addresses=[address.to_dict() for address in self.addresses],
-                    type="ether")
+        return dict(
+            device=self.name,
+            addresses=[address.to_dict() for address in self.addresses],
+            type="ether",
+        )
 
 
 @dataclass(unsafe_hash=True)
@@ -380,9 +382,7 @@ class BridgeDevice(NetDevice):
 
     def to_dict(self):
         d = super().to_dict()
-        d.update(
-            type="bridge",
-            interfaces=self.interfaces)
+        d.update(type="bridge", interfaces=self.interfaces)
 
 
 @dataclass()

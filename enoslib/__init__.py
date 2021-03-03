@@ -14,6 +14,7 @@ from enoslib.api import (
 
 from enoslib.objects import Host, Network, Roles, Networks
 from enoslib.docker import DockerHost, get_dockers
+from enoslib.local import LocalHost
 
 # Services
 from enoslib.service.conda.conda import Dask, in_conda_cmd
