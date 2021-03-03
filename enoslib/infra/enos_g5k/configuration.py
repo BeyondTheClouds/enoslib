@@ -190,7 +190,6 @@ class ClusterConfiguration(GroupConfiguration):
     def to_dict(self):
         d = super().to_dict()
         d.update(cluster=self.cluster, nodes=self.nodes)
-        print(d)
         return d
 
     def get_demands(self):
