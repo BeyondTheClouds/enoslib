@@ -6,16 +6,14 @@ Project bootstrap
    :depth: 2
 
 EnOSlib project can be a single python file but sometimes it's better to
-structure a bit more your experimental framework. In this direction, we're doing
-our best to maintain a project template that you can use.
+structure a bit more your experimental framework. In this direction, we're
+doing our best to maintain a project template that you can use.
 
 This includes:
 
 * an example to work with the Vagrant and Grid'5000 provider
 * a command line interface
 * a set of `enostask` to orchestrate a minimal experience
-* a minimal ansible code with the action `deploy`, `backup`, `destroy` actions
-  (Ansible is located in dedicated files by default).
 * third party tools like `sphinx` (documentation), `pytest` (unit tests), `tox`
   and a `travis` integration.
 
@@ -60,11 +58,9 @@ and start using the cli (the cli name has been filled above)::
       --help  Show this message and exit.
 
     Commands:
-      backup     Backup the deployed environment
       deploy     Claim resources from a PROVIDER and configure...
       destroy    Destroy the deployed environment
       g5k        Claim resources on Grid'5000 (frontend).
-      inventory  Generate the Ansible inventory [after g5k or...
       prepare    Configure available resources [after deploy,...
       vagrant    Claim resources on vagrant (localhost).
 
