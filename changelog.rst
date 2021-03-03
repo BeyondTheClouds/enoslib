@@ -54,6 +54,8 @@ Changelog
   class citizens. In particular, ``DockerHost`` is a specialization of
   ``Host``.
 
+- Introduce ``enoslib.local`` to manage the local machine as an EnOSlib host.
+
 - Providers: Any provider can now be used using a context manager. The
   resources will be release when leaving the context.
 

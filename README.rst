@@ -34,13 +34,6 @@ EnOSlib has been initially developed in the context of the `Discovery
 GPLv3 licence. It's a library written in Python: you are free to import it in
 your code and cherry-pick any of its functions.
 
-At a glance
------------
-
-.. raw:: html
-
-   <script id="asciicast-iVBbJPeoWA8botcQXPcNGEac3" src="https://asciinema.org/a/iVBbJPeoWA8botcQXPcNGEac3.js" data-speed="3" async></script>
-
 
 Links
 -----

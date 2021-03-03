@@ -6,6 +6,13 @@
 
 .. include:: ../README.rst
 
+At a glance
+-----------
+
+.. raw:: html
+
+   <script id="asciicast-iVBbJPeoWA8botcQXPcNGEac3" src="https://asciinema.org/a/iVBbJPeoWA8botcQXPcNGEac3.js" data-speed="3" async></script>
+
 .. toctree::
    :maxdepth: 2
    :hidden:

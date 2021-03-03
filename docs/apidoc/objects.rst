@@ -10,6 +10,13 @@ Base Objects
     :members: Network, DefaultNetwork, Host
 
 
+Local
+-----
+
+.. automodule:: enoslib.local
+    :members: LocalHost
+
+
 Docker
 ------
 
