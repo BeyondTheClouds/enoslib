@@ -15,7 +15,7 @@ from the core of the network.
 The above prevent you to set heterogeneous limitations *ie* based on the
 packets destinations. The function
 :py:func:`enoslib.service.emul.htb.netem_htb` enforces Hierarhical Token
-Bucket [#4]_ on your nodes. This lets you modelize a n-simplex topology where
+Bucket [#e4]_ on your nodes. This lets you modelize a n-simplex topology where
 the vertices represent your nodes and the edges the limitations.
 
 Working at the device interface level provides you with great flexibility,
