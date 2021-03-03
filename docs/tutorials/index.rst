@@ -14,6 +14,7 @@ Patterns for the experimenters
     static
     iotlab
     using-tasks
+    sync-info
     docker
     ansible-integration
     network_emulation

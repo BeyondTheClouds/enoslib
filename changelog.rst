@@ -1,8 +1,8 @@
 Changelog
 ===========
 
-6.0.0 (the IPv6 release !)
-----------------------
+6.0.0 (the IPv6 release and plenty other stuffs)
+------------------------------------------------
 
 - Beware this versions has breaking changes in various places
 - Networks from the various providers deserved a true abstraction: it's done.

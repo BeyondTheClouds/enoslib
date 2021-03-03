@@ -829,7 +829,7 @@ def run_ansible(
 def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
     """Sync each host network information with their actual configuration
 
-    If the command is successful each host extra_devices attribute will be
+    If the command is successful some of the host attributes will be
     populated. This allows to resync the enoslib Host representation with the
     remote configuration.
 
@@ -844,8 +844,9 @@ def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
         kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
     Returns:
-        A copy of the original roles where each hosts.extra_addresses has
-        been modified."""
+        A copy of the original roles where some new attributes have been
+        populated.
+    """
 
     wait_for(roles, **kwargs)
     tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
