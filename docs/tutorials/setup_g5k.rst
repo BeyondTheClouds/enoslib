@@ -46,10 +46,11 @@ SSH external access
 ::
 
 
-   Host *.grid5000.fr
+   Host !access.grid5000.fr *.grid5000.fr
    ProxyCommand ssh -A <login>@194.254.60.33 -W "$(basename %h):%p"
    User <login>
    ForwardAgent yes
+
 
 
 Accessing HTTP services inside Grid'5000
@@ -59,6 +60,7 @@ If you want to control you experiment from the outside of Grid'5000 (e.g from yo
 
 - Solution 1 (general): use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
 - Solution 2 (HTTP traffic only): create a socks tunnel from your local machine   to Grid'5000
+
    ::
 
 
@@ -78,9 +80,10 @@ If you want to control you experiment from the outside of Grid'5000 (e.g from yo
 
 
       # on one shell
-      ssh -Nl 3000:paravance-42.rennes.grid5000.fr:3000 access.grid5000.fr
+      ssh -NL 3000:paravance-42.rennes.grid5000.fr:3000 access.grid5000.fr
 
       # Now all traffic that goes on localhost:3000 is forwarded to paravance-42.rennes.grid5000.fr:3000
 
+- Solution 3' : The same but programmatically with :py:class:`enoslib.infra.enos_g5k.provider.G5kTunnel` (See also :ref:`g5k_tunnel`)
 
 

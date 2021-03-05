@@ -208,3 +208,12 @@ Start Virtual Machines on nodes
 .. literalinclude:: ../apidoc/examples/grid5000/tuto_grid5000_p_virt.py
     :language: python
     :linenos:
+
+.. _g5k_tunnel:
+
+Create a tunnel to a service
+============================
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_tunnel.py
+    :language: python
+    :linenos:
