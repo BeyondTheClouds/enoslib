@@ -35,6 +35,15 @@ GPLv3 licence. It's a library written in Python: you are free to import it in
 your code and cherry-pick any of its functions.
 
 
+.. hint::
+
+   You can install EnOSlib with pip:
+
+   .. code-block ::
+
+      pip install enoslib
+
+
 Links
 -----
 
