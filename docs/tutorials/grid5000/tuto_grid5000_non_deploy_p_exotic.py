@@ -8,18 +8,12 @@ logging.basicConfig(level=logging.DEBUG)
 job_name = Path(__file__).name
 
 # claim the resources
-network = G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="lyon"
-)
+network = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="lyon")
 
 conf = (
-    G5kConf.from_settings(
-        job_type=["allow_classic_ssh", "exotic"], job_name=job_name
-    )
+    G5kConf.from_settings(job_type=["allow_classic_ssh", "exotic"], job_name=job_name)
     .add_network_conf(network)
-    .add_machine(
-        roles=["control"], cluster="pyxis", nodes=1, primary_network=network
-    )
+    .add_machine(roles=["control"], cluster="pyxis", nodes=1, primary_network=network)
     .finalize()
 )
 

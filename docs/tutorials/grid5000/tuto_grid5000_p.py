@@ -8,9 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 job_name = Path(__file__).name
 
 # claim the resources
-network = G5kNetworkConf(
-    id="n1", type="kavlan", roles=["my_network"], site="rennes"
-)
+network = G5kNetworkConf(id="n1", type="kavlan", roles=["my_network"], site="rennes")
 conf = (
     G5kConf.from_settings(job_name=job_name)
     .add_network_conf(network)

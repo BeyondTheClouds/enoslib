@@ -28,7 +28,7 @@ provider_conf = {
                 "site": "rennes",
             },
         ],
-    }
+    },
 }
 
 # claim the resources

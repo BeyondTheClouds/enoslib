@@ -46,4 +46,3 @@ except Exception as e:
     print(e)
 finally:
     provider.destroy()
-

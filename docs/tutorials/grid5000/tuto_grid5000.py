@@ -35,7 +35,7 @@ provider_conf = {
                 "site": "nancy",
             },
         ],
-    }
+    },
 }
 
 conf = G5kConf.from_dictionnary(provider_conf)
