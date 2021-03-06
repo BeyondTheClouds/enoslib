@@ -13,15 +13,6 @@ documentation of the Grid'5000 provider.
 
    For a complete schema reference see :ref:`grid5000-schema`
 
-.. hint::
-
-    - Most of the example make use of a ``try/except/finally`` block that
-      eases the functionnal testing phase. If you want to explore them it's
-      probably better to get rid of this block (at least in the first steps).
-
-    - |enoslib| has also a dedicated tutorial at https://sed-rennes.gitlabpages.inria.fr/formations/enoslib-tutorials/
-      It illustrates the use of |enoslib| in the Grid'5000 context.
-
 
 .. include:: ./setup_g5k.rst
 
