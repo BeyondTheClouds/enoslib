@@ -27,7 +27,7 @@ roles, networks = provider.init()
 registry_opts = dict(
     type="external",
     ip=f"docker-mirror.{SITE}.grid5000.fr",
-    port=5000
+    port=80
 )
 
 d = en.Docker(agent=roles["control"], registry_opts=registry_opts)
