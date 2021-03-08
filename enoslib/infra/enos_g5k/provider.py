@@ -218,6 +218,7 @@ class G5kTunnel(object):
     """A class to initiate a tunnel to a targetted service inside Grid'5000.
 
     Can be used as a context manager (will close the tunnel automatically).
+    Note that this is a noop when called from inside Grid'5000.
 
     Args:
         address: The ip address/fqdn of the targetted service
@@ -233,7 +234,12 @@ class G5kTunnel(object):
         self.tunnel = None
 
     def start(self):
-        """Start the tunnel."""
+        """Start the tunnel.
+
+        Returns:
+            A tuple composed of the local address , the local port and the
+            tunnel object (if any)
+        """
         import socket
 
         if "grid5000.fr" not in socket.getfqdn():
