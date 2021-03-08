@@ -208,3 +208,15 @@ Create a tunnel to a service
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy_tunnel.py
     :language: python
     :linenos:
+
+
+Docker's peculiarities
+======================
+
+There's a docker registry cache installed on Grid'5000 that can be used to
+speed up your docker-based deployment and also to overcome the docker pull
+limits.
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_docker.py
+    :language: python
+    :linenos:

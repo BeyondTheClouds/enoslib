@@ -1,6 +1,18 @@
 Changelog
 ===========
 
+6.0.2
+-----
+
+Doc/G5k: Add an example that makes use of the internal docker registries of
+         Grid'5000
+
+6.0.1
+-----
+
+Doc: install instructions on the front page
+Doc/G5k: Document G5kTunnel
+
 6.0.0 (the IPv6 release and plenty other stuffs)
 ------------------------------------------------
 
