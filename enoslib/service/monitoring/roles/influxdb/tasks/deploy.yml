@@ -2,12 +2,12 @@
 - name: Installing InfluxDB
   docker_container:
     name: influxdb
-    image: influxdb
+    image: influxdb:1.8
     detach: yes
     state: started
     recreate: yes
     network_mode: host
-    volumes: 
+    volumes:
       - "{{ remote_working_dir }}/influxdb-data:/var/lib/influxdb"
     env: "{{ collector_env }}"
 
