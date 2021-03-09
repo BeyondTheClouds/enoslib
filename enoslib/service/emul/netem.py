@@ -234,7 +234,7 @@ class Netem(Service):
                 source.add_constraints(constraints)
             total_ifbs = max(total_ifbs, len(interfaces))
             sources.append(source)
-        netem(sources, self.extra_vars, chunk_size, **self.kwargs)
+        netem(sources, chunk_size, **self.kwargs)
 
     def backup(self):
         pass
