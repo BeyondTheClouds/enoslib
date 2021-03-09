@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+6.0.3
+-----
+
+- svc:netem: fix an issue with missing self.extra_vars
+- svc:monitoring: stick to influxdb < 2 for now (influxdb2 requires an auth)
+
 6.0.2
 -----
 
