@@ -23,8 +23,6 @@ provider = en.G5k(conf)
 roles, networks = provider.init()
 
 
-# There's one mirror per site that is locally aliased to
-# f"docker-mirror.{SITE}.grid5000.fr"
 registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
 
 d = en.Docker(agent=roles["control"], registry_opts=registry_opts)
