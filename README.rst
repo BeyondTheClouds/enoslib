@@ -43,6 +43,13 @@ your code and cherry-pick any of its functions.
 
       pip install enoslib
 
+   For developping EnOSlib or get the *in development* version:
+
+   .. code-block ::
+
+      git clone https://gitlab.inria.fr/discovery/enoslib.git
+      cd enoslib && pip install -U -e .
+
 
 Links
 -----
