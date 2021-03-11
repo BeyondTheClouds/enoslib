@@ -6,6 +6,11 @@ Changelog
 
 - svc/docker: allow to specify a port (cherry-pick from 5.x)
 
+5.5.2
+-----
+
+- svc/docker: allow to specify a port
+
 6.0.3
 -----
 
