@@ -25,7 +25,10 @@ class Docker(Service):
             },
             {
                 "type": "object",
-                "properties": {"type": {"const": "internal"}},
+                "properties": {
+                    "type": {"const": "internal"},
+                    "port": {"type": "number", "default": 5000},
+                },
                 "additionalProperties": False,
                 "required": ["type"],
             },
