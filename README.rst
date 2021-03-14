@@ -2,7 +2,7 @@
 EnOSlib: Surviving the ☆homoterogeneous☆ world
 **************************************************
 
-|Build Status| |License| |Pypi|
+|Build Status| |License| |Pypi| |Pepy| |Chat|
 
 
 What the ☆homoterogeneous☆ ?
@@ -10,7 +10,7 @@ What the ☆homoterogeneous☆ ?
 
 Distributed systems practitioners on bare-metal testbeds know it: resources
 (e.g. computes, networks) on a bare-metal infrastructure may have these slight
-differences between each others that experimental code can become hairy. For
+differences between each other that experimental code can become hairy. For
 such code, achieving practical portability (e.g changing the infrastructure
 parameters) is thus a tedious time consuming task.
 
@@ -68,9 +68,10 @@ Links
 .. |Pypi| image:: https://badge.fury.io/py/enoslib.svg
    :target: https://badge.fury.io/py/enoslib
 
-.. |Gitter| image:: https://badges.gitter.im/BeyondTheClouds/enoslib.svg
-   :alt: Join the chat at https://gitter.im/BeyondTheClouds/enoslib
-   :target: https://gitter.im/BeyondTheClouds/enoslib?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+.. |Pepy| image:: https://pepy.tech/badge/enoslib/week
+   :target: https://pepy.tech/project/enoslib
 
-.. |Coverage| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/coverage.svg
-   :target: https://sonarqube.inria.fr/sonarqube/dashboard?id=discovery%3Aenoslib%3Adev
+
+.. |Chat| image:: https://img.shields.io/badge/mattermost-enoslib-blueviolet
+   :target: https://framateam.org/enoslib/channels/town-square
+

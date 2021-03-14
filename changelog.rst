@@ -5,6 +5,7 @@ Changelog
 -----
 
 - svc/docker: allow to specify a port (cherry-pick from 5.x)
+- doc: fix typo  + some improvemebts
 
 5.5.2
 -----
