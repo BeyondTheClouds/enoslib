@@ -373,6 +373,7 @@ class play_on(object):
             logger.debug(content)
             run_ansible(
                 [_pb.name],
+                inventory_path=self.inventory_path,
                 roles=self.roles,
                 extra_vars=self.extra_vars,
                 on_error_continue=self.on_error_continue,
