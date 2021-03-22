@@ -621,7 +621,7 @@ def run_command(
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def run(command, hosts, extra_vars=None, on_error_continue=False, **kwargs):
+def run(command, hosts, **kwargs):
     """Run a shell command on some remote hosts.
 
     This is a wrapper of :py:func:`enoslib.api.run_command`.
