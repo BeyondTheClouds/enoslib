@@ -496,6 +496,7 @@ def run_command(
     pattern_hosts: str = "all",
     inventory_path: Optional[str] = None,
     roles: Optional[Roles] = None,
+    gather_facts: bool = False,
     extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
@@ -510,6 +511,8 @@ def run_command(
         inventory_path (str): inventory to use
         roles (dict): the roles to use (replacement for inventory_path).
         extra_vars (dict): extra_vars to use
+        gather_facts: True wheter facts should be gathered prior to the
+            execution. Might be useful if Ansible variables are used.
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
         run_as(str): run the command as this user.
@@ -604,10 +607,14 @@ def run_command(
     task.update(top_args)
     task.update(args=module_args)
 
-    play_source = {"hosts": pattern_hosts, "tasks": [task]}
+    play_source = {"hosts": pattern_hosts, "gather_facts": gather_facts, "tasks": [task]}
 
     results = run_play(
-        play_source, inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
+        play_source,
+        inventory_path=inventory_path,
+        roles=roles,
+        extra_vars=extra_vars,
+        on_error_continue=on_error_continue
     )
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
