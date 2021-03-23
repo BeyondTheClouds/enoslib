@@ -635,8 +635,6 @@ def run(command, hosts, **kwargs):
     return run_command(
         command,
         roles={"all": hosts},
-        extra_vars=extra_vars,
-        on_error_continue=on_error_continue,
         **kwargs,
     )
 
