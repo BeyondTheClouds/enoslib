@@ -5,7 +5,8 @@ Changelog
 -----
 
 - svc/docker: allow to specify a port (cherry-pick from 5.x)
-- doc: fix typo  + some improvemebts
+- doc: fix typo  + some improvements
+- api/play_on: now accepts an Ansible Inventory
 
 5.5.2
 -----
