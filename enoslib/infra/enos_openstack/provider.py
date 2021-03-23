@@ -1,4 +1,23 @@
-# -*- coding: utf-8 -*-
+"""
+Get resources from an Openstack [#os1]_ private cloud.
+
+Openstack is a widely adopted Open Source Cloud Software. It powers
+infrastructure provider such as:
+
+- OVH: http://ovh.com
+- Chameleon Cloud: https://www.chameleoncloud.org/
+- Gulliver: https://gulliver.saclay.inria.fr/
+and many others.
+
+The supported deployment model let's you get a bunch of compute servers, a
+single private network. One of your server can act as a gateway and will be
+assigned a floating IP (EnOSlib hosts will be configured accordingly).
+
+
+.. topic:: Links:
+
+    .. [#os1] https://www.openstack.org/
+"""
 import ipaddress
 import logging
 from operator import itemgetter
@@ -22,6 +41,7 @@ from .constants import (
     SECGROUP_NAME,
     ROUTER_NAME,
 )
+from .objects import OSNetwork
 
 
 logger = logging.getLogger(__name__)
@@ -192,7 +212,10 @@ def check_network(
         logger.info("[neutron]  %s router created" % router_name)
         # NOTE(msimonin): We should check the interface outside this block
         # in case the router is created but the interface is not added
-        interface = {"subnet_id": subnet["id"].encode("UTF-8")}
+        interface = {"subnet_id": subnet["id"]}
+        import ipdb
+
+        ipdb.set_trace()
         nclient.add_interface_router(str(r["router"]["id"]), interface)
 
     return (ext_net, network, subnet)
@@ -459,17 +482,22 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     # build the network
     extra_ips = extra_ips or []
     net = ipaddress.ip_network(env["subnet"]["cidr"])
-    network = {
-        "cidr": env["subnet"]["cidr"],
-        "start": str(net[100]),
-        "end": str(net[-3]),
-        "extra_ips": extra_ips,
-        "gateway": env["subnet"]["gateway_ip"],
-        "dns": "8.8.8.8",
-        "roles": provider_conf.networks,
-    }
 
-    return roles, [network]
+    networks = dict()
+    for role in provider_conf.networks:
+        # NOTE(msimonin): we need to support extra_ips in the Network Model
+        # I drop this for now
+        networks.update(
+            role=[OSNetwork(
+                env["subnet"]["cidr"],
+                env["subnet"]["gateway_ip"],
+                "8.8.8.8",
+                str(net[100]),
+                str(net[-3]),
+            )]
+        )
+
+    return roles, networks
 
 
 class Openstack(Provider):

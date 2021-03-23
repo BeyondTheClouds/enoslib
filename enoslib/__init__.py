@@ -93,6 +93,7 @@ try:
 
     from enoslib.infra.enos_openstack.provider import Openstack as OS
     from enoslib.infra.enos_openstack.configuration import (
+        Configuration as OSConf,
         MachineConfiguration as OSMachineConf,
     )
 
