@@ -14,7 +14,6 @@ The tip of the Iceberg featuring Vagrant and Grid'5000 testbed.
 
 .. include:: ../README.rst
 
-
 .. toctree::
    :maxdepth: 2
    :hidden:

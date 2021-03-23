@@ -1,11 +1,11 @@
-Changelog
-===========
+⚒️ Changelog
+============
 
 6.0.4
 -----
 
 - svc/docker: allow to specify a port (cherry-pick from 5.x)
-- doc: fix typo  + some improvements
+- doc: fix typo  + some improvements (emojis)
 - api/play_on: now accepts an Ansible Inventory
 
 5.5.2
