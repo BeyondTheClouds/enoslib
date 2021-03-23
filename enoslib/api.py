@@ -608,14 +608,18 @@ def run_command(
     task.update(top_args)
     task.update(args=module_args)
 
-    play_source = {"hosts": pattern_hosts, "gather_facts": gather_facts, "tasks": [task]}
+    play_source = {
+        "hosts": pattern_hosts,
+        "gather_facts": gather_facts,
+        "tasks": [task],
+    }
 
     results = run_play(
         play_source,
         inventory_path=inventory_path,
         roles=roles,
         extra_vars=extra_vars,
-        on_error_continue=on_error_continue
+        on_error_continue=on_error_continue,
     )
     ok = filter_results(results, STATUS_OK)
     failed = filter_results(results, STATUS_FAILED)
