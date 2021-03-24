@@ -1,6 +1,12 @@
 ⚒️ Changelog
 ============
 
+
+6.0.5
+-----
+
+- provider: Openstack provider fixed
+
 6.0.4
 -----
 
