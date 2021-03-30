@@ -77,6 +77,8 @@ ANSIBLE_TOP_LEVEL = {
     "loop": "loop",
     "poll": "poll",
     "when": "when",
+    "run_once": "run_once",
+    "delegate_to": "delegate_to"
 }
 
 
