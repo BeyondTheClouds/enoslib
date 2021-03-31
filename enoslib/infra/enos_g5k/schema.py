@@ -144,7 +144,7 @@ def is_valid_walltime(instance):
     from datetime import datetime
 
     try:
-        [hours, minutes_seconds] = instance.split(':', 1)
+        [hours, minutes_seconds] = instance.split(":", 1)
         int(hours)
         datetime.strptime(minutes_seconds, "%M:%S")
         return True
