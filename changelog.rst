@@ -6,6 +6,7 @@
 -----
 
 - provider: Openstack provider fixed
+- api: add ``run_once`` and ``delegate_to`` keywords
 
 6.0.4
 -----
