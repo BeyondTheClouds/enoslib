@@ -28,6 +28,7 @@ from .constants import (
     KAVLAN,
     KAVLAN_LOCAL_IDS,
     PROD_VLAN_ID,
+    SYNCHRONISATION_INTERVAL,
     SYNCHRONISATION_OFFSET,
     NATURE_PROD,
     MAX_DEPLOY,
@@ -590,22 +591,13 @@ def can_start_on_cluster(
     return False
 
 
-def _do_synchronise_jobs(walltime, machines, force=False):
-    """This returns a common reservation date for all the jobs.
-
-    This reservation date is really only a hint and will be supplied to each
-    oar server. Without this *common* reservation_date, one oar server can
-    decide to postpone the start of the job while the other are already
-    running. But this doens't prevent the start of a job on one site to drift
-    (e.g because the machines need to be restarted.) But this shouldn't exceed
-    few minutes.
+def _test_slot(start, walltime, machines, force=False):
+    """
     To address https://gitlab.inria.fr/discovery/enoslib/-/issues/104 we add
     a force option. Indeed machines can come from different job_types (and
     synchronisation is mandatory in this case even for nodes on the same
     site).
     """
-    offset = SYNCHRONISATION_OFFSET
-    start = time.time() + offset
     _t = walltime.split(":")
     if len(_t) != 3:
         raise EnosG5kWalltimeFormatError()
@@ -635,6 +627,7 @@ def _do_synchronise_jobs(walltime, machines, force=False):
         return None
 
     # Test the proposed reservation_date
+    logger.debug(f"Testing slot candidate start={start} walltime={walltime} on {sites}")
     ko = False
     for cluster, nodes in demands.items():
         cluster_status = clusters[cluster].status.list()
@@ -642,13 +635,32 @@ def _do_synchronise_jobs(walltime, machines, force=False):
             cluster_status.nodes, nodes, exact_nodes[cluster], start, _walltime
         )
         if ko:
-            break
+            return False
     if not ko:
         # The proposed reservation_date fits
         logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
-        return start
+        return True
+    return False
 
-    raise EnosG5kSynchronisationError(sites)
+
+def _do_synchronise_jobs(walltime, machines, force=False):
+    """This returns a common reservation date for all the jobs.
+
+    This reservation date is really only a hint and will be supplied to each
+    oar server. Without this *common* reservation_date, one oar server can
+    decide to postpone the start of the job while the other are already
+    running. But this doens't prevent the start of a job on one site to drift
+    (e.g because the machines need to be restarted.) But this shouldn't exceed
+    few minutes.
+    """
+    offset = SYNCHRONISATION_OFFSET
+    delay = SYNCHRONISATION_INTERVAL
+    start = time.time() + offset
+    while not _test_slot(start, walltime, machines, force=force):
+        start = start + delay
+    if _test_slot(start, walltime, machines, force=force):
+        return start
+    raise EnosG5kSynchronisationError()
 
 
 @ring.disk(storage)

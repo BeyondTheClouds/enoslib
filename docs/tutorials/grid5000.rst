@@ -185,6 +185,18 @@ Specific nodes reservation
     :linenos:
 
 
+Multisites deployment
+=====================
+
+There's no global scheduler on Grid'5000. So multisites reservation involves
+finding a common slot to start the jobs on each requested site. |enoslib|
+will do that for you.
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_multisites.py
+    :language: python
+    :linenos:
+
+
 Start Virtual Machines on nodes
 ===============================
 
