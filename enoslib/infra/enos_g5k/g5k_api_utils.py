@@ -636,7 +636,9 @@ def _test_slot(
         return None
 
     # Test the proposed reservation_date
-    logger.debug(f"Testing slot candidate start={_date2h(start)} walltime={walltime} on {sites}")
+    logger.debug(
+        f"Testing slot candidate start={_date2h(start)} walltime={walltime} on {sites}"
+    )
     ko = False
     for cluster, nodes in demands.items():
         cluster_status = clusters[cluster].status.list()
