@@ -13,7 +13,7 @@ from grid5000.objects import Job, Node, Vlan
 import os
 import time
 import threading
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, MutableMapping, Optional, Tuple
 from pathlib import Path
 
 from .error import (
@@ -544,7 +544,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
 
 
 def can_start_on_cluster(
-    nodes_status: Dict, number: int, exact_nodes: List[str], start: int, walltime: int
+    nodes_status: Dict, number: int, exact_nodes: List[str], start: float, walltime: int
 ) -> bool:
     """Check if #nodes can be started on a given cluster.
 
@@ -591,12 +591,21 @@ def can_start_on_cluster(
     return False
 
 
-def _test_slot(start, walltime, machines, force=False):
+def _test_slot(
+    start: float, walltime: str, machines: Dict, force: bool = False
+) -> Optional[bool]:
     """
     To address https://gitlab.inria.fr/discovery/enoslib/-/issues/104 we add
     a force option. Indeed machines can come from different job_types (and
     synchronisation is mandatory in this case even for nodes on the same
     site).
+
+    Returns:
+        The return value follows this semantic:
+            - None: no reservervation is required (e.g single site)
+            - False: the proposed slot isn't available for the reservation
+            - True: the proposed start date seems to be available
+                (at the time of probing the API)
     """
     _t = walltime.split(":")
     if len(_t) != 3:
@@ -604,7 +613,7 @@ def _test_slot(start, walltime, machines, force=False):
     _walltime = int(_t[0]) * 3600 + int(_t[1]) * 60 + int(_t[2])
 
     # Compute the demand for each cluster
-    demands = defaultdict(int)
+    demands: MutableMapping[str, int] = defaultdict(int)
     # Keeps track of
     exact_nodes = defaultdict(list)
     for machine in machines:
@@ -627,7 +636,7 @@ def _test_slot(start, walltime, machines, force=False):
         return None
 
     # Test the proposed reservation_date
-    logger.debug(f"Testing slot candidate start={start} walltime={walltime} on {sites}")
+    logger.debug(f"Testing slot candidate start={_date2h(start)} walltime={walltime} on {sites}")
     ko = False
     for cluster, nodes in demands.items():
         cluster_status = clusters[cluster].status.list()
@@ -643,7 +652,7 @@ def _test_slot(start, walltime, machines, force=False):
     return False
 
 
-def _do_synchronise_jobs(walltime, machines, force=False):
+def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float]:
     """This returns a common reservation date for all the jobs.
 
     This reservation date is really only a hint and will be supplied to each
@@ -652,13 +661,29 @@ def _do_synchronise_jobs(walltime, machines, force=False):
     running. But this doens't prevent the start of a job on one site to drift
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
+
+    Returns:
+        None: if no reservation is needed
+        int: start date for a candidate reservation
+
+    Raises:
+        EnosG5kSynchronisationError if no slot can't be found.
     """
     offset = SYNCHRONISATION_OFFSET
     delay = SYNCHRONISATION_INTERVAL
     start = time.time() + offset
-    while not _test_slot(start, walltime, machines, force=force):
+    test_slot = _test_slot(start, walltime, machines, force=force)
+    # the returned value of test slot is the following
+    # - None: no reservation is needed
+    # - True: the tested slot is ok
+    # - False: the tested slot is ko (need to test another one)
+    while test_slot is not None and not test_slot:
         start = start + delay
-    if _test_slot(start, walltime, machines, force=force):
+        test_slot = _test_slot(start, walltime, machines, force=force)
+    if test_slot is None:
+        # no synchronisation needed
+        return None
+    if _test_slot:
         return start
     raise EnosG5kSynchronisationError()
 
