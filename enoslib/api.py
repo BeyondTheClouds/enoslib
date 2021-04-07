@@ -206,7 +206,7 @@ class _MyCallback(CallbackModule):
 
 def populate_keys(
     roles: Roles, local_dir: Path, key_name="id_rsa_enoslib"
-) -> Tuple[Path]:
+) -> Tuple[Path, Path]:
     """Generate and push a new pair of keys to all hosts.
 
     Idempotency:
