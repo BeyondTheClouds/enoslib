@@ -83,7 +83,7 @@ ANSIBLE_TOP_LEVEL = {
     "poll": "poll",
     "when": "when",
     "run_once": "run_once",
-    "delegate_to": "delegate_to"
+    "delegate_to": "delegate_to",
 }
 
 
@@ -204,21 +204,26 @@ class _MyCallback(CallbackModule):
         self._store(result, STATUS_UNREACHABLE)
 
 
-def populate_keys(roles: Roles, local_dir: Path, key_name="id_rsa_enoslib") -> Tuple[Path]:
+def populate_keys(
+    roles: Roles, local_dir: Path, key_name="id_rsa_enoslib"
+) -> Tuple[Path]:
     """Generate and push a new pair of keys to all hosts.
 
     Idempotency:
-    - a new pair of keys is generated/published every time you call this function (* as a first step)
-    - the remote key are named with a name that doesn't conflict with any of the common key names (we don't want to overwrite any existing keys).
+    - a new pair of keys is generated/published every time you call this
+      function (* as a first step)
+    - the remote key are named with a name that doesn't conflict with any of
+      the common key names (we don't want to overwrite any existing keys).
     - the public key is appended to the `authorized_keys` of root user
 
     Args:
-    roles: The roles on which this should be applied
-    local_dir: The local destination folder where the keys will be generated
-    key_name: The key pair name, .pub will be added as a suffix for the public one
+        roles: The roles on which this should be applied
+        local_dir: The local destination folder where the keys will be generated
+        key_name: The key pair name, .pub will be added as a suffix for the
+            public one
 
     Returns:
-    The path to the key files as a Tuple (private, public)
+        The path to the key files as a Tuple (private, public)
     """
     priv_name = key_name
     pub_name = f"{priv_name}.pub"
@@ -231,11 +236,9 @@ def populate_keys(roles: Roles, local_dir: Path, key_name="id_rsa_enoslib") -> T
         format=crypto_serialization.PrivateFormat.PKCS8,
         encryption_algorithm=crypto_serialization.NoEncryption(),
     )
-    public_key = (
-        key.public_key().public_bytes(
-            encoding=crypto_serialization.Encoding.OpenSSH,
-            format=crypto_serialization.PublicFormat.OpenSSH,
-        )
+    public_key = key.public_key().public_bytes(
+        encoding=crypto_serialization.Encoding.OpenSSH,
+        format=crypto_serialization.PublicFormat.OpenSSH,
     )
 
     priv_path = local_dir / Path(priv_name)
@@ -409,7 +412,7 @@ class play_on(object):
             self.kwds = {}
 
         # Will hold the tasks of the play corresponding to the sequence
-        # of module call in this context
+        # of module call in this context/p
         self._tasks: List[Mapping[Any, Any]] = []
         if self.priors:
             for prior in self.priors:
