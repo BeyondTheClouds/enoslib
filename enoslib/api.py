@@ -1,4 +1,4 @@
-"""Need to run some actions on you nodes ? This module is tailored for this
+"""Need to run some actions on your nodes ? This module is tailored for this
 purpose.
 
 Remote actions rely heavily on Ansible [#a1]_ used as a library through its
@@ -21,7 +21,12 @@ import os
 import tempfile
 import time
 from collections import namedtuple
-from typing import Any, Dict, List, Mapping, Optional, Set, Union
+from typing import Any, Dict, List, Mapping, Optional, Set, Union, Tuple
+from pathlib import Path
+
+from cryptography.hazmat.primitives import serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 # These two imports are 2.9
 import ansible.constants as C
@@ -197,6 +202,56 @@ class _MyCallback(CallbackModule):
     def v2_runner_on_unreachable(self, result):
         super(_MyCallback, self).v2_runner_on_unreachable(result)
         self._store(result, STATUS_UNREACHABLE)
+
+
+def populate_keys(roles: Roles, local_dir: Path, key_name="id_rsa_enoslib") -> Tuple[Path]:
+    """Generate and push a new pair of keys to all hosts.
+
+    Idempotency:
+    - a new pair of keys is generated/published every time you call this function (* as a first step)
+    - the remote key are named with a name that doesn't conflict with any of the common key names (we don't want to overwrite any existing keys).
+    - the public key is appended to the `authorized_keys` of root user
+
+    Args:
+    roles: The roles on which this should be applied
+    local_dir: The local destination folder where the keys will be generated
+    key_name: The key pair name, .pub will be added as a suffix for the public one
+
+    Returns:
+    The path to the key files as a Tuple (private, public)
+    """
+    priv_name = key_name
+    pub_name = f"{priv_name}.pub"
+
+    key = rsa.generate_private_key(
+        backend=crypto_default_backend(), public_exponent=65537, key_size=4096
+    )
+    private_key = key.private_bytes(
+        encoding=crypto_serialization.Encoding.PEM,
+        format=crypto_serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=crypto_serialization.NoEncryption(),
+    )
+    public_key = (
+        key.public_key().public_bytes(
+            encoding=crypto_serialization.Encoding.OpenSSH,
+            format=crypto_serialization.PublicFormat.OpenSSH,
+        )
+    )
+
+    priv_path = local_dir / Path(priv_name)
+    pub_path = local_dir / Path(pub_name)
+
+    priv_path.write_bytes(private_key)
+    pub_path.write_bytes(public_key)
+
+    priv_path.chmod(0o600)
+
+    with play_on(roles=roles) as p:
+        p.copy(src=str(priv_path), dest=f"/root/.ssh/{priv_name}", mode="600")
+        p.copy(src=str(pub_path), dest=f"/root/.ssh/{pub_name}")
+        p.shell(f"cat /root/.ssh/{pub_name} >> /root/.ssh/authorized_keys")
+
+    return (priv_path, pub_path)
 
 
 def run_play(
