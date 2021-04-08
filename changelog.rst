@@ -7,6 +7,8 @@
 
 - provider: Openstack provider fixed
 - api: add ``run_once`` and ``delegate_to`` keywords
+- api: add ``populate_keys`` that populate ssh keys on all hosts (use case:
+  MPI applications that needs to all hosts to be ssh reachable)
 
 6.0.4
 -----
