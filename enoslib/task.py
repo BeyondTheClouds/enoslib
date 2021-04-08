@@ -86,6 +86,17 @@ class Environment:
         """
         return self.__store.get(key, default)
 
+    def setdefault(self, key, default=None):
+        """If `key` is in the environment, return its value. If not, insert `key` with
+a value of `default` and return `default`.
+
+        """
+        return self.__store.setdefault(key, default)
+
+    def __contains__(self, key):
+        "Return True if `key` is in the environment, False otherwise."
+        return key in self.__store
+
     def __getitem__(self, key):
         return self.__store[key]
 
