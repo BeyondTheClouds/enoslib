@@ -9,13 +9,15 @@
 - api: add ``run_once`` and ``delegate_to`` keywords
 - api: add ``populate_keys`` that populate ssh keys on all hosts (use case:
   MPI applications that needs to all hosts to be ssh reachable)
+- tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
+  key is in the env (resp. set a default value) (cherry-pick from 5.x)
 
 6.0.4
 -----
 
 - svc/docker: allow to specify a port (cherry-pick from 5.x)
 - doc: fix typo  + some improvements (emojis)
-- api/play_on: now accepts an Ansible Inventory
+- api/play_on: now accepts an Ansible Inventory (cherry-pick from 5.x)
 
 5.5.2
 -----
@@ -101,6 +103,23 @@ Doc/G5k: Document G5kTunnel
 - Documentation has been reorganized and now uses a new theme (pydata-sphinx-theme)
 
 - Note that the Openstack provider is broken currently.
+
+5.5.4
+-----
+
+- tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
+  key is in the env (resp. set a default value)
+
+5.5.3
+-----
+
+- api: ``play_on`` can be called with an inventory file
+
+
+5.5.2
+-----
+
+- svc/docker: allow to specify a port
 
 5.5.1
 -----
