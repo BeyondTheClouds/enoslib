@@ -1,6 +1,12 @@
 Changelog
 ===========
 
+5.5.3
+-----
+
+- tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
+  key is in the env (resp. set a default value)
+
 5.5.2
 -----
 
