@@ -1,11 +1,16 @@
 Changelog
 ===========
 
-5.5.3
+5.5.4
 -----
 
 - tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
   key is in the env (resp. set a default value)
+
+5.5.3
+-----
+
+- api: ``play_on`` can be called with an inventory file
 
 5.5.2
 -----
