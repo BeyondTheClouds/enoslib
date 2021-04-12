@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from collections import UserDict
 from datetime import datetime
 from functools import wraps
 import logging
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 from pathlib import Path
 import pickle
 import yaml
@@ -51,7 +52,7 @@ def _create_env_dir(env_dir: Path):
         logger.info(f"Generate environment directory {env_dir}")
 
 
-class Environment:
+class Environment(UserDict):
     """An environment is a kv-store used to keep track of the experimental context."""
 
     def __init__(self, env_name: Path):
@@ -63,7 +64,7 @@ class Environment:
         """
         env_name.mkdir(parents=True, exist_ok=True)
         self.env_name = env_name.resolve()
-        self.__store: Dict = {
+        super(self.__class__, self).__init__({
             # this resultdir was used to store the env_name
             # in the previous version
             # we keep it for backward compatibility purpose
@@ -75,33 +76,7 @@ class Environment:
             # unused for now, let's see if we can handle different
             # configuration format
             "config_type": "yaml",
-        }
-
-    def get(self, key, default=None):
-        """Get a value out of the environment.
-
-        Args:
-            key: the key to be search in the environment
-            default: default value to be returned if key isn't found
-        """
-        return self.__store.get(key, default)
-
-    def setdefault(self, key, default=None):
-        """If `key` is in the environment, return its value. If not, insert `key` with
-a value of `default` and return `default`.
-
-        """
-        return self.__store.setdefault(key, default)
-
-    def __contains__(self, key):
-        "Return True if `key` is in the environment, False otherwise."
-        return key in self.__store
-
-    def __getitem__(self, key):
-        return self.__store[key]
-
-    def __setitem__(self, key, value):
-        self.__store[key] = value
+        })
 
     @classmethod
     def load_from_file(cls, env_file: Path):
