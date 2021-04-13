@@ -324,7 +324,7 @@ class G5kVlanNetwork(G5kNetwork):
             self.roles,
             [
                 G5kEnosVlan4Network(self.cidr, self.vlan_id, self.gateway, self.dns),
-                G5kEnosVlan6Network(self.cidr, self.vlan_id, self.gateway6, self.dns6),
+                G5kEnosVlan6Network(self.cidr6, self.vlan_id, self.gateway6, self.dns6),
             ],
         )
 
