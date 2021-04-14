@@ -215,7 +215,6 @@ class Netem(Service):
     def deploy(self, chunk_size=100):
         """Apply the constraints on all the hosts."""
         # will hold the number of ifbs to provision
-        total_ifbs = 1
         sources = []
         for host in self.hosts:
             interfaces = host.filter_interfaces(self.networks)
@@ -228,11 +227,10 @@ class Netem(Service):
                 if self.symetric:
                     constraints.append(
                         NetemInConstraint(
-                            device=interface, options=self.options, ifb=f"ifb{idx}"
+                            device=interface, options=self.options
                         )
                     )
                 source.add_constraints(constraints)
-            total_ifbs = max(total_ifbs, len(interfaces))
             sources.append(source)
         netem(sources, chunk_size, **self.kwargs)
 
