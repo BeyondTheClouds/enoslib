@@ -2,8 +2,17 @@
 ============
 
 
-6.0.5
+6.1.0
 -----
+
+Breaking:
+
+- svc/netem-htb: Rework on the various service APIs. Now the user can use a
+    builder pattern to construct its network topology with Netem and NetemHTB.
+    Check the examples to see how it looks like. Unfortunately this breaks the
+    existing APIs.
+
+Misc:
 
 - provider: Openstack provider fixed
 - api: add ``run_once`` and ``delegate_to`` keywords
