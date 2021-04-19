@@ -1,38 +1,52 @@
 import logging
 
-from enoslib import *
+import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-prod_network = G5kNetworkConf(
-    id="n1",
-    type="prod",
-    roles=["my_network"],
-    site="rennes"
-)
+prod_network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
 conf = (
-    G5kConf.from_settings(job_type="allow_classic_ssh")
+    en.G5kConf.from_settings(job_type="allow_classic_ssh", walltime="01:00:00")
     .add_network_conf(prod_network)
     .add_machine(
         roles=["city", "paris"],
-        cluster="parapluie",
+        cluster="paravance",
         nodes=1,
-        primary_network=prod_network
+        primary_network=prod_network,
     )
     .add_machine(
         roles=["city", "berlin"],
-        cluster="parapluie",
+        cluster="paravance",
         nodes=1,
-        primary_network=prod_network
+        primary_network=prod_network,
     )
+    .add_machine(
+        roles=["city", "londres"],
+        cluster="paravance",
+        nodes=1,
+        primary_network=prod_network,
+    )
+
     .finalize()
 )
-provider = G5k(conf)
+provider = en.G5k(conf)
 roles, networks = provider.init()
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
-netem = Netem("delay 10ms", hosts=roles["city"], networks=networks["my_network"])
+netem = en.Netem()
+(
+    netem
+    .add_constraints("delay 10ms", roles["paris"], symetric=True)
+    .add_constraints("delay 20ms", roles["londres"], symetric=True)
+    .add_constraints("delay 30ms", roles["berlin"], symetric=True)
+)
+
 netem.deploy()
 netem.validate()
 netem.destroy()
+
+for role, hosts in roles.items():
+    print(role)
+    for host in hosts:
+        print(f"-- {host.alias}")

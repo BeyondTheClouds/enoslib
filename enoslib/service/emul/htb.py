@@ -1,24 +1,17 @@
 """HTB based emulation."""
-from enoslib.utils import _check_tmpdir
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Mapping, Set, Tuple
+from itertools import product
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from enoslib.api import play_on, run_ansible
+from enoslib.api import play_on
 from enoslib.constants import TMP_DIRNAME
-from enoslib.objects import Host, Networks, Roles
-from jsonschema import validate
+from enoslib.objects import Host, Network, Networks, Roles
+from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
 
 from ..service import Service
-from .schema import SCHEMA
-from .utils import (
-    _build_commands,
-    _build_grp_constraints,
-    _build_options,
-    _combine,
-    _validate,
-)
+from .utils import _build_commands, _build_options, _combine, _destroy, _validate
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
@@ -26,60 +19,10 @@ TMP_DIR = os.path.join(os.getcwd(), TMP_DIRNAME)
 
 DEFAULT_RATE = "10gbit"
 
-DEFAULT_LOSS = "0"
+DEFAULT_LOSS = 0
 
 
 logger = logging.getLogger(__name__)
-
-
-def _build_ip_constraints(
-    roles: Roles, networks: Networks, constraints: Mapping
-) -> List["HTBSource"]:
-    """Generate the constraints at the ip/device level.
-
-    Those constraints are those used by ansible to enforce tc/netem rules.
-    """
-    host_htbs = []
-    for constraint in constraints:
-        gsrc = constraint["src"]
-        gdst = constraint["dst"]
-        gdelay = constraint["delay"]
-        grate = constraint["rate"]
-        gloss = constraint["loss"]
-        for source_host in roles[gsrc]:
-            # one possible source
-
-            # 1) we get all the devices for the wanted networks
-            nets = None
-            if "networks" in constraints and networks is not None:
-                _netss = [
-                    networks
-                    for role, networks in networks.items()
-                    if {role}.issubset(set(constraints["networks"]))
-                ]
-                nets = []
-                for _nets in _netss:
-                    nets.extend(_nets)
-            local_devices = source_host.filter_interfaces(nets, include_unknown=False)
-
-            host_htb = HTBSource(host=source_host)
-            for sdevice in local_devices:
-                # one possible device
-                for d in roles[gdst]:
-                    # one possible destination
-                    dall_addrs = d.filter_addresses(nets, include_unknown=False)
-                    # Let's keep docker bridge out of this
-                    for daddr in dall_addrs:
-                        assert daddr.ip is not None
-                        host_htb.add_constraint(
-                            target=str(daddr.ip.ip),
-                            device=str(sdevice),
-                            delay=gdelay,
-                            rate=grate,
-                            loss=gloss,
-                        )
-            host_htbs.append(host_htb)
-    return host_htbs
 
 
 @dataclass(eq=True, frozen=True)
@@ -109,7 +52,12 @@ class HTBConstraint(object):
     delay: str
     target: str
     rate: str = DEFAULT_RATE
-    loss: str = DEFAULT_LOSS
+    loss: float = DEFAULT_LOSS
+
+    def __post_init__(self):
+        HTBConcreteConstraintValidator.validate(
+            dict(device=self.device, target=self.target, rate=self.rate, loss=self.loss)
+        )
 
     def add_commands(self) -> List[str]:
         """Add the classful qdisc at the root of the device."""
@@ -131,7 +79,8 @@ class HTBConstraint(object):
             )
         )
 
-        if self.loss == 0:
+        # could be 0 or None
+        if not self.loss:
             cmd = (
                 f"tc qdisc add dev {self.device} "
                 f"parent 1:{idx + 1} "
@@ -180,10 +129,34 @@ class HTBSource(object):
         *args and **kwargs are those from
         :py:class:`enoslib.service.netem.netem.HTBConstraint`
         """
-        self.constraints.add(HTBConstraint(*args, **kwargs))
+        self.add_constraints([HTBConstraint(*args, **kwargs)])
 
     def add_constraints(self, constraints: Iterable[HTBConstraint]):
-        self.constraints = self.constraints.union(set(constraints))
+        """Merge constraints to existing ones.
+
+        In this context if two constraints are set on the same device with
+        the same target will overwrite the original one.
+        At the end we ensure that there's only one constraint per device and
+        target
+
+        Args:
+            constraints: Iterable of HTBConstraints
+        """
+        for constraint in constraints:
+            matched = [sc for sc in self.constraints if self.equal(constraint, sc)]
+            for c in matched:
+                self.constraints.discard(c)
+            self.constraints.add(constraint)
+        return self
+
+    @staticmethod
+    def equal(c1: HTBConstraint, c2: HTBConstraint):
+        """Encode the equality of two constraints in this context."""
+        return (
+            c1.__class__ == c2.__class__
+            and c1.device == c2.device
+            and c1.target == c2.target
+        )
 
     def add_commands(self) -> List[str]:
         cmds: Set[str] = set()
@@ -222,7 +195,8 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
     Symetric limitations can be achieved by adding both end of the
     communication to the list.
     The same host can appear multiple times in the list, all the constraints
-    will be concatenated.
+    will be merged according to
+    :py:meth:`enoslib.service.emul.htb.HTBSource.add_constraints`
 
     This method is optimized toward execution time: enforcing thousands of
     atomic constraints (= tc commands) shouldn't be a problem. Commands are
@@ -264,131 +238,164 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
 class NetemHTB(Service):
     def __init__(
         self,
-        network_constraints: Dict[Any, Any],
-        *,
-        roles: Roles = None,
-        networks: Networks = None,
-        chunk_size: int = 100,
-        **kwargs,
     ):
-        """Set heterogeneous constraints between your hosts.
+        """Set heterogeneous constraints on each host.
 
         It allows to setup complex network topology. For a much simpler way of
         applying constraints see
-        :py:class:`enoslib.service.netem.SimpleNetem`
+        :py:class:`~enoslib.service.emul.netem.Netem`
+
+        The topology can be built by add constraints iteratively with
+        :py:meth:`~enoslib.service.emul.htb.NetemHTB.add_constraints` or by
+        passing a description as a dictionnary using the
+        :py:meth:`~enoslib.service.emul.htb.NetemHTB.from_dict` class method.
 
         Args:
-            network_constraints: the decription of the wanted constraints
-                (see the schema below)
             roles: the enoslib roles to consider
-            chunk_size: For large deployments, the commands to apply can become too
-                long. It can be split in chunks of size chunk_size.
-            kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
+            kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`
+        """
+        # populated later
+        self.sources: Dict[Host, HTBSource] = dict()
 
-        *Network constraint schema:*
+    def add_constraints(
+        self,
+        src: List[Host],
+        dest: List[Host],
+        delay: str,
+        rate: str,
+        loss: Optional[float] = None,
+        networks: Optional[List[Network]] = None,
+        symetric: bool = False,
+    ):
+        """Add some constraints.
 
-            .. literalinclude:: ../../enoslib/service/netem/schema.py
+        Args:
+            src: list of hosts on which the constraint will be applied
+            dest: list of hosts to which traffic will be limited
+            delay: the delay to apply as a string (e.g 10ms)
+            rate: the rate to apply as a string (e.g 1gbit)
+            loss: the percentage of loss (between 0 and 1)
+            networks: only consider these networks when applying the
+                resources (default to all networks)
+            symetric: True iff the symetric rules should be also added.
+
+        Examples:
+
+            .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_build.py
+                    :language: python
+                    :linenos:
+
+            - Using a secondary network from a list of constraints
+
+            .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_b_second.py
                 :language: python
                 :linenos:
 
-        Examples:
-
-            * Using defaults
-
-            The following will apply the network constraints between every
-            groups. For instance the constraints will be applied for the
-            communication between "n1" and "n3" but not between "n1" and "n2".
-            Note that using default leads to symetric constraints.
-
-            .. code-block:: python
-
-                roles = {
-                    "grp1": ["n1", "n2"],
-                    "grp2": ["n3", "n4"],
-                    "grp3": ["n3", "n4"],
-                }
-
-                tc = {
-                    "default_delay": "20ms",
-                    "default_rate": "1gbit",
-                    "groups": ["grp1", "grp2", "grp3"]
-                }
-                netem = Netem(tc, roles=roles)
-                netem.deploy()
-
-            Symetricaly, you can use ``except`` to exclude some groups.
-
-            .. code-block:: python
-
-                tc = {
-                    "default_delay": "20ms",
-                    "default_rate": "1gbit",
-                    "except": ["grp3"]
-                }
-                netem = Netem(tc, roles=roles)
-                netem.deploy()
-
-            ``except: []`` is a way to apply the constraints between all groups.
-
-            * Using ``src`` and ``dst``
-
-            The following will enforce a symetric constraint between ``grp1``
-            and ``grp2``.
-
-            .. code-block:: python
-
-                tc = {
-                    "default_delay": "20ms",
-                    "default_rate": "1gbit",
-                    "groups": ["grp1", "grp2"]
-                    "constraints": [{
-                        "src": "grp1"
-                        "dst": "grp2"
-                        "delay": "10ms"
-                        "symetric": True
-                    }]
-                }
-                netem = Netem(tc, roles=roles)
-                netem.deploy()
-
-        Examples:
-
-            .. literalinclude:: examples/netem.py
-              :language: python
-              :linenos:
-
+        Returns:
+            The current service with updated constraints.
+            (This allow to chain the addition of constraints)
         """
-        NetemHTB.is_valid(network_constraints)
-        self.network_constraints = network_constraints
-        self.roles = roles if roles is not None else []
-        self.networks = networks
-        self.kwargs = kwargs
-        self.chunk_size = chunk_size
+        for src_host in src:
+            self.sources.setdefault(src_host, HTBSource(src_host))
+            source = self.sources[src_host]
+            local_devices = src_host.filter_interfaces(networks, include_unknown=False)
+            for sdevice in local_devices:
+                # one possible device
+                for dest_host in dest:
+                    # one possible destination
+                    dall_addrs = dest_host.filter_addresses(
+                        networks, include_unknown=False
+                    )
+                    for daddr in dall_addrs:
+                        assert daddr.ip is not None
+                        kwargs = dict(
+                            device=str(sdevice),
+                            target=str(daddr.ip.ip),
+                            delay=delay,
+                            rate=rate,
+                            loss=loss,
+                        )
+                        source.add_constraint(**kwargs)
+        if symetric:
+            self.add_constraints(
+                dest, src, delay, rate, loss=loss, networks=networks, symetric=False
+            )
+        return self
 
     @classmethod
-    def is_valid(cls, network_constraints):
-        """Validate the network_constraints (syntax only)."""
-        return validate(instance=network_constraints, schema=SCHEMA)
+    def from_dict(cls, network_constraints: Dict, roles: Roles, networks: Networks):
+        """Build the service from a dictionnary describing the network topology.
 
-    def deploy(self):
-        """Enforce network links emulation."""
-        # 1. Build all the constraints (Python)
-        #    {source:src, target: ip_dest, device: if, rate:x,  delay:y}
-        # 2. Generate the sequence of tc commands to run on the hosts (Python)
-        # 3. Run those commands (Ansible)
+        Args:
+            network_constraints: Dictionnay of constraints. This must conform with
+                :py:const:`~enoslib.service.emul.schema.SCHEMA`.
 
-        # 2.a building the group constraints
-        logger.debug("Building all the constraints")
-        constraints = _build_grp_constraints(self.roles, self.network_constraints)
-        # 2.b Building the ip/device level constaints
 
-        # will hold every single constraint
-        host_htbs = _build_ip_constraints(self.roles, self.networks, constraints)
+        Examples:
 
-        # 3. Building the sequence of tc commands
-        logger.info("Enforcing the constraints")
+            .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb.py
+                :language: python
+                :linenos:
 
-        netem_htb(host_htbs, chunk_size=self.chunk_size, **self.kwargs)
+            Using a secondary network:
+
+            .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_secondary.py
+                :language: python
+                :linenos:
+
+
+        """
+        HTBValidator.validate(network_constraints)
+        # defaults
+        self = cls()
+        groups = network_constraints.get("groups", list(roles.keys()))
+        except_roles = network_constraints.get("except", [])
+        selected = [roles[role] for role in groups if role not in except_roles]
+        default_delay = network_constraints["default_delay"]
+        default_rate = network_constraints["default_rate"]
+        default_loss = network_constraints.get("default_loss")
+        default_network_name = network_constraints.get("default_network")
+        if default_network_name is not None:
+            networks_list = networks[default_network_name]
+        else:
+            networks_list = []
+        for src, dest in product(selected, selected):
+            self.add_constraints(
+                src,
+                dest,
+                default_delay,
+                default_rate,
+                default_loss,
+                networks=networks_list,
+            )
+        # specific
+        for constraint in network_constraints.get("constraints", []):
+            src_role = constraint["src"]
+            dest_role = constraint["dst"]
+            delay = constraint.get("delay", default_delay)
+            rate = constraint.get("rate", default_rate)
+            loss = constraint.get("loss", default_loss)
+            network_name = constraint.get("network", default_network_name)
+            symetric = constraint.get("symetric", False)
+            if network_name is not None:
+                networks_list = networks[network_name]
+            else:
+                networks_list = []
+            self.add_constraints(
+                roles[src_role],
+                roles[dest_role],
+                delay,
+                rate,
+                loss,
+                symetric=symetric,
+                networks=networks_list,
+            )
+        return self
+
+    def deploy(self, chunk_size: int = 100, **kwargs):
+        sources = list(self.sources.values())
+        netem_htb(sources, chunk_size=chunk_size, **kwargs)
+        return sources
 
     def backup(self):
         """(Not Implemented) Backup.
@@ -397,28 +404,23 @@ class NetemHTB(Service):
         """
         pass
 
-    def destroy(self):
+    def destroy(self, **kwargs):
         """Reset the network constraints(latency, bandwidth ...)
 
-        Remove any filter that have been applied to shape the traffic.
+        Remove any filter that have been applied to shape the traffic ever.
+
+        Careful: This remove every rules, including those not managed by this service.
         """
-        logger.debug("Reset the constraints")
+        _destroy(list(self.sources.keys()), **kwargs)
 
-        _check_tmpdir(TMP_DIR)
-
-        _playbook = os.path.join(SERVICE_PATH, "netem.yml")
-        extra_vars = self.kwargs.pop("extra_vars", {})
-        options = _build_options(
-            extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
-        )
-        run_ansible([_playbook], roles=self.roles, extra_vars=options)
-
-    def validate(self, *, output_dir=None):
+    def validate(
+        self, *, networks: Optional[List[Network]] = None, output_dir=None, **kwargs
+    ):
         """Validate the network parameters(latency, bandwidth ...)
 
         Performs ping tests to validate the constraints set by
-        :py:meth:`enoslib.service.netem.Netem.deploy`.
-        Reports are available in the tmp directory
+        :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`.
+        Reports are available in the putput directory.
         used by enos.
 
         Args:
@@ -428,11 +430,9 @@ class NetemHTB(Service):
             output_dir(str): directory where validation files will be stored.
                 Default to: py: const: `enoslib.constants.TMP_DIRNAME`.
         """
-        all_addresses = set()
-        for hosts in self.roles.values():
-            for host in hosts:
-                addresses = host.filter_addresses(self.networks)
-                all_addresses = all_addresses.union(
-                    set([str(addr.ip.ip) for addr in addresses])
-                )
-        _validate(self.roles, output_dir, list(all_addresses))
+        _validate(
+            list(self.sources.keys()),
+            networks=networks,
+            output_dir=output_dir,
+            **kwargs,
+        )

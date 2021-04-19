@@ -2,19 +2,18 @@ import logging
 from itertools import islice, product
 from pathlib import Path
 
-from enoslib import *
+import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
 
-prod_network = G5kNetworkConf(
+prod_network = en.G5kNetworkConf(
     id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    G5kConf.from_settings(job_name=job_name,
-                          job_type="allow_classic_ssh")
+    en.G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",
@@ -28,7 +27,7 @@ conf = (
     .finalize()
 )
 
-provider = G5k(conf)
+provider = en.G5k(conf)
 
 # Get actual resources
 roles, networks = provider.init()
@@ -38,8 +37,11 @@ N = 100
 ips = networks["my_subnet"][0].free_ips
 for host in roles["control"]:
     host.extra.update(ips=[str(ip) for ip in islice(ips, N)])
-with play_on(roles=roles, gather_facts=False) as p:
-    p.shell("(ip a | grep {{ item }}) || ip addr add {{ item }}/22 dev br0", loop="{{ ips }}")
+with en.play_on(roles=roles, gather_facts=False) as p:
+    p.shell(
+        "(ip a | grep {{ item }}) || ip addr add {{ item }}/22 dev br0",
+        loop="{{ ips }}",
+    )
 
 # All virtual ips being set on the hosts
 # let's build the list of constraints
@@ -47,7 +49,7 @@ htb_hosts = []
 humans = []
 for h_idx, (h1, h2) in enumerate(product(roles["control"], roles["control"])):
     # need to account for h1 = h2 to set constraint on loopback device
-    htb = HTBSource(host=h1)
+    htb = en.HTBSource(host=h1)
     ips2 = h2.extra["ips"]
     for ip_idx, ip2 in enumerate(ips2):
         # this is the delay between one machine h1 and any of the virtual ip of h2
@@ -62,7 +64,7 @@ for h_idx, (h1, h2) in enumerate(product(roles["control"], roles["control"])):
             htb.add_constraint(delay=f"{delay}ms", device="br0", target=ip2)
     htb_hosts.append(htb)
 
-netem_htb(htb_hosts)
+en.netem_htb(htb_hosts)
 
 
 Path("htb.list").write_text("\n".join(humans))

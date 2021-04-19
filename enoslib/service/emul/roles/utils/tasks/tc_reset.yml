@@ -2,4 +2,4 @@
 # Resetting network constraints
 - name: Removing root qdisc
   shell: "tc qdisc del dev {{ item }} root || true"
-  with_items: "{{ hostvars[inventory_hostname].ansible_interfaces }}"
+  with_items: "{{ ansible_interfaces }}"

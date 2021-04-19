@@ -1,5 +1,5 @@
 import copy
-from typing import List
+from typing import List, Optional, Set
 from enoslib.api import run_ansible
 from enoslib.utils import _check_tmpdir
 from enoslib.constants import TMP_DIRNAME
@@ -8,9 +8,8 @@ from collections import defaultdict
 from itertools import groupby
 from operator import attrgetter
 import os
-import re
 
-from enoslib.objects import Roles
+from enoslib.objects import Host, Network
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
@@ -65,7 +64,6 @@ def _build_commands(sources):
         new_sources.append(first)
 
     # assert: there's only one Source per host
-
     for source in new_sources:
         # generate devices based command (remove + add qdisc)
         alias = source.host.alias
@@ -77,8 +75,8 @@ def _build_commands(sources):
     return _remove, _add, _htb
 
 
-def _validate(
-    roles: Roles, output_dir: str, all_addresses: List[str], **kwargs
+def validate_delay(
+    hosts: List[Host], output_dir: str, all_addresses: List[str], **kwargs
 ):
     logger.debug("Checking the constraints")
     if not output_dir:
@@ -96,142 +94,32 @@ def _validate(
             all_addresses=all_addresses,
         ),
     )
-    run_ansible([_playbook], roles=roles, extra_vars=options, **kwargs)
+    run_ansible([_playbook], roles=dict(all=hosts), extra_vars=options, **kwargs)
 
 
-def expand_groups(grp):
-    """Expand group names.
-
-    Args:
-        grp (string): group names to expand
-
-    Returns:
-        list of groups
-
-    Examples:
-
-        * grp[1-3] will be expanded to [grp1, grp2, grp3]
-        * grp1 will be expanded to [grp1]
-    """
-    p = re.compile(r"(?P<name>.+)\[(?P<start>\d+)-(?P<end>\d+)\]")
-    m = p.match(grp)
-    if m is not None:
-        s = int(m.group("start"))
-        e = int(m.group("end"))
-        n = m.group("name")
-        return list(map(lambda x: n + str(x), range(s, e + 1)))
-    else:
-        return [grp]
-
-
-def _expand_description(desc):
-    """Expand the description given the group names/patterns
-    e.g:
-    {src: grp[1-3], dst: grp[4-6] ...} will generate 9 descriptions
-    """
-    srcs = expand_groups(desc["src"])
-    dsts = expand_groups(desc["dst"])
-    descs = []
-    for src in srcs:
-        for dst in dsts:
-            local_desc = desc.copy()
-            local_desc["src"] = src
-            local_desc["dst"] = dst
-            descs.append(local_desc)
-
-    return descs
-
-
-def _src_equals_dst_in_constraints(network_constraints, grp1):
-    if "constraints" in network_constraints:
-        constraints = network_constraints["constraints"]
-        for desc in constraints:
-            descs = _expand_description(desc)
-            for d in descs:
-                if grp1 == d["src"] and d["src"] == d["dst"]:
-                    return True
-    return False
-
-
-def _same(g1, g2):
-    """Two network constraints are equals if they have the same
-    sources and destinations
-    """
-    return g1["src"] == g2["src"] and g1["dst"] == g2["dst"]
-
-
-def _generate_default_grp_constraints(roles, network_constraints):
-    """Generate default symetric grp constraints."""
-    default_delay = network_constraints.get("default_delay")
-    default_rate = network_constraints.get("default_rate")
-    default_loss = network_constraints.get("default_loss", 0)
-    except_groups = network_constraints.get("except", [])
-    grps = network_constraints.get("groups", roles.keys())
-    # expand each groups
-    grps = [expand_groups(g) for g in grps]
-    # flatten
-    grps = [x for expanded_group in grps for x in expanded_group]
-    # building the default group constraints
-    return [
-        {
-            "src": grp1,
-            "dst": grp2,
-            "delay": default_delay,
-            "rate": default_rate,
-            "loss": default_loss,
-        }
-        for grp1 in grps
-        for grp2 in grps
-        if (
-            (grp1 != grp2 or _src_equals_dst_in_constraints(network_constraints, grp1))
-            and grp1 not in except_groups
-            and grp2 not in except_groups
+def _validate(
+    hosts: List[Host],
+    networks: Optional[List[Network]] = None,
+    output_dir=None,
+    **kwargs,
+):
+    all_addresses: Set[str] = set()
+    for host in hosts:
+        addresses = host.filter_addresses(networks)
+        all_addresses = all_addresses.union(
+            set([str(addr.ip.ip) for addr in addresses if addr.ip])
         )
-    ]
+    validate_delay(hosts, output_dir, list(all_addresses), **kwargs)
 
 
-def _generate_actual_grp_constraints(network_constraints):
-    """Generate the user specified constraints"""
-    if "constraints" not in network_constraints:
-        return []
+def _destroy(hosts: List[Host], **kwargs):
+    logger.debug("Reset the constraints")
 
-    constraints = network_constraints["constraints"]
-    actual = []
-    for desc in constraints:
-        descs = _expand_description(desc)
-        for desc in descs:
-            actual.append(desc)
-            if "symetric" in desc and desc["symetric"]:
-                sym = desc.copy()
-                sym["src"] = desc["dst"]
-                sym["dst"] = desc["src"]
-                actual.append(sym)
-    return actual
+    _check_tmpdir(TMP_DIR)
 
-
-def _merge_constraints(constraints, overrides):
-    """Merge the constraints avoiding duplicates
-    Change constraints in place.
-    """
-    for o in overrides:
-        i = 0
-        while i < len(constraints):
-            c = constraints[i]
-            if _same(o, c):
-                constraints[i].update(o)
-                break
-            i = i + 1
-
-
-def _build_grp_constraints(roles, network_constraints):
-    """Generate constraints at the group level,
-    It expands the group names and deal with symetric constraints.
-    """
-    # generate defaults constraints
-    constraints = _generate_default_grp_constraints(roles, network_constraints)
-    # Updating the constraints if necessary
-    if "constraints" in network_constraints:
-        actual = _generate_actual_grp_constraints(network_constraints)
-        _merge_constraints(constraints, actual)
-
-    return constraints
+    _playbook = os.path.join(SERVICE_PATH, "netem.yml")
+    extra_vars = kwargs.pop("extra_vars", {})
+    options = _build_options(
+        extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
+    )
+    run_ansible([_playbook], roles=dict(all=hosts), extra_vars=options)

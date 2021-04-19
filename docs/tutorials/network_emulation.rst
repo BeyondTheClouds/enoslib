@@ -25,9 +25,30 @@ Setting up heterogeneous constraints
 You can use the HTBNetem service for this purpose. The example is based on the
 G5K provider, but can be adapted to another one if desired.
 
-.. literalinclude:: network_emulation/tuto_svc_htb.py
-   :language: python
-   :linenos:
+
+- Build from a dictionnary:
+
+    .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb.py
+        :language: python
+        :linenos:
+
+- Build a list of constraints iteratively
+
+    .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_build.py
+        :language: python
+        :linenos:
+
+- Using a secondary network
+
+    .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_secondary.py
+        :language: python
+        :linenos:
+
+- Using a secondary network from a list of constraints
+
+    .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_b_second.py
+        :language: python
+        :linenos:
 
 
 Working at the network device level

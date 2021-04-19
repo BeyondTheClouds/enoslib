@@ -7,12 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
-prod_network = G5kNetworkConf(
-    id="n1",
-    type="prod",
-    roles=["my_network"],
-    site="rennes"
-)
+prod_network = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
 conf = (
     G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
@@ -20,19 +15,19 @@ conf = (
         roles=["city", "paris"],
         cluster="parapluie",
         nodes=1,
-        primary_network=prod_network
+        primary_network=prod_network,
     )
     .add_machine(
         roles=["city", "berlin"],
         cluster="parapluie",
         nodes=1,
-        primary_network=prod_network
+        primary_network=prod_network,
     )
     .add_machine(
         roles=["city", "londres"],
         cluster="parapluie",
         nodes=1,
-        primary_network=prod_network
+        primary_network=prod_network,
     )
     .finalize()
 )

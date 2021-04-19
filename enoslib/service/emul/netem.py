@@ -1,21 +1,22 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Iterable, List, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import play_on
 from enoslib.objects import Host, Network
 from enoslib.service.service import Service
 
-from .utils import _build_commands, _build_options, _combine, _validate
+from .utils import _build_commands, _build_options, _combine, _destroy, _validate
 
 logger = logging.getLogger(__name__)
 
 
-class NetemConstraint(object):
-    pass
-
-
 @dataclass(eq=True, frozen=True)
+class NetemConstraint(object):
+    device: str
+    options: str
+
+
 class NetemOutConstraint(NetemConstraint):
     """A Constraint on the egress part of a device.
 
@@ -23,9 +24,6 @@ class NetemOutConstraint(NetemConstraint):
         device: the device name where the qdisc will be added
         options: the options string the pass down to netem (e.g delay 10ms)
     """
-
-    device: str
-    options: str
 
     def __post_init__(self):
         if not self.options:
@@ -109,8 +107,25 @@ class NetemInOutSource(object):
     def outbounds(self) -> List[NetemOutConstraint]:
         return [c for c in self.constraints if isinstance(c, NetemOutConstraint)]
 
-    def add_constraints(self, constraints: Iterable[NetemInConstraint]):
-        self.constraints = self.constraints.union(set(constraints))
+    def add_constraints(self, constraints: Iterable[NetemConstraint]):
+        """Merge constraints to existing ones.
+
+        In this context if two constraints are set on the same device we
+        overwrite the original one.
+        At the end we ensure that there's only one constraint per device
+
+        Args:
+            constraints: Iterable of NetemIn[Out]Constraint
+        """
+        for constraint in constraints:
+            matched = [sc for sc in self.constraints if self.equal(constraint, sc)]
+            for c in matched:
+                self.constraints.discard(c)
+            self.constraints.add(constraint)
+
+    def equal(self, c1: NetemConstraint, c2: NetemConstraint):
+        """Encode the equality between two constraints in this context."""
+        return c1.__class__ == c2.__class__ and c1.device == c2.device
 
     def add_commands(self) -> List[str]:
         return self._commands("add_commands")
@@ -173,30 +188,16 @@ def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
 class Netem(Service):
     def __init__(
         self,
-        options: str,
-        hosts: List[Host],
-        networks: List[Network],
-        symetric: bool = False,
-        **kwargs,
     ):
-        """Set homogeneous network constraints between your hosts.
+        """Set homogeneous network constraints on some hosts
 
         Geometricaly speaking: nodes are put on the vertices of a regular
         n-simplex.
 
-        This calls :py:func:`enoslib.service.emul.netem.netem` function
+        This calls :py:func:`~enoslib.service.emul.netem.netem` function
         internally. As a consequence when symetric is True, it will apply 4
         times the constraints for bidirectionnal communication (out_a, in_b,
         out_b, in_a) and 2 times if symetric is False.
-
-        Args:
-            options   : raw netem options as described here:
-                        http://man7.org/linux/man-pages/man8/tc-netem.8.html
-            networks  : list of the networks to consider. Any interface with an
-                        ip address on one of those network will be considered.
-            hosts     : list of host on which the constraints will be applied
-            symetric  : Wheter we'll want limitations on inbound and outbound traffic.
-             kwargs   : keyword arguments to pass to :py:fun:`enoslib.api.run_ansible`
 
         Example:
 
@@ -204,47 +205,51 @@ class Netem(Service):
               :language: python
               :linenos:
 
-        """
-        self.options = options
-        self.hosts = hosts if hosts else []
-        self.networks = networks
-        self.symetric = symetric
-        self.kwargs = kwargs
-        self.roles = dict(all=self.hosts)
+        - Using a secondary network.
 
-    def deploy(self, chunk_size=100):
-        """Apply the constraints on all the hosts."""
-        # will hold the number of ifbs to provision
-        sources = []
-        for host in self.hosts:
-            interfaces = host.filter_interfaces(self.networks)
-            source = NetemInOutSource(host)
-            for idx, interface in enumerate(interfaces):
+            .. literalinclude:: ../tutorials/network_emulation/tuto_svc_netem_s.py
+              :language: python
+              :linenos:
+        """
+        self.sources = dict()
+
+    def add_constraints(
+        self,
+        options: str,
+        hosts: List[Host],
+        symetric: bool = False,
+        networks: Optional[List[Network]] = None,
+    ):
+        for src_host in hosts:
+            self.sources.setdefault(src_host, NetemInOutSource(src_host))
+            source = self.sources[src_host]
+            interfaces = src_host.filter_interfaces(networks)
+            for interface in interfaces:
                 constraints = []
                 constraints.append(
-                    NetemOutConstraint(device=interface, options=self.options)
+                    NetemOutConstraint(device=interface, options=options)
                 )
-                if self.symetric:
+                if symetric:
                     constraints.append(
-                        NetemInConstraint(
-                            device=interface, options=self.options
-                        )
+                        NetemInConstraint(device=interface, options=options)
                     )
                 source.add_constraints(constraints)
-            sources.append(source)
-        netem(sources, chunk_size, **self.kwargs)
+        return self
+
+    def deploy(self, chunk_size=100, **kwargs):
+        """Apply the constraints on all the hosts."""
+        netem(list(self.sources.values()), chunk_size, **kwargs)
 
     def backup(self):
         pass
 
-    def validate(self, output_dir=None):
-        all_addresses = []
-        for host in self.hosts:
-            addresses = host.filter_addresses(self.networks)
-            all_addresses.extend([str(addr.ip.ip) for addr in addresses])
-        _validate(self.roles, output_dir, all_addresses, **self.kwargs)
+    def validate(self, networks: List[Network] = None, output_dir=None, **kwargs):
+        _validate(
+            list(self.sources.keys()),
+            networks=networks,
+            output_dir=output_dir,
+            **kwargs,
+        )
 
-    def destroy(self):
-        # We need to know the exact device
-        # all destroy all the rules on all the devices...
-        pass
+    def destroy(self, **kwargs):
+        _destroy(list(self.sources.keys()), **kwargs)

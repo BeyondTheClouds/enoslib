@@ -1,9 +1,8 @@
 ---
 - name: Installing fping
   apt:
-    name: "{{ item }}"
-  with_items:
-    - fping
+    name:
+      - fping
 
 - name: Uploading the host list
   template:

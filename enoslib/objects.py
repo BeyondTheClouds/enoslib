@@ -338,9 +338,9 @@ class NetDevice(object):
 
         Args:
             networks: a list of networks to further filter the request
-                      If None, all the interfaces with at least one network attached
-                      will be returned. This doesn't return interfaces
-                      attached to network unknown from EnOSlib.
+                      If None or [], all the interfaces with at least one
+                      network attached will be returned. This doesn't return
+                      interfaces attached to network unknown from EnOSlib.
             include_unknown: True iff we want all the interface that are not
                       attached to an EnOSlib network. Ignored if ``networks`` is not
                       None.
@@ -348,7 +348,7 @@ class NetDevice(object):
         Return:
             A list of addresses
         """
-        if networks is not None:
+        if networks:
             # return only known addresses
             return [
                 addr
@@ -493,9 +493,9 @@ class Host(object):
 
         Args:
             networks: a list of networks to further filter the request
-                      If None, all the interfaces with at least one network attached
-                      will be returned. This doesn't return interfaces
-                      attached to network unknown from EnOSlib.
+                      If None or [], all the interfaces with at least one
+                      network attached will be returned. This doesn't return
+                      interfaces attached to network unknown from EnOSlib.
             include_unknown: True iff we want all the interface that are not
                       attached to an EnOSlib network. Ignored if ``networks`` is not
                       None.
