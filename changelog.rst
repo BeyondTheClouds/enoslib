@@ -20,6 +20,7 @@ Misc:
   MPI applications that needs to all hosts to be ssh reachable)
 - tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
   key is in the env (resp. set a default value) (cherry-pick from 5.x)
+- svc/monitoring: remove the use of explicit ``become`` in the deployment
 
 6.0.4
 -----
