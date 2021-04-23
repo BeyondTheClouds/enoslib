@@ -20,11 +20,15 @@ we have of a computing infrastructure, where resources have
 static/predictable setup, and the reality of interacting with them on a daily
 basis.
 
-EnOSlib smoothes the experimenter's code dealing with various platforms (e.g.
-local machine, scientific testbed, virtualized environments). It helps in
-deploying various piece of software (e.g instrumentation, observability
-tools). It also integrates well with interactive development environment like
-Jupyter.
+In this context, EnOSlib smoothes the experimental code and can
+
+- deal with various platforms (e.g. local machine, scientific testbed, virtualized environments)
+- interact programmatically with different your remote resources: compute
+  (servers, containers) and networks (ipv4, ipv6)
+- deploy *ready-to-use* experimentation services (e.g instrumentation, observability tools).
+- emulate complex network topologies (e.g for your FOG experiments)
+- integrate your code with interactive development environment like Jupyter.
+
 
 The software
 ------------
