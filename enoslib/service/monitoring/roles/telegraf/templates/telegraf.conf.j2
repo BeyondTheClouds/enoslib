@@ -31,6 +31,7 @@
   endpoint = "unix:///var/run/docker.sock"
 [[inputs.netstat]]
   interval = "30s"
+[[inputs.nvidia_smi]]
 {% if collector_type is defined and collector_type == 'prometheus' %}
 [[outputs.prometheus_client]]
   listen = "{{ agent_listen_address }}"
