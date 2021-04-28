@@ -1,6 +1,11 @@
 Changelog
 ===========
 
+5.5.5
+-----
+
+- tasks/env now implements the Dict interface (collections.UserDict)
+
 5.5.4
 -----
 
@@ -15,7 +20,7 @@ Changelog
 5.5.2
 -----
 
-- svc/docker: allow to specify a port (cherry-pick from 5.x)
+- svc/docker: allow to specify a port
 
 5.5.1
 -----
