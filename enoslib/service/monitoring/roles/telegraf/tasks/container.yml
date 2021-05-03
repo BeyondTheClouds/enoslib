@@ -8,11 +8,10 @@
     state: started
     recreate: yes
     network_mode: host
+    device_requests: "{{ c_device_request }}"
     volumes: 
       - "{{ remote_working_dir }}/telegraf.conf:/etc/telegraf/telegraf.conf"
       - /sys:/rootfs/sys:ro
       - /proc:/rootfs/proc:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    env:
-      HOST_PROC: "/rootfs/proc"
-      HOST_SYS: "/rootfs/sys"
+    env: "{{ c_env }}"
