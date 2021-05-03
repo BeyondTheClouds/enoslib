@@ -1,0 +1,32 @@
+# test if we can find an nvidia device
+- shell: lspci| grep -i nvidia
+  register: stdout
+  ignore_errors: yes
+
+# gpu case
+- set_fact:
+    has_gpu: yes
+    c_device_request:
+    - # Add nVidia GPUs to this container
+      driver: nvidia
+      count: -1  # this means we want all
+      capabilities:
+      # We have one OR condition: 'gpu' AND 'utility'
+      - - gpu
+        - utility
+      # See https://github.com/NVIDIA/nvidia-container-runtime#supported-driver-capabilities
+      # for a list of capabilities supported by the nvidia driver
+    c_env:
+        HOST_PROC: "/rootfs/proc"
+        HOST_SYS: "/rootfs/sys"
+        NVIDIA_VISIBLE_DEVICES: "all"
+  when: stdout.rc == 0
+
+# non gpu case
+- set_fact:
+    has_gpu: no
+    c_device_request: []
+    c_env:
+        HOST_PROC: "/rootfs/proc"
+        HOST_SYS: "/rootfs/sys"
+  when: stdout.rc != 0

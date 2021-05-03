@@ -8,22 +8,10 @@
     state: started
     recreate: yes
     network_mode: host
-    device_requests:
-      - # Add nVidia GPUs to this container
-        driver: nvidia
-        count: -1  # this means we want all
-        capabilities:
-          # We have one OR condition: 'gpu' AND 'utility'
-          - - gpu
-            - utility
-          # See https://github.com/NVIDIA/nvidia-container-runtime#supported-driver-capabilities
-          # for a list of capabilities supported by the nvidia driver
+    device_requests: "{{ c_device_request }}"
     volumes: 
       - "{{ remote_working_dir }}/telegraf.conf:/etc/telegraf/telegraf.conf"
       - /sys:/rootfs/sys:ro
       - /proc:/rootfs/proc:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    env:
-      HOST_PROC: "/rootfs/proc"
-      HOST_SYS: "/rootfs/sys"
-      NVIDIA_VISIBLE_DEVICES: "all"
+    env: "{{ c_env }}"
