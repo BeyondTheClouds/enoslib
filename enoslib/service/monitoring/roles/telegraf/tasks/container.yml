@@ -1,5 +1,4 @@
 ---
-
 - name: Installing Telegraf
   docker_container:
     name: telegraf
@@ -9,7 +8,7 @@
     recreate: yes
     network_mode: host
     device_requests: "{{ c_device_request }}"
-    volumes: 
+    volumes:
       - "{{ remote_working_dir }}/telegraf.conf:/etc/telegraf/telegraf.conf"
       - /sys:/rootfs/sys:ro
       - /proc:/rootfs/proc:ro
