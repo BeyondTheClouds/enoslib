@@ -107,6 +107,10 @@ class TIGMonitoring(Service):
             .. literalinclude:: examples/monitoring.py
                 :language: python
                 :linenos:
+
+            .. literalinclude:: examples/monitoring_gpus.py
+                :language: python
+                :linenos:
         """
         # Some initialisation and make mypy happy
         self.collector = collector

@@ -55,6 +55,10 @@ class Docker(Service):
         This assumes a debian/ubuntu base environment and aims at producing a
         quick way to deploy docker and optionnaly a registry on your nodes.
 
+        If an NVidia GPU is detected on a node, the `nvidia-container-toolkit` will be
+        also installed automatically.
+        see https://docs.nvidia.com/datacenter/cloud-native/
+
         Examples:
 
             .. code-block:: python

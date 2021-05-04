@@ -39,4 +39,30 @@
 - name: Installing docker
   shell: which docker || (curl -sSL https://get.docker.com/ | sh)
 
+# Installing nvidia runtime if that's needed
+- name: Detecting GPUs
+  apt:
+    name: pciutils
+    state: present
+
+# test if we can find an nvidia device
+- shell: lspci| grep -i nvidia
+  register: stdout
+  ignore_errors: yes
+
+# Install the nvidia container runtime
+# from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit
+- name: Installing nvidia-container-toolkit
+  shell: >
+    distribution=$(. /etc/os-release;echo $ID$VERSION_ID) &&
+    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - &&
+    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list &&
+    apt update &&
+    apt install -y nvidia-docker2 &&
+    service docker restart
+  when:
+  - stdout is defined
+  - stdout.rc == 0
+
+
 

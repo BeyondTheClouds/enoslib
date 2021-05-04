@@ -1,15 +1,18 @@
-- name: Detecting GPU
+- name: Detecting GPU and specific runtime
   apt:
     name: pciutils
     state: present
 
-# test if we can find an nvidia device
-- shell: lspci| grep -i nvidia
+# test if we can find an nvidia device and associated runtime
+- name: To support GPU metrics you need an nvidia card and the nvidia-container-toolkit installed
+  shell: >
+    (lspci| grep -i nvidia) && (dpkg -l | grep nvidia-container-toolkit)
   register: stdout
   ignore_errors: yes
 
 # gpu case
-- set_fact:
+- name: (gpu) Preparing agents
+  set_fact:
     has_gpu: yes
     c_device_request:
     - driver: nvidia
@@ -28,21 +31,11 @@
   - stdout.rc == 0
 
 # non gpu case (default)
-- set_fact:
+- name: (non gpu) Preparing agents
+  set_fact:
     has_gpu: no
     c_device_request: []
     c_env:
         HOST_PROC: "/rootfs/proc"
         HOST_SYS: "/rootfs/sys"
   when: stdout is not defined or stdout.rc != 0
-
-# Install the nvidia container runtime
-# from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit
-- name: Installing nvidia-container-toolkit
-  shell: >
-    distribution=$(. /etc/os-release;echo $ID$VERSION_ID) &&
-    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - &&
-    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list &&
-    apt install -y nvidia-docker2 &&
-    service docker restart
-  when: has_gpu
