@@ -14,6 +14,11 @@ may need [#m1]_.
   metrics. For instance, this model allows to overcome a limitation when the
   deployment spans Grid'5000 and FIT/IOTlab platform.
 
+Note that the Telegraf agent are also configured to expose NVidia GPU metrics if
+an NVidia GPU is detected and if the nvidia container toolkit is found
+(installed with the :py:class:`~enoslib.service.docker.docker.Docker` service or
+by you own mean).
+
 .. topic:: links
 
     .. [#m1] https://sre.google/sre-book/monitoring-distributed-systems/
@@ -21,6 +26,5 @@ may need [#m1]_.
     .. [#m3] https://www.influxdata.com/products/influxdb/
     .. [#m4] https://grafana.com/
     .. [#m5] https://prometheus.io/
-
 """
 pass

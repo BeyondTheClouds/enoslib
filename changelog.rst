@@ -2,6 +2,25 @@
 ============
 
 
+6.2.0
+-----
+
+- svc/docker: now installs `nvidia-container-toolkit` if deemed relevant (on
+  nodes that have a NVidia GPU card).
+- svc/monitoring: now configures an `nvidia-smi` input on nodes that have a
+  NVidia GPU card and the nvidia container runtime. Add an example to show how to
+  make both service together to get some GPU metrics in the collector.
+
+Possibly breaking:
+
+- We've relaxed the Ansible version that is pulled when installing EnOSlib.
+  Version ranging from Ansible 2.9 to Ansible 4 (excluded) are now accepted.
+  There's a potential risk that some corner cases are broken (nothing bad has been
+  detected though ... 🤞)
+  This was necessary to get benefit from the latest modules version.
+  EnOSlib can benefit from any (third party or updated core) collections
+  installed locally.
+
 6.1.0
 -----
 

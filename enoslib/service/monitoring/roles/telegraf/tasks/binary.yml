@@ -1,7 +1,7 @@
 ---
 - name: Check that the telegraf binary already exists
   stat:
-    path: /{{ telegraf_binary_version }}/usr/bin/telegraf 
+    path: /{{ telegraf_binary_version }}/usr/bin/telegraf
   register: stat_result
 
 - name: Installing telegraf binary

@@ -1,10 +1,12 @@
 ---
-
-- include_tasks: config.yml
-
 - name: Host architecture
   ansible.builtin.debug:
     var: ansible_architecture
+
+- include_tasks: gpu.yml
+  when: ansible_architecture != "armv7l"
+
+- include_tasks: config.yml
 
 - include_tasks: container.yml
   when: ansible_architecture != "armv7l"
