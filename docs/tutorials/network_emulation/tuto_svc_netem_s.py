@@ -60,3 +60,4 @@ for role, hosts in roles.items():
     print(role)
     for host in hosts:
         print(f"-- {host.alias}")
+
