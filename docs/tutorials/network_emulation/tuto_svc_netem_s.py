@@ -45,12 +45,12 @@ provider = en.G5k(conf)
 roles, networks = provider.init()
 roles = en.sync_info(roles, networks)
 
-netem = en.Netem(roles)
+netem = en.Netem()
 (
     netem
-    .add_constraints("delay 10ms", roles["paris"], symetric=True)
-    .add_constraints("delay 20ms", roles["londres"], symetric=True)
-    .add_constraints("delay 30ms", roles["berlin"], symetric=True)
+        .add_constraints("delay 10ms", roles["paris"], networks=networks["private"], symetric=True)
+        .add_constraints("delay 20ms", roles["londres"], networks=networks["private"], symetric=True)
+        .add_constraints("delay 30ms", roles["berlin"], networks=networks["private"], symetric=True)
 )
 
 netem.deploy()
