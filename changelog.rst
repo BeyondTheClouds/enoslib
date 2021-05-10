@@ -10,6 +10,7 @@
 - svc/monitoring: now configures an `nvidia-smi` input on nodes that have a
   NVidia GPU card and the nvidia container runtime. Add an example to show how to
   make both service together to get some GPU metrics in the collector.
+- docs: fixed missing network selection in ``tuto_svc_netem_s.py``
 
 Possibly breaking:
 
