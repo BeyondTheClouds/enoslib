@@ -31,6 +31,11 @@ Publications
   Cloud and Internet Computing, IEEE; The University of Melbourne, May 2020,
   Melbourne, Australia. ⟨hal-02573638⟩
 
+- Dimitri Saingre, Thomas Ledoux, Jean-Marc Menaud. BCTMark: a framework for
+  benchmarking blockchain technologies. AICCSA 2020 - 17th IEEE/ACS International
+  Conference on Computer Systems and Applications, Nov 2020, Antalya, Turkey.
+  pp.1-8, ⟨10.1109/AICCSA50499.2020.9316536⟩. ⟨hal-02923038⟩
+
 - Hélène Coullon, Dimitri Pertin, Christian Pérez. Production Deployment
   Tools for IaaSes: an Overall Model and Survey. The IEEE 5th International
   Conference on Future Internet of Things and Cloud (FiCloud), Aug 2017,
@@ -43,10 +48,6 @@ Publications
 - Genc Tato, Marin Bertier, Etienne Rivière, Cédric Tedeschi.
   Split and migrate: Resource-driven placement and discovery of microservices at the edge. In proceedings of the
   23rd International Conference on Principles of Distributed Systems (OPODIS), Neuchâtel, Switzerland, December 2019.
-
-- Dimitri Saingre, Thomas Ledoux, Jean-Marc Menaud.
-  BCTMark - Vers un outil pour l’évaluation des performances et du coût énergétique des technologies blockchain.
-  In proceedings of the  Conférence d’informatique en Parallélisme, Architecture et Système (COMPAS), Anglet, France, Jun 2019.
 
 - Javier Rojas Balderrama, Matthieu Simonin. Scalability and Locality Awareness
   of Remote Procedure Calls: An Experimental Study in Edge Infrastructures.
