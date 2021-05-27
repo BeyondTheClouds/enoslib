@@ -9,9 +9,21 @@ Publications
   Karim Manaouil, Adrien Lebre
   IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
 
-- Daniel Rosendo, Pedro Silva, Matthieu Simonin, Alexandru Costan, Gabriel Antoniu. E2Clab: Exploring the Computing
-  Continuum through Repeatable, Replicable and Reproducible Edge-to-Cloud Experiments. Cluster 2020 - The IEEE 2020
-  International Conference on Cluster Computing, Sep 2020, Kobe, Japan. ⟨hal-02916032⟩
+- Mulugeta Tamiru, Guillaume Pierre, Johan Tordsson, Erik Elmroth. mck8s: An
+  orchestration platform for geo-distributed multi-cluster environments. ICCCN
+  2021 - 30th International Conference on Computer Communications and Networks,
+  Jul 2021, Athens, Greece. pp.1-12. ⟨hal-03205743⟩
+
+- Mulugeta Tamiru, Guillaume Pierre, Johan Tordsson, Erik Elmroth. Instability
+  in Geo-Distributed Kubernetes Federation: Causes and Mitigation. MASCOTS 2020 -
+  27th IEEE Symposium on Modelling, Analysis, and Simulation of Computer and
+  Telecommunication Systems, Nov 2020, Nice, France. ⟨hal-02934475⟩
+
+- Daniel Rosendo, Pedro Silva, Matthieu Simonin, Alexandru Costan, Gabriel
+  Antoniu. E2Clab: Exploring the Computing Continuum through Repeatable,
+  Replicable and Reproducible Edge-to-Cloud Experiments. Cluster 2020 - The IEEE
+  2020 International Conference on Cluster Computing, Sep 2020, Kobe, Japan.
+  ⟨hal-02916032⟩
 
 - David Sarmiento, Adrien Lebre, Lucas Nussbaum, Abdelhadi Chari. Multi-site
   Connectivity for Edge Infrastructures DIMINET:DIstributed Module for
