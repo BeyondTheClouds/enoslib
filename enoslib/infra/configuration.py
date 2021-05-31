@@ -77,5 +77,5 @@ class BaseConfiguration:
 
     def __repr__(self):
         r = f"Conf@{hex(id(self))}\n"
-        r += json.dumps(self.to_dict(),indent=4)
+        r += json.dumps(self.to_dict(), indent=4)
         return r
