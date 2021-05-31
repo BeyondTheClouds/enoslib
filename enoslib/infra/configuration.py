@@ -1,5 +1,6 @@
 import jsonschema
 import logging
+import json
 from typing import Dict, Optional, Any
 
 
@@ -73,3 +74,8 @@ class BaseConfiguration:
     def add_network(self, *args, **kwargs):
         self.networks.append(self._network_cls(*args, **kwargs))
         return self
+
+    def __repr__(self):
+        r = f"Conf@{hex(id(self))}\n"
+        r += json.dumps(self.to_dict(),indent=4)
+        return r
