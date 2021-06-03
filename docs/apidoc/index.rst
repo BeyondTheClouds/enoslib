@@ -18,3 +18,4 @@
    infra.rst
    task.rst
    service.rst
+   config.rst
