@@ -1,6 +1,12 @@
 ⚒️ Changelog
 ============
 
+6.3.0
+-----
+
+- Introduce a way to configure the library.
+  For now this can be used to control the cache used when accessing the G5k API.
+- Doc: they-use-it updated
 
 6.2.0
 -----
