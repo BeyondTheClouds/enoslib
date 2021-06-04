@@ -33,13 +33,32 @@ from .constants import (
     NATURE_PROD,
     MAX_DEPLOY,
 )
+from enoslib.config import get_config
 
 import diskcache
 from grid5000 import Grid5000
 import ring
 
 
-storage = diskcache.Cache("cachedir")
+def runtime_cache(f):
+    """Lazily reload a cache before calling the function.
+
+    see https://gitlab.inria.fr/discovery/enoslib/-/issues/116
+    The current implementation is slow but the main intent is to reduce the number of
+    HTTP calls while being able to control at runtime the caching policy.
+    """
+
+    def wrapper(*args, **kwargs):
+        config = get_config()
+        if config["g5k_cache"]:
+            logger.debug(f"Reloading {f.__name__} from {config['g5k_cache_dir']}")
+            with diskcache.Cache(config["g5k_cache_dir"]) as storage:
+                return ring.disk(storage)(f)(*args, **kwargs)
+        else:
+            return f(*args, **kwargs)
+
+    return wrapper
+
 
 logger = logging.getLogger(__name__)
 
@@ -365,7 +384,6 @@ def get_api_username():
     return username
 
 
-@ring.disk(storage)
 def get_all_sites_obj():
     """Return the list of the sites.
 
@@ -377,7 +395,6 @@ def get_all_sites_obj():
     return sites
 
 
-@ring.disk(storage)
 def get_site_obj(site):
     """Get a single site.
 
@@ -388,7 +405,6 @@ def get_site_obj(site):
     return gk.sites[site]
 
 
-@ring.disk(storage)
 def clusters_sites_obj(clusters):
     """Get all the corresponding sites of the passed clusters.
 
@@ -408,7 +424,7 @@ def clusters_sites_obj(clusters):
     return result
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_all_clusters_sites():
     """Get all the cluster of all the sites.
 
@@ -450,7 +466,6 @@ def get_cluster_site(cluster):
     return match[cluster]
 
 
-@ring.disk(storage)
 def get_nodes(cluster):
     """Get all the nodes of a given cluster.
 
@@ -462,7 +477,6 @@ def get_nodes(cluster):
     return gk.sites[site].clusters[cluster].nodes.list()
 
 
-@ring.disk(storage)
 def get_node(site, cluster, uid) -> Node:
     gk = get_api_client()
     return gk.sites[site].clusters[cluster].nodes[uid]
@@ -690,31 +704,31 @@ def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float
     raise EnosG5kSynchronisationError()
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_dns(site):
     site_info = get_site_obj(site)
     return site_info.servers["dns"].network_adapters["default"]["ip"]
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_subnet_gateway(site):
     site_info = get_site_obj(site)
     return site_info.g5ksubnet["gateway"]
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_ipv6(site):
     site_info = get_site_obj(site)
     return site_info.ipv6
 
 
-@ring.disk(storage)
+@runtime_cache
 def get_vlan(site, vlan_id) -> Vlan:
     site_info = get_site_obj(site)
     return site_info.vlans[vlan_id]
