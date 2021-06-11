@@ -95,7 +95,10 @@ class TCPDump(Service):
                 p.shell(
                     bg(
                         session,
-                        f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap -i {ifname} {self.options}",
+                        (
+                            f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
+                            f" -i {ifname} {self.options}"
+                        ),
                     )
                 )
             p.debug(var="tcpdump_ifs")
@@ -105,7 +108,7 @@ class TCPDump(Service):
                 % (REMOTE_OUTPUT_DIR, self.options),
             )
             # add some debug
-            p.debug(msg=cmd, loop="{{ tcpdump_ifs }}")
+            # p.debug(msg=cmd, loop="{{ tcpdump_ifs }}")
             p.shell(
                 bg(
                     "{{ item }}",

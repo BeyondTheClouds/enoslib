@@ -30,9 +30,10 @@ roles = en.sync_info(roles, networks)
 # - on all the interface configured on the my_network network
 # - we dump icmp traffic only
 # - for the duration of the commands (here a client is pigging the server)
-with en.TCPDump(hosts=roles["control"], networks=networks["my_network"], options="icmp"):
-    result = en.run(f"ping -c100 {roles['server'][0].address}", roles["client"])
-    print(result)
+with en.TCPDump(
+    hosts=roles["control"], networks=networks["my_network"], options="icmp"
+):
+    _ = en.run(f"ping -c10 {roles['server'][0].address}", roles["client"])
 
 # pcap files are retrieved in the __enoslib__tcpdump__ directory
 # - can be loaded in wireshark
