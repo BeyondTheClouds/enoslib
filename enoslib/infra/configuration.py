@@ -123,7 +123,9 @@ class BaseConfiguration:
         res = f"""
             {css}
             <div class="enoslib_object">
-            <div class="object_name">{html.escape(str(self.__class__))}@{hex(id(self))}</div>
+            <div class="object_name">
+            {html.escape(str(self.__class__))}@{hex(id(self))}
+            </div>
             <ul class="list">
                 {li}
             </ul>
