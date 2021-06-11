@@ -4,6 +4,7 @@ import json
 from typing import Dict, Optional, Any
 from json2html import json2html
 import pkg_resources
+import html
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"
@@ -122,7 +123,7 @@ class BaseConfiguration:
         res = f"""
             {css}
             <div class="enoslib_object">
-            <div class="object_name">Configuration</div>
+            <div class="object_name">{html.escape(str(self.__class__))}@{hex(id(self))}</div>
             <ul class="list">
                 {li}
             </ul>
