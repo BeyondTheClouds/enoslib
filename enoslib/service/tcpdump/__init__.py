@@ -110,11 +110,7 @@ class TCPDump(Service):
             # add some debug
             # p.debug(msg=cmd, loop="{{ tcpdump_ifs }}")
             p.shell(
-                bg(
-                    "{{ item }}",
-                    "tcpdump -w %s/{{ item }}.pcap -i {{ item }} %s"
-                    % (REMOTE_OUTPUT_DIR, self.options),
-                ),
+                cmd,
                 loop="{{ tcpdump_ifs }}",
             )
 
