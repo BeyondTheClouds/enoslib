@@ -2,9 +2,12 @@ import jsonschema
 import logging
 import json
 from typing import Dict, Optional, Any
-
+from json2html import json2html
+import pkg_resources
+import html
 
 logger = logging.getLogger(__name__)
+STATIC_FILES = "html/style.css"
 
 
 class BaseConfiguration:
@@ -50,6 +53,7 @@ class BaseConfiguration:
     def finalize(self):
         d = self.to_dict()
         import json
+
         logger.debug(json.dumps(d, indent=4))
         self.validate(d)
         return self
@@ -79,3 +83,50 @@ class BaseConfiguration:
         r = f"Conf@{hex(id(self))}\n"
         r += json.dumps(self.to_dict(), indent=4)
         return r
+
+    def dict_to_html(self, d: dict) -> str:
+        html = ""
+        for k, v in d.items():
+            if isinstance(v, dict):
+                html += f"""
+                    <input type="checkbox" id="{k}" class="att">
+                    <label for="{k}">{k}</label>
+                    <ul>
+                    {self.dict_to_html(v)}
+                    </ul>"""
+            elif isinstance(v, list):
+                tab = json2html.convert(json=v, table_attributes="")
+                li = f""" <li>
+                        <input type="checkbox" id="{k}" class="att">
+                        <label for="{k}">{k}</label>
+                        {tab}
+                    """
+                html += li
+            else:
+                html += f"""
+                        <li>
+                        <input type="checkbox" id="{k}" class="att" disabled="">
+                        <label for="{k}">
+                            <span>{k}</span>
+                        </label>
+                        <span>{v}</span>
+                        </li>"""
+        return html
+
+    def _load_css(self):
+        return pkg_resources.resource_string("enoslib", STATIC_FILES).decode("utf8")
+
+    def _repr_html_(self) -> str:
+        li = self.dict_to_html(self.to_dict())
+        css = f"<style> {self._load_css()} </style>"
+
+        res = f"""
+            {css}
+            <div class="enoslib_object">
+            <div class="object_name">{html.escape(str(self.__class__))}@{hex(id(self))}</div>
+            <ul class="list">
+                {li}
+            </ul>
+             </div>"""
+
+        return res
