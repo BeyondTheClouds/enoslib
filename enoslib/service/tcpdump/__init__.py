@@ -37,6 +37,7 @@ class TCPDump(Service):
         hosts: List[Host],
         ifnames: Optional[List[str]] = None,
         networks: Optional[List[Network]] = None,
+        options: str = "",
         backup_dir: Union[Path, str] = Path(LOCAL_OUTPUT_DIR),
     ):
         """Monitor network traffic using tcpdump.
@@ -55,8 +56,10 @@ class TCPDump(Service):
 
         Args:
             hosts: list of hosts to consider
-            ifnames: explicit network card names to monitor
+            ifnames: explicit network card names to monitor.
+                "any" is a possible keyword that will monitor all interfaces.
             networks: monitor all interfaces that belong to one of those networks
+            options: extra options to pass to tcpdump command line.
             backup_dir: path to a local directory where the pcap files will be saved
 
         Examples:
@@ -71,10 +74,13 @@ class TCPDump(Service):
         self.roles = dict(all=hosts)
         self._tmux_sessions_maps = [(s, s) for s in self.ifnames]
         self.backup_dir = Path(backup_dir)
+        self.options = options
 
         # handle networks
         for host in hosts:
-            ifs = host.filter_interfaces(self.networks)
+            ifs = []
+            if self.networks:
+                ifs = host.filter_interfaces(self.networks)
             host.extra.update(tcpdump_ifs=ifs)
 
     def deploy(self, force=False):
@@ -89,14 +95,22 @@ class TCPDump(Service):
                 p.shell(
                     bg(
                         session,
-                        f"tcpdump -i {ifname} -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap",
+                        f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap -i {ifname} {self.options}",
                     )
                 )
             p.debug(var="tcpdump_ifs")
+            cmd = bg(
+                "{{ item }}",
+                "tcpdump -w %s/{{ item }}.pcap -i {{ item }} %s"
+                % (REMOTE_OUTPUT_DIR, self.options),
+            )
+            # add some debug
+            p.debug(msg=cmd, loop="{{ tcpdump_ifs }}")
             p.shell(
                 bg(
                     "{{ item }}",
-                    "tcpdump -i {{ item }} -w %s/{{ item }}.pcap" % REMOTE_OUTPUT_DIR,
+                    "tcpdump -w %s/{{ item }}.pcap -i {{ item }} %s"
+                    % (REMOTE_OUTPUT_DIR, self.options),
                 ),
                 loop="{{ tcpdump_ifs }}",
             )
