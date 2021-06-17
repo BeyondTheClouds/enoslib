@@ -53,18 +53,18 @@ input.att {
 
 input.att+label:before {
     display: inline-block;
-    content: '➕';
+    content: '►';
     font-size: 11px;
     width: 15px;
     text-align: center;
 }
 
 input.att:checked+label:before {
-    content: '➖';
+    content: '▼';
 }
 
 input.att:disabled+label:before {
-    content: '►';
+    content: none;
 }
 
 input.att+label>span {
