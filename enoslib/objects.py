@@ -383,6 +383,7 @@ class BridgeDevice(NetDevice):
     def to_dict(self):
         d = super().to_dict()
         d.update(type="bridge", interfaces=self.interfaces)
+        return d
 
 
 @dataclass()
