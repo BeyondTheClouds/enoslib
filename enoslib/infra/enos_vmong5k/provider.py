@@ -10,7 +10,7 @@ from typing import Dict, List
 from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
-from enoslib.objects import Host, Network, RolesNetworks
+from enoslib.objects import Host, Network, Roles, RolesNetworks
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
@@ -160,7 +160,7 @@ def _build_g5k_conf(vmong5k_conf):
 
 
 def _distribute(machines, g5k_subnets, skip=0, extra=None):
-    vmong5k_roles = defaultdict(list)
+    vmong5k_roles = Roles()
     euis = _mac_range(g5k_subnets, skip=skip)
     for machine in machines:
         pms = machine.undercloud
@@ -181,8 +181,9 @@ def _distribute(machines, g5k_subnets, skip=0, extra=None):
             )
 
             for role in machine.roles:
+                vmong5k_roles.setdefault(role, [])
                 vmong5k_roles[role].append(vm)
-    return dict(vmong5k_roles)
+    return vmong5k_roles
 
 
 def _index_by_host(roles):
@@ -253,8 +254,8 @@ class VirtualMachine(Host):
     <target dev='vdz' bus='virtio'/>
 </disk>\n"""
 
-    def to_dict(self):
-        d = super().to_dict()
+    def to_dict(self, indexed=False):
+        d = super().to_dict(indexed=indexed)
         d.update(
             core=self.core,
             mem=self.mem,

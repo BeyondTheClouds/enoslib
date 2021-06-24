@@ -6,7 +6,7 @@ from typing import List, Optional
 import iotlabcli.auth
 
 from enoslib.api import play_on
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork
@@ -97,8 +97,10 @@ class Iotlab(Provider):
             filename = "%d-{{ inventory_hostname }}.tar.gz" % (exp_id)
             # use --ignore-command-error to avoid errors if monitoring
             # files are being written
-            p.shell("cd .iot-lab/; tar --ignore-command-error -czf %s %d/"
-                    % (filename, exp_id))
+            p.shell(
+                "cd .iot-lab/; tar --ignore-command-error -czf %s %d/"
+                % (filename, exp_id)
+            )
             p.fetch(src=".iot-lab/" + filename, dest=dest_dir + "/", flat=True)
             p.shell("cd .iot-lab/; rm -f %s" % filename)
 
@@ -114,44 +116,61 @@ class Iotlab(Provider):
 
     def _populate_from_board_nodes(self, iotlab_nodes: list):
         """Populate self.host from board nodes"""
-        pool_nodes = mk_pools(iotlab_nodes, lambda n: (n['site'], n['archi']))
+        pool_nodes = mk_pools(iotlab_nodes, lambda n: (n["site"], n["archi"]))
         for config in self.provider_conf.machines:
             iot_nodes = pick_things(
-                pool_nodes, (config.site, config.archi), config.number)
+                pool_nodes, (config.site, config.archi), config.number
+            )
             for node in iot_nodes:
-                if node['network_address'].startswith('a8'):
+                if node["network_address"].startswith("a8"):
                     iotlab_host = IotlabHost(
-                        address=node['network_address'], roles=config.roles,
-                        site=node['site'], uid=node['uid'], archi=node['archi'])
+                        address=node["network_address"],
+                        roles=config.roles,
+                        site=node["site"],
+                        uid=node["uid"],
+                        archi=node["archi"],
+                    )
                     self.hosts.append(iotlab_host)
                 else:
                     iotlab_sensor = IotlabSensor(
-                        address=node['network_address'], roles=config.roles,
-                        site=node['site'], uid=node['uid'], archi=node['archi'],
-                        image=config.image, iotlab_client=self.client)
+                        address=node["network_address"],
+                        roles=config.roles,
+                        site=node["site"],
+                        uid=node["uid"],
+                        archi=node["archi"],
+                        image=config.image,
+                        iotlab_client=self.client,
+                    )
                     self.sensors.append(iotlab_sensor)
 
         self._assert_clear_pool(pool_nodes)
 
     def _populate_from_phys_nodes(self, iotlab_nodes: list):
         """Populate self.host from physical nodes"""
-        pool_nodes = mk_pools(iotlab_nodes, lambda n: n['network_address'])
+        pool_nodes = mk_pools(iotlab_nodes, lambda n: n["network_address"])
         for config in self.provider_conf.machines:
             for s in config.hostname:
                 # only 1 is available selecting by hostname
                 iot_node = pick_things(pool_nodes, s, 1)[0]
-                if iot_node['network_address'].startswith('a8'):
+                if iot_node["network_address"].startswith("a8"):
                     iotlab_host = IotlabHost(
-                        address=iot_node['network_address'], roles=config.roles,
-                        site=iot_node['site'], uid=iot_node['uid'],
-                        archi=iot_node['archi'])
+                        address=iot_node["network_address"],
+                        roles=config.roles,
+                        site=iot_node["site"],
+                        uid=iot_node["uid"],
+                        archi=iot_node["archi"],
+                    )
                     self.hosts.append(iotlab_host)
                 else:
                     iotlab_sensor = IotlabSensor(
-                        address=iot_node['network_address'],
-                        roles=config.roles, site=iot_node['site'],
-                        uid=iot_node['uid'], archi=iot_node['archi'],
-                        image=config.image, iotlab_client=self.client)
+                        address=iot_node["network_address"],
+                        roles=config.roles,
+                        site=iot_node["site"],
+                        uid=iot_node["uid"],
+                        archi=iot_node["archi"],
+                        image=config.image,
+                        iotlab_client=self.client,
+                    )
                     self.sensors.append(iotlab_sensor)
 
         self._assert_clear_pool(pool_nodes)
@@ -174,8 +193,10 @@ class Iotlab(Provider):
     def _reserve(self):
         """Reserve resources on platform"""
         iotlab_nodes = self.client.get_resources(
-            self.provider_conf.job_name, self.provider_conf.walltime,
-            self.provider_conf.machines)
+            self.provider_conf.job_name,
+            self.provider_conf.walltime,
+            self.provider_conf.machines,
+        )
 
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):
             self._populate_from_phys_nodes(iotlab_nodes)
@@ -184,8 +205,11 @@ class Iotlab(Provider):
 
         self._get_networks()
 
-        logger.info("Finished reserving nodes: hosts %s, sensors %s",
-            str(self.hosts), str(self.sensors))
+        logger.info(
+            "Finished reserving nodes: hosts %s, sensors %s",
+            str(self.hosts),
+            str(self.sensors),
+        )
 
     def _get_networks(self):
         """
@@ -221,18 +245,22 @@ class Iotlab(Provider):
 
         # add networks from user
         for net in self.provider_conf.networks:
-            self.networks.extend([
-                IotlabNetwork(roles=net.roles, address=addr)
-                for addr in networks_info.get(net.site.lower(), [])
-            ])
+            self.networks.extend(
+                [
+                    IotlabNetwork(roles=net.roles, address=addr)
+                    for addr in networks_info.get(net.site.lower(), [])
+                ]
+            )
             sites.discard(net.site.lower())
 
         # add default networks not in conf
         for site in sites:
-            self.networks.extend([
-                IotlabNetwork(roles=[PROD], address=addr)
-                for addr in networks_info.get(site.lower(), [])
-            ])
+            self.networks.extend(
+                [
+                    IotlabNetwork(roles=[PROD], address=addr)
+                    for addr in networks_info.get(site.lower(), [])
+                ]
+            )
 
     def _profiles(self):
         """Create profiles"""
@@ -244,13 +272,15 @@ class Iotlab(Provider):
                 continue
 
             self.client.create_profile(
-                name=profile.name, archi=profile.archi,
-                radio=profile.radio, consumption=profile.consumption,
+                name=profile.name,
+                archi=profile.archi,
+                radio=profile.radio,
+                consumption=profile.consumption,
             )
 
     def _to_enoslib(self):
         """Transform from provider specific resources to library-level resources"""
-        roles = {}
+        roles = Roles()
         for host in self.hosts:
             for role in host.roles:
                 if host.ssh_address:

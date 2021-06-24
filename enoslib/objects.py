@@ -24,6 +24,7 @@ from ipaddress import (
     ip_address,
     ip_interface,
 )
+
 from netaddr import EUI
 from typing import (
     Dict,
@@ -36,6 +37,10 @@ from typing import (
     Tuple,
     Union,
 )
+
+from enoslib.html import gen_html
+from collections import UserDict
+
 
 NetworkType = Union[bytes, int, Tuple, str]
 AddressType = Union[bytes, int, Tuple, str]
@@ -213,6 +218,15 @@ class DefaultNetwork(Network):
                 yield EUI(item)
         yield from ()
 
+    def to_dict(self, indexed=False):
+        return {
+            "network": self.network,
+            "getway": self.gateway,
+            "dns": self.dns,
+            "free_ips": self.free_ips,
+            "free_macs": self.free_macs,
+        }
+
 
 @dataclass(unsafe_hash=True)
 class IPAddress(object):
@@ -363,10 +377,14 @@ class NetDevice(object):
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
-    def to_dict(self):
+    def to_dict(self, indexed=False):
+        if not indexed:
+            add = [address.to_dict() for address in self.addresses]
+        else:
+            add = {str(address.ip): address.to_dict() for address in self.addresses}
         return dict(
             device=self.name,
-            addresses=[address.to_dict() for address in self.addresses],
+            addresses=add,
             type="ether",
         )
 
@@ -380,8 +398,8 @@ class BridgeDevice(NetDevice):
         """Get all the interfaces that are bridged here."""
         return self.bridged
 
-    def to_dict(self):
-        d = super().to_dict()
+    def to_dict(self, indexed=False):
+        d = super().to_dict(indexed=indexed)
         d.update(type="bridge", interfaces=self.interfaces)
         return d
 
@@ -394,6 +412,13 @@ class Processor(object):
 
     def __post_init__(self):
         self.vcpus = self.cores * self.count * self.threads_per_core
+
+    def to_dict(self):
+        return {
+            "cores": self.cores,
+            "count": self.count,
+            "threads_per_core": self.threads_per_core,
+        }
 
 
 @dataclass(unsafe_hash=True, order=True)
@@ -461,7 +486,17 @@ class Host(object):
         # read by specific host accessor (e.g processor, memory)
         self.__facts = None
 
-    def to_dict(self):
+    def to_dict(self, indexed=False):
+        p = None
+        if self.processor is not None:
+            p = self.processor.to_dict()
+        if not indexed:
+            nd = [device.to_dict(indexed=indexed) for device in self.net_devices]
+        else:
+            nd = {
+                device.name: device.to_dict(indexed=indexed)
+                for device in self.net_devices
+            }
         d = dict(
             address=self.address,
             alias=self.alias,
@@ -469,7 +504,8 @@ class Host(object):
             keyfile=self.keyfile,
             port=self.port,
             extra=self.extra,
-            net_devices=[device.to_dict() for device in self.net_devices],
+            processor=p,
+            net_devices=nd,
         )
         return copy.deepcopy(d)
 
@@ -573,3 +609,31 @@ class Host(object):
             "net_devices=%s" % self.net_devices,
         ]
         return "Host(%s)" % ", ".join(args)
+
+    def _repr_html_(self) -> str:
+        d = self.to_dict()
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)
+
+
+class Roles(UserDict):
+    def to_dict(self, indexed=False):
+        res = {}
+        old_data = self.data
+        for role, hosts in old_data.items():
+            res.setdefault(role, {})
+            for h in hosts:
+                d = h.to_dict(indexed=indexed)
+                if indexed:
+                    res.setdefault(role, {})
+                    res[role].update({h.alias: d})
+                else:
+                    res.setdefault(role, [])
+                    res[role].append(d)
+
+        return res
+
+    def _repr_html_(self):
+        d = self.to_dict(indexed=True)
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 from typing import List
 from enoslib.infra.enos_distem.configuration import Configuration
 import itertools
@@ -120,7 +119,7 @@ def _build_g5k_conf(distemong5k_conf):
 
 
 def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
-    roles = defaultdict(list)
+    roles = Roles()
     FSIMG = provider_conf.image
 
     sshkeys = {
@@ -150,6 +149,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
             distem.vnode_start(name)
             for role in machine.roles:
                 # We have to remove the cidr suffix ...
+                roles.setdefault(role, [])
                 roles[role].append(
                     Host(
                         network["address"].split("/")[0],
@@ -160,7 +160,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
                 )
             total = total + 1
 
-    return dict(roles)
+    return roles
 
 
 def _get_all_hosts(roles):

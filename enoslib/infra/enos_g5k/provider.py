@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 import copy
 import logging
 import operator
+from collections import defaultdict
 from itertools import groupby
 from typing import List, Optional, Tuple, cast
 
-from sshtunnel import SSHTunnelForwarder
-
-from enoslib.objects import Host
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
     ConcreteGroup,
@@ -32,8 +29,8 @@ from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
-    get_api_username,
     _do_synchronise_jobs,
+    get_api_username,
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -46,6 +43,8 @@ from enoslib.infra.enos_g5k.remote import DEFAULT_CONN_PARAMS, get_execo_remote
 from enoslib.infra.enos_g5k.utils import run_commands
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
+from enoslib.objects import Host, Roles
+from sshtunnel import SSHTunnelForwarder
 
 logger = logging.getLogger(__name__)
 
@@ -488,9 +487,10 @@ class G5k(Provider):
     def _to_enoslib(self):
         """Transform from provider specific resources to framework resources."""
         # index the host by their associated roles
-        hosts = defaultdict(list)
+        hosts = Roles()
         for host in self.hosts:
             for role in host.roles:
+                hosts.setdefault(role, [])
                 h = Host(host.ssh_address, user="root")
                 hosts[role].append(h)
         # doing the same on networks

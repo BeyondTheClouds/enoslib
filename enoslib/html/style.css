@@ -1,9 +1,10 @@
 .enoslib_object {
     width: 540px;
-    font-size: 75%;
+    font-size: 1em;
     line-height: 1.5;
-    background-color: #fff;
+    background-color: rgb(250, 249, 249);
     font-family: 'Segoe UI';
+    color: black;
 }
 
 .enoslib_object ul {
@@ -29,7 +30,7 @@
     margin-bottom: 0;
 }
 
-ul.list {
+ul {
     list-style: none !important;
     padding: 3px !important;
     margin: 0 !important;
@@ -38,13 +39,14 @@ ul.list {
 input.att+label {
     display: inline-block;
     width: 140px;
-    color: #555;
+    color: rgb(36, 35, 35);
     font-weight: 500;
     padding: 4px 0 2px 0;
 }
 
 input.att:enabled+label {
     cursor: pointer;
+    width: auto;
 }
 
 input.att {
@@ -72,6 +74,10 @@ input.att+label>span {
     margin-left: 4px;
 }
 
+label+span {
+    color: rgb(70, 69, 69);
+}
+
 input.att~ul {
     display: none;
 }
@@ -91,10 +97,15 @@ th {
     text-align: center;
     padding: 8px;
     height: 15px;
+    font-size: medium;
 }
 
-tr:nth-child(even) {
-    background-color: #f2f2f2;
+td {
+    color: rgb(160, 160, 160);
+}
+
+th {
+    color: black;
 }
 
 input~ul {
@@ -108,8 +119,4 @@ input.att~table {
 
 input.att:checked~table {
     display: block;
-}
-
-ul {
-    list-style: none;
 }
