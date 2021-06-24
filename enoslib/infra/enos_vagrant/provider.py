@@ -8,7 +8,7 @@ from netaddr import IPNetwork
 
 import vagrant
 
-from enoslib.objects import DefaultNetwork, Host
+from enoslib.objects import DefaultNetwork, Host, Roles
 from enoslib.infra.provider import Provider
 
 from .constants import DEFAULT_NAME_PREFIX
@@ -93,7 +93,7 @@ class Enos_vagrant(Provider):
 
         v.up()
         v.provision()
-        roles = defaultdict(list)
+        roles = Roles()
         for role, machines in vagrant_roles.items():
             for machine in machines:
                 keyfile = v.keyfile(vm_name=machine["name"])

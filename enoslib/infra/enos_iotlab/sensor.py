@@ -2,6 +2,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from enoslib.html import gen_html
+
 
 @dataclass(unsafe_hash=True)
 class Sensor(object):
@@ -25,3 +27,11 @@ class Sensor(object):
             "address=%s" % self.address,
         ]
         return "Sensor(%s)" % ", ".join(args)
+
+    def to_dict(self, indexed=False):
+        return {"alias": self.alias}
+
+    def _repr_html_(self):
+        d = self.to_dict()
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)

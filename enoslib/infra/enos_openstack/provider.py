@@ -31,7 +31,7 @@ from keystoneauth1 import session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
 
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.infra.provider import Provider
 from .constants import (
@@ -465,7 +465,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     extra.update({"ansible_become": "yes"})
 
     # build the enos roles
-    roles = {}
+    roles = Roles()
     for os_role, servers in os_roles.items():
         for server in servers:
             roles.setdefault(os_role, []).append(
@@ -488,13 +488,15 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
         # NOTE(msimonin): we need to support extra_ips in the Network Model
         # I drop this for now
         networks.update(
-            role=[OSNetwork(
-                env["subnet"]["cidr"],
-                env["subnet"]["gateway_ip"],
-                "8.8.8.8",
-                str(net[100]),
-                str(net[-3]),
-            )]
+            role=[
+                OSNetwork(
+                    env["subnet"]["cidr"],
+                    env["subnet"]["gateway_ip"],
+                    "8.8.8.8",
+                    str(net[100]),
+                    str(net[-3]),
+                )
+            ]
         )
 
     return roles, networks

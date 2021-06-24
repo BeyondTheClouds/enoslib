@@ -14,13 +14,16 @@ def dict_to_html(d: dict) -> str:
     html = ""
     for k, v in d.items():
         data_id = f"{k}-" + str(uuid.uuid4())
-        if isinstance(v, dict):
+        if isinstance(v, dict) or hasattr(v, "keys"):
             html += f"""
-                    <input type="checkbox" id="{data_id}" class="att">
-                    <label for="{data_id}">{k}</label>
-                    <ul>
-                    {dict_to_html(v)}
-                    </ul>"""
+                    <li>
+                        <input type="checkbox" id="{data_id}" class="att">
+                        <label for="{data_id}">{k}</label>
+                        <ul id = "{k}">
+                            {dict_to_html(v)}
+                        </ul>
+                    </li>
+                    """
         elif isinstance(v, list):
             tab = convert_to_html_table(v)
             li = f""" <li>
@@ -113,3 +116,20 @@ def convert_dict(input):
     )
     converted_output += "</tr></table>"
     return converted_output
+
+
+def gen_html(class_name: str, d: dict):
+    li = dict_to_html(d)
+    css = f"<style> {_load_css()} </style>"
+
+    res = f"""
+        {css}
+         <div class="enoslib_object">
+        <div class="object_name">
+            {html_escape(class_name)}
+        </div>
+        <ul class="list">
+            {li}
+        </ul>
+            </div>"""
+    return res

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 
-from enoslib.objects import DefaultNetwork, Host
+from enoslib.objects import DefaultNetwork, Host, Roles
 from enoslib.infra.provider import Provider
 
 
@@ -16,7 +16,7 @@ class Static(Provider):
 
     def init(self, force_deploy=False):
         machines = self.provider_conf.machines
-        roles = defaultdict(list)
+        roles = Roles()
         for machine in machines:
             for r in machine.roles:
                 roles.setdefault(r, []).append(
