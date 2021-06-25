@@ -48,7 +48,6 @@ AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 Role = str
 Networks = Mapping[Role, List["Network"]]
-RolesNetworks = Tuple[Roles, Networks]
 
 
 def _build_devices(facts, networks):
