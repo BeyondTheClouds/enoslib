@@ -47,7 +47,6 @@ AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 Role = str
-Roles = MutableMapping[Role, List["Host"]]
 Networks = Mapping[Role, List["Network"]]
 RolesNetworks = Tuple[Roles, Networks]
 
