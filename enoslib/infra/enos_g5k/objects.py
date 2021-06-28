@@ -1,6 +1,6 @@
 import ipaddress
 from abc import ABC, abstractmethod
-from logging import Logger
+import logging
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
@@ -19,6 +19,8 @@ from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
 from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
+
+logger = logging.getLogger(__name__)
 
 
 class G5kNetwork(ABC):
@@ -723,8 +725,7 @@ class G5kEnosProd6Network(G5kEnosProd4Network):
     @property
     def gateway(self):
         m = f"gateway is not yet implemented for {self.__class__} on the G5k side"
-        log = Logger(name=f"{self.__class__}")
-        log.warning(msg=m)
+        logger.warning(msg=m)
         return None
 
 
