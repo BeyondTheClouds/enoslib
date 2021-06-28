@@ -47,7 +47,9 @@ AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 Role = str
+Roles = MutableMapping[Role, List["Host"]]
 Networks = Mapping[Role, List["Network"]]
+RolesNetworks = Tuple[Roles, Networks]
 
 
 def _build_devices(facts, networks):
@@ -216,13 +218,15 @@ class DefaultNetwork(Network):
                 yield EUI(item)
         yield from ()
 
-    def to_dict(self, indexed=False):
+    def to_dict(self):
+        ip = list(self.free_ips)
+        macs = list(self.free_macs)
         return {
             "network": self.network,
             "getway": self.gateway,
             "dns": self.dns,
-            "free_ips": self.free_ips,
-            "free_macs": self.free_macs,
+            "free_ips": ip,
+            "free_macs": macs,
         }
 
 
@@ -633,5 +637,21 @@ class Roles(UserDict):
 
     def _repr_html_(self):
         d = self.to_dict(indexed=True)
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)
+
+
+class Networks(UserDict):
+    def to_dict(self):
+        res = {}
+        for role, networks in self.data.items():
+            res.setdefault(role, {})
+            for n in networks:
+                d = n.to_dict()
+                res[role].update({n.network: d})
+        return res
+
+    def _repr_html_(self):
+        d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         return gen_html(name_class, d)

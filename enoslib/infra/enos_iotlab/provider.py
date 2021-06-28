@@ -6,7 +6,7 @@ from typing import List, Optional
 import iotlabcli.auth
 
 from enoslib.api import play_on
-from enoslib.objects import Host, Roles
+from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork
@@ -294,7 +294,7 @@ class Iotlab(Provider):
             for role in sensor.roles:
                 roles.setdefault(role, []).append(sensor)
 
-        networks = {}
+        networks = Networks()
         for network in self.networks:
             for role in network.roles:
                 networks.setdefault(role, []).append(network)

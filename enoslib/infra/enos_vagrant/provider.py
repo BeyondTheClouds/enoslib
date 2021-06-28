@@ -1,4 +1,3 @@
-from collections import defaultdict
 from ipaddress import ip_interface
 import logging
 import os
@@ -8,7 +7,7 @@ from netaddr import IPNetwork
 
 import vagrant
 
-from enoslib.objects import DefaultNetwork, Host, Roles
+from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.infra.provider import Provider
 
 from .constants import DEFAULT_NAME_PREFIX
@@ -108,9 +107,10 @@ class Enos_vagrant(Provider):
                         keyfile=keyfile,
                     )
                 )
-        networks = defaultdict(list)
+        networks = Networks()
         for network in _networks:
             for role in network["roles"]:
+                networks.setdefault(role, [])
                 vagrant_net = VagrantNetwork(
                     address=str(ip_interface(network["cidr"]).network),
                     gateway=str(network["gateway"]),

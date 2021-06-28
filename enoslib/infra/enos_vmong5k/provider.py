@@ -10,7 +10,7 @@ from typing import Dict, List
 from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
-from enoslib.objects import Host, Network, Roles, RolesNetworks
+from enoslib.objects import Host, Network, Networks, Roles, RolesNetworks
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
@@ -74,7 +74,7 @@ def start_virtualmachines(
 
     _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=force_deploy)
 
-    return vmong5k_roles, dict(__subnet__=g5k_subnets)
+    return vmong5k_roles, Networks(__subnet__=g5k_subnets)
 
 
 def _get_subnet_ip(mac):

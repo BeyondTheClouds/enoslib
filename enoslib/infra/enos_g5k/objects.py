@@ -1,5 +1,6 @@
 import ipaddress
 from abc import ABC, abstractmethod
+from logging import Logger
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
@@ -619,7 +620,7 @@ class G5kHost:
         return cmd
 
     def grant_root_access_command(self) -> str:
-        """ Get the command to get root access on the node."""
+        """Get the command to get root access on the node."""
         cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
         cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
         return "|".join(cmd)
@@ -721,7 +722,10 @@ class G5kEnosProd6Network(G5kEnosProd4Network):
 
     @property
     def gateway(self):
-        raise ValueError("Not implemented yet")
+        m = f"gateway is not yet implemented for {self.__class__} on the G5k side"
+        log = Logger(name=f"{self.__class__}")
+        log.warning(msg=m)
+        return None
 
 
 class G5kEnosVlan4Network(DefaultNetwork):

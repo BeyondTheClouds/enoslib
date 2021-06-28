@@ -31,7 +31,7 @@ from keystoneauth1 import session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
 
-from enoslib.objects import Host, Roles
+from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.infra.provider import Provider
 from .constants import (
@@ -483,7 +483,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     extra_ips = extra_ips or []
     net = ipaddress.ip_network(env["subnet"]["cidr"])
 
-    networks = dict()
+    networks = Networks()
     for role in provider_conf.networks:
         # NOTE(msimonin): we need to support extra_ips in the Network Model
         # I drop this for now

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from collections import defaultdict
 
-from enoslib.objects import DefaultNetwork, Host, Roles
+from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.infra.provider import Provider
 
 
@@ -30,9 +29,10 @@ class Static(Provider):
                     )
                 )
 
-        networks = defaultdict(list)
+        networks = Networks()
         for n in self.provider_conf.networks:
             for role in n.roles:
+                networks.setdefault(role, [])
                 networks[role].append(
                     DefaultNetwork(
                         address=n.cidr,

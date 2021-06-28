@@ -2,7 +2,6 @@
 import copy
 import logging
 import operator
-from collections import defaultdict
 from itertools import groupby
 from typing import List, Optional, Tuple, cast
 
@@ -43,7 +42,7 @@ from enoslib.infra.enos_g5k.remote import DEFAULT_CONN_PARAMS, get_execo_remote
 from enoslib.infra.enos_g5k.utils import run_commands
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
-from enoslib.objects import Host, Roles
+from enoslib.objects import Host, Networks, Roles
 from sshtunnel import SSHTunnelForwarder
 
 logger = logging.getLogger(__name__)
@@ -494,10 +493,11 @@ class G5k(Provider):
                 h = Host(host.ssh_address, user="root")
                 hosts[role].append(h)
         # doing the same on networks
-        networks = defaultdict(list)
+        networks = Networks()
         for network in self.networks:
             roles, enos_networks = network.to_enos()
             for role in roles:
+                networks.setdefault(role, [])
                 networks[role].extend(enos_networks)
         return hosts, networks
 

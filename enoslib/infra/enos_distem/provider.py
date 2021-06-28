@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 
 from enoslib.api import play_on
-from enoslib.objects import Host, Network, Roles
+from enoslib.objects import Host, Network, Networks, Roles
 import enoslib.infra.enos_g5k.configuration as g5kconf
 from enoslib.infra.enos_g5k.constants import SLASH_22
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -56,7 +56,7 @@ def start_containers(
     # For now we only consider a single subnet
     distem_roles = _start_containers(provider_conf, g5k_subnets[0], distem, keys_path)
 
-    return distem_roles, dict(__subnet__=g5k_subnets)
+    return distem_roles, Networks(__subnet__=g5k_subnets)
 
 
 def _get_host_cores(cluster):
