@@ -121,6 +121,15 @@ class Network(ABC):
     def free_macs(self) -> Iterable[str]:
         yield from ()
 
+    @abstractmethod
+    def to_dict(self):
+        return {}
+
+    def _repr_html_(self):
+        d = self.to_dict()
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)
+
 
 class DefaultNetwork(Network):
     """Good enough implementation of Network for most situations.
@@ -228,6 +237,13 @@ class DefaultNetwork(Network):
             "free_ips": ip,
             "free_macs": macs,
         }
+
+    def _repr_html_(self):
+        d = self.to_dict()
+        d["free_ips"] = d["free_ips"][:10]
+        d["free_macs"] = d["free_macs"][:10]
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return gen_html(name_class, d)
 
 
 @dataclass(unsafe_hash=True)
