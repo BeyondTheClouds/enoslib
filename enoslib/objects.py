@@ -38,7 +38,7 @@ from typing import (
     Union,
 )
 
-from enoslib.html import gen_html
+from enoslib.html import Html_base, gen_html
 from collections import UserDict
 
 
@@ -238,12 +238,16 @@ class DefaultNetwork(Network):
             "free_macs": macs,
         }
 
-    def _repr_html_(self):
+    def _repr_html_(self, content_only=False):
+        from enoslib.html import gen_indexed
+
         d = self.to_dict()
-        d["free_ips"] = d["free_ips"][:10]
-        d["free_macs"] = d["free_macs"][:10]
+        d["free_ips"] = d["free_ips"][:10] + ["[truncated list]"]
+        d["free_macs"] = d["free_macs"][:10] + ["[truncated list]"]
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return gen_html(name_class, d)
+        return gen_indexed(
+            str(self.network), gen_html(name_class, d, content_only=content_only)
+        )
 
 
 @dataclass(unsafe_hash=True)
@@ -668,6 +672,27 @@ class Networks(UserDict):
         return res
 
     def _repr_html_(self):
-        d = self.to_dict()
-        name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return gen_html(name_class, d)
+        from html import escape as html_escape
+        from enoslib.html import _load_css, gen_indexed
+
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        css = f"<style> {_load_css()} </style>"
+
+        role_contents = []
+        for role, networks in self.data.items():
+            repr_networks = []
+            for network in networks:
+                repr_networks.append(network._repr_html_(content_only=True))
+            role_contents.append(gen_indexed(role, "".join(repr_networks)))
+
+        res = f"""
+            {css}
+            <div class="enoslib_object">
+            <div class="object_name">
+                {html_escape(repr_title)}
+            </div>
+            <ul class="list">
+                {"".join(role_contents)}
+            </ul>
+                </div>"""
+        return res

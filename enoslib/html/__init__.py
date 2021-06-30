@@ -1,3 +1,5 @@
+from os import name
+from typing import Text
 import pkg_resources
 import uuid
 from html import escape as html_escape
@@ -32,6 +34,7 @@ def dict_to_html(d: dict) -> str:
                         {tab}
                         </li>"""
             html += li
+
         else:
             html += f"""
                         <li>
@@ -41,6 +44,7 @@ def dict_to_html(d: dict) -> str:
                         </label>
                         <span>{v}</span>
                         </li>"""
+
     return html
 
 
@@ -118,10 +122,32 @@ def convert_dict(input):
     return converted_output
 
 
-def gen_html(class_name: str, d: dict):
+def gen_html(class_name: str, d: dict, content_only=False):
     li = dict_to_html(d)
-    css = f"<style> {_load_css()} </style>"
+    content = f"""<div class="enoslib_object">
+            <div class="object_name">
+                {html_escape(class_name)}
+            </div>
+            <ul class="list">
+                {li}
+            </ul>
+                </div>"""
 
+    if content_only:
+        css = ""
+        return li
+    else:
+        css = f"<style> {_load_css()} </style>"
+        res = f"""
+            {css}
+            {content}
+        """
+
+    return res
+
+
+def Html_base(class_name: str, body: str):
+    css = f"<style> {_load_css()} </style>"
     res = f"""
         {css}
          <div class="enoslib_object">
@@ -129,7 +155,22 @@ def gen_html(class_name: str, d: dict):
             {html_escape(class_name)}
         </div>
         <ul class="list">
-            {li}
+            {body}
         </ul>
             </div>"""
     return res
+
+
+def gen_indexed(name: str, content: str):
+    import uuid
+
+    data_id = f"{name}-" + str(uuid.uuid4())
+    return f"""
+                <li>
+                    <input type="checkbox" id="{data_id}" class="att">
+                    <label for="{data_id}">{name}</label>
+                    <ul id="{name}">
+                        {content}
+                    </ul>
+                </li>
+                """
