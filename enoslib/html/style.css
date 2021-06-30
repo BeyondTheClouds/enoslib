@@ -1,5 +1,9 @@
+.enoslib {
+    width: 650px;
+}
+
 .enoslib_object {
-    width: 540px;
+    width: 100%;
     font-size: 1em;
     line-height: 1.5;
     background-color: rgb(250, 249, 249);

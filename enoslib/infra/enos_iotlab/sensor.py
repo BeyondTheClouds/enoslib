@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from enoslib.html import gen_html
+from enoslib.html import html_from_dict
 
 
 @dataclass(unsafe_hash=True)
@@ -34,4 +34,4 @@ class Sensor(object):
     def _repr_html_(self):
         d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return gen_html(name_class, d)
+        return html_from_dict(name_class, d)

@@ -1,5 +1,4 @@
-from os import name
-from typing import Text
+from typing import List, Union
 import pkg_resources
 import uuid
 from html import escape as html_escape
@@ -12,39 +11,66 @@ def _load_css():
     return pkg_resources.resource_string("enoslib", STATIC_FILES).decode("utf8")
 
 
+def html_object(name: str, foldable_sections: Union[str, List[str]]):
+    if isinstance(foldable_sections, str):
+        foldable_sections = [foldable_sections]
+
+    s = f"""<div class="enoslib_object">
+            <div class="object_name">
+                {html_escape(name)}
+            </div>
+            <ul class="list">
+                {"".join(foldable_sections)}
+            </ul>
+                </div>"""
+
+    return s
+
+
+def foldable_section(name: str, html_objects: Union[str, List[str]]):
+    """Generate a foldable section."""
+    import uuid
+
+    if isinstance(html_objects, str):
+        html_objects = [html_objects]
+
+    data_id = f"{name}-" + str(uuid.uuid4())
+    return f"""
+                <li>
+                    <input type="checkbox" id="{data_id}" class="att">
+                    <label for="{data_id}">{name}</label>
+                    <ul id="{name}">
+                        {"".join(html_objects)}
+                    </ul>
+                </li>
+                """
+
+
+def inline_value(key: str, value: str):
+    data_id = f"{key}-" + str(uuid.uuid4())
+    return f"""
+        <li>
+        <input type="checkbox" id="{data_id}" class="att" disabled="">
+        <label for="{data_id}">
+            <span>{key}</span>
+        </label>
+        <span>{value}</span>
+        </li>"""
+
+
 def dict_to_html(d: dict) -> str:
     html = ""
     for k, v in d.items():
-        data_id = f"{k}-" + str(uuid.uuid4())
         if isinstance(v, dict) or hasattr(v, "keys"):
-            html += f"""
-                    <li>
-                        <input type="checkbox" id="{data_id}" class="att">
-                        <label for="{data_id}">{k}</label>
-                        <ul id = "{k}">
-                            {dict_to_html(v)}
-                        </ul>
-                    </li>
-                    """
+            # foldable_section
+            html += foldable_section(k, dict_to_html(v))
         elif isinstance(v, list):
             tab = convert_to_html_table(v)
-            li = f""" <li>
-                        <input type="checkbox" id="{data_id}" class="att">
-                        <label for="{data_id}">{k}</label>
-                        {tab}
-                        </li>"""
-            html += li
-
+            # table_section
+            html += foldable_section(k, tab)
         else:
-            html += f"""
-                        <li>
-                        <input type="checkbox" id="{data_id}" class="att" disabled="">
-                        <label for="{data_id}">
-                            <span>{k}</span>
-                        </label>
-                        <span>{v}</span>
-                        </li>"""
-
+            # line_section
+            html += inline_value(k, v)
     return html
 
 
@@ -122,55 +148,33 @@ def convert_dict(input):
     return converted_output
 
 
-def gen_html(class_name: str, d: dict, content_only=False):
-    li = dict_to_html(d)
-    content = f"""<div class="enoslib_object">
-            <div class="object_name">
-                {html_escape(class_name)}
-            </div>
-            <ul class="list">
-                {li}
-            </ul>
-                </div>"""
+def html_from_dict(class_name: str, content: dict, content_only=False):
+    html = dict_to_html(content)
+    html = html_object(class_name, html)
 
     if content_only:
-        css = ""
-        return li
-    else:
-        css = f"<style> {_load_css()} </style>"
-        res = f"""
-            {css}
-            {content}
-        """
+        return html
 
-    return res
+    return html_base(html)
 
 
-def Html_base(class_name: str, body: str):
+def html_from_section(
+    class_name: str, content: Union[str, List[str]], content_only=False
+):
+    html = html_object(class_name, content)
+
+    if content_only:
+        return html
+
+    return html_base(html)
+
+
+def html_base(content: str):
     css = f"<style> {_load_css()} </style>"
     res = f"""
         {css}
-         <div class="enoslib_object">
-        <div class="object_name">
-            {html_escape(class_name)}
+        <div class="enoslib">
+        {content}
         </div>
-        <ul class="list">
-            {body}
-        </ul>
-            </div>"""
+    """
     return res
-
-
-def gen_indexed(name: str, content: str):
-    import uuid
-
-    data_id = f"{name}-" + str(uuid.uuid4())
-    return f"""
-                <li>
-                    <input type="checkbox" id="{data_id}" class="att">
-                    <label for="{data_id}">{name}</label>
-                    <ul id="{name}">
-                        {content}
-                    </ul>
-                </li>
-                """
