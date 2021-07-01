@@ -29,7 +29,6 @@ def html_object(name: str, foldable_sections: Union[str, List[str]]):
 
 def foldable_section(name: str, html_objects: Union[str, List[str]]):
     """Generate a foldable section."""
-    import uuid
 
     if isinstance(html_objects, str):
         html_objects = [html_objects]

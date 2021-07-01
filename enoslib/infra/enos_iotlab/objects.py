@@ -117,8 +117,8 @@ class IotlabSensor(Sensor):
         """
         self.iotlab_client.send_cmd_node(cmd="reset", nodes=[self.address])
 
-    def to_dict(self, indexed=False):
-        d = super().to_dict(indexed=indexed)
+    def to_dict(self):
+        d = super().to_dict()
         d.update(
             roles=self.roles,
             site=self.site,

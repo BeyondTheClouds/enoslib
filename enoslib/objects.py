@@ -38,7 +38,12 @@ from typing import (
     Union,
 )
 
-from enoslib.html import html_base, html_from_dict
+from enoslib.html import (
+    dict_to_html,
+    html_from_dict,
+    html_from_section,
+    foldable_section,
+)
 from collections import UserDict
 
 
@@ -400,16 +405,17 @@ class NetDevice(object):
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
-    def to_dict(self, indexed=False):
-        if not indexed:
-            add = [address.to_dict() for address in self.addresses]
-        else:
-            add = {str(address.ip): address.to_dict() for address in self.addresses}
+    def to_dict(self):
         return dict(
             device=self.name,
-            addresses=add,
+            addresses=[address.to_dict() for address in self.addresses],
             type="ether",
         )
+
+    def _repr_html_(self, content_only=False):
+        d = self.to_dict()
+        name_class = f"{str(self.__class__)}@{hex(id(self))}"
+        return html_from_dict(name_class, d, content_only=content_only)
 
 
 @dataclass(unsafe_hash=True)
@@ -421,8 +427,8 @@ class BridgeDevice(NetDevice):
         """Get all the interfaces that are bridged here."""
         return self.bridged
 
-    def to_dict(self, indexed=False):
-        d = super().to_dict(indexed=indexed)
+    def to_dict(self):
+        d = super().to_dict()
         d.update(type="bridge", interfaces=self.interfaces)
         return d
 
@@ -509,17 +515,10 @@ class Host(object):
         # read by specific host accessor (e.g processor, memory)
         self.__facts = None
 
-    def to_dict(self, indexed=False):
+    def to_dict(self):
         p = None
         if self.processor is not None:
             p = self.processor.to_dict()
-        if not indexed:
-            nd = [device.to_dict(indexed=indexed) for device in self.net_devices]
-        else:
-            nd = {
-                device.name: device.to_dict(indexed=indexed)
-                for device in self.net_devices
-            }
         d = dict(
             address=self.address,
             alias=self.alias,
@@ -528,7 +527,7 @@ class Host(object):
             port=self.port,
             extra=self.extra,
             processor=p,
-            net_devices=nd,
+            net_devices=[device.to_dict() for device in self.net_devices],
         )
         return copy.deepcopy(d)
 
@@ -633,33 +632,31 @@ class Host(object):
         ]
         return "Host(%s)" % ", ".join(args)
 
-    def _repr_html_(self) -> str:
-        d = self.to_dict()
+    def _repr_html_(self, content_only=False) -> str:
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return html_from_dict(name_class, d)
+        d = self.to_dict()
+        d.pop("net_devices")
+        repr = [dict_to_html(d)]
+        net_d = []
+        for n in self.net_devices:
+            n_html = n._repr_html_(content_only=True)
+            net_d.append(foldable_section(n.name, n_html))
+        repr.append(foldable_section("net_devices", net_d))
+        return html_from_section(name_class, repr, content_only=content_only)
 
 
 class Roles(UserDict):
-    def to_dict(self, indexed=False):
-        res = {}
-        old_data = self.data
-        for role, hosts in old_data.items():
-            res.setdefault(role, {})
-            for h in hosts:
-                d = h.to_dict(indexed=indexed)
-                if indexed:
-                    res.setdefault(role, {})
-                    res[role].update({h.alias: d})
-                else:
-                    res.setdefault(role, [])
-                    res[role].append(d)
-
-        return res
-
     def _repr_html_(self):
-        d = self.to_dict(indexed=True)
-        name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return html_from_dict(name_class, d)
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        role_contents = []
+        for role, hosts in self.data.items():
+            repr_hosts = []
+            for h in hosts:
+                repr_hosts.append(
+                    foldable_section(h.alias, h._repr_html_(content_only=True))
+                )
+            role_contents.append(foldable_section(role, repr_hosts))
+        return html_from_section(repr_title, role_contents, content_only=False)
 
 
 class Networks(UserDict):
@@ -673,10 +670,7 @@ class Networks(UserDict):
         return res
 
     def _repr_html_(self):
-        from enoslib.html import foldable_section
-
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
-
         role_contents = []
         for role, networks in self.data.items():
             repr_networks = []
@@ -687,7 +681,4 @@ class Networks(UserDict):
                     )
                 )
             role_contents.append(foldable_section(role, repr_networks))
-
-        from enoslib.html import html_from_section
-
         return html_from_section(repr_title, role_contents, content_only=False)

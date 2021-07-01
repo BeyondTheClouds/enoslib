@@ -1,9 +1,9 @@
 .enoslib {
-    width: 650px;
+    width: auto;
 }
 
 .enoslib_object {
-    width: 100%;
+    width: auto;
     font-size: 1em;
     line-height: 1.5;
     background-color: rgb(250, 249, 249);
@@ -93,7 +93,7 @@ input.att:checked~ul {
 table {
     width: auto;
     border-collapse: collapse;
-    margin: auto;
+    margin: 2%;
 }
 
 td,

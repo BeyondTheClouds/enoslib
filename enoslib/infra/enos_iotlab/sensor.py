@@ -28,10 +28,10 @@ class Sensor(object):
         ]
         return "Sensor(%s)" % ", ".join(args)
 
-    def to_dict(self, indexed=False):
+    def to_dict(self):
         return {"alias": self.alias}
 
-    def _repr_html_(self):
+    def _repr_html_(self, content_only=False):
         d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return html_from_dict(name_class, d)
+        return html_from_dict(name_class, d, content_only=content_only)

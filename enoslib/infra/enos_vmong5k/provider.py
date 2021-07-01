@@ -254,8 +254,8 @@ class VirtualMachine(Host):
     <target dev='vdz' bus='virtio'/>
 </disk>\n"""
 
-    def to_dict(self, indexed=False):
-        d = super().to_dict(indexed=indexed)
+    def to_dict(self):
+        d = super().to_dict()
         d.update(
             core=self.core,
             mem=self.mem,
