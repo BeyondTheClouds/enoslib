@@ -27,17 +27,22 @@ def html_object(name: str, foldable_sections: Union[str, List[str]]):
     return s
 
 
-def foldable_section(name: str, html_objects: Union[str, List[str]], len: str = ""):
+def foldable_section(name: str, html_objects: Union[str, List[str]], extra: str = ""):
     """Generate a foldable section."""
 
     if isinstance(html_objects, str):
         html_objects = [html_objects]
 
     data_id = f"{name}-" + str(uuid.uuid4())
+
+    html_extra = ""
+    if extra:
+        html_extra = f'<span class="len">({extra})</span>'
+
     return f"""
                 <li>
                     <input type="checkbox" id="{data_id}" class="att">
-                    <label for="{data_id}">{name} <span class="len">{len}</span></label>
+                    <label for="{data_id}">{name} {html_extra}</label>
                     <ul id="{name}">
                         {"".join(html_objects)}
                     </ul>
@@ -62,11 +67,11 @@ def dict_to_html(d: dict) -> str:
     for k, v in d.items():
         if isinstance(v, dict) or hasattr(v, "keys"):
             # foldable_section
-            html += foldable_section(k, dict_to_html(v))
+            html += foldable_section(k, dict_to_html(v), extra=str(len(v)))
         elif isinstance(v, list):
             tab = convert_to_html_table(v)
             # table_section
-            html += foldable_section(k, tab, len=f"({len(v)})")
+            html += foldable_section(k, tab, extra=str(len(v)))
         else:
             # line_section
             html += inline_value(k, v)

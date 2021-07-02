@@ -30,8 +30,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Mapping,
-    MutableMapping,
     Optional,
     Set,
     Tuple,
@@ -52,9 +50,50 @@ AddressType = Union[bytes, int, Tuple, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 Role = str
-Roles = MutableMapping[Role, List["Host"]]
-Networks = Mapping[Role, List["Network"]]
-RolesNetworks = Tuple[Roles, Networks]
+RolesNetworks = Tuple["Roles", "Networks"]
+
+
+class Roles(UserDict):
+    def _repr_html_(self):
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        role_contents = []
+        for role, hosts in self.data.items():
+            repr_hosts = []
+            for h in hosts:
+                repr_hosts.append(
+                    foldable_section(h.alias, h._repr_html_(content_only=True))
+                )
+            role_contents.append(
+                foldable_section(role, repr_hosts, extra=str(len(self.data[role])))
+            )
+        return html_from_section(repr_title, role_contents, content_only=False)
+
+
+class Networks(UserDict):
+    def to_dict(self):
+        res = {}
+        for role, networks in self.data.items():
+            res.setdefault(role, {})
+            for n in networks:
+                d = n.to_dict()
+                res[role].update({n.network: d})
+        return res
+
+    def _repr_html_(self):
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        role_contents = []
+        for role, networks in self.data.items():
+            repr_networks = []
+            for network in networks:
+                repr_networks.append(
+                    foldable_section(
+                        network.network, network._repr_html_(content_only=True)
+                    )
+                )
+            role_contents.append(
+                foldable_section(role, repr_networks, str(len(self.data[role])))
+            )
+        return html_from_section(repr_title, role_contents, content_only=False)
 
 
 def _build_devices(facts, networks):
@@ -125,15 +164,6 @@ class Network(ABC):
     @abstractmethod
     def free_macs(self) -> Iterable[str]:
         yield from ()
-
-    @abstractmethod
-    def to_dict(self):
-        return {}
-
-    def _repr_html_(self):
-        d = self.to_dict()
-        name_class = f"{str(self.__class__)}@{hex(id(self))}"
-        return html_from_dict(name_class, d)
 
 
 class DefaultNetwork(Network):
@@ -233,8 +263,12 @@ class DefaultNetwork(Network):
                 yield EUI(item)
         yield from ()
 
-    def to_dict(self):
-        return {
+    def _repr_html_(self, content_only=False):
+        """
+        content_only == True  => html_object == <div class=enoslib>...</div>
+        content_only == False => html_base(html_object) == css +
+        """
+        d = {
             "network": self.network,
             "geteway": self.gateway,
             "dns": self.dns,
@@ -242,12 +276,6 @@ class DefaultNetwork(Network):
             "free_macs": list(islice(self.free_macs, 0, 10, 1)) + ["[truncated list]"],
         }
 
-    def _repr_html_(self, content_only=False):
-        """
-        content_only == True  => html_object == <div class=enoslib>...</div>
-        content_only == False => html_base(html_object) == css +
-        """
-        d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         return html_from_dict(name_class, d, content_only=content_only)
 
@@ -445,6 +473,10 @@ class Processor(object):
             "threads_per_core": self.threads_per_core,
         }
 
+    def _repr_html_(self, content_only: bool = False):
+        d = self.to_dict()
+        return dict_to_html(d)
+
 
 @dataclass(unsafe_hash=True, order=True)
 class Host(object):
@@ -631,50 +663,23 @@ class Host(object):
     def _repr_html_(self, content_only=False) -> str:
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         d = self.to_dict()
+        # trick to not nest dictionnary
         d.pop("net_devices")
-        repr = [dict_to_html(d)]
+        d.pop("processor")
+        sections = [dict_to_html(d)]
         net_d = []
         for n in self.net_devices:
             n_html = n._repr_html_(content_only=True)
             net_d.append(foldable_section(n.name, n_html))
-        repr.append(foldable_section("net_devices", net_d))
-        return html_from_section(name_class, repr, content_only=content_only)
-
-
-class Roles(UserDict):
-    def _repr_html_(self):
-        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
-        role_contents = []
-        for role, hosts in self.data.items():
-            repr_hosts = []
-            for h in hosts:
-                repr_hosts.append(
-                    foldable_section(h.alias, h._repr_html_(content_only=True))
+        sections.append(foldable_section("net_devices", net_d, extra=str(len(net_d))))
+        p = self.processor
+        if p:
+            # Display a quick summary of the available processor
+            sections.append(
+                foldable_section(
+                    "processor",
+                    p._repr_html_(content_only=True),
+                    extra=f"{p.vcpus} vcpus",
                 )
-            role_contents.append(foldable_section(role, repr_hosts))
-        return html_from_section(repr_title, role_contents, content_only=False)
-
-
-class Networks(UserDict):
-    def to_dict(self):
-        res = {}
-        for role, networks in self.data.items():
-            res.setdefault(role, {})
-            for n in networks:
-                d = n.to_dict()
-                res[role].update({n.network: d})
-        return res
-
-    def _repr_html_(self):
-        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
-        role_contents = []
-        for role, networks in self.data.items():
-            repr_networks = []
-            for network in networks:
-                repr_networks.append(
-                    foldable_section(
-                        network.network, network._repr_html_(content_only=True)
-                    )
-                )
-            role_contents.append(foldable_section(role, repr_networks))
-        return html_from_section(repr_title, role_contents, content_only=False)
+            )
+        return html_from_section(name_class, sections, content_only=content_only)
