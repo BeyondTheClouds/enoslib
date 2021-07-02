@@ -802,7 +802,9 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
     @property
     def gateway(self):
         # FIXME
-        raise ValueError("Unsupported operation")
+        m = f"gateway is not yet implemented for {self.__class__} on the G5k side"
+        logger.warning(msg=m)
+        return None
 
 
 def build_ipmac(subnet):

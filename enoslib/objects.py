@@ -15,6 +15,7 @@ abstract resource description into concrete library level objects.
 """
 import copy
 from abc import ABC, abstractmethod
+from collections import UserDict
 from dataclasses import InitVar, dataclass, field
 from ipaddress import (
     IPv4Address,
@@ -24,8 +25,7 @@ from ipaddress import (
     ip_address,
     ip_interface,
 )
-
-from netaddr import EUI
+from itertools import islice
 from typing import (
     Dict,
     Iterable,
@@ -38,14 +38,14 @@ from typing import (
     Union,
 )
 
+from netaddr import EUI
+
 from enoslib.html import (
     dict_to_html,
+    foldable_section,
     html_from_dict,
     html_from_section,
-    foldable_section,
 )
-from collections import UserDict
-
 
 NetworkType = Union[bytes, int, Tuple, str]
 AddressType = Union[bytes, int, Tuple, str]
@@ -181,6 +181,7 @@ class DefaultNetwork(Network):
         self.pool_start = None
         if ip_start is not None:
             self.pool_start = ip_address(ip_start)
+        self.pool_end = None
         if ip_end is not None:
             self.pool_end = ip_address(ip_end)
         self.pool_mac_start: Optional[EUI] = None
@@ -233,14 +234,12 @@ class DefaultNetwork(Network):
         yield from ()
 
     def to_dict(self):
-        ip = list(self.free_ips)
-        macs = list(self.free_macs)
         return {
             "network": self.network,
-            "getway": self.gateway,
+            "geteway": self.gateway,
             "dns": self.dns,
-            "free_ips": ip,
-            "free_macs": macs,
+            "free_ips": list(islice(self.free_ips, 0, 10, 1)) + ["[truncated list]"],
+            "free_macs": list(islice(self.free_macs, 0, 10, 1)) + ["[truncated list]"],
         }
 
     def _repr_html_(self, content_only=False):
@@ -249,10 +248,7 @@ class DefaultNetwork(Network):
         content_only == False => html_base(html_object) == css +
         """
         d = self.to_dict()
-        d["free_ips"] = d["free_ips"][:10] + ["[truncated list]"]
-        d["free_macs"] = d["free_macs"][:10] + ["[truncated list]"]
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
-
         return html_from_dict(name_class, d, content_only=content_only)
 
 

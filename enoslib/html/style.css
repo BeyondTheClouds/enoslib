@@ -78,6 +78,14 @@ input.att+label>span {
     margin-left: 4px;
 }
 
+input.att+label>span.len {
+    font-size: small;
+}
+
+input.att:checked+label>span.len {
+    display: none;
+}
+
 label+span {
     color: rgb(70, 69, 69);
 }
