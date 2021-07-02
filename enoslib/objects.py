@@ -268,12 +268,18 @@ class DefaultNetwork(Network):
         content_only == True  => html_object == <div class=enoslib>...</div>
         content_only == False => html_base(html_object) == css +
         """
+        ips = list(islice(self.free_ips, 0, 10, 1))
+        if len(ips) > 0:
+            ips += ["[truncated list]"]
+        macs = list(islice(self.free_macs, 0, 10, 1))
+        if len(macs) > 0:
+            macs += ["[truncated list]"]
         d = {
             "network": self.network,
-            "geteway": self.gateway,
+            "gateway": self.gateway,
             "dns": self.dns,
-            "free_ips": list(islice(self.free_ips, 0, 10, 1)) + ["[truncated list]"],
-            "free_macs": list(islice(self.free_macs, 0, 10, 1)) + ["[truncated list]"],
+            "free_ips": ips,
+            "free_macs": macs,
         }
 
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
