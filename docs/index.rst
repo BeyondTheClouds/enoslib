@@ -25,3 +25,4 @@ The tip of the Iceberg featuring Vagrant and Grid'5000 testbed.
    apidoc/index.rst
    theyuseit.rst
    changelog.rst
+   jupyter_integration/exemple.ipynb
