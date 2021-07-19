@@ -1,7 +1,9 @@
 import logging
-import time
+import tarfile
+from pathlib import Path
 
 import enoslib as en
+from scapy.all import rdpcap
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,10 +33,31 @@ roles = en.sync_info(roles, networks)
 # - we dump icmp traffic only
 # - for the duration of the commands (here a client is pigging the server)
 with en.TCPDump(
-    hosts=roles["control"], networks=networks["my_network"], options="icmp"
+    hosts=roles["control"], networks=networks["my_network"], options="-U icmp"
 ):
     _ = en.run(f"ping -c10 {roles['server'][0].address}", roles["client"])
 
 # pcap files are retrieved in the __enoslib__tcpdump__ directory
 # - can be loaded in wireshark
 # - manipulated with scappy ...
+
+
+# Examples:
+# create a dictionnary of (alias, if) -> list of decoded packets by scapy
+base_dir = Path("__enoslib_tcpdump__")
+decoded_pcaps = dict()
+for host in roles["control"]:
+    host_dir = base_dir / host.alias
+    t = tarfile.open(host_dir / "tcpdump.tar.gz")
+    t.extractall(host_dir / "extracted")
+    # get all extracted pcap for this host
+    pcaps = (host_dir / "extracted").rglob("*.pcap")
+    for pcap in pcaps:
+        decoded_pcaps.setdefault((host.alias, pcap.with_suffix("").name),
+                                 rdpcap(str(pcap)))
+
+# Displaying some packets
+for (host, ifs), packets in decoded_pcaps.items():
+    print(host, ifs)
+    packets[0].show()
+    packets[1].show()
