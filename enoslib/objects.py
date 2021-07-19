@@ -42,7 +42,7 @@ from enoslib.html import (
     dict_to_html,
     foldable_section,
     html_from_dict,
-    html_from_section,
+    html_from_sections,
 )
 
 NetworkType = Union[bytes, int, Tuple, str]
@@ -66,7 +66,7 @@ class Roles(UserDict):
             role_contents.append(
                 foldable_section(role, repr_hosts, extra=str(len(self.data[role])))
             )
-        return html_from_section(repr_title, role_contents, content_only=False)
+        return html_from_sections(repr_title, role_contents, content_only=False)
 
 
 class Networks(UserDict):
@@ -93,7 +93,7 @@ class Networks(UserDict):
             role_contents.append(
                 foldable_section(role, repr_networks, str(len(self.data[role])))
             )
-        return html_from_section(repr_title, role_contents, content_only=False)
+        return html_from_sections(repr_title, role_contents, content_only=False)
 
 
 def _build_devices(facts, networks):
@@ -688,4 +688,4 @@ class Host(object):
                     extra=f"{p.vcpus} vcpus",
                 )
             )
-        return html_from_section(name_class, sections, content_only=content_only)
+        return html_from_sections(name_class, sections, content_only=content_only)

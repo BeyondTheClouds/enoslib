@@ -225,7 +225,7 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
     options = _build_options(extra_vars, {"tc_commands": tc_commands})
 
     # Run the commands on the remote hosts (only those involved)
-    roles = dict(all=[htb_host.host for htb_host in htb_hosts])
+    roles = Roles(all=[htb_host.host for htb_host in htb_hosts])
     with play_on(roles=roles, extra_vars=options, **kwargs) as p:
         p.raw(
             "{{ item }}",

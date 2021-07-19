@@ -41,9 +41,7 @@ roles = sync_info(roles, networks)
 
 # testing TIG stack
 m_tig = TIGMonitoring(
-    collector=roles["control"][0],
-    agent=roles["control"],
-    ui=roles["control"][0]
+    collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0]
 )
 m_tig.deploy()
 m_tig.backup()
@@ -52,9 +50,7 @@ m_tig.destroy()
 
 # testing TGP stack
 m_tpg = TPGMonitoring(
-    collector=roles["control"][0],
-    agent=roles["control"],
-    ui=roles["control"][0]
+    collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0]
 )
 m_tpg.deploy()
 m_tpg.backup()

@@ -45,10 +45,12 @@ class K3s(Service):
         )
         token = result["ok"][self.master[0].alias]["stdout"]
         with play_on(pattern_hosts="agent", roles=self.roles, gather_facts=False) as p:
-            p.shell((
-                f"curl -sfL https://get.k3s.io |"
-                f"K3S_URL=https://{self.master[0].address}:6443 K3S_TOKEN={token} sh"
-            ))
+            cmd = f"K3S_URL=https://{self.master[0].address}:6443 K3S_TOKEN={token} sh"
+            p.shell(
+                (
+                    f"curl -sfL https://get.k3s.io | {cmd}"
+                )
+            )
 
     def destroy(self):
         pass

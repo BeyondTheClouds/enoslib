@@ -30,13 +30,15 @@ SCHEMA = {
         "properties": {
             "machines": {
                 "oneOf": [
-                    {"type": "array",
-                    "items": {"$ref": "#physical_nodes"},
-                    "minItems": 1,
+                    {
+                        "type": "array",
+                        "items": {"$ref": "#physical_nodes"},
+                        "minItems": 1,
                     },
-                    {"type": "array",
-                    "items": {"$ref": "#boards"},
-                    "minItems": 1,
+                    {
+                        "type": "array",
+                        "items": {"$ref": "#boards"},
+                        "minItems": 1,
                     },
                 ]
             },
@@ -106,7 +108,7 @@ SCHEMA = {
                     "num_per_channel": {
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 255
+                        "maximum": 255,
                     },
                     "period": {"type": "integer", "minimum": 1, "maximum": 65535},
                     "channels": {
@@ -130,7 +132,7 @@ SCHEMA = {
         },
         "additionalProperties": False,
         "required": ["name", "archi"],
-    }
+    },
 }
 
 IotlabFormatChecker = FormatChecker()

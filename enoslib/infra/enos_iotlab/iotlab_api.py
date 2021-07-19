@@ -22,19 +22,24 @@ from enoslib.infra.enos_iotlab.configuration import (
     RadioConfiguration,
     ConsumptionConfiguration,
 )
+
 logger = logging.getLogger(__name__)
 
 
-class IotlabAPI():
+class IotlabAPI:
     """Wrapper for accessing the FIT/IoT-LAB platform through the iotlabcli"""
 
     def __init__(self):
         user, passwd = iotlabcli.auth.get_user_credentials()
         if user is None:
-            raise(EnosIotlabCfgError("""Error initializing iotlab client,
+            raise (
+                EnosIotlabCfgError(
+                    """Error initializing iotlab client,
             no username/password available. EnOSlib depends on the cli-tools.
             Please create the IoT-LAB password file (~/.iotlabrc) using
-            the command 'iotlab-auth -u <username> -p <passord>'"""))
+            the command 'iotlab-auth -u <username> -p <passord>'"""
+                )
+            )
         self.api = iotlabcli.rest.Api(user, passwd)
         self.user = user
         self.password = passwd
@@ -51,7 +56,7 @@ class IotlabAPI():
 
     @staticmethod
     def _translate_resources(resources: List[GroupConfiguration]) -> list:
-        """ Convert from node Configuration to a list of resources acceptable by FIT/IoT-LAB
+        """Convert from node Configuration to a list of resources acceptable by FIT/IoT-LAB
 
         Args:
             resources: list of resources from schema configuration
@@ -63,25 +68,33 @@ class IotlabAPI():
             if isinstance(cfg, BoardConfiguration):
                 converted.append(
                     iotlabcli.experiment.exp_resources(
-                        nodes=iotlabcli.experiment.AliasNodes(nbnodes=cfg.number,
-                        site=cfg.site, archi=cfg.archi), profile_name=cfg.profile,
+                        nodes=iotlabcli.experiment.AliasNodes(
+                            nbnodes=cfg.number, site=cfg.site, archi=cfg.archi
+                        ),
+                        profile_name=cfg.profile,
                     )
                 )
             elif isinstance(cfg, PhysNodeConfiguration):
                 converted.append(
                     iotlabcli.experiment.exp_resources(
-                        nodes=cfg.hostname, profile_name=cfg.profile,
+                        nodes=cfg.hostname,
+                        profile_name=cfg.profile,
                     )
                 )
             else:
                 sys.exit(
                     """The impossible happened again. Resource: %s is neither
-                    a BoardConfiguration neither PhysNodeConfiguration""" % (str(cfg)))
+                    a BoardConfiguration neither PhysNodeConfiguration"""
+                    % (str(cfg))
+                )
 
         return converted
 
     def submit_experiment(
-        self, name: str, walltime: str, resources: List[GroupConfiguration],
+        self,
+        name: str,
+        walltime: str,
+        resources: List[GroupConfiguration],
     ):
         """
         Submit experiment to FIT/IoT-LAB platform
@@ -94,16 +107,23 @@ class IotlabAPI():
             resources: List of nodes in job
         """
         converted = self._translate_resources(resources)
-        logger.info("Submitting FIT/IoT-LAB: job id: %s, duration: %s, resources: %s",
-                    name, walltime, str(converted))
+        logger.info(
+            "Submitting FIT/IoT-LAB: job id: %s, duration: %s, resources: %s",
+            name,
+            walltime,
+            str(converted),
+        )
 
         json_res = iotlabcli.experiment.submit_experiment(
-            api=self.api, name=name, duration=self._walltime_to_minutes(walltime),
-            resources=converted)
+            api=self.api,
+            name=name,
+            duration=self._walltime_to_minutes(walltime),
+            resources=converted,
+        )
         # urllib.error.HTTPError: HTTP Error 500:
         # {"code":500,"message":"Invalid nodes state : [m3-1.grenoble.iot-lab.info]"}
         # OK: {'id': 237179}
-        self.job_id = json_res['id']
+        self.job_id = json_res["id"]
         self.walltime = self._walltime_to_minutes(walltime)
         logger.info("Job submitted: %d", self.job_id)
 
@@ -117,8 +137,8 @@ class IotlabAPI():
             int, int: (job identifier, walltime) or (None, None) if not found
         """
         act_jobs = iotlabcli.experiment.get_experiments_list(
-            self.api, state=','.join(iotlabcli.helpers.ACTIVE_STATES),
-            limit=0, offset=0)
+            self.api, state=",".join(iotlabcli.helpers.ACTIVE_STATES), limit=0, offset=0
+        )
         # output example: { 'items': [{'id': 237466, 'name': 'EnOSlib',
         # 'user': 'donassol', 'state': 'Running',
         # 'submission_date': '2020-11-30T09:58:28Z',
@@ -126,9 +146,9 @@ class IotlabAPI():
         # 'effective_duration': 10, 'submitted_duration': 120, 'nb_nodes': 1,
         # 'scheduled_date': '2020-11-30T09:58:30Z'}]}
 
-        for job in act_jobs['items']:
-            if job['name'] == name:
-                return job['id'], job['submitted_duration']
+        for job in act_jobs["items"]:
+            if job["name"] == name:
+                return job["id"], job["submitted_duration"]
 
         return None, None
 
@@ -155,14 +175,15 @@ class IotlabAPI():
         iotlabcli.experiment.wait_experiment(api=self.api, exp_id=self.job_id)
         logger.info("Job id (%d) is running", self.job_id)
         job_info = iotlabcli.experiment.get_experiment(
-            api=self.api, exp_id=self.job_id, option="nodes")
+            api=self.api, exp_id=self.job_id, option="nodes"
+        )
         # output example: {'items': [{'site': 'grenoble', 'archi': 'a8:at86rf231',
         # 'uid': 'b564', 'x': '20.33', 'state': 'Alive',
         # 'network_address': 'a8-1.grenoble.iot-lab.info', 'z': '2.63',
         # 'production': 'YES', 'y': '25.28', 'mobile': '0',
         # 'mobility_type': ' ', 'camera': None}]}
 
-        self.nodes = job_info['items']
+        self.nodes = job_info["items"]
         return self.nodes
 
     def stop_experiment(self):
@@ -183,7 +204,7 @@ class IotlabAPI():
 
         logger.info("API exp info saved in %s/%d.tar.gz file.", exp_dir, self.job_id)
         result = self.api.get_experiment_info(expid=self.job_id, option="data")
-        with open('%s/%s.tar.gz' % (exp_dir, self.job_id), 'wb') as archive:
+        with open("%s/%s.tar.gz" % (exp_dir, self.job_id), "wb") as archive:
             archive.write(result)
 
     def flash_nodes(self, image: str, nodes: List[str]):
@@ -197,8 +218,12 @@ class IotlabAPI():
 
         logger.info("Flashing image (%s) on nodes (%s)", image, str(nodes))
         iotlabcli.node.node_command(
-            api=self.api, command="flash", exp_id=self.job_id,
-            nodes_list=nodes, cmd_opt=image)
+            api=self.api,
+            command="flash",
+            exp_id=self.job_id,
+            nodes_list=nodes,
+            cmd_opt=image,
+        )
 
     def wait_a8_nodes(self, nodes: List[str]):
         """
@@ -215,21 +240,21 @@ class IotlabAPI():
             return
         logger.info("Waiting A8 nodes to boot: %s", str(nodes))
         res = iotlabsshcli.open_linux.wait_for_boot(
-            {'user': self.user, 'exp_id': self.job_id},
-            nodes
+            {"user": self.user, "exp_id": self.job_id}, nodes
         )
         # handling errors
-        if ('1' in res['wait-for-boot']
-            and len(res['wait-for-boot']['1']) > 0):
-            msg = """
+        if "1" in res["wait-for-boot"] and len(res["wait-for-boot"]["1"]) > 0:
+            msg = (
+                """
 Error initializing A8 nodes: %s. \
 Try to restart them in frontend using 'iotlab-node' command \
-or choose other A8 nodes""" % res['wait-for-boot']['1']
+or choose other A8 nodes"""
+                % res["wait-for-boot"]["1"]
+            )
             logger.error(msg)
 
-        if ('0' in res['wait-for-boot']
-            and len(res['wait-for-boot']['0']) > 0):
-            logger.info("A8 nodes initialized: %s", res['wait-for-boot']['0'])
+        if "0" in res["wait-for-boot"] and len(res["wait-for-boot"]["0"]) > 0:
+            logger.info("A8 nodes initialized: %s", res["wait-for-boot"]["0"])
 
     def send_cmd_node(self, cmd: str, nodes: List[str]):
         """
@@ -248,8 +273,8 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
 
         logger.info("Executing command (%s) on nodes (%s)", cmd, str(nodes))
         iotlabcli.node.node_command(
-            api=self.api, command=cmd, exp_id=self.job_id,
-            nodes_list=nodes)
+            api=self.api, command=cmd, exp_id=self.job_id, nodes_list=nodes
+        )
 
     def get_job_id(self) -> int:
         """Get experiment ID"""
@@ -260,9 +285,11 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
         return self.walltime
 
     def create_profile(
-        self, name: str, archi: str,
+        self,
+        name: str,
+        archi: str,
         radio: Optional[RadioConfiguration],
-        consumption: Optional[ConsumptionConfiguration]
+        consumption: Optional[ConsumptionConfiguration],
     ):
         """
         Create monitoring profiles on testbed
@@ -292,14 +319,18 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
         )
         if radio is not None:
             profile.set_radio(
-                mode=radio.mode, channels=radio.channels,
-                period=radio.period, num_per_channel=radio.num_per_channel,
+                mode=radio.mode,
+                channels=radio.channels,
+                period=radio.period,
+                num_per_channel=radio.num_per_channel,
             )
 
         if consumption is not None:
             profile.set_consumption(
-                period=consumption.period, average=consumption.average,
-                power=consumption.power, voltage=consumption.voltage,
+                period=consumption.period,
+                average=consumption.average,
+                power=consumption.power,
+                voltage=consumption.voltage,
                 current=consumption.current,
             )
 
@@ -346,7 +377,7 @@ or choose other A8 nodes""" % res['wait-for-boot']['1']
         # ]
 
         for p in profiles:
-            if p['profilename'] == name:
+            if p["profilename"] == name:
                 return True
 
         return False

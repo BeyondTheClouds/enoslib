@@ -162,10 +162,10 @@ def html_from_dict(class_name: str, content: dict, content_only=False):
     return html_base(html)
 
 
-def html_from_section(
-    class_name: str, content: Union[str, List[str]], content_only=False
+def html_from_sections(
+    class_name: str, sections: Union[str, List[str]], content_only=False
 ):
-    html = html_object(class_name, content)
+    html = html_object(class_name, sections)
 
     if content_only:
         return html

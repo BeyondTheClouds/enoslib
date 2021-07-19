@@ -2,7 +2,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, __python3__
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 from ..service import Service
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
@@ -45,7 +45,7 @@ class Locust(Service):
         self.agents = agents if agents is not None else []
         self.remote_working_dir = remote_working_dir
         self.priors = priors
-        self.roles: Dict = {}
+        self.roles = Roles()
         self.roles.update(master=self.master, agent=self.agents)
         if network is not None:
             self.master_ip = self.master[0].extra[network + "_ip"]

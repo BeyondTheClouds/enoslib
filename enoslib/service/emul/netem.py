@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import play_on
-from enoslib.objects import Host, Network
+from enoslib.objects import Host, Network, Roles
 from enoslib.service.service import Service
 
 from .utils import _build_commands, _build_options, _combine, _destroy, _validate
@@ -169,7 +169,7 @@ def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
     """
 
     # provision a sufficient number of ifbs
-    roles = dict(all=[htb_host.host for htb_host in sources])
+    roles = Roles(all=[htb_host.host for htb_host in sources])
     tc_commands = _combine(*_build_commands(sources), chunk_size=chunk_size)
     extra_vars = kwargs.pop("extra_vars", {})
     options = _build_options(extra_vars, {"tc_commands": tc_commands})

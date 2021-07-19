@@ -1,5 +1,9 @@
 from enoslib.objects import Host
-from enoslib.service.emul.netem import NetemInConstraint, NetemInOutSource, NetemOutConstraint
+from enoslib.service.emul.netem import (
+    NetemInConstraint,
+    NetemInOutSource,
+    NetemOutConstraint,
+)
 from enoslib.tests.unit import EnosTest
 
 

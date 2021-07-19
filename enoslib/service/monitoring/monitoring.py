@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import os
 from typing import Dict, List, Optional
@@ -33,9 +32,7 @@ def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
     address = host.filter_addresses(networks, include_unknown=False)
 
     if not address or not address[0].ip:
-        raise ValueError(
-            f"IP address not found. Host: {host}, Networks: {networks}"
-        )
+        raise ValueError(f"IP address not found. Host: {host}, Networks: {networks}")
 
     if len(address) > 1:
         raise ValueError(
@@ -120,7 +117,7 @@ class TIGMonitoring(Service):
         self.ui = ui
 
         self.networks = networks
-        self._roles: Roles = {}
+        self._roles = Roles()
         ui_list = [self.ui] if self.ui else []
         self._roles.update(
             influxdb=[self.collector], telegraf=self.agent, grafana=ui_list
@@ -167,13 +164,11 @@ class TIGMonitoring(Service):
             "remote_working_dir": self.remote_working_dir,
             "ui_address": ui_address,
             "ui_port": self.ui_env["GF_SERVER_HTTP_PORT"],
-            "ui_env": self.ui_env
+            "ui_env": self.ui_env,
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
-        run_ansible(
-            [_playbook], roles=self._roles, extra_vars=extra_vars
-        )
+        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -187,11 +182,7 @@ class TIGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible(
-            [_playbook],
-            roles=self._roles,
-            extra_vars=extra_vars
-        )
+        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the monitoring stack.
@@ -209,7 +200,7 @@ class TIGMonitoring(Service):
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
-            "backup_dir": str(_backup_dir)
+            "backup_dir": str(_backup_dir),
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
@@ -217,7 +208,7 @@ class TIGMonitoring(Service):
         run_ansible(
             [_playbook],
             roles={"influxdb": self._roles["influxdb"]},
-            extra_vars=extra_vars
+            extra_vars=extra_vars,
         )
 
 
@@ -269,7 +260,7 @@ class TPGMonitoring(Service):
         assert self.agent is not None
         self.ui = ui
 
-        self._roles: Roles = {}
+        self._roles = Roles()
         ui_list = [self.ui] if self.ui else []
         self._roles.update(
             prometheus=[self.collector], telegraf=self.agent, grafana=ui_list
@@ -295,13 +286,11 @@ class TPGMonitoring(Service):
             "collector_address": _get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
             "ui_address": ui_address,
-            "telegraf_targets": [_get_address(h, self.networks) for h in self.agent]
+            "telegraf_targets": [_get_address(h, self.networks) for h in self.agent],
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
-        run_ansible(
-            [_playbook], roles=self._roles, extra_vars=extra_vars
-        )
+        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -315,11 +304,7 @@ class TPGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible(
-            [_playbook],
-            roles=self._roles,
-            extra_vars=extra_vars
-        )
+        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the monitoring stack.
@@ -339,7 +324,7 @@ class TPGMonitoring(Service):
             "remote_working_dir": self.remote_working_dir,
             "collector_address": _get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
-            "backup_dir": str(_backup_dir)
+            "backup_dir": str(_backup_dir),
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
@@ -347,5 +332,5 @@ class TPGMonitoring(Service):
         run_ansible(
             [_playbook],
             roles={"prometheus": self._roles["prometheus"]},
-            extra_vars=extra_vars
+            extra_vars=extra_vars,
         )

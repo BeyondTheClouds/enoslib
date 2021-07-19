@@ -2,8 +2,7 @@ import jsonschema
 import logging
 import json
 from typing import Dict, Optional, Any
-import html
-from enoslib.html import dict_to_html, _load_css, html_from_dict
+from enoslib.html import html_from_dict
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"

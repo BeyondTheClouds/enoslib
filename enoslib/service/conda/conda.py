@@ -4,7 +4,7 @@ from typing import List, Optional, Any
 import os
 
 from enoslib.api import play_on, run_command
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 from ..service import Service
 
 
@@ -113,7 +113,7 @@ class _Conda(Service):
 
         """
         self.nodes = nodes
-        self._roles = {"nodes": self.nodes}
+        self._roles = Roles(nodes=self.nodes)
 
     def deploy(
         self,
@@ -243,8 +243,10 @@ class _Dask(Service):
                 display_name="Starting the dask scheduler",
             )
         s = self.scheduler.address
-        cmd = ("tmux new-session -s dask-worker"
-               f"-d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'")
+        cmd = (
+            "tmux new-session -s dask-worker"
+            f"-d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'"
+        )
         with play_on(pattern_hosts="worker", roles=self.roles) as p:
             _shell_in_conda(
                 p,
@@ -380,10 +382,12 @@ class Dask(Service):
             run_as=self.run_as,
             gather_facts=False,
         ) as p:
-            p.raw((
-                "(tmux ls | grep dask-worker )"
-                " || "
-                f"tmux new-session -s dask-worker -d '{cmd}'"),
+            p.raw(
+                (
+                    "(tmux ls | grep dask-worker )"
+                    " || "
+                    f"tmux new-session -s dask-worker -d '{cmd}'"
+                ),
                 executable="/bin/bash",
             )
 

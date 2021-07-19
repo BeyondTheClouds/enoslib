@@ -3,7 +3,7 @@ import os
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, __python3__
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 from ..service import Service
 from ..utils import _check_path
 
@@ -11,8 +11,10 @@ from ..utils import _check_path
 OUTPUT_FILE = "dstat.csv"
 TMUX_SESSION = "__enoslib_dstat__"
 
-DOOL_URL = ("https://raw.githubusercontent.com/"
-            "scottchiefbaker/dool/6b89f2d0b6e38e1c8d706e88a12e020367f5100d/dool")
+DOOL_URL = (
+    "https://raw.githubusercontent.com/"
+    "scottchiefbaker/dool/6b89f2d0b6e38e1c8d706e88a12e020367f5100d/dool"
+)
 DOOL_DIR = Path("/opt/enoslib_dool")
 DOOL_PATH = DOOL_DIR / "dool"
 
@@ -56,7 +58,7 @@ class Dstat(Service):
         self.options = options
         self.priors = priors
         self.remote_working_dir = remote_working_dir
-        self._roles = dict(all=self.nodes)
+        self._roles = Roles(all=self.nodes)
 
         # We force python3
         extra_vars = extra_vars if extra_vars is not None else {}

@@ -74,19 +74,21 @@ class Environment(UserDict):
         """
         env_name.mkdir(parents=True, exist_ok=True)
         self.env_name = env_name.resolve()
-        super(self.__class__, self).__init__({
-            # this resultdir was used to store the env_name
-            # in the previous version
-            # we keep it for backward compatibility purpose
-            "resultdir": self.env_name,
-            # store the path to a configuration file if any
-            "config_file": None,
-            # the configuration itself
-            "config": {},
-            # unused for now, let's see if we can handle different
-            # configuration format
-            "config_type": "yaml",
-        })
+        super(self.__class__, self).__init__(
+            {
+                # this resultdir was used to store the env_name
+                # in the previous version
+                # we keep it for backward compatibility purpose
+                "resultdir": self.env_name,
+                # store the path to a configuration file if any
+                "config_file": None,
+                # the configuration itself
+                "config": {},
+                # unused for now, let's see if we can handle different
+                # configuration format
+                "config_type": "yaml",
+            }
+        )
 
     @classmethod
     def load_from_file(cls, env_file: Path):

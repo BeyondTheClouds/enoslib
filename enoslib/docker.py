@@ -57,6 +57,7 @@ class DockerHost(Host):
                 [Default DockerHost.PROTO_SSH]
         state: dict representing the state as returned by ``docker inspect``
     """
+
     PROTO_SSH = "ssh"
     PROTO_TCP = "tcp"
 

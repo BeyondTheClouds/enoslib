@@ -488,7 +488,7 @@ class play_on(object):
 
 
 # can be used as prior
-__python3__ = play_on(roles={})
+__python3__ = play_on()
 __python3__.raw(
     (
         "(python --version | grep --regexp ' 3.*')"
@@ -497,14 +497,14 @@ __python3__.raw(
     ),
     display_name="Install python3",
 )
-__default_python3__ = play_on(roles={})
+__default_python3__ = play_on()
 __default_python3__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
     display_name="Making python3 the default python interpreter",
 )
 
 
-__python2__ = play_on(roles={})
+__python2__ = play_on()
 __python2__.raw(
     (
         "(python --version | grep --regexp ' 2.*')"
@@ -513,13 +513,13 @@ __python2__.raw(
     ),
     display_name="Install python2",
 )
-__default_python2__ = play_on(roles={})
+__default_python2__ = play_on()
 __default_python2__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python2 1"
 )
 
 
-__docker__ = play_on(roles={})
+__docker__ = play_on()
 __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 

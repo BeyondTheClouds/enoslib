@@ -49,9 +49,7 @@ class Configuration(BaseConfiguration):
 
         _resources = dictionary["resources"]
         _machines = _resources["machines"]
-        self.machines = [
-            GroupConfiguration.from_dictionary(m) for m in _machines
-        ]
+        self.machines = [GroupConfiguration.from_dictionary(m) for m in _machines]
 
         if "networks" in _resources:
             _networks = _resources["networks"]
@@ -62,9 +60,7 @@ class Configuration(BaseConfiguration):
         if "monitoring" in dictionary:
             _monit = dictionary["monitoring"]
             _profiles = _monit["profiles"]
-            self.profiles = [
-                ProfileConfiguration.from_dictionary(p) for p in _profiles
-            ]
+            self.profiles = [ProfileConfiguration.from_dictionary(p) for p in _profiles]
 
         self.finalize()
         return self
@@ -141,9 +137,11 @@ class GroupConfiguration:
         nodes = dictionary.get("hostname")
 
         if archi is not None and nodes is not None:
-            raise ValueError("""The machines object must be uniform.
+            raise ValueError(
+                """The machines object must be uniform.
                             It contains both boards and physical nodes in this case.
-                            Verify your config.""")
+                            Verify your config."""
+            )
 
         if archi is not None:
             site = dictionary["site"]
@@ -173,6 +171,7 @@ class PhysNodeConfiguration(GroupConfiguration):
 
     Selects the node with given address (hostname)
     """
+
     def __init__(self, *, hostname=None, **kwargs):
         super().__init__(**kwargs)
         self.hostname = hostname
@@ -189,6 +188,7 @@ class BoardConfiguration(GroupConfiguration):
 
     Any node, which  from testbed can be selected
     """
+
     def __init__(self, *, archi=None, site=None, number=None, **kwargs):
         super().__init__(**kwargs)
         self.archi = archi
@@ -204,8 +204,9 @@ class BoardConfiguration(GroupConfiguration):
         return d
 
 
-class ProfileConfiguration():
+class ProfileConfiguration:
     """Base for monitoring profiles"""
+
     def __init__(
         self,
         *,
@@ -255,8 +256,9 @@ class ProfileConfiguration():
         return self
 
 
-class RadioConfiguration():
+class RadioConfiguration:
     """Defines a radio monitoring profile"""
+
     def __init__(
         self,
         *,
@@ -294,8 +296,9 @@ class RadioConfiguration():
         return self
 
 
-class ConsumptionConfiguration():
+class ConsumptionConfiguration:
     """Defines a consumption monitoring profile"""
+
     def __init__(
         self,
         *,
@@ -337,6 +340,7 @@ class ConsumptionConfiguration():
 
 class NetworkConfiguration:
     """Class for network configuration"""
+
     def __init__(self, *, net_id=None, roles=None, net_type=None, site=None):
         self.roles = roles
         self.id = net_id
