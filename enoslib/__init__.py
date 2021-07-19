@@ -5,6 +5,7 @@ from enoslib.api import (
     sync_info,
     get_hosts,
     play_on,
+    actions,
     run,
     run_ansible,
     run_command,

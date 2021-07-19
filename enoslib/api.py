@@ -334,7 +334,6 @@ def run_play(
 
 class play_on(object):
     """A context manager to manage a sequence of Ansible module calls."""
-
     def __init__(
         self,
         *,
@@ -347,8 +346,7 @@ class play_on(object):
         strategy: str = "linear",
         **kwargs,
     ):
-        """Constructor.
-
+        """
         Args:
             pattern_hosts: pattern to describe ansible hosts to target.
                 see https://docs.ansible.com/ansible/latest/intro_patterns.html
@@ -485,6 +483,23 @@ class play_on(object):
         if module_name in ["command", "shell", "raw"]:
             return _shell_like
         return _f
+
+
+class actions(play_on):
+    """A convenient wrapper of the :py:class:`~enoslib.api.play_on` class.
+
+    The rationale is that it is often convenient to pass a list of Host instead
+    of a Roles datastructure.
+
+    """
+    def __init__(self, hosts: List[Host], **kwargs):
+        """
+        Args:
+            hosts: the list of Hosts on which the action should be run.
+            kwargs: keyword arguments passed to the
+                :py:class:`~enoslib.api.play_on` constructor.
+        """
+        super().__init__(roles=Roles(all=hosts), **kwargs)
 
 
 # can be used as prior
