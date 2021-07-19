@@ -3,7 +3,7 @@ import logging
 import json
 from typing import Dict, Optional, Any
 import html
-from enoslib.html import dict_to_html, _load_css
+from enoslib.html import dict_to_html, _load_css, html_from_dict
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"
@@ -84,18 +84,5 @@ class BaseConfiguration:
         return r
 
     def _repr_html_(self) -> str:
-        li = dict_to_html(self.to_dict())
-        css = f"<style> {_load_css()} </style>"
-
-        res = f"""
-            {css}
-            <div class="enoslib_object">
-            <div class="object_name">
-            {html.escape(str(self.__class__))}@{hex(id(self))}
-            </div>
-            <ul class="list">
-                {li}
-            </ul>
-             </div>"""
-
-        return res
+        class_name = f"{str(self.__class__)}@{hex(id(self))}"
+        return html_from_dict(class_name, self.to_dict(), content_only=False)
