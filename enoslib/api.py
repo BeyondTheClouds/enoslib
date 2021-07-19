@@ -334,6 +334,7 @@ def run_play(
 
 class play_on(object):
     """A context manager to manage a sequence of Ansible module calls."""
+
     def __init__(
         self,
         *,
@@ -492,6 +493,7 @@ class actions(play_on):
     of a Roles datastructure.
 
     """
+
     def __init__(self, hosts: List[Host], **kwargs):
         """
         Args:
@@ -1050,6 +1052,41 @@ def wait_for(roles: Roles, retries: int = 100, interval: int = 30, **kwargs) -> 
             time.sleep(interval)
     else:
         raise EnosSSHNotReady("Maximum retries reached")
+
+
+def tmux_start(key: str, cmd: str) -> str:
+    """Put a command in the backgound.
+
+    Generate the command that will put cmd in background.
+    This uses tmux to detach cmd from the current shell session.
+
+    Idempotent
+
+    Args:
+        key: session identifier for tmux (must be unique)
+        cmd: the command to put in background
+
+    Returns:
+        command encapsulated in a tmux session identified by the key
+
+    """
+    # supports templating
+    return "(tmux ls | grep %s) ||tmux new-session -s %s -d '%s'" % (key, key, cmd)
+
+
+def tmux_stop(key: str) -> str:
+    """Stop a command that runs in the background.
+
+    Generate the command that will stop a previously started command in the
+    background with :py:func:`~enoslib.api.background_start`
+
+    Args:
+        key: session identifer for tmux.
+
+    Returns:
+        command that will stop a tmux session
+    """
+    return f"tmux kill-session -t {key} || true"
 
 
 # Private zone

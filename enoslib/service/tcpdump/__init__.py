@@ -2,33 +2,13 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 
-from enoslib.api import play_on
+from enoslib.api import play_on, tmux_start, tmux_stop
 from enoslib.objects import Host, Network
 from ..service import Service
 
 
 REMOTE_OUTPUT_DIR = "/tmp/__enoslib_tcpdump__"
 LOCAL_OUTPUT_DIR = "__enoslib_tcpdump__"
-
-
-def bg(key: str, cmd: str) -> str:
-    """Put a command in the backgound.
-
-    Generate the command that will put cmd in background.
-    This uses tmux to detach cmd from the current shell session.
-
-    Idempotent
-
-    Args:
-        key: session identifier for tmux (must be unique)
-        cmd: the command to put in background
-
-    Returns:
-        cmd encapsulated in a tmux session
-
-    """
-    # supports templating
-    return "(tmux ls | grep %s) ||tmux new-session -s %s -d '%s'" % (key, key, cmd)
 
 
 class TCPDump(Service):
@@ -88,21 +68,23 @@ class TCPDump(Service):
         if force:
             self.destroy()
         with play_on(roles=self.roles) as p:
-            p.apt(name=["tcpdump", "tmux"], state="present")
-            p.file(path=REMOTE_OUTPUT_DIR, state="directory")
+            p.apt(name=["tcpdump", "tmux"], state="present",
+                  display_name="Install dependencies (tcpdump, tmux ...)")
+            p.file(path=REMOTE_OUTPUT_DIR, state="directory",
+                   display_name="Create output directory")
             # explicit ifnames has been given
             for session, ifname in self._tmux_sessions_maps:
                 p.shell(
-                    bg(
+                    tmux_start(
                         session,
                         (
                             f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
                             f" -i {ifname} {self.options}"
                         ),
-                    )
+                    display_name=f"tcpdump for {ifname}")
                 )
             p.debug(var="tcpdump_ifs")
-            cmd = bg(
+            cmd = tmux_start(
                 "{{ item }}",
                 "tcpdump -w %s/{{ item }}.pcap -i {{ item }} %s"
                 % (REMOTE_OUTPUT_DIR, self.options),
@@ -112,6 +94,7 @@ class TCPDump(Service):
             p.shell(
                 cmd,
                 loop="{{ tcpdump_ifs }}",
+                display_name="tcpdump on some interfaces"
             )
 
     def backup(self):
@@ -123,10 +106,12 @@ class TCPDump(Service):
 
     def destroy(self):
         with play_on(roles=self.roles) as p:
-            for session, _ in self._tmux_sessions_maps:
-                p.shell(f"tmux kill-session -t {session} || true")
+            for session, ifname in self._tmux_sessions_maps:
+                p.shell(tmux_stop(session),
+                        display_name=f"Stopping tcpdump on {ifname}")
             p.debug(var="tcpdump_ifs")
-            p.shell("tmux kill-session -t {{ item }} || true", loop="{{ tcpdump_ifs }}")
+            p.shell(tmux_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
+                    display_name="Stopping some tcpdumps")
 
     def __enter__(self):
         self.deploy(force=True)
