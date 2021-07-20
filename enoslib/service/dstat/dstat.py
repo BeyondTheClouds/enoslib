@@ -3,7 +3,7 @@ import os
 from time import time
 from typing import Dict, List
 
-from enoslib.api import play_on, tmux_start, tmux_stop
+from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.objects import Host, Roles
 from ..service import Service
 from ..utils import _check_path
@@ -88,7 +88,7 @@ class Dstat(Service):
             p.get_url(url=DOOL_URL, dest=str(DOOL_PATH), mode="0755")
             options = f"{self.options} -o {self.output_file}"
             p.shell(
-                tmux_start(TMUX_SESSION, f"python3 {str(DOOL_PATH)} {options}"),
+                bg_start(TMUX_SESSION, f"python3 {str(DOOL_PATH)} {options}"),
                 chdir=str(self.remote_working_dir),
                 display_name=f"Running dstat with the options {options}",
             )
@@ -100,7 +100,7 @@ class Dstat(Service):
         Metric files survive to destroy.
         """
         with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
-            kill_cmd = tmux_stop(TMUX_SESSION)
+            kill_cmd = bg_stop(TMUX_SESSION)
             p.shell(kill_cmd)
 
     def backup(self):

@@ -1056,7 +1056,7 @@ def wait_for(roles: Roles, retries: int = 100, interval: int = 30, **kwargs) -> 
         raise EnosSSHNotReady("Maximum retries reached")
 
 
-def tmux_start(key: str, cmd: str) -> str:
+def bg_start(key: str, cmd: str) -> str:
     """Put a command in the backgound.
 
     Generate the command that will put cmd in background.
@@ -1076,7 +1076,7 @@ def tmux_start(key: str, cmd: str) -> str:
     return "(tmux ls | grep %s) ||tmux new-session -s %s -d '%s'" % (key, key, cmd)
 
 
-def tmux_stop(key: str, num: int = signal.SIGINT) -> str:
+def bg_stop(key: str, num: int = signal.SIGINT) -> str:
     """Stop a command that runs in the background.
 
     Generate the command that will stop a previously started command in the

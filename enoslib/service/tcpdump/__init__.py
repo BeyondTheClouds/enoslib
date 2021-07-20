@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 
-from enoslib.api import play_on, tmux_start, tmux_stop
+from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.objects import Host, Network
 from ..service import Service
 
@@ -75,7 +75,7 @@ class TCPDump(Service):
             # explicit ifnames has been given
             for session, ifname in self._tmux_sessions_maps:
                 p.shell(
-                    tmux_start(
+                    bg_start(
                         session,
                         (
                             f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
@@ -84,7 +84,7 @@ class TCPDump(Service):
                     display_name=f"tcpdump for {ifname}")
                 )
             p.debug(var="tcpdump_ifs")
-            cmd = tmux_start(
+            cmd = bg_start(
                 "{{ item }}",
                 "tcpdump -w %s/{{ item }}.pcap -i {{ item }} %s"
                 % (REMOTE_OUTPUT_DIR, self.options),
@@ -107,10 +107,10 @@ class TCPDump(Service):
     def destroy(self):
         with play_on(roles=self.roles) as p:
             for session, ifname in self._tmux_sessions_maps:
-                p.shell(tmux_stop(session),
+                p.shell(bg_stop(session),
                         display_name=f"Stopping tcpdump on {ifname}")
             p.debug(var="tcpdump_ifs")
-            p.shell(tmux_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
+            p.shell(bg_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
                     display_name="Stopping some tcpdumps")
 
     def __enter__(self):
