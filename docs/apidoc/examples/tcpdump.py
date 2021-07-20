@@ -8,13 +8,14 @@ from scapy.all import rdpcap
 logging.basicConfig(level=logging.INFO)
 
 
-CLUSTER = "paravance"
+CLUSTER = "parasilo"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
+job_name = Path(__file__).name
 
 # claim the resources
 conf = en.G5kConf.from_settings(
-    job_type="allow_classic_ssh", job_name="test-non-deploy"
+    job_type="allow_classic_ssh", job_name=job_name
 )
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf.add_network_conf(network).add_machine(
@@ -33,8 +34,9 @@ roles = en.sync_info(roles, networks)
 # - we dump icmp traffic only
 # - for the duration of the commands (here a client is pigging the server)
 with en.TCPDump(
-    hosts=roles["control"], networks=networks["my_network"], options="-U icmp"
-):
+    hosts=roles["control"], networks=networks["my_network"], options="icmp"
+) as t:
+    backup_dir = t.backup_dir
     _ = en.run(f"ping -c10 {roles['server'][0].address}", roles["client"])
 
 # pcap files are retrieved in the __enoslib__tcpdump__ directory
@@ -44,10 +46,9 @@ with en.TCPDump(
 
 # Examples:
 # create a dictionnary of (alias, if) -> list of decoded packets by scapy
-base_dir = Path("__enoslib_tcpdump__")
 decoded_pcaps = dict()
 for host in roles["control"]:
-    host_dir = base_dir / host.alias
+    host_dir = backup_dir / host.alias
     t = tarfile.open(host_dir / "tcpdump.tar.gz")
     t.extractall(host_dir / "extracted")
     # get all extracted pcap for this host

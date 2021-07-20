@@ -1,21 +1,19 @@
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_g5k.configuration import (Configuration,
-                                                  NetworkConfiguration)
-from enoslib.service import Dstat
-
 import logging
-import os
 import time
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+
+import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
-# path to the inventory
-inventory = os.path.join(os.getcwd(), "hosts")
-
 # claim the resources
-conf = Configuration.from_settings(job_type="allow_classic_ssh",
+conf = en.G5kConf.from_settings(job_type="allow_classic_ssh",
                                    job_name="test-non-deploy")
-network = NetworkConfiguration(id="n1",
+network = en.G5kNetworkConf(id="n1",
                                type="prod",
                                roles=["my_network"],
                                site="nancy")
@@ -26,17 +24,30 @@ conf.add_network_conf(network)\
                  primary_network=network)\
     .finalize()
 
-provider = G5k(conf)
+provider = en.G5k(conf)
 roles, networks = provider.init()
 
-m = Dstat(nodes=roles["control"])
+with en.actions(roles["control"]) as a:
+    a.apt(name="stress", state="present")
 
-m.deploy()
+# Start a capture
+# - for the duration of the commands
+with en.Dstat(nodes=roles["control"]) as d:
+    time.sleep(5)
+    en.run("stress --cpu 4 --timeout 10", roles["control"])
+    time.sleep(5)
+    backup_dir = d.backup_dir
 
-time.sleep(10)
-m.destroy()
-m.backup()
+# Create a dictionnary of (alias) -> list of pandas df
+result = pd.DataFrame()
+for host in roles["control"]:
+    host_dir = backup_dir / host.alias
+    csvs = host_dir.rglob("*.csv")
+    for csv in csvs:
+        df = pd.read_csv(csv, skiprows=5, index_col=False)
+        df["host"] = host.alias
+        df["csv"] = csv
+        result = pd.concat([result, df], axis=0)
 
-
-# destroy the boxes
-# provider.destroy()
+sns.lineplot(data=result, x="epoch", y="usr", hue="host", markers=True, style="host")
+plt.show()

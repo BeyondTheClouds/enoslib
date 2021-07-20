@@ -115,7 +115,4 @@ class TCPDump(Service):
 
     def __enter__(self):
         self.deploy(force=True)
-
-    def __exit__(self, *args):
-        self.backup()
-        self.destroy()
+        return self

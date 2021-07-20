@@ -23,6 +23,8 @@ import time
 from collections import namedtuple
 from typing import Any, Dict, List, Mapping, Optional, Set, Union, Tuple
 from pathlib import Path
+import signal
+
 
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -1074,7 +1076,7 @@ def tmux_start(key: str, cmd: str) -> str:
     return "(tmux ls | grep %s) ||tmux new-session -s %s -d '%s'" % (key, key, cmd)
 
 
-def tmux_stop(key: str) -> str:
+def tmux_stop(key: str, num: int = signal.SIGINT) -> str:
     """Stop a command that runs in the background.
 
     Generate the command that will stop a previously started command in the
@@ -1086,7 +1088,17 @@ def tmux_stop(key: str) -> str:
     Returns:
         command that will stop a tmux session
     """
-    return f"tmux kill-session -t {key} || true"
+    if num == signal.SIGHUP:
+        # default tmux termination signal
+        # This will send SIGHUP to all the encapsulated processes
+        return f"tmux kill-session -t {key} || true"
+    else:
+        # We prefer send a sigint to all the encapsulated processes
+        cmd = (
+            "(tmux list-panes -t %s -F '#{pane_pid}' | "
+            "xargs -n1 kill -%s) || true"
+        ) % (key, int(num))
+        return cmd
 
 
 # Private zone

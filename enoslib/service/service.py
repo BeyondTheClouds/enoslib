@@ -24,3 +24,11 @@ class Service:
     def backup(self):
         """(abstract) Backup the service."""
         pass
+
+    def __enter__(self):
+        self.deploy()
+        return self
+
+    def __exit__(self, *args):
+        self.destroy()
+        self.backup()
