@@ -26,9 +26,17 @@ class Service:
         pass
 
     def __enter__(self):
+        self.destroy()
         self.deploy()
         return self
 
     def __exit__(self, *args):
+        # should we destroy before backuping: that's the question in some cases
+        # yes in some other cases no, so we give a default implementation here
+        # which will fit the dstat, tcpdump ... use case (we want to send the
+        # SIGX signal to the process to trigger the flush of the data to the
+        # disk before backuping)
+        # For some other cases like (online) TIGmonitoring we want the database
+        # to be up while backuping so destroy should occur after.
         self.destroy()
         self.backup()

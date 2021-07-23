@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Network, Roles
 from ..service import Service
-from ..utils import _check_path, _to_abs
+from ..utils import _set_dir, _to_abs
 
 
 DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
@@ -15,6 +15,9 @@ DEFAULT_COLLECTOR_ENV = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
 DEFAULT_AGENT_IMAGE = "telegraf"
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+
+LOCAL_OUTPUT_DIR_TIG = Path("__enoslib_tig__")
+LOCAL_OUTPUT_DIR_TPG = Path("__enoslib_tpg__")
 
 
 def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
@@ -51,6 +54,7 @@ class TIGMonitoring(Service):
         ui: Host = None,
         networks: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
+        backup_dir: Path = None,
         collector_env: Optional[Dict] = None,
         agent_conf: Optional[str] = None,
         agent_env: Optional[Dict] = None,
@@ -87,7 +91,10 @@ class TIGMonitoring(Service):
                         fill the extra_addresses structure.
                         Raises an exception if no or more than IP address is found
             remote_working_dir: path to a remote location that
-                    will be used as working directory
+                will be used as working directory
+            backup_dir: path to a local directory where the backup will be stored
+                This can be overwritten by
+                :py:meth:`~enoslib.service.monitoring.monitoring.TIGMonitoring.backup`.
             collector_env: environment variables to pass in the collector
                                   process environment
             agent_conf: path to an alternative configuration file
@@ -141,6 +148,9 @@ class TIGMonitoring(Service):
         ui_env = {} if not ui_env else ui_env
         self.ui_env.update(ui_env)
 
+        # backup_dir management
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TIG)
+
         # We force python3
         extra_vars = extra_vars if extra_vars is not None else {}
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
@@ -189,14 +199,9 @@ class TIGMonitoring(Service):
 
         Args:
             backup_dir (str): path of the backup directory to use.
+                Will be used instead of the one set in the constructor.
         """
-        if backup_dir is None:
-            _backup_dir = Path.cwd()
-        else:
-            _backup_dir = Path(backup_dir)
-
-        _backup_dir = _check_path(_backup_dir)
-
+        _backup_dir = _set_dir(backup_dir, self.backup_dir)
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
@@ -211,6 +216,12 @@ class TIGMonitoring(Service):
             extra_vars=extra_vars,
         )
 
+    def __exit__(self, *args):
+        # special case here, backup will suspend the execution of the database
+        # and backup can occur.  we destroy afterwards
+        self.backup()
+        self.destroy()
+
 
 class TPGMonitoring(Service):
     def __init__(
@@ -221,6 +232,7 @@ class TPGMonitoring(Service):
         ui: Host = None,
         networks: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
+        backup_dir: Optional[Path] = None
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
 
@@ -250,7 +262,10 @@ class TPGMonitoring(Service):
                         fill the extra_addresses structure.
                         Raises an exception if no or more than IP address is found
             remote_working_dir: path to a remote location that
-                    will be used as working directory
+                will be used as working directory
+            backup_dir: path to a local directory where the backup will be stored
+                This can be overwritten by
+                :py:meth:`~enoslib.service.monitoring.monitoring.TPGMonitoring.backup`.
         """
 
         # Some initialisation and make mypy happy
@@ -269,6 +284,9 @@ class TPGMonitoring(Service):
         self.prometheus_port = 9090
 
         self.networks = networks
+
+        # backup_dir management
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TPG)
 
         # We force python3
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
@@ -311,14 +329,9 @@ class TPGMonitoring(Service):
 
         Args:
             backup_dir (str): path of the backup directory to use.
+                Will be used instead of the one set in the constructor.
         """
-        if backup_dir is None:
-            _backup_dir = Path.cwd()
-        else:
-            _backup_dir = Path(backup_dir)
-
-        _backup_dir = _check_path(_backup_dir)
-
+        _backup_dir = _set_dir(backup_dir, self.backup_dir)
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
@@ -334,3 +347,9 @@ class TPGMonitoring(Service):
             roles={"prometheus": self._roles["prometheus"]},
             extra_vars=extra_vars,
         )
+
+    def __exit__(self, *args):
+        # special case here, backup will suspend the execution of the database
+        # and backup can occur.  we destroy afterwards
+        self.backup()
+        self.destroy()

@@ -1,12 +1,12 @@
 from pathlib import Path
 import os
 from time import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.objects import Host, Roles
 from ..service import Service
-from ..utils import _check_path
+from ..utils import _set_dir
 
 
 OUTPUT_FILE = "dstat.csv"
@@ -28,7 +28,7 @@ class Dstat(Service):
         *,
         nodes: List[Host],
         options: str = "-aT",
-        backup_dir: Path = LOCAL_OUTPUT_DIR,
+        backup_dir: Optional[Path] = None,
         extra_vars: Dict = None,
     ):
         """Deploy dstat on all hosts.
@@ -61,8 +61,7 @@ class Dstat(Service):
         self.remote_working_dir = Path(REMOTE_OUTPUT_DIR)
         self._roles = Roles(all=self.nodes)
 
-        self.backup_dir = Path(backup_dir)
-        self.backup_dir = _check_path(self.backup_dir)
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR)
 
         # generate output file name by default dstat append to the existing file
         # which isn't very convenient at parsing time we could also add some
@@ -75,10 +74,8 @@ class Dstat(Service):
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
         self.extra_vars.update(extra_vars)
 
-    def deploy(self, force=False):
+    def deploy(self):
         """Deploy the dstat monitoring stack."""
-        if force:
-            self.destroy()
         with play_on(
             roles=self._roles, extra_vars=self.extra_vars
         ) as p:
@@ -103,7 +100,7 @@ class Dstat(Service):
             kill_cmd = bg_stop(TMUX_SESSION)
             p.shell(kill_cmd)
 
-    def backup(self):
+    def backup(self, backup_dir: Optional[Path] = None):
         """Backup the dstat monitoring stack.
 
         This fetches all the remote dstat csv files under the backup_dir.
@@ -111,15 +108,12 @@ class Dstat(Service):
         Args:
             backup_dir (str): path of the backup directory to use.
         """
+        _backup_dir = _set_dir(backup_dir, self.backup_dir)
         with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
             backup_path = os.path.join(self.remote_working_dir, self.output_file)
             p.fetch(
                 display_name="Fetching the dstat output",
                 src=backup_path,
-                dest=str(self.backup_dir),
+                dest=str(_backup_dir),
                 flat=False,
             )
-
-    def __enter__(self):
-        self.deploy(force=True)
-        return self

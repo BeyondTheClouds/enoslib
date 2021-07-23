@@ -3,8 +3,9 @@ from typing import List, Optional, Union
 
 
 from enoslib.api import play_on, bg_start, bg_stop
-from enoslib.objects import Host, Network
+from enoslib.objects import Host, Network, Roles
 from ..service import Service
+from ..utils import _set_dir
 
 
 REMOTE_OUTPUT_DIR = "/tmp/__enoslib_tcpdump__"
@@ -18,7 +19,7 @@ class TCPDump(Service):
         ifnames: Optional[List[str]] = None,
         networks: Optional[List[Network]] = None,
         options: str = "",
-        backup_dir: Union[Path, str] = Path(LOCAL_OUTPUT_DIR),
+        backup_dir: Union[Path, str] = None,
     ):
         """Monitor network traffic using tcpdump.
 
@@ -51,9 +52,9 @@ class TCPDump(Service):
         self.hosts = hosts
         self.ifnames = ifnames if ifnames else []
         self.networks = networks if networks else []
-        self.roles = dict(all=hosts)
+        self.roles = Roles(all=hosts)
         self._tmux_sessions_maps = [(s, s) for s in self.ifnames]
-        self.backup_dir = Path(backup_dir)
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR)
         self.options = options
 
         # handle networks
@@ -64,9 +65,6 @@ class TCPDump(Service):
             host.extra.update(tcpdump_ifs=ifs)
 
     def deploy(self, force=False):
-        # get rid of existing sessions
-        if force:
-            self.destroy()
         with play_on(roles=self.roles) as p:
             p.apt(name=["tcpdump", "tmux"], state="present",
                   display_name="Install dependencies (tcpdump, tmux ...)")
@@ -97,12 +95,12 @@ class TCPDump(Service):
                 display_name="tcpdump on some interfaces"
             )
 
-    def backup(self):
-        Path(self.backup_dir).mkdir(parents=True, exist_ok=True)
+    def backup(self, backup_dir: Optional[Path] = None):
+        _backup_dir = _set_dir(backup_dir, self.backup_dir)
         with play_on(roles=self.roles) as p:
             # zip the tcpdump directory
             p.shell(f"tar -czf tcpdump.tar.gz {REMOTE_OUTPUT_DIR}")
-            p.fetch(src="tcpdump.tar.gz", dest=f"{str(self.backup_dir)}")
+            p.fetch(src="tcpdump.tar.gz", dest=f"{str(_backup_dir)}")
 
     def destroy(self):
         with play_on(roles=self.roles) as p:
@@ -112,7 +110,3 @@ class TCPDump(Service):
             p.debug(var="tcpdump_ifs")
             p.shell(bg_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
                     display_name="Stopping some tcpdumps")
-
-    def __enter__(self):
-        self.deploy(force=True)
-        return self

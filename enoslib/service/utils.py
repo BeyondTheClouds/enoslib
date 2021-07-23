@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional, Union
 
 
 def _to_abs(path: Path) -> Path:
@@ -16,3 +17,13 @@ def _check_path(backup_dir: Path) -> Path:
     # make sure it exists
     backup_path.mkdir(parents=True, exist_ok=True)
     return backup_path
+
+
+def _set_dir(one_dir: Optional[Union[Path, str]], default_dir: Union[Path, str]):
+    if one_dir is None:
+        _dir = Path(default_dir)
+    else:
+        _dir = Path(one_dir)
+
+    _dir = _check_path(_dir)
+    return _dir

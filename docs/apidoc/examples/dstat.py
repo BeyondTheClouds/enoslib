@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import time
 
 import matplotlib.pyplot as plt
@@ -10,16 +11,21 @@ import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
+CLUSTER = "parasilo"
+SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
+
+job_name = Path(__file__).name
+
 # claim the resources
 conf = en.G5kConf.from_settings(job_type="allow_classic_ssh",
                                    job_name="test-non-deploy")
 network = en.G5kNetworkConf(id="n1",
                                type="prod",
                                roles=["my_network"],
-                               site="nancy")
+                               site=SITE)
 conf.add_network_conf(network)\
     .add_machine(roles=["control"],
-                 cluster="grisou",
+                 cluster=CLUSTER,
                  nodes=2,
                  primary_network=network)\
     .finalize()
