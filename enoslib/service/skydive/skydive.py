@@ -2,7 +2,7 @@ import os
 from typing import List, Dict
 
 from enoslib.api import (
-    play_on,
+    actions,
     run_ansible,
     __python3__,
     __docker__,
@@ -31,7 +31,7 @@ class Skydive(Service):
         analyzers: List[Host] = None,
         agents: List[Host] = None,
         networks: List[Network] = None,
-        priors: List[play_on] = [__python3__, __docker__],
+        priors: List[actions] = [__python3__, __docker__],
         extra_vars: Dict = None,
     ):
         """Deploy Skydive (see http://skydive.network/).
@@ -115,7 +115,7 @@ class Skydive(Service):
     def deploy(self):
         """Deploy Skydive service."""
         # Some requirements
-        with play_on(
+        with actions(
             pattern_hosts="all",
             roles=self.roles,
             priors=self.priors,

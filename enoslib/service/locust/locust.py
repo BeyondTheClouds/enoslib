@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List, Optional
 
-from enoslib.api import play_on, __python3__
+from enoslib.api import actions, __python3__
 from enoslib.objects import Host, Roles
 from ..service import Service
 
@@ -15,7 +15,7 @@ class Locust(Service):
         agents: Optional[List[Host]] = None,
         network: Optional[str] = None,
         remote_working_dir: str = "/builds/locust",
-        priors: List[play_on] = [__python3__],
+        priors: List[actions] = [__python3__],
         extra_vars: Dict = None,
     ):
         """Deploy a distributed Locust (see locust.io)
@@ -59,7 +59,7 @@ class Locust(Service):
 
     def deploy(self):
         """Install Locust on master and agent hosts"""
-        with play_on(
+        with actions(
             pattern_hosts="all",
             roles=self.roles,
             priors=self.priors,
@@ -70,7 +70,7 @@ class Locust(Service):
 
     def destroy(self):
         """Stop locust."""
-        with play_on(
+        with actions(
             pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             p.shell("if pgrep locust; then pkill locust; fi")
@@ -94,7 +94,7 @@ class Locust(Service):
         if environment is None:
             environment = {}
         locustpath = self.__copy_experiment(expe_dir, locustfile)
-        with play_on(
+        with actions(
             pattern_hosts="master", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             p.shell(
@@ -109,7 +109,7 @@ class Locust(Service):
                 display_name="Running locust (%s) on master..." % (locustpath),
             )
 
-        with play_on(
+        with actions(
             pattern_hosts="agent", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             for i in range(density):
@@ -155,7 +155,7 @@ class Locust(Service):
             environment = {}
         locustpath = self.__copy_experiment(expe_dir, locustfile)
         slaves = len(self.roles["agent"]) * density
-        with play_on(
+        with actions(
             pattern_hosts="master", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             p.shell(
@@ -175,7 +175,7 @@ class Locust(Service):
                 display_name="Running locust (%s) on master..." % (locustfile),
             )
 
-        with play_on(
+        with actions(
             pattern_hosts="agent", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             for i in range(density):
@@ -197,7 +197,7 @@ class Locust(Service):
     def __copy_experiment(self, expe_dir: str, locustfile: str):
         src_dir = os.path.abspath(expe_dir)
         remote_dir = os.path.join(self.remote_working_dir, expe_dir)
-        with play_on(
+        with actions(
             pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             p.copy(

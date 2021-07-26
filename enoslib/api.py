@@ -557,7 +557,7 @@ def ensure_python2(make_default=True, **kwargs):
         p.raw("hostname")
 
 
-def run(
+def run_command(
     command: str,
     *,
     pattern_hosts: str = "all",
@@ -692,9 +692,22 @@ def run(
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def run_command(*args, **kwargs):
-    warnings.warn("Use run instead of run_command", DeprecationWarning)
-    return run(*args, **kwargs)
+def run(cmd: str, roles: RolesLike, **kwargs):
+    """Run command on some hosts
+
+    Args:
+        cmd: the command to run.
+            This accepts Ansible templates
+        roles: host on which to run the command
+        kwargs: keyword argument of `py:func:~enoslib.api.run_command`
+
+    Returns:
+        Dict combining the stdout and stderr of ok and failed hosts and every
+        results of tasks executed (this may include the fact gathering tasks)
+
+    """
+    return run_command(cmd, roles=roles, **kwargs)
+
 
 def gather_facts(
     *,

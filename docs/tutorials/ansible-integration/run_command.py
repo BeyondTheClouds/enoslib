@@ -33,3 +33,17 @@ with open("result_ok", "w") as f:
     json.dump(result["ok"], f, indent=2)
 with open("result_failed", "w") as f:
     json.dump(result["failed"], f, indent=2)
+
+
+# shortcut 1
+result = run("date",
+             roles)
+print(result)
+
+result = run("date",
+             roles["control1"])
+print(result)
+
+result = run("date",
+             roles["control1"][0])
+print(result)
