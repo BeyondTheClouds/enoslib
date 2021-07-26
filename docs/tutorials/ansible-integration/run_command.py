@@ -1,7 +1,7 @@
 import json
 import logging
 
-from enoslib import *
+import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -9,41 +9,41 @@ provider_conf = {
     "backend": "libvirt",
     "box": "generic/debian9",
     "resources": {
-        "machines": [{
-            "roles":  ["control1"],
-            "flavour": "tiny",
-            "number": 1,
-        },{
-            "roles": ["control2"],
-            "flavour": "tiny",
-            "number": 1,
-        }],
-        "networks": [{"roles": ["rn1"], "cidr": "172.16.0.1/16"}]
-    }
+        "machines": [
+            {
+                "roles": ["control1"],
+                "flavour": "tiny",
+                "number": 1,
+            },
+            {
+                "roles": ["control2"],
+                "flavour": "tiny",
+                "number": 1,
+            },
+        ],
+        "networks": [{"roles": ["rn1"], "cidr": "172.16.0.1/16"}],
+    },
 }
 
-conf = VagrantConf.from_dictionnary(provider_conf)
-provider = Vagrant(conf)
+conf = en.VagrantConf.from_dictionnary(provider_conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
-roles = sync_info(roles, networks)
-result = run_command("date",
-                     pattern_hosts="control*",
-                     roles=roles)
+roles = en.sync_info(roles, networks)
+result = en.run_command("date", pattern_hosts="control*", roles=roles)
 with open("result_ok", "w") as f:
     json.dump(result["ok"], f, indent=2)
 with open("result_failed", "w") as f:
     json.dump(result["failed"], f, indent=2)
 
 
-# shortcut 1
-result = run("date",
-             roles)
+# shortcut 1 -> use the roles
+result = en.run("date", roles)
 print(result)
 
-result = run("date",
-             roles["control1"])
+# shortcut 2 -> use a list of hosts
+result = en.run("date", roles["control1"])
 print(result)
 
-result = run("date",
-             roles["control1"][0])
+# shortcut 3 -> use a single host
+result = en.run("date", roles["control1"][0])
 print(result)
