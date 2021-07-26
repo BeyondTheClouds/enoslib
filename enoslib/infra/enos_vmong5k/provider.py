@@ -223,7 +223,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
 
     # Take into account only the pms that will host the vms
     # this might happen when #pms > #vms
-    all_pms = {"all": pms}
+    all_pms = Roles(all=pms)
 
     if force_deploy:
         run_ansible([DESTROY_PLAYBOOK_PATH], roles=all_pms, extra_vars=extra_vars)

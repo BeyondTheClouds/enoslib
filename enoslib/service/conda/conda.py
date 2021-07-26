@@ -3,7 +3,7 @@ from textwrap import dedent as _d
 from typing import List, Optional, Any
 import os
 
-from enoslib.api import play_on, run_command
+from enoslib.api import actions, run
 from enoslib.objects import Host, Roles
 from ..service import Service
 
@@ -27,7 +27,7 @@ def _get_env_name(env_file: str):
     return env_name
 
 
-def _shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
+def _shell_in_conda(p: actions, cmd: str, **kwargs: Any):
     """Make sure conda is initialized before launching the shell command.
 
     Implementation-wise this will source /opt/conda/etc/profile.d/conda.sh
@@ -39,7 +39,7 @@ def _shell_in_conda(p: play_on, cmd: str, **kwargs: Any):
     )
 
 
-def _create_wrapper_script(p: play_on, env_name: str):
+def _create_wrapper_script(p: actions, env_name: str):
     """Create a wrapper script for Ansible.
 
     This can be used as an python interpreter and
@@ -64,7 +64,7 @@ def _inject_wrapper_script(env_name, **kwargs):
     kwds = copy.deepcopy(kwargs)
     kwds.pop("run_as", None)
     kwds.pop("become", None)
-    with play_on(**kwds) as p:
+    with actions(**kwds) as p:
         _create_wrapper_script(p, env_name)
 
 
@@ -82,10 +82,10 @@ def _conda_run_command(command: str, env_name: str, **kwargs: Any):
     extra_vars = kwargs.pop("extra_vars", {})
     extra_vars.update(ansible_python_interpreter=_conda_wrapper(env_name))
     # we are now ready to run this
-    return run_command(command, extra_vars=extra_vars, **kwargs)
+    return run(command, extra_vars=extra_vars, **kwargs)
 
 
-class _conda_play_on(play_on):
+class _conda_play_on(actions):
     """Run Ansible modules in the context of a Conda environment."""
 
     def __init__(self, env_name: str, **kwargs: Any):
@@ -131,7 +131,7 @@ class _Conda(Service):
         """
         if packages is None:
             packages = []
-        with play_on(roles=self._roles) as p:
+        with actions(roles=self._roles) as p:
             p.apt(name="wget", state="present")
             p.shell(
                 (
@@ -217,7 +217,8 @@ class _Dask(Service):
         self.env_file = env_file
         self.env_name = _get_env_name(env_file) if env_file is not None else "__dask__"
         self.conda = _Conda(nodes=worker + [scheduler])
-        self.roles = {"scheduler": [self.scheduler], "worker": self.worker}
+        self.roles = Roles(scheduler=[self.scheduler],
+                           worker=self.worker)
 
     def deploy(self):
         # Handle the environment
@@ -228,10 +229,10 @@ class _Dask(Service):
             self.conda.deploy(env_file=self.env_file)
 
         # Start Dask cluster
-        with play_on(roles=self.roles) as p:
+        with actions(roles=self.roles) as p:
             p.apt(name="tmux", state="present")
 
-        with play_on(pattern_hosts="scheduler", roles=self.roles) as p:
+        with actions(pattern_hosts="scheduler", roles=self.roles) as p:
             _shell_in_conda(
                 p,
                 (
@@ -247,7 +248,7 @@ class _Dask(Service):
             "tmux new-session -s dask-worker"
             f"-d 'exec dask-worker tcp://{s}:8786 {self.worker_args}'"
         )
-        with play_on(pattern_hosts="worker", roles=self.roles) as p:
+        with actions(pattern_hosts="worker", roles=self.roles) as p:
             _shell_in_conda(
                 p,
                 (
@@ -260,13 +261,13 @@ class _Dask(Service):
             )
 
     def destroy(self):
-        with play_on(pattern_hosts="scheduler", roles=self.roles) as p:
+        with actions(pattern_hosts="scheduler", roles=self.roles) as p:
             p.shell(
                 "tmux kill-session -t dask-scheduler || true",
                 executable="/bin/bash",
                 display_name="Killing the dask scheduler",
             )
-        with play_on(pattern_hosts="worker", roles=self.roles) as p:
+        with actions(pattern_hosts="worker", roles=self.roles) as p:
             p.shell(
                 "tmux kill-session -t dask-worker || true",
                 executable="/bin/bash",
@@ -339,7 +340,7 @@ class Dask(Service):
         self.run_as = run_as
 
         # computed
-        self.roles = dict(scheduler=[self.scheduler], worker=self.workers)
+        self.roles = Roles(scheduler=[self.scheduler], worker=self.workers)
         # can be set to optimize destroy
         self.client = None
 
@@ -358,7 +359,7 @@ class Dask(Service):
     def deploy(self):
         cmd = self.in_conda_cmd("dask-scheduler")
         print(cmd)
-        with play_on(
+        with actions(
             pattern_hosts="scheduler",
             roles=self.roles,
             run_as=self.run_as,
@@ -376,7 +377,7 @@ class Dask(Service):
         cmd = self.in_conda_cmd(
             f"dask-worker tcp://{scheduler_addr}:8786 {self.worker_args}"
         )
-        with play_on(
+        with actions(
             pattern_hosts="worker",
             roles=self.roles,
             run_as=self.run_as,
@@ -400,7 +401,7 @@ class Dask(Service):
             self.client.shutdown()
         else:
             # wipe all tmux created
-            with play_on(
+            with actions(
                 pattern_hosts="scheduler",
                 roles=self.roles,
                 gather_facts=False,
@@ -411,7 +412,7 @@ class Dask(Service):
                     executable="/bin/bash",
                     display_name="Killing the dask scheduler",
                 )
-            with play_on(
+            with actions(
                 pattern_hosts="worker",
                 roles=self.roles,
                 gather_facts=False,
