@@ -2,7 +2,7 @@ from enoslib.api import actions, run
 from typing import List
 
 from ..service import Service
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 
 
 class K3s(Service):
