@@ -18,17 +18,14 @@ import copy
 import json
 import logging
 import os
+import signal
 import tempfile
 import time
+import warnings
 from collections import namedtuple
-from typing import Any, Dict, List, Mapping, Optional, Set, Union, Tuple
 from pathlib import Path
-import signal
-
-
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from typing import (Any, Dict, List, Mapping, MutableMapping, Optional, Set,
+                    Tuple, Union)
 
 # These two imports are 2.9
 import ansible.constants as C
@@ -36,27 +33,27 @@ import yaml
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.module_utils.common.collections import ImmutableDict
-
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
-
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
+from cryptography.hazmat.backends import \
+    default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import \
+    serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ansible import context
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
-from enoslib.errors import (
-    EnosFailedHostsError,
-    EnosSSHNotReady,
-    EnosUnreachableHostsError,
-)
-from enoslib.objects import Host, Networks, Roles
-from enoslib.utils import _check_tmpdir, remove_hosts
+from enoslib.errors import (EnosFailedHostsError, EnosSSHNotReady,
+                            EnosUnreachableHostsError)
+from enoslib.objects import Host, Networks, Roles, RolesLike
+from enoslib.utils import _check_tmpdir, _hostslike_to_roles, remove_hosts
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +204,7 @@ class _MyCallback(CallbackModule):
 
 
 def populate_keys(
-    roles: Roles, local_dir: Path, key_name="id_rsa_enoslib"
+    roles: RolesLike, local_dir: Path, key_name="id_rsa_enoslib"
 ) -> Tuple[Path, Path]:
     """Generate and push a new pair of keys to all hosts.
 
@@ -251,7 +248,7 @@ def populate_keys(
 
     priv_path.chmod(0o600)
 
-    with play_on(roles=roles) as p:
+    with actions(roles=roles) as p:
         p.copy(src=str(priv_path), dest=f"/root/.ssh/{priv_name}", mode="600")
         p.copy(src=str(pub_path), dest=f"/root/.ssh/{pub_name}")
         p.shell(f"cat /root/.ssh/{pub_name} >> /root/.ssh/authorized_keys")
@@ -263,7 +260,7 @@ def run_play(
     play_source,
     *,
     inventory_path=None,
-    roles=None,
+    roles: Optional[RolesLike] = None,
     extra_vars=None,
     on_error_continue=False,
 ):
@@ -272,6 +269,7 @@ def run_play(
     Args:
         play_source (dict): ansible task
         inventory_path (str): inventory to use
+        hosts: host like datastructure used as a drop in replacement for an inventory.
         extra_vars (dict): extra_vars to use
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
@@ -286,13 +284,14 @@ def run_play(
         List of all the results
     """
     logger.debug(play_source)
+    roles = _hostslike_to_roles(roles)
     print(extra_vars)
-    results = []
+    results: List = []
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
     )
     callback = _MyCallback(results)
-    passwords = {}
+    passwords: MutableMapping = {}
     tqm = task_queue_manager.TaskQueueManager(
         inventory=inventory,
         variable_manager=variable_manager,
@@ -334,7 +333,7 @@ def run_play(
     return results
 
 
-class play_on(object):
+class actions(object):
     """A context manager to manage a sequence of Ansible module calls."""
 
     def __init__(
@@ -342,9 +341,9 @@ class play_on(object):
         *,
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
-        roles: Optional[Roles] = None,
+        roles: Optional[RolesLike] = None,
         gather_facts: Union[str, bool] = False,
-        priors: Optional[List["play_on"]] = None,
+        priors: Optional[List["actions"]] = None,
         run_as: Optional[str] = None,
         strategy: str = "linear",
         **kwargs,
@@ -488,26 +487,14 @@ class play_on(object):
         return _f
 
 
-class actions(play_on):
-    """A convenient wrapper of the :py:class:`~enoslib.api.play_on` class.
-
-    The rationale is that it is often convenient to pass a list of Host instead
-    of a Roles datastructure.
-
-    """
-
-    def __init__(self, hosts: List[Host], **kwargs):
-        """
-        Args:
-            hosts: the list of Hosts on which the action should be run.
-            kwargs: keyword arguments passed to the
-                :py:class:`~enoslib.api.play_on` constructor.
-        """
-        super().__init__(roles=Roles(all=hosts), **kwargs)
+class play_on(actions):
+    def __init__(self, *args, **kwargs):
+        warnings.warn("use actions instead of play_on", DeprecationWarning)
+        super().__init__(*args, **kwargs)
 
 
 # can be used as prior
-__python3__ = play_on()
+__python3__ = actions()
 __python3__.raw(
     (
         "(python --version | grep --regexp ' 3.*')"
@@ -516,14 +503,14 @@ __python3__.raw(
     ),
     display_name="Install python3",
 )
-__default_python3__ = play_on()
+__default_python3__ = actions()
 __default_python3__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
     display_name="Making python3 the default python interpreter",
 )
 
 
-__python2__ = play_on()
+__python2__ = actions()
 __python2__.raw(
     (
         "(python --version | grep --regexp ' 2.*')"
@@ -532,13 +519,13 @@ __python2__.raw(
     ),
     display_name="Install python2",
 )
-__default_python2__ = play_on()
+__default_python2__ = actions()
 __default_python2__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python2 1"
 )
 
 
-__docker__ = play_on()
+__docker__ = actions()
 __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 
@@ -552,7 +539,7 @@ def ensure_python3(make_default=True, **kwargs):
     priors = [__python3__]
     if make_default:
         priors.append(__default_python3__)
-    with play_on(priors=priors, gather_facts=False, **kwargs) as p:
+    with actions(priors=priors, gather_facts=False, **kwargs) as p:
         p.raw("hostname")
 
 
@@ -566,16 +553,16 @@ def ensure_python2(make_default=True, **kwargs):
     priors = [__python2__]
     if make_default:
         priors.append(__default_python2__)
-    with play_on(priors=priors, gather_facts=False, **kwargs) as p:
+    with actions(priors=priors, gather_facts=False, **kwargs) as p:
         p.raw("hostname")
 
 
-def run_command(
+def run(
     command: str,
     *,
     pattern_hosts: str = "all",
     inventory_path: Optional[str] = None,
-    roles: Optional[Roles] = None,
+    roles: RolesLike = None,
     gather_facts: bool = False,
     extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
@@ -705,25 +692,16 @@ def run_command(
     return {"ok": ok, "failed": failed, "results": results}
 
 
-def run(command, hosts, **kwargs):
-    """Run a shell command on some remote hosts.
-
-    This is a wrapper of :py:func:`enoslib.api.run_command`.
-    """
-
-    return run_command(
-        command,
-        roles={"all": hosts},
-        **kwargs,
-    )
-
+def run_command(*args, **kwargs):
+    warnings.warn("Use run instead of run_command", DeprecationWarning)
+    return run(*args, **kwargs)
 
 def gather_facts(
     *,
     pattern_hosts="all",
     gather_subset="all",
     inventory_path=None,
-    roles=None,
+    roles: Optional[RolesLike] = None,
     extra_vars=None,
     on_error_continue=False,
 ):
@@ -815,7 +793,7 @@ def gather_facts(
 def run_ansible(
     playbooks,
     inventory_path=None,
-    roles=None,
+    roles: Optional[RolesLike] = None,
     tags=None,
     on_error_continue=False,
     basedir=".",
@@ -845,6 +823,7 @@ def run_ansible(
 
     if not extra_vars:
         extra_vars = {}
+    roles = _hostslike_to_roles(roles)
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path,
         roles=roles,
@@ -1024,7 +1003,10 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     return [h for h in all_hosts if h.address in ansible_addresses]
 
 
-def wait_for(roles: Roles, retries: int = 100, interval: int = 30, **kwargs) -> None:
+def wait_for(roles: RolesLike,
+             retries: int = 100,
+             interval: int = 30,
+             **kwargs) -> None:
     """Wait for all the machines to be ready to run some commands.
 
     Let Ansible initiates a communication and retries if needed.
@@ -1041,7 +1023,7 @@ def wait_for(roles: Roles, retries: int = 100, interval: int = 30, **kwargs) -> 
     """
     for i in range(0, retries):
         try:
-            with play_on(
+            with actions(
                 roles=roles, gather_facts=False, on_error_continue=False, **kwargs
             ) as p:
                 # We use the raw module because we can't assumed at this point that

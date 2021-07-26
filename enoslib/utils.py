@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from typing import Optional
+from enoslib.objects import RolesLike, Roles
 import os
 
 from enoslib.errors import EnosFilePathError
@@ -43,3 +45,11 @@ def remove_hosts(roles, hosts_to_keep):
             if host.alias in hosts_to_keep:
                 updated_roles[role].append(host)
     return updated_roles
+
+
+def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
+    if input is None:
+        return None
+    if isinstance(input, Roles):
+        return input
+    return Roles(all=input)

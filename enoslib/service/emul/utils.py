@@ -94,7 +94,7 @@ def validate_delay(
             all_addresses=all_addresses,
         ),
     )
-    run_ansible([_playbook], roles=dict(all=hosts), extra_vars=options, **kwargs)
+    run_ansible([_playbook], roles=hosts, extra_vars=options, **kwargs)
 
 
 def _validate(
@@ -122,4 +122,4 @@ def _destroy(hosts: List[Host], **kwargs):
     options = _build_options(
         extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
     )
-    run_ansible([_playbook], roles=dict(all=hosts), extra_vars=options)
+    run_ansible([_playbook], roles=hosts, extra_vars=options)

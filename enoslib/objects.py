@@ -52,6 +52,13 @@ AddressInterfaceType = Union[IPv4Address, IPv6Address]
 Role = str
 RolesNetworks = Tuple["Roles", "Networks"]
 
+# Many actions (run, actions, ...) on hosts can be fed with
+# Roles (e.g. coming from provider.init)
+# List[Host] (e.g. coming from Roles filtering)
+# in order to make those actions more convenient to use we'd like to allow
+# some flexible inputs to be used.
+RolesLike = Union["Roles", List["Host"]]
+
 
 class Roles(UserDict):
     def _repr_html_(self):

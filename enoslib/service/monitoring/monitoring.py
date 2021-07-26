@@ -212,7 +212,7 @@ class TIGMonitoring(Service):
 
         run_ansible(
             [_playbook],
-            roles={"influxdb": self._roles["influxdb"]},
+            roles=Roles(influxdb=self._roles["influxdb"]),
             extra_vars=extra_vars,
         )
 
@@ -344,7 +344,7 @@ class TPGMonitoring(Service):
 
         run_ansible(
             [_playbook],
-            roles={"prometheus": self._roles["prometheus"]},
+            roles=Roles(prometheus=self._roles["prometheus"]),
             extra_vars=extra_vars,
         )
 
