@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from typing import Optional
-from enoslib.objects import RolesLike, Roles
+from enoslib.objects import Host, RolesLike, Roles
 import os
 
 from enoslib.errors import EnosFilePathError
@@ -52,4 +52,6 @@ def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
         return None
     if isinstance(input, Roles):
         return input
+    if isinstance(input, Host):
+        return Roles(all=[input])
     return Roles(all=input)

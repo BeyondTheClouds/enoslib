@@ -57,7 +57,7 @@ RolesNetworks = Tuple["Roles", "Networks"]
 # List[Host] (e.g. coming from Roles filtering)
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
-RolesLike = Union["Roles", List["Host"]]
+RolesLike = Union["Roles", List["Host"], "Host"]
 
 
 class Roles(UserDict):
