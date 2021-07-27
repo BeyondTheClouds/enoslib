@@ -114,7 +114,7 @@ class Locust(Service):
                     (
                         "nohup locust "
                         f"-f {locustpath} "
-                        "--slave "
+                        "--worker "
                         f"--master-host={self.master_ip} "
                         f"--logfile={self.remote_working_dir}/locust-slave-{i}.log &"
                     ),
