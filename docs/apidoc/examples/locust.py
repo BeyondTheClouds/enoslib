@@ -1,7 +1,7 @@
 from enoslib import *
 
 provider_conf = {
-    "backend": "virtualbox",
+    "backend": "libvirt",
     "resources": {
         "machines": [{
             "roles": ["master"],
@@ -23,10 +23,7 @@ roles, networks = provider.init()
 roles = sync_info(roles, networks)
 
 l = Locust(master=roles["master"],
-            agents=roles["agent"],
-            network="r1")
+           agents=roles["agent"])
 
 l.deploy()
 l.run_with_ui('expe')
-ui_address = roles["master"][0].extra["r1_ip"]
-print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)

@@ -13,7 +13,6 @@ class Locust(Service):
         self,
         master: Optional[List[Host]] = None,
         agents: Optional[List[Host]] = None,
-        network: Optional[str] = None,
         remote_working_dir: str = "/builds/locust",
         priors: List[actions] = [__python3__],
         extra_vars: Dict = None,
@@ -47,10 +46,8 @@ class Locust(Service):
         self.priors = priors
         self.roles = Roles()
         self.roles.update(master=self.master, agent=self.agents)
-        if network is not None:
-            self.master_ip = self.master[0].extra[network + "_ip"]
-        else:
-            self.master_ip = self.master[0].address
+        # TODO: manage alternative networks
+        self.master_ip = self.master[0].address
 
         # We force python3
         extra_vars = extra_vars if extra_vars is not None else {}
@@ -164,7 +161,7 @@ class Locust(Service):
                     f"-f {locustpath} "
                     "--master "
                     "--logfile=/tmp/locust.log "
-                    "--no-web "
+                    "--headless "
                     f"--expect-slaves {slaves} "
                     f"--client {nb_clients} "
                     f"--hatch-rate {hatch_rate} "
