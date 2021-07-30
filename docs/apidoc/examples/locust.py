@@ -1,4 +1,4 @@
-from enoslib import *
+import enoslib as en
 
 provider_conf = {
     "backend": "libvirt",
@@ -7,7 +7,7 @@ provider_conf = {
             "roles": ["master"],
             "flavour": "tiny",
             "number": 1,
-        },{
+        }, {
             "roles": ["agent"],
             "flavour": "tiny",
             "number": 1,
@@ -16,14 +16,15 @@ provider_conf = {
     }
 }
 
-conf = VagrantConf.from_dictionnary(provider_conf)
-provider = Vagrant(conf)
+conf = en.VagrantConf.from_dictionnary(provider_conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
 
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
-l = Locust(master=roles["master"],
+locust = en.Locust(master=roles["master"][0],
            agents=roles["agent"])
-
-l.deploy()
-l.run_with_ui('expe')
+locust.destroy()
+locust.deploy()
+locust.run_headless("expe", density=5, users=10, spawn_rate=1, run_time=20)
+locust.backup()

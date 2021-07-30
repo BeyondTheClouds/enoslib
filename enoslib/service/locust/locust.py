@@ -1,19 +1,28 @@
+from pathlib import Path
 import os
+import time
 from typing import Dict, List, Optional
 
-from enoslib.api import actions, __python3__
-from enoslib.objects import Host, Roles
+from enoslib.api import __python3__, actions
+from enoslib.objects import Host, Network, Roles
+from enoslib.utils import get_address
+
 from ..service import Service
+from ..utils import _set_dir
 
 CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+LOCAL_OUTPUT_DIR = Path("__enoslib_locust__")
 
 
 class Locust(Service):
+
     def __init__(
         self,
-        master: Optional[List[Host]] = None,
+        master: Optional[Host] = None,
         agents: Optional[List[Host]] = None,
+        networks: Optional[List[Network]] = None,
         remote_working_dir: str = "/builds/locust",
+        backup_dir: Optional[Path] = None,
         priors: List[actions] = [__python3__],
         extra_vars: Dict = None,
     ):
@@ -25,14 +34,15 @@ class Locust(Service):
         Please note that this module assume that `discover_network` has been run before
 
         Args:
-            master: list of :py:class:`enoslib.Host` where the
+            master: :py:class:`~enoslib.objects.Host` where the
                     master will be installed
-            agents: list of :py:class:`enoslib.Host` where the slave will
+            agents: list of :py:class:`~enoslib.objects.Host` where the workers will
                     be installed
-            network: network role on which master, agents and targeted hosts
+            networks: network role on which master, agents and targeted hosts
                      are deployed
             remote_working_dir: path to a remote location that will be used as working
                                 directory
+            backup_dir: local directory where the backup will be performed
 
         Examples:
 
@@ -40,19 +50,34 @@ class Locust(Service):
                 :language: python
                 :linenos:
         """
-        self.master = master if master is not None else []
+        self.master = master
+        assert self.master is not None
+
         self.agents = agents if agents is not None else []
-        self.remote_working_dir = remote_working_dir
+        # create a separated working dir for each instance of the service
+        self.remote_working_dir = os.path.join(remote_working_dir,
+                                               str(int(time.time())))
         self.priors = priors
         self.roles = Roles()
-        self.roles.update(master=self.master, agent=self.agents)
-        # TODO: manage alternative networks
-        self.master_ip = self.master[0].address
+        self.roles.update(master=[self.master], agent=self.agents)
+
+        self.master_ip = get_address(self.master, networks=networks)
+
+        # handle backup_dir
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR)
 
         # We force python3
         extra_vars = extra_vars if extra_vars is not None else {}
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
         self.extra_vars.update(extra_vars)
+
+    def _repr_html_(self):
+        from enoslib.html import html_from_dict
+        return html_from_dict(str(self.__class__),
+                              dict(master_ip=self.master_ip,
+                                   backup_dir=self.backup_dir,
+                                   remote_working_dir=self.remote_working_dir)
+                              )
 
     def deploy(self):
         """Install Locust on master and agent hosts"""
@@ -72,6 +97,17 @@ class Locust(Service):
         ) as p:
             p.shell("if pgrep locust; then pkill locust; fi")
 
+    def backup(self, backup_dir: Optional[Path] = None):
+        """Backup the locust files.
+
+        We backup the remote working dir of the master.
+        """
+        _backup_dir = _set_dir(backup_dir, self.backup_dir)
+        local_archive = f"{int(time.time())}.tar.gz"
+        with actions(roles=self.master) as a:
+            a.archive(path=self.remote_working_dir, dest=f"/tmp/{local_archive}")
+            a.fetch(src=f"/tmp/{local_archive}", dest=str(_backup_dir))
+
     def run_with_ui(
         self,
         expe_dir: str,
@@ -84,7 +120,7 @@ class Locust(Service):
         Args:
             expe_dir: path (relative or absolute) to the experiment directory
             file_name: path (relative or absolute) to the main locustfile
-            density: number of locust slave to run per agent node
+            density: number of locust workers to run per agent node
             environment: environment to pass to the execution
         """
 
@@ -100,6 +136,7 @@ class Locust(Service):
                     f"-f {locustpath} "
                     "--master "
                     f"--host={self.master_ip} "
+                    "--csv enoslib "
                     f"--logfile={self.remote_working_dir}/locust-master.log &"
                 ),
                 environment=environment,
@@ -116,9 +153,10 @@ class Locust(Service):
                         f"-f {locustpath} "
                         "--worker "
                         f"--master-host={self.master_ip} "
-                        f"--logfile={self.remote_working_dir}/locust-slave-{i}.log &"
+                        f"--logfile={self.remote_working_dir}/locust-worker-{i}.log &"
                     ),
                     environment=environment,
+                    chdir=self.remote_working_dir,
                     display_name=(
                         f"Running({locustpath}) on agents"
                         f"(master at {self.master_ip})..."
@@ -129,11 +167,12 @@ class Locust(Service):
         self,
         expe_dir: str,
         locustfile: str = "locustfile.py",
-        nb_clients: int = 1,
-        hatch_rate: int = 1,
-        run_time: str = "60s",
+        users: int = 1,
+        spawn_rate: int = 1,
+        run_time: int = 60,
         density: int = 1,
         environment: Optional[Dict] = None,
+        blocking: bool = True
     ):
         """Run locust headless
         (see https://docs.locust.io/en/stable/running-locust-without-web-ui.html)
@@ -143,46 +182,53 @@ class Locust(Service):
             locustfile: path (relative or absolute) to the main locustfile
             nb_clients: total number of clients to spawn
             hatch_rate: number of clients to spawn per second
-            run_time: time of the experiment. e.g 300s, 20m, 3h, 1h30m, etc.
-            density: number of locust slave to run per agent node
+            run_time: time (in second) of the experiment
+            density: number of locust worker to run per agent node
             environment: environment to pass to the execution
+            blocking: whether the function block for the duration of the benchmark
         """
 
         if environment is None:
             environment = {}
         locustpath = self.__copy_experiment(expe_dir, locustfile)
-        slaves = len(self.roles["agent"]) * density
+        workers = len(self.roles["agent"]) * density
         with actions(
             pattern_hosts="master", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
-            p.shell(
-                (
-                    "nohup locust "
-                    f"-f {locustpath} "
-                    "--master "
-                    "--logfile=/tmp/locust.log "
-                    "--headless "
-                    f"--expect-slaves {slaves} "
-                    f"--client {nb_clients} "
-                    f"--hatch-rate {hatch_rate} "
-                    f"--run-time {run_time} "
-                    f"--logfile={self.remote_working_dir}/locust-master.log &"
-                ),
+            cmd = (
+                "nohup locust "
+                f"-f {locustpath} "
+                "--master "
+                "--logfile=/tmp/locust.log "
+                "--headless "
+                f"--expect-workers {workers} "
+                f"--users {users} "
+                f"--spawn-rate {spawn_rate} "
+                f"--run-time {str(run_time)}s "
+                "--csv enoslib "
+                f"--logfile={self.remote_working_dir}/locust-master.log &"
+            )
+            p.shell(cmd,
                 environment=environment,
+                chdir=self.remote_working_dir,
                 display_name="Running locust (%s) on master..." % (locustfile),
             )
+            # record the exact master command
+            p.copy(dest=f"{self.remote_working_dir}/cmd", content=cmd)
 
         with actions(
             pattern_hosts="agent", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             for i in range(density):
+                worker_local_id = f"locust-worker-{i}"
+                environment.update(LOCUST_WORKER_LOCAL_ID=worker_local_id)
                 p.shell(
                     (
                         "nohup locust "
                         f"-f {locustpath} "
-                        "--slave "
+                        "--worker "
                         f"--master-host={self.master_ip} "
-                        f"--logfile={self.remote_working_dir}/locust-slave-{i}.log &"
+                        f"--logfile={self.remote_working_dir}/{worker_local_id}.log &"
                     ),
                     environment=environment,
                     display_name=(
@@ -190,6 +236,8 @@ class Locust(Service):
                         f"on agents (master at {self.master_ip})..."
                     ),
                 )
+        if blocking:
+            time.sleep(1.5 * int(run_time))
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
         src_dir = os.path.abspath(expe_dir)
