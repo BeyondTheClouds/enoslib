@@ -1,4 +1,8 @@
+import logging
+
 import enoslib as en
+
+logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "backend": "libvirt",
@@ -23,8 +27,10 @@ roles, networks = provider.init()
 roles = en.sync_info(roles, networks)
 
 locust = en.Locust(master=roles["master"][0],
-           agents=roles["agent"])
-locust.destroy()
+           workers=roles["agent"],
+           networks=networks["r1"],
+           local_expe_dir="expe",
+           run_time=100)
+
 locust.deploy()
-locust.run_headless("expe", density=5, users=10, spawn_rate=1, run_time=20)
 locust.backup()
