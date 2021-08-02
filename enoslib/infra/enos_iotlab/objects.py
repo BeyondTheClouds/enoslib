@@ -244,12 +244,9 @@ class IotlabSerial:
         # convert to seconds
         timeout = self.sensor.iotlab_client.get_walltime() * 60
 
-        roles = {
-            "frontend": [
-                Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)
-            ]
-        }
-        with play_on(roles=roles) as p:
+        with play_on(
+            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
+        ) as p:
             cmd = "screen -dm bash -c 'serial_aggregator -l %s,%s > %s 2>&1'" % (
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
@@ -265,12 +262,10 @@ class IotlabSerial:
 
         Stops serial_aggregator tool running on the frontend
         """
-        roles = {
-            "frontend": [
-                Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)
-            ]
-        }
-        with play_on(roles=roles, on_error_continue=True) as p:
+        with play_on(
+            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
+            on_error_continue=True
+        ) as p:
             cmd = "pkill -f 'serial_aggregator -l %s,%s > %s 2>&1'" % (
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
@@ -371,12 +366,9 @@ class IotlabSniffer:
             sniffer_aggregator tool running on the frontend.
         """
 
-        roles = {
-            "frontend": [
-                Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)
-            ]
-        }
-        with play_on(roles=roles) as p:
+        with play_on(
+            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
+        ) as p:
             cmd = "sniffer_aggregator -l %s,%s -o %s" % (
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
@@ -395,12 +387,10 @@ class IotlabSniffer:
 
         Kills sniffer_aggregator tool running in the frontend.
         """
-        roles = {
-            "frontend": [
-                Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)
-            ]
-        }
-        with play_on(roles=roles, on_error_continue=True) as p:
+        with play_on(
+            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
+            on_error_continue=True
+        ) as p:
             cmd = 'pkill -f "%s"' % (self._filename)
             p.command(cmd, display_name="Killing sniffer_aggregator")
 
