@@ -87,13 +87,13 @@ class Iotlab(Provider):
             sites.add(host.site)
 
         user, _ = iotlabcli.auth.get_user_credentials()
-        roles = {
-            "frontend": [Host(site + ".iot-lab.info", user=user) for site in sites]
-        }
         logger.info(
             "Collecting experiment data from sites. Saving in folder: %s", dest_dir
         )
-        with play_on(roles=roles, on_error_continue=True) as p:
+        with play_on(
+            roles=[Host(site + ".iot-lab.info", user=user) for site in sites],
+            on_error_continue=True
+        ) as p:
             filename = "%d-{{ inventory_hostname }}.tar.gz" % (exp_id)
             # use --ignore-command-error to avoid errors if monitoring
             # files are being written
@@ -110,7 +110,7 @@ class Iotlab(Provider):
         self.client.del_profile()
 
     def _assert_clear_pool(self, pool_nodes):
-        """Auxialiry method to verify that all nodes from the pool were used"""
+        """Auxiliary method to verify that all nodes from the pool were used"""
         for nodes in pool_nodes.values():
             assert len(nodes) == 0
 
