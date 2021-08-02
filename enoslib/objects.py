@@ -61,7 +61,7 @@ RolesLike = Union["Roles", List["Host"], "Host"]
 
 
 class Roles(UserDict):
-    def _repr_html_(self):
+    def _repr_html_(self, content_only=False):
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
         for role, hosts in self.data.items():
@@ -73,7 +73,7 @@ class Roles(UserDict):
             role_contents.append(
                 foldable_section(role, repr_hosts, extra=str(len(self.data[role])))
             )
-        return html_from_sections(repr_title, role_contents, content_only=False)
+        return html_from_sections(repr_title, role_contents, content_only=content_only)
 
 
 class Networks(UserDict):
@@ -86,7 +86,7 @@ class Networks(UserDict):
                 res[role].update({n.network: d})
         return res
 
-    def _repr_html_(self):
+    def _repr_html_(self, content_only=False):
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
         for role, networks in self.data.items():
@@ -100,7 +100,7 @@ class Networks(UserDict):
             role_contents.append(
                 foldable_section(role, repr_networks, str(len(self.data[role])))
             )
-        return html_from_sections(repr_title, role_contents, content_only=False)
+        return html_from_sections(repr_title, role_contents, content_only=content_only)
 
 
 def _build_devices(facts, networks):
