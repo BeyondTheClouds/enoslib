@@ -183,7 +183,7 @@ class Locust(Service):
         We backup the remote working dir of the master.
         """
         _backup_dir = _set_dir(backup_dir, self.backup_dir)
-        with actions(roles=self.master) as a:
+        with actions(roles=self.roles) as a:
             a.archive(path=self.remote_working_dir, dest=f"/tmp/{self.bench_id}.tar.gz")
             a.fetch(src=f"/tmp/{self.bench_id}.tar.gz", dest=str(_backup_dir))
 
