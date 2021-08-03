@@ -24,30 +24,30 @@ conf = en.VagrantConf.from_dictionnary(provider_conf)
 provider = en.Vagrant(conf)
 roles, networks = provider.init()
 
-with en.play_on(roles=roles) as p:
+with en.actions(roles=roles) as p:
     p.debug(msg="{{ inventory_hostname  }}")
 
-with en.play_on(pattern_hosts="client", roles=roles) as p:
+with en.actions(pattern_hosts="client", roles=roles) as p:
     p.debug(msg="{{ inventory_hostname  }}")
     # this fails
     # p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
 
-with en.play_on(pattern_hosts="control", roles=roles) as p:
+with en.actions(pattern_hosts="control", roles=roles) as p:
     p.debug(msg="{{ inventory_hostname  }}")
 
-with en.play_on(pattern_hosts="client", roles=roles, gather_facts="control") as p:
+with en.actions(pattern_hosts="client", roles=roles, gather_facts="control") as p:
     p.debug(msg="{{ inventory_hostname  }}")
     # This doesn't fail because we gather facts on the control host
     p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
 
-with en.play_on(pattern_hosts="client", roles=roles, gather_facts="all") as p:
+with en.actions(pattern_hosts="client", roles=roles, gather_facts="all") as p:
     p.debug(msg="{{ inventory_hostname  }}")
     # This doesn't fail because we gather facts on all hosts
     p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
 
 # Using the actions wrapper allows for using a list of hosts instead of a Roles object
-with en.actions(hosts=roles["client"]) as p:
+with en.actions(roles=roles["client"]) as p:
     p.debug(msg="{{ inventory_hostname  }}")
 
-with en.actions(hosts=roles["client"], gather_facts=True) as p:
+with en.actions(roles=roles["client"], gather_facts=True) as p:
     p.debug(msg="{{ inventory_hostname  }}")
