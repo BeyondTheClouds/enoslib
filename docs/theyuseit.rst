@@ -5,6 +5,12 @@
 Publications
 ============
 
+- Daniel Rosendo, Alexandru Costan, Gabriel Antoniu, Matthieu Simonin,
+  Jean-Christophe Lombardo, et al.. Reproducible Performance Optimization of
+  Complex Applications on the Edge-to-Cloud Continuum. Cluster 2021 - IEEE
+  International Conference on Cluster Computing, Sep 2021, Portland, OR, United
+  States. ⟨hal-03310540⟩
+
 - Kubernetes WANWide: a Deployment Scenario to Expose and Use Edge Computing Resources?
   Karim Manaouil, Adrien Lebre
   IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
