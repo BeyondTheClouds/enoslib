@@ -1,18 +1,25 @@
 ⚒️ Changelog
 ============
 
-6.3.0
+7.0.0
 -----
 
 - Introduce a way to configure the library.
   For now this can be used to control the cache used when accessing the G5k API.
-- Doc: they-use-it updated
 - Jupyter integration
     - Provider configuration, roles and networks can be displayed in a rich format in a jupyter notebook
+    - svc/locust: can display some information
+- api/objects: introduce ``RolesLike`` type: something that looks like to some
+    remote machines.  More precisely, it's a Union of some types: a ``Host``, a list
+    of Host or a plain-old ``Roles`` datastructure. It's reduce the number of
+    function of the API since function overloading isn't possible in Python.
 - api: introducte `bg_start`, `bg_stop` that generates the command for
   starting/stopping backgroung process on the remote nodes.
 - svc/dstat: make it a context manager, adapt the examples
 - svc/tcpdump: make it a context manager, adapt the examples
+- svc/locust: update to the latest version. align the API to support parameter-less ``deploy`` method 
+    (run ``headless`` by default)
+- Doc: they-use-it updated
 
 
 6.2.0
