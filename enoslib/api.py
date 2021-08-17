@@ -71,6 +71,7 @@ DEFAULT_ERROR_STATUSES = {STATUS_FAILED, STATUS_UNREACHABLE}
 # But rather will need to write (with an h!)
 # with play_on() as p
 #   p.shell(..., asynch=100)
+ONE_YEAR_SECONDS = 3600 * 24 * 365
 ANSIBLE_TOP_LEVEL = {
     "asynch": "async",
     "become": "become",
@@ -83,6 +84,7 @@ ANSIBLE_TOP_LEVEL = {
     "when": "when",
     "run_once": "run_once",
     "delegate_to": "delegate_to",
+    "background": {"async": ONE_YEAR_SECONDS, "poll": 0}
 }
 
 
@@ -92,7 +94,13 @@ def _split_args(**kwargs):
     module_args = {}
     for k, v in kwargs.items():
         if k in ANSIBLE_TOP_LEVEL.keys():
-            top_args.update({ANSIBLE_TOP_LEVEL[k]: v})
+            replacement = ANSIBLE_TOP_LEVEL[k]
+            if isinstance(replacement, str):
+                top_args.update({ANSIBLE_TOP_LEVEL[k]: v})
+            elif isinstance(replacement, dict):
+                top_args.update(**replacement)
+            else:
+                raise ValueError(f"No replacement candidate for keyword {k}")
         else:
             module_args.update({k: v})
     return top_args, module_args
@@ -345,6 +353,7 @@ class actions(object):
         gather_facts: Union[str, bool] = False,
         priors: Optional[List["actions"]] = None,
         run_as: Optional[str] = None,
+        background: bool = False,
         strategy: str = "linear",
         **kwargs,
     ):
@@ -364,6 +373,8 @@ class actions(object):
             priors: tasks in each prior will be prepended in the playbook
             run_as: A shortcut that injects become and become_user to each task.
                     become* at the task level has the precedence over this parameter
+            background: A shortcut that injects async=1year, poll=0 to run the
+                commands in detached mode. Can be overriden at the task level.
             strategy: ansible execution strategy
             kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
 
@@ -405,11 +416,13 @@ class actions(object):
 
         self.kwargs = kwargs
 
+        self.kwds = {}
         # Handle modification of task level kwargs
         if run_as is not None:
             self.kwds = dict(become=True, become_user=run_as)
-        else:
-            self.kwds = {}
+        if background:
+            # don't inject if background is False
+            self.kwds = dict(background=True)
 
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context/p
@@ -466,6 +479,9 @@ class actions(object):
             task = {"name": display_name}
             _kwds = copy.copy(self.kwds)
             _kwds.update(kwargs)
+            background = _kwds.get("background", False)
+            if not background:
+                _kwds.pop("background", None)
             top_args, module_args = _split_args(**_kwds)
             task.update(top_args)
             task.update({module_name: module_args})
@@ -476,6 +492,9 @@ class actions(object):
             task = {"name": display_name, module_name: command}
             _kwds = copy.copy(self.kwds)
             _kwds.update(kwargs)
+            background = _kwds.get("background", False)
+            if not background:
+                _kwds.pop("background", None)
             top_args, module_args = _split_args(**_kwds)
             task.update(top_args)
             if module_args:
@@ -567,6 +586,7 @@ def run_command(
     extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
+    background: bool = False,
     **kwargs: Any,
 ):
     """Run a shell command on some remote hosts.
@@ -586,6 +606,8 @@ def run_command(
             This is equivalent to passing become=yes and become_user=user but
             become_method can be passed to modify the priviledge escalation
             method. (default to sudo).
+        background: run the remote command in the background (detached mode)
+            This is equivalent to passing async=one_year, poll=0
         kwargs: keywords argument to pass to the shell module or as top level
             args.
 
@@ -667,6 +689,10 @@ def run_command(
     if run_as is not None:
         # run_as is a shortcut
         kwargs.update(become=True, become_user=run_as)
+
+    if background:
+        # don't inject if background is False
+        kwargs.update(background=True)
 
     task = {"name": COMMAND_NAME, "shell": command}
 

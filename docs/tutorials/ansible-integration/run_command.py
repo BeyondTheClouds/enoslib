@@ -47,3 +47,7 @@ print(result)
 # shortcut 3 -> use a single host
 result = en.run("date", roles["control1"][0])
 print(result)
+
+# async tasks / will run in detached mode
+result = en.run("date", roles=roles, background=True)
+print(result)

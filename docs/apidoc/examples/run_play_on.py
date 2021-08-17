@@ -51,3 +51,17 @@ with en.actions(roles=roles["client"]) as p:
 
 with en.actions(roles=roles["client"], gather_facts=True) as p:
     p.debug(msg="{{ inventory_hostname  }}")
+
+
+with en.actions(roles=roles["client"], gather_facts=False) as p:
+    p.debug(msg="{{ inventory_hostname  }}")
+    p.shell("sleep 3")
+    p.shell("sleep 5", background=True)
+    p.shell("sleep 3")
+
+
+with en.actions(roles=roles["client"], gather_facts=False, background=True) as p:
+    p.debug(msg="{{ inventory_hostname  }}", background=False)
+    p.shell("sleep 3")
+    p.shell("sleep 5", background=False)
+    p.shell("sleep 3")
