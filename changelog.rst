@@ -13,11 +13,15 @@
     remote machines.  More precisely, it's a Union of some types: a ``Host``, a list
     of Host or a plain-old ``Roles`` datastructure. It's reduce the number of
     function of the API since function overloading isn't possible in Python.
-- api: introducte `bg_start`, `bg_stop` that generates the command for
+- api: introduce `bg_start`, `bg_stop` that generates the command for
   starting/stopping backgroung process on the remote nodes.
+- api: introduce `background` keyword. It serves the same purpose of
+  `bg_start/end` but is more generic in the sense that many modules can benefit
+  from the keyword and it doesn't have any dependencies. Under the hood this will
+  generate an async Ansible tasks with infinite timeout.
 - svc/dstat: make it a context manager, adapt the examples
 - svc/tcpdump: make it a context manager, adapt the examples
-- svc/locust: update to the latest version. align the API to support parameter-less ``deploy`` method 
+- svc/locust: update to the latest version. align the API to support parameter-less ``deploy`` method
     (run ``headless`` by default)
 - Doc: they-use-it updated
 
