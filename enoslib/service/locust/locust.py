@@ -4,7 +4,12 @@ import time
 from typing import Dict, List, Optional
 
 from enoslib.api import __python3__, actions
-from enoslib.html import dict_to_html, foldable_section, html_from_sections
+from enoslib.html import (
+    dict_to_html_foldable_sections,
+    html_to_foldable_section,
+    html_from_sections,
+    repr_html_check,
+)
 from enoslib.objects import Host, Network, Roles
 from enoslib.utils import get_address
 
@@ -39,7 +44,6 @@ class Locust(Service):
         backup_dir: Optional[Path] = None,
         priors: List[actions] = [__python3__],
         extra_vars: Dict = None,
-
     ):
         """Deploy a distributed Locust (see locust.io)
 
@@ -131,6 +135,7 @@ class Locust(Service):
         d.update(ui=f"{self.master_ip}:8089")
         return d
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         # This is an attempt to get a more generic representation for a service
         info = self.info()
@@ -144,15 +149,17 @@ class Locust(Service):
             if k in self._REPR_HTML_EXCLUDE:
                 continue
             if hasattr(v, "_repr_html_"):
-                sections.append(foldable_section(k, v._repr_html_(content_only=True)))
+                sections.append(
+                    html_to_foldable_section(k, v._repr_html_(content_only=True))
+                )
             else:
                 to_repr.update({k: v})
         to_repr["ui (if any)"] = to_repr.pop("ui")
-        sections += [dict_to_html(to_repr)]
+        sections += [dict_to_html_foldable_sections(to_repr)]
 
-        return html_from_sections(str(self.__class__),
-                                  sections,
-                                  content_only=content_only)
+        return html_from_sections(
+            str(self.__class__), sections, content_only=content_only
+        )
 
     def _prepare(self):
         """Installs the locust dependencies."""
@@ -262,7 +269,8 @@ class Locust(Service):
                 "--csv enoslib "
                 f"--logfile={self.remote_working_dir}/locust-master.log &"
             )
-            p.shell(cmd,
+            p.shell(
+                cmd,
                 environment=environment,
                 chdir=self.remote_working_dir,
                 display_name="Running locust (%s) on master..." % (self.locustfile),
@@ -293,11 +301,14 @@ class Locust(Service):
         with actions(roles=self.master, extra_vars=self.extra_vars) as p:
             # wait for the communication port between master and workers is closed
             # don't spam the master so sleeping 5 sec between each check
-            p.wait_for(host=self.master_ip,
-                       port=5557,
-                       state="stopped",
-                       timeout=2 * self.run_time,
-                       sleep=5, display_name="Waiting benchmark completion...")
+            p.wait_for(
+                host=self.master_ip,
+                port=5557,
+                state="stopped",
+                timeout=2 * self.run_time,
+                sleep=5,
+                display_name="Waiting benchmark completion...",
+            )
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
         src_dir = os.path.abspath(expe_dir)

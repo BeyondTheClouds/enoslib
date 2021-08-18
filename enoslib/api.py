@@ -14,44 +14,53 @@ These function can be fed with library-level objects (see :ref:`objects
     .. [#a1] https://docs.ansible.com/ansible/latest/index.html
 
 """
+from abc import ABCMeta, abstractmethod
 import copy
+from dataclasses import dataclass
 import json
 import logging
 import os
 import signal
-import tempfile
 import time
 import warnings
-from collections import namedtuple
+from collections import UserList, namedtuple
 from pathlib import Path
-from typing import (Any, Dict, List, Mapping, MutableMapping, Optional, Set,
-                    Tuple, Union)
+import sys
+from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Set, Tuple
 
 # These two imports are 2.9
 import ansible.constants as C
-import yaml
 from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.module_utils.common.collections import ImmutableDict
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
 from ansible.plugins.callback.default import CallbackModule
+
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
 from ansible.vars.manager import VariableManager
-from cryptography.hazmat.backends import \
-    default_backend as crypto_default_backend
-from cryptography.hazmat.primitives import \
-    serialization as crypto_serialization
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ansible import context
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
-from enoslib.errors import (EnosFailedHostsError, EnosSSHNotReady,
-                            EnosUnreachableHostsError)
+from enoslib.errors import (
+    EnosFailedHostsError,
+    EnosSSHNotReady,
+    EnosUnreachableHostsError,
+)
+from enoslib.html import (
+    convert_to_html_table,
+    html_from_dict,
+    html_from_sections,
+    repr_html_check,
+)
 from enoslib.objects import Host, Networks, Roles, RolesLike
 from enoslib.utils import _check_tmpdir, _hostslike_to_roles, remove_hosts
 
@@ -84,7 +93,7 @@ ANSIBLE_TOP_LEVEL = {
     "when": "when",
     "run_once": "run_once",
     "delegate_to": "delegate_to",
-    "background": {"async": ONE_YEAR_SECONDS, "poll": 0}
+    "background": {"async": ONE_YEAR_SECONDS, "poll": 0},
 }
 
 
@@ -209,6 +218,112 @@ class _MyCallback(CallbackModule):
     def v2_runner_on_unreachable(self, result):
         super(_MyCallback, self).v2_runner_on_unreachable(result)
         self._store(result, STATUS_UNREACHABLE)
+
+
+@dataclass
+class BaseCommandResult(object):
+    # mypy https://github.com/python/mypy/issues/5374
+    __metaclass__ = ABCMeta
+    host: str
+    task: str
+    status: str
+    payload: Dict
+
+    @abstractmethod
+    def _payload_keys(self):
+        ...
+
+    def match(self, **kwargs):
+        for k, v in kwargs.items():
+            attr_value = getattr(self, k)
+            if attr_value != v:
+                return False
+        return True
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        return html_from_dict(
+            str(self.__class__), self.__dict__, content_only=content_only
+        )
+
+    def _summarize(self):
+        p = {
+            k: self.payload[k]
+            for k in self._payload_keys()
+            if self.payload.get(k) is not None
+        }
+        if not p:
+            p = f"[{sys.getsizeof(self.payload)} bytes]"
+        return dict(
+            host=self.host,
+            task=self.task,
+            status=self.status,
+            payload=p,
+        )
+
+    @staticmethod
+    def from_play(play_result: _AnsibleExecutionRecord) -> "BaseCommandResult":
+        if "ansible_job_id" in play_result.payload:
+            return AsyncCommandResult(**play_result._asdict())
+        if "rc" in play_result.payload:
+            return CommandResult(**play_result._asdict())
+
+        return CustomCommandResult(**play_result._asdict())
+
+    def __getattr__(self, name: str) -> Any:
+        """missing method."""
+        if name not in self._payload_keys():
+            raise AttributeError()
+        return self.payload.get(name)
+
+
+class CommandResult(BaseCommandResult):
+    def _payload_keys(self):
+        return ["stdout", "stderr", "rc"]
+
+
+class AsyncCommandResult(BaseCommandResult):
+    def _payload_keys(self):
+        return ["results_file", "ansible_job_id"]
+
+
+class CustomCommandResult(BaseCommandResult):
+    def _payload_keys(self):
+        return []
+
+
+class Results(UserList):
+    """Container for CommandResult**s**
+
+    Running one (or more) command(s) on several hosts leads to multiple results
+    to be gathered by EnOSlib.
+    EnOSlib manage the results as a flat list of individual result (one per host
+    and command) but allow for some filtering to be done.
+
+    Examples:
+
+        .. code-block:: python
+
+            result = en.run_command("date", roles=roles)
+            # print the stdout of foo-1
+            print(result.filter(host="foo-1").stdout)
+
+            # get all the stderr of ko tasks (note the plural form)
+            print(result.filter(status=STATUS_FAILED).stderrs)
+    """
+    def filter(self, **kwargs):
+        return Results([c for c in self.data if c.match(**kwargs)])
+
+    def __repr__(self):
+        return "\n".join([d.__repr__() for d in self.data])
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        return html_from_sections(
+            str(self.__class__),
+            convert_to_html_table([d._summarize() for d in self.data]),
+            content_only=content_only,
+        )
 
 
 def populate_keys(
@@ -350,7 +465,7 @@ class actions(object):
         pattern_hosts: str = "all",
         inventory_path: Optional[str] = None,
         roles: Optional[RolesLike] = None,
-        gather_facts: Union[str, bool] = False,
+        gather_facts: bool = False,
         priors: Optional[List["actions"]] = None,
         run_as: Optional[str] = None,
         background: bool = False,
@@ -427,18 +542,21 @@ class actions(object):
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context/p
         self._tasks: List[Mapping[Any, Any]] = []
+
+        if gather_facts:
+            self._tasks.append(dict(name="Gather facts", setup=""))
+
         if self.priors:
             for prior in self.priors:
                 self._tasks.extend(prior._tasks)
 
-        # Handle gather_facts
-        self.gather_facts = gather_facts
+        # Placeholder (will be mutated) for the results
+        self.results = Results()
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
-        gather_source = dict(hosts=[], gather_facts=False, tasks=[])
         play_source = dict(
             hosts=self.pattern_hosts,
             tasks=self._tasks,
@@ -446,37 +564,26 @@ class actions(object):
             strategy=self.strategy,
         )
 
-        if isinstance(self.gather_facts, str):
-            gather_source.update(hosts=self.gather_facts, gather_facts=True)
-            playbook = [gather_source, play_source]
-        elif self.gather_facts:
-            gather_source.update(hosts=self.pattern_hosts, gather_facts=True)
-            playbook = [gather_source, play_source]
-        else:
-            gather_source.update(gather_facts=False)
-            playbook = [play_source]
+        logger.debug(play_source)
 
-        logger.debug(playbook)
+        # run it
+        results = run_play(
+            play_source,
+            inventory_path=self.inventory_path,
+            roles=self.roles,
+            **self.kwargs,
+        )
 
-        # Generate a playbook and run it
-        with tempfile.NamedTemporaryFile("w", buffering=1, dir=os.getcwd()) as _pb:
-            content = yaml.dump(playbook)
-            _pb.write(content)
-            logger.debug("Generated playbook")
-            logger.debug(content)
-            run_ansible(
-                [_pb.name],
-                inventory_path=self.inventory_path,
-                roles=self.roles,
-                **self.kwargs,
-            )
+        # gather results (mutate the results attributes)
+        for r in results:
+            self.results.append(BaseCommandResult.from_play(r))
 
     def __getattr__(self, module_name):
         """Providers an handy way to use ansible module from python."""
 
         def _f(**kwargs):
-            display_name = kwargs.pop("display_name", "__calling__ %s" % module_name)
-            task = {"name": display_name}
+            task_name = kwargs.pop("task_name", "%s" % module_name)
+            task = {"name": task_name}
             _kwds = copy.copy(self.kwds)
             _kwds.update(kwargs)
             background = _kwds.get("background", False)
@@ -488,8 +595,8 @@ class actions(object):
             self._tasks.append(task)
 
         def _shell_like(command, **kwargs):
-            display_name = kwargs.pop("display_name", command)
-            task = {"name": display_name, module_name: command}
+            task_name = kwargs.pop("task_name", command)
+            task = {"name": task_name, module_name: command}
             _kwds = copy.copy(self.kwds)
             _kwds.update(kwargs)
             background = _kwds.get("background", False)
@@ -587,6 +694,7 @@ def run_command(
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
     background: bool = False,
+    display_name: str = None,
     **kwargs: Any,
 ):
     """Run a shell command on some remote hosts.
@@ -608,6 +716,8 @@ def run_command(
             method. (default to sudo).
         background: run the remote command in the background (detached mode)
             This is equivalent to passing async=one_year, poll=0
+        display_name: name of the command to display, can be used for further
+            filtering once the results is retrieved.
         kwargs: keywords argument to pass to the shell module or as top level
             args.
 
@@ -670,22 +780,6 @@ def run_command(
     Note that the actual result isn't available in the result file but will be
     available through a file specified in the result object."""
 
-    def filter_results(results, status):
-        _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
-        s = dict(
-            [
-                [
-                    r.host,
-                    {
-                        "stdout": r.payload.get("stdout"),
-                        "stderr": r.payload.get("stderr"),
-                    },
-                ]
-                for r in _r
-            ]
-        )
-        return s
-
     if run_as is not None:
         # run_as is a shortcut
         kwargs.update(become=True, become_user=run_as)
@@ -694,7 +788,9 @@ def run_command(
         # don't inject if background is False
         kwargs.update(background=True)
 
-    task = {"name": COMMAND_NAME, "shell": command}
+    task = dict(name=command, shell=command)
+    if display_name is not None:
+        task.update(name=display_name)
 
     top_args, module_args = _split_args(**kwargs)
     task.update(top_args)
@@ -713,9 +809,8 @@ def run_command(
         extra_vars=extra_vars,
         on_error_continue=on_error_continue,
     )
-    ok = filter_results(results, STATUS_OK)
-    failed = filter_results(results, STATUS_FAILED)
-    return {"ok": ok, "failed": failed, "results": results}
+
+    return Results([BaseCommandResult.from_play(r) for r in results])
 
 
 def run(cmd: str, roles: RolesLike, **kwargs):
@@ -1042,10 +1137,9 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     return [h for h in all_hosts if h.address in ansible_addresses]
 
 
-def wait_for(roles: RolesLike,
-             retries: int = 100,
-             interval: int = 30,
-             **kwargs) -> None:
+def wait_for(
+    roles: RolesLike, retries: int = 100, interval: int = 30, **kwargs
+) -> None:
     """Wait for all the machines to be ready to run some commands.
 
     Let Ansible initiates a communication and retries if needed.
@@ -1116,8 +1210,7 @@ def bg_stop(key: str, num: int = signal.SIGINT) -> str:
     else:
         # We prefer send a sigint to all the encapsulated processes
         cmd = (
-            "(tmux list-panes -t %s -F '#{pane_pid}' | "
-            "xargs -n1 kill -%s) || true"
+            "(tmux list-panes -t %s -F '#{pane_pid}' | " "xargs -n1 kill -%s) || true"
         ) % (key, int(num))
         return cmd
 

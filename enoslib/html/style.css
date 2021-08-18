@@ -42,7 +42,7 @@ ul {
 
 input.att+label {
     display: inline-block;
-    width: 140px;
+    /*width: 140px;*/
     color: rgb(36, 35, 35);
     font-weight: 500;
     padding: 4px 0 2px 0;
@@ -106,17 +106,18 @@ table {
 
 td,
 th {
-    text-align: center;
     padding: 8px;
     height: 15px;
-    font-size: medium;
+    font-size: small;
 }
 
 td {
-    color: rgb(160, 160, 160);
+    text-align: left !important;
+    color: rgb(160, 160, 160)
 }
 
 th {
+    text-align: center;
     color: black;
 }
 

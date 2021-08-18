@@ -3,7 +3,6 @@ from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
 import logging
-import json
 import os
 
 # Dummy functionnal test running inside a docker container
@@ -41,20 +40,20 @@ generate_inventory(roles, networks, inventory, check_networks=True)
 
 # With an inventory
 result = run_command("date", pattern_hosts="control", inventory_path=inventory)
-print(json.dumps(result))
+print(result)
 
 # With roles
 result = run_command("date", pattern_hosts="control", roles=roles)
-print(json.dumps(result))
+print(result)
 
 # With roles and async
 result = run_command("date", pattern_hosts="control", roles=roles, asynch=100, poll=0)
-print(json.dumps(result))
+print(result)
 
 # With run and hosts
 result = run("date", roles["control"])
-print(json.dumps(result))
+print(result)
 
 # With run and hosts and async
 result = run("date", roles["control"], asynch=100, poll=0)
-print(json.dumps(result))
+print(result)

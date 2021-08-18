@@ -2,7 +2,7 @@ import jsonschema
 import logging
 import json
 from typing import Dict, Optional, Any
-from enoslib.html import html_from_dict
+from enoslib.html import html_from_dict, repr_html_check
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"
@@ -82,6 +82,7 @@ class BaseConfiguration:
         r += json.dumps(self.to_dict(), indent=4)
         return r
 
+    @repr_html_check
     def _repr_html_(self) -> str:
         class_name = f"{str(self.__class__)}@{hex(id(self))}"
         return html_from_dict(class_name, self.to_dict(), content_only=False)

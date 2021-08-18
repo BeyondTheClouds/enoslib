@@ -39,10 +39,11 @@ from typing import (
 from netaddr import EUI
 
 from enoslib.html import (
-    dict_to_html,
-    foldable_section,
+    dict_to_html_foldable_sections,
+    html_to_foldable_section,
     html_from_dict,
     html_from_sections,
+    repr_html_check,
 )
 
 NetworkType = Union[bytes, int, Tuple, str]
@@ -61,6 +62,7 @@ RolesLike = Union["Roles", List["Host"], "Host"]
 
 
 class Roles(UserDict):
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
@@ -68,10 +70,12 @@ class Roles(UserDict):
             repr_hosts = []
             for h in hosts:
                 repr_hosts.append(
-                    foldable_section(h.alias, h._repr_html_(content_only=True))
+                    html_to_foldable_section(h.alias, h._repr_html_(content_only=True))
                 )
             role_contents.append(
-                foldable_section(role, repr_hosts, extra=str(len(self.data[role])))
+                html_to_foldable_section(
+                    role, repr_hosts, extra=str(len(self.data[role]))
+                )
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
@@ -86,6 +90,7 @@ class Networks(UserDict):
                 res[role].update({n.network: d})
         return res
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
@@ -93,12 +98,12 @@ class Networks(UserDict):
             repr_networks = []
             for network in networks:
                 repr_networks.append(
-                    foldable_section(
+                    html_to_foldable_section(
                         network.network, network._repr_html_(content_only=True)
                     )
                 )
             role_contents.append(
-                foldable_section(role, repr_networks, str(len(self.data[role])))
+                html_to_foldable_section(role, repr_networks, str(len(self.data[role])))
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
@@ -270,6 +275,7 @@ class DefaultNetwork(Network):
                 yield EUI(item)
         yield from ()
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         """
         content_only == True  => html_object == <div class=enoslib>...</div>
@@ -449,6 +455,7 @@ class NetDevice(object):
             type="ether",
         )
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
@@ -486,9 +493,10 @@ class Processor(object):
             "threads_per_core": self.threads_per_core,
         }
 
+    @repr_html_check
     def _repr_html_(self, content_only: bool = False):
         d = self.to_dict()
-        return dict_to_html(d)
+        return dict_to_html_foldable_sections(d)
 
 
 @dataclass(unsafe_hash=True, order=True)
@@ -673,23 +681,26 @@ class Host(object):
         ]
         return "Host(%s)" % ", ".join(args)
 
+    @repr_html_check
     def _repr_html_(self, content_only=False) -> str:
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         d = self.to_dict()
         # trick to not nest dictionnary
         d.pop("net_devices")
         d.pop("processor")
-        sections = [dict_to_html(d)]
+        sections = [dict_to_html_foldable_sections(d)]
         net_d = []
         for n in self.net_devices:
             n_html = n._repr_html_(content_only=True)
-            net_d.append(foldable_section(n.name, n_html))
-        sections.append(foldable_section("net_devices", net_d, extra=str(len(net_d))))
+            net_d.append(html_to_foldable_section(n.name, n_html))
+        sections.append(
+            html_to_foldable_section("net_devices", net_d, extra=str(len(net_d)))
+        )
         p = self.processor
         if p:
             # Display a quick summary of the available processor
             sections.append(
-                foldable_section(
+                html_to_foldable_section(
                     "processor",
                     p._repr_html_(content_only=True),
                     extra=f"{p.vcpus} vcpus",
