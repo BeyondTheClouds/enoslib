@@ -627,12 +627,12 @@ __python3__.raw(
         "||"
         "(apt update && apt install -y python3 python3-pip)"
     ),
-    display_name="Install python3",
+    task_name="Install python3",
 )
 __default_python3__ = actions()
 __default_python3__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
-    display_name="Making python3 the default python interpreter",
+    task_name="Making python3 the default python interpreter",
 )
 
 
@@ -643,7 +643,7 @@ __python2__.raw(
         "||"
         "(apt update && apt install -y python python-pip)"
     ),
-    display_name="Install python2",
+    task_name="Install python2",
 )
 __default_python2__ = actions()
 __default_python2__.raw(
@@ -694,7 +694,7 @@ def run_command(
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
     background: bool = False,
-    display_name: str = None,
+    task_name: str = None,
     **kwargs: Any,
 ):
     """Run a shell command on some remote hosts.
@@ -716,7 +716,7 @@ def run_command(
             method. (default to sudo).
         background: run the remote command in the background (detached mode)
             This is equivalent to passing async=one_year, poll=0
-        display_name: name of the command to display, can be used for further
+        task_name: name of the command to display, can be used for further
             filtering once the results is retrieved.
         kwargs: keywords argument to pass to the shell module or as top level
             args.
@@ -789,8 +789,8 @@ def run_command(
         kwargs.update(background=True)
 
     task = dict(name=command, shell=command)
-    if display_name is not None:
-        task.update(name=display_name)
+    if task_name is not None:
+        task.update(name=task_name)
 
     top_args, module_args = _split_args(**kwargs)
     task.update(top_args)

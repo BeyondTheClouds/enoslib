@@ -181,7 +181,7 @@ def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
             "{{ item }}",
             when="tc_commands[inventory_hostname] is defined",
             loop="{{ tc_commands[inventory_hostname] }}",
-            display_name="Applying the network constraints",
+            task_name="Applying the network constraints",
         )
 
 

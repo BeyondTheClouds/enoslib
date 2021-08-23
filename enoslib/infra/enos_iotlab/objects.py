@@ -253,7 +253,7 @@ class IotlabSerial:
                 self._filename,
             )
             p.shell(
-                cmd, display_name="Running serial_aggregator", asynch=timeout, poll=0
+                cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0
             )
 
     def disable_logging_serial(self):
@@ -271,7 +271,7 @@ class IotlabSerial:
                 self.sensor.alias.replace("-", ","),
                 self._filename,
             )
-            p.command(cmd, display_name="Killing serial_aggregator")
+            p.command(cmd, task_name="Killing serial_aggregator")
 
     def __enter__(self):
         if self.interactive:
@@ -376,7 +376,7 @@ class IotlabSniffer:
             )
             p.shell(
                 cmd,
-                display_name="Running sniffer_aggregator",
+                task_name="Running sniffer_aggregator",
                 asynch=self.timeout,
                 poll=0,
             )
@@ -392,7 +392,7 @@ class IotlabSniffer:
             on_error_continue=True
         ) as p:
             cmd = 'pkill -f "%s"' % (self._filename)
-            p.command(cmd, display_name="Killing sniffer_aggregator")
+            p.command(cmd, task_name="Killing sniffer_aggregator")
 
     def __enter__(self):
         self.start_sniffer()

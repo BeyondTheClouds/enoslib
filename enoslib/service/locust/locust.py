@@ -169,7 +169,7 @@ class Locust(Service):
             priors=self.priors,
             extra_vars=self.extra_vars,
         ) as p:
-            p.pip(display_name="Installing Locust", name="locust")
+            p.pip(task_name="Installing Locust", name="locust")
             p.file(path=self.remote_working_dir, recurse="yes", state="directory")
 
     def deploy(self):
@@ -221,7 +221,7 @@ class Locust(Service):
                     f"--logfile={self.remote_working_dir}/locust-master.log &"
                 ),
                 environment=environment,
-                display_name="Running locust (%s) on master..." % (locustpath),
+                task_name="Running locust (%s) on master..." % (locustpath),
             )
 
         with actions(
@@ -238,7 +238,7 @@ class Locust(Service):
                     ),
                     environment=environment,
                     chdir=self.remote_working_dir,
-                    display_name=(
+                    task_name=(
                         f"Running({locustpath}) on agents"
                         f"(master at {self.master_ip})..."
                     ),
@@ -273,7 +273,7 @@ class Locust(Service):
                 cmd,
                 environment=environment,
                 chdir=self.remote_working_dir,
-                display_name="Running locust (%s) on master..." % (self.locustfile),
+                task_name="Running locust (%s) on master..." % (self.locustfile),
             )
             # record the exact master command
             p.copy(dest=f"{self.remote_working_dir}/cmd", content=cmd)
@@ -293,7 +293,7 @@ class Locust(Service):
                         f"--logfile={self.remote_working_dir}/{worker_local_id}.log &"
                     ),
                     environment=environment,
-                    display_name=(
+                    task_name=(
                         f"Running locust ({locustpath})"
                         f"on agents (master at {self.master_ip})..."
                     ),
@@ -307,7 +307,7 @@ class Locust(Service):
                 state="stopped",
                 timeout=2 * self.run_time,
                 sleep=5,
-                display_name="Waiting benchmark completion...",
+                task_name="Waiting benchmark completion...",
             )
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
@@ -320,12 +320,12 @@ class Locust(Service):
                 src=src_dir,
                 dest=self.remote_working_dir,
                 mode="u=rw,g=r,o=r",
-                display_name="Copying the experiment directory into each hosts",
+                task_name="Copying the experiment directory into each hosts",
             )
             if os.path.exists(os.path.join(src_dir, "requirements.txt")):
                 p.pip(
                     requirements=os.path.join(remote_dir, "requirements.txt"),
-                    display_name="Installing python deps",
+                    task_name="Installing python deps",
                 )
         locustpath = os.path.join(self.remote_working_dir, expe_dir, locustfile)
         return locustpath

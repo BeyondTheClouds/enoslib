@@ -67,9 +67,9 @@ class TCPDump(Service):
     def deploy(self, force=False):
         with play_on(roles=self.roles) as p:
             p.apt(name=["tcpdump", "tmux"], state="present",
-                  display_name="Install dependencies (tcpdump, tmux ...)")
+                  task_name="Install dependencies (tcpdump, tmux ...)")
             p.file(path=REMOTE_OUTPUT_DIR, state="directory",
-                   display_name="Create output directory")
+                   task_name="Create output directory")
             # explicit ifnames has been given
             for session, ifname in self._tmux_sessions_maps:
                 p.shell(
@@ -79,7 +79,7 @@ class TCPDump(Service):
                             f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
                             f" -i {ifname} {self.options}"
                         ),
-                    display_name=f"tcpdump for {ifname}")
+                    task_name=f"tcpdump for {ifname}")
                 )
             p.debug(var="tcpdump_ifs")
             cmd = bg_start(
@@ -92,7 +92,7 @@ class TCPDump(Service):
             p.shell(
                 cmd,
                 loop="{{ tcpdump_ifs }}",
-                display_name="tcpdump on some interfaces"
+                task_name="tcpdump on some interfaces"
             )
 
     def backup(self, backup_dir: Optional[Path] = None):
@@ -106,7 +106,7 @@ class TCPDump(Service):
         with play_on(roles=self.roles) as p:
             for session, ifname in self._tmux_sessions_maps:
                 p.shell(bg_stop(session),
-                        display_name=f"Stopping tcpdump on {ifname}")
+                        task_name=f"Stopping tcpdump on {ifname}")
             p.debug(var="tcpdump_ifs")
             p.shell(bg_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
-                    display_name="Stopping some tcpdumps")
+                    task_name="Stopping some tcpdumps")

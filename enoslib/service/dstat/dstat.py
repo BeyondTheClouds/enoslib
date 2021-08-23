@@ -87,7 +87,7 @@ class Dstat(Service):
             p.shell(
                 bg_start(TMUX_SESSION, f"python3 {str(DOOL_PATH)} {options}"),
                 chdir=str(self.remote_working_dir),
-                display_name=f"Running dstat with the options {options}",
+                task_name=f"Running dstat with the options {options}",
             )
 
     def destroy(self):
@@ -112,7 +112,7 @@ class Dstat(Service):
         with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
             backup_path = os.path.join(self.remote_working_dir, self.output_file)
             p.fetch(
-                display_name="Fetching the dstat output",
+                task_name="Fetching the dstat output",
                 src=backup_path,
                 dest=str(_backup_dir),
                 flat=False,

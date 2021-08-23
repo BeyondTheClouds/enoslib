@@ -121,6 +121,6 @@ class Skydive(Service):
             priors=self.priors,
             extra_vars=self.extra_vars,
         ) as p:
-            p.pip(display_name="[Preinstall] Installing pyyaml", name="pyyaml")
+            p.pip(task_name="[Preinstall] Installing pyyaml", name="pyyaml")
         _playbook = os.path.join(SERVICE_PATH, "skydive", "skydive.yml")
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)

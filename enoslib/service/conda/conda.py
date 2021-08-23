@@ -241,7 +241,7 @@ class _Dask(Service):
                     "tmux new-session -s dask-scheduler -d 'exec dask-scheduler' )"
                 ),
                 executable="/bin/bash",
-                display_name="Starting the dask scheduler",
+                task_name="Starting the dask scheduler",
             )
         s = self.scheduler.address
         cmd = (
@@ -257,7 +257,7 @@ class _Dask(Service):
                     f"{cmd} )"
                 ),
                 executable="/bin/bash",
-                display_name="Starting the dask worker",
+                task_name="Starting the dask worker",
             )
 
     def destroy(self):
@@ -265,13 +265,13 @@ class _Dask(Service):
             p.shell(
                 "tmux kill-session -t dask-scheduler || true",
                 executable="/bin/bash",
-                display_name="Killing the dask scheduler",
+                task_name="Killing the dask scheduler",
             )
         with actions(pattern_hosts="worker", roles=self.roles) as p:
             p.shell(
                 "tmux kill-session -t dask-worker || true",
                 executable="/bin/bash",
-                display_name="Killing the dask worker ",
+                task_name="Killing the dask worker ",
             )
 
 
@@ -410,7 +410,7 @@ class Dask(Service):
                 p.raw(
                     "tmux kill-session -t dask-scheduler || true",
                     executable="/bin/bash",
-                    display_name="Killing the dask scheduler",
+                    task_name="Killing the dask scheduler",
                 )
             with actions(
                 pattern_hosts="worker",
@@ -421,7 +421,7 @@ class Dask(Service):
                 p.raw(
                     "tmux kill-session -t dask-worker || true",
                     executable="/bin/bash",
-                    display_name="Killing the dask worker ",
+                    task_name="Killing the dask worker ",
                 )
 
     def __enter__(self):

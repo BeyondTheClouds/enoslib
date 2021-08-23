@@ -206,14 +206,14 @@ class TestSerial(EnosTest):
         with IotlabSerial(sensor):
             my_m.shell.assert_called_with(
                 "screen -dm bash -c 'serial_aggregator -l grenoble,m3,1 > ~/.iot-lab/666/log/m3-1_serial.log 2>&1'",
-                display_name=mock.ANY,
+                task_name=mock.ANY,
                 asynch=10 * 60,
                 poll=0,
             )
 
         my_m.command.assert_called_with(
             "pkill -f 'serial_aggregator -l grenoble,m3,1 > ~/.iot-lab/666/log/m3-1_serial.log 2>&1'",
-            display_name=mock.ANY,
+            task_name=mock.ANY,
         )
 
 
@@ -248,7 +248,7 @@ class TestSniffer(EnosTest):
         with IotlabSniffer(sensor, timeout=100):
             my_m.shell.assert_called_with(
                 "sniffer_aggregator -l grenoble,m3,1 -o ~/.iot-lab/666/sniffer/m3-1.pcap",
-                display_name=mock.ANY,
+                task_name=mock.ANY,
                 asynch=100,
                 poll=0,
             )
@@ -272,5 +272,5 @@ class TestSniffer(EnosTest):
             pass
 
         my_m.command.assert_called_with(
-            'pkill -f "~/.iot-lab/666/sniffer/m3-1.pcap"', display_name=mock.ANY
+            'pkill -f "~/.iot-lab/666/sniffer/m3-1.pcap"', task_name=mock.ANY
         )
