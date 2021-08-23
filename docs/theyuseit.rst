@@ -2,8 +2,17 @@
 🖖 They use it
 **************
 
-Publications
-============
+Main Publication
+================
+
+- Ronan-Alexandre Cherrueau, Marie Delavergne, Alexandre van Kempen, Adrien
+  Lebre, Dimitri Pertin, et al.. EnosLib: A Library for Experiment-Driven Research
+  in Distributed Computing. IEEE Transactions on Parallel and Distributed Systems,
+  Institute of Electrical and Electronics Engineers, In press. ⟨hal-03324177⟩
+
+
+Other Publications
+==================
 
 - Daniel Rosendo, Alexandru Costan, Gabriel Antoniu, Matthieu Simonin,
   Jean-Christophe Lombardo, et al.. Reproducible Performance Optimization of
