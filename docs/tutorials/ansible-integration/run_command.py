@@ -30,11 +30,7 @@ provider = en.Vagrant(conf)
 roles, networks = provider.init()
 roles = en.sync_info(roles, networks)
 result = en.run_command("date", pattern_hosts="control*", roles=roles)
-with open("result_ok", "w") as f:
-    json.dump(result["ok"], f, indent=2)
-with open("result_failed", "w") as f:
-    json.dump(result["failed"], f, indent=2)
-
+print(result)
 
 # shortcut 1 -> use the roles
 result = en.run("date", roles)
