@@ -20,8 +20,8 @@ The tip of the Iceberg featuring Vagrant and Grid'5000 testbed.
    :hidden:
    :titlesonly:
 
-   primer.rst
    tutorials/index.rst
    apidoc/index.rst
+   tutorials.rst
    theyuseit.rst
    changelog.rst
