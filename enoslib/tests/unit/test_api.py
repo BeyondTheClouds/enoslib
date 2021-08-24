@@ -4,7 +4,7 @@ import mock
 
 from . import EnosTest
 from enoslib.api import CommandResult, STATUS_FAILED, actions, get_hosts, wait_for, STATUS_OK, Results
-from enoslib.objects import Host
+from enoslib.objects import Host, Roles
 
 
 class TestSSH(EnosTest):
@@ -26,7 +26,7 @@ class TestSSH(EnosTest):
 
     def test_wait_ssh_fails(self):
         with self.assertRaisesRegexp(Exception, "Maximum retries reached"), mock.patch(
-            "enoslib.api.run_ansible", new_callable=mock.Mock()
+            "enoslib.api.run_play", new_callable=mock.Mock()
         ) as m:
             m.side_effect = EnosUnreachableHostsError(self.hosts)
             wait_for(self.env, interval=0)
@@ -43,8 +43,8 @@ class TestPlayOn(EnosTest):
         self.assertEquals({"name": "test", "state": "present"}, task["test_module"])
 
     def test_call_ansible(self):
-        with mock.patch("enoslib.api.run_ansible") as m:
-            with actions(pattern_hosts="pattern") as p:
+        with mock.patch("enoslib.api.run_play") as m:
+            with actions(pattern_hosts="pattern", roles=Roles()) as p:
                 p.a()
             m.assert_called_once()
 
@@ -65,10 +65,9 @@ class TestGetHosts(EnosTest):
 class TestResultFiltering(EnosTest):
     def test_result_single(self):
         cr = CommandResult(host="host",
-                           cmd="cmd",
+                           task="task",
                            status=STATUS_OK,
-                           stdout="stdout",
-                           stderr="")
+                           payload={})
 
         # exact match
         self.assertTrue(cr.match(host="host"))
@@ -81,15 +80,14 @@ class TestResultFiltering(EnosTest):
             self.assertTrue(cr.match(plop="host"))
 
         # 2 exact matches
-        self.assertTrue(cr.match(host="host", cmd="cmd"))
+        self.assertTrue(cr.match(host="host", task="task"))
 
         # 1 mismatch
-        self.assertFalse(cr.match(host="plop", cmd="cmd"))
+        self.assertFalse(cr.match(host="plop", task="task"))
 
     def test_result_container(self):
         results = Results([CommandResult(host=f"host-{i}",
-                                 cmd=f"cmd-{i}",
+                                 task=f"task-{i}",
                                  status=STATUS_OK,
-                                 stdout=f"stdout-{i}",
-                                 stderr=f"stderr-{i}") for i in range(10)])
+                                 payload={}) for i in range(10)])
         results.filter(host="host-3")
