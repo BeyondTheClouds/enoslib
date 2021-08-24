@@ -19,8 +19,6 @@ DEFAULT_VARS = {
     # we'll inject our own topology
     # there a skydive_fabric variable to do that
     "skydive_auto_fabric": "no",
-    # force python3
-    "ansible_python_interpreter": "/usr/bin/python3",
 }
 
 

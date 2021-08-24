@@ -123,6 +123,11 @@ def _load_defaults(
     For factorization purpose."""
 
     extra_vars = extra_vars or {}
+    # inject python3
+    if extra_vars.get("ansible_python_interpreter") is None:
+        extra_vars.update(ansible_python_interpreter="python3")
+
+    logger.debug(f"Using extra_vars = {extra_vars}")
     tags = tags or []
     loader = DataLoader()
     if basedir:
@@ -408,7 +413,6 @@ def run_play(
     """
     logger.debug(play_source)
     roles = _hostslike_to_roles(roles)
-    print(extra_vars)
     results: List = []
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
@@ -633,21 +637,6 @@ __default_python3__ = actions()
 __default_python3__.raw(
     "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
     task_name="Making python3 the default python interpreter",
-)
-
-
-__python2__ = actions()
-__python2__.raw(
-    (
-        "(python --version | grep --regexp ' 2.*')"
-        "||"
-        "(apt update && apt install -y python python-pip)"
-    ),
-    task_name="Install python2",
-)
-__default_python2__ = actions()
-__default_python2__.raw(
-    "update-alternatives --install /usr/bin/python python /usr/bin/python2 1"
 )
 
 

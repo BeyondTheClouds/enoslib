@@ -69,10 +69,7 @@ class Dstat(Service):
         # same xp
         self.output_file = f"{time()}-{OUTPUT_FILE}"
 
-        # We force python3
-        extra_vars = extra_vars if extra_vars is not None else {}
-        self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
-        self.extra_vars.update(extra_vars)
+        self.extra_vars = extra_vars if extra_vars is not None else {}
 
     def deploy(self):
         """Deploy the dstat monitoring stack."""

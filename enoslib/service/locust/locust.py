@@ -114,9 +114,7 @@ class Locust(Service):
         self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR)
 
         # We force python3
-        extra_vars = extra_vars if extra_vars is not None else {}
-        self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
-        self.extra_vars.update(extra_vars)
+        self.extra_vars = extra_vars if extra_vars is not None else {}
 
         # handle runtime options
         self.local_expe_dir = local_expe_dir
