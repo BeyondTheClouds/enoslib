@@ -33,7 +33,7 @@ conf.add_network_conf(network)\
 provider = en.G5k(conf)
 roles, networks = provider.init()
 
-with en.actions(roles["control"]) as a:
+with en.actions(roles=roles["control"]) as a:
     a.apt(name="stress", state="present")
 
 # Start a capture
