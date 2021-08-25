@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from time import time
+from time import time_ns
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, bg_start, bg_stop
@@ -58,16 +58,15 @@ class Dstat(Service):
         """
         self.nodes = nodes
         self.options = options
-        self.remote_working_dir = Path(REMOTE_OUTPUT_DIR)
+        # make it unique per instance
+        identifier = str(time_ns())
+        self.remote_working_dir = Path(REMOTE_OUTPUT_DIR) / identifier
         self._roles = Roles(all=self.nodes)
 
-        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR)
+        # make it unique per instance
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR / identifier)
 
-        # generate output file name by default dstat append to the existing file
-        # which isn't very convenient at parsing time we could also add some
-        # prefix to differentiate from different calls to this service in the
-        # same xp
-        self.output_file = f"{time()}-{OUTPUT_FILE}"
+        self.output_file = f"{identifier}-{OUTPUT_FILE}"
 
         self.extra_vars = extra_vars if extra_vars is not None else {}
 

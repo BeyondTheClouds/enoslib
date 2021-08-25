@@ -78,8 +78,9 @@ class TCPDump(Service):
                         (
                             f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
                             f" -i {ifname} {self.options}"
-                        ),
-                    task_name=f"tcpdump for {ifname}")
+                        )
+                    ),
+                    task_name=f"tcpdump for {ifname}"
                 )
             p.debug(var="tcpdump_ifs")
             cmd = bg_start(
