@@ -21,4 +21,3 @@
     parameters_exploration
     quickstart
     performance_tuning
-    jupyter_integration/index.ipynb
