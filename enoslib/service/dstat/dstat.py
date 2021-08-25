@@ -1,10 +1,16 @@
+from enoslib.html import (
+    dict_to_html_foldable_sections,
+    html_from_sections,
+    html_to_foldable_section,
+    repr_html_check,
+)
 from pathlib import Path
 import os
 from time import time_ns
 from typing import Dict, List, Optional
 
 from enoslib.api import play_on, bg_start, bg_stop
-from enoslib.objects import Host, Roles
+from enoslib.objects import Host
 from ..service import Service
 from ..utils import _set_dir
 
@@ -61,7 +67,6 @@ class Dstat(Service):
         # make it unique per instance
         identifier = str(time_ns())
         self.remote_working_dir = Path(REMOTE_OUTPUT_DIR) / identifier
-        self._roles = Roles(all=self.nodes)
 
         # make it unique per instance
         self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR / identifier)
@@ -72,9 +77,7 @@ class Dstat(Service):
 
     def deploy(self):
         """Deploy the dstat monitoring stack."""
-        with play_on(
-            roles=self._roles, extra_vars=self.extra_vars
-        ) as p:
+        with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
             p.apt(name=["tmux"], state="present")
             # install dool
             p.file(path=str(self.remote_working_dir), state="directory", recurse="yes")
@@ -92,7 +95,7 @@ class Dstat(Service):
         This kills the dstat processes on the nodes.
         Metric files survive to destroy.
         """
-        with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
+        with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
             kill_cmd = bg_stop(TMUX_SESSION)
             p.shell(kill_cmd)
 
@@ -105,7 +108,7 @@ class Dstat(Service):
             backup_dir (str): path of the backup directory to use.
         """
         _backup_dir = _set_dir(backup_dir, self.backup_dir)
-        with play_on(roles=self._roles, extra_vars=self.extra_vars) as p:
+        with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
             backup_path = os.path.join(self.remote_working_dir, self.output_file)
             p.fetch(
                 task_name="Fetching the dstat output",
@@ -113,3 +116,24 @@ class Dstat(Service):
                 dest=str(_backup_dir),
                 flat=False,
             )
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        def hosts_as_foldable_section(hosts):
+            sections = [
+                html_to_foldable_section(h.alias, h._repr_html_()) for h in hosts
+            ]
+            return sections
+
+        sections = []
+        sections.append(
+            html_to_foldable_section(
+                "nodes", hosts_as_foldable_section(self.nodes), len(self.nodes)
+            )
+        )
+        d = dict(self.__dict__)
+        d.pop("nodes")
+        sections.append(dict_to_html_foldable_sections(d))
+        return html_from_sections(
+            str(self.__class__), sections, content_only=content_only
+        )

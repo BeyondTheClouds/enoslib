@@ -23,9 +23,9 @@ def repr_html_check(f):
             return f(self, *args, **kwargs)
         except Exception as e:
             logger.error(
-                f"{e} raised when rendering the HTML, proceeding basic representation"
+                f"{e} raised when rendering the HTML, proceeding with default __repr__"
             )
-            return self.__repr__(*args, **kwargs)
+        return self.__repr__(*args, **kwargs)
 
     return wrapped
 
