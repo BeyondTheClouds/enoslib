@@ -33,7 +33,13 @@ def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
         return input
     if isinstance(input, Host):
         return Roles(all=[input])
-    return Roles(all=input)
+    if isinstance(input, list):
+        return Roles(all=input)
+    error = (
+        f"{type(input)} isn't an acceptable type for RolesLike"
+        "=Union[Roles, List[Host], Host]"
+    )
+    raise ValueError(error)
 
 
 def get_address(host: Host, networks: Optional[List[Network]] = None) -> str:
