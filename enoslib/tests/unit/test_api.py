@@ -13,14 +13,16 @@ class TestSSH(EnosTest):
     env = {"resultdir": "foo/bar", "inventory": "foo/bar"}
 
     def test_wait_ssh_succeed(self):
-        with mock.patch("enoslib.api.run_ansible", new_callable=mock.Mock()) as m:
-            m.return_value = None
+        with mock.patch("enoslib.api.run_play", new_callable=mock.Mock()) as m:
+            m.return_value = []
             self.assertIsNone(wait_for(self.env, interval=0))
 
     def test_wait_ssh_eventually_succeed(self):
-        with mock.patch("enoslib.api.run_ansible", new_callable=mock.Mock()) as m:
+        with mock.patch("enoslib.api.run_play", new_callable=mock.Mock()) as m:
+            # fail 9 times
             effects = [EnosUnreachableHostsError(self.hosts) for i in range(1, 10)]
-            effects.append(None)
+            # succeed on the last
+            effects.append([])
             m.side_effect = effects
             self.assertIsNone(wait_for(self.env, retries=10, interval=0))
 
@@ -28,6 +30,7 @@ class TestSSH(EnosTest):
         with self.assertRaisesRegexp(Exception, "Maximum retries reached"), mock.patch(
             "enoslib.api.run_play", new_callable=mock.Mock()
         ) as m:
+            # fail all the time
             m.side_effect = EnosUnreachableHostsError(self.hosts)
             wait_for(self.env, interval=0)
 
