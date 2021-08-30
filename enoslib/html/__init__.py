@@ -25,7 +25,7 @@ def repr_html_check(f):
             logger.error(
                 f"{e} raised when rendering the HTML, proceeding with default __repr__"
             )
-        return self.__repr__(*args, **kwargs)
+        return self.__repr__()
 
     return wrapped
 
