@@ -26,13 +26,13 @@ infer everything for you (device names, target IPs) based on high level
 parameters. Of course, those services are using internally the above
 functions.
 
-- :py:class:`~enoslib.service.emul.netem.Netem` will enforce fully
-  homogeneous network limitations -- think about a regular n-simplex where
-  every vertex is at the same distance of the others.
+- :py:class:`~enoslib.service.emul.netem.Netem` allows for emulating a star
+  topology: you control the constraints of a node to/from the center of the
+  topology.
 
 - :py:class:`~enoslib.service.emul.htb.NetemHTB` will enforce heterogeneous
-  network limitations based on the role names. In this case the n-simplex is
-  not regular in the general case.
+  network limitations based on the role names (and thus based on the packets'
+  destination)
 
 
 .. note::

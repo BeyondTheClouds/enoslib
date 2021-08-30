@@ -3,6 +3,11 @@ from dataclasses import dataclass, field
 from typing import Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import play_on
+from enoslib.html import (
+    convert_list_to_html_table,
+    html_from_sections,
+    html_to_foldable_section,
+)
 from enoslib.objects import Host, Network, Roles
 from enoslib.service.service import Service
 
@@ -105,7 +110,13 @@ class NetemInOutSource(object):
 
     @property
     def outbounds(self) -> List[NetemOutConstraint]:
-        return [c for c in self.constraints if isinstance(c, NetemOutConstraint)]
+        # fixme subclassing smells here
+        return [
+            c
+            for c in self.constraints
+            if isinstance(c, NetemOutConstraint)
+            and not isinstance(c, NetemInConstraint)
+        ]
 
     def add_constraints(self, constraints: Iterable[NetemConstraint]):
         """Merge constraints to existing ones.
@@ -138,6 +149,21 @@ class NetemInOutSource(object):
 
     def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
         return self.remove_commands(), self.add_commands(), self.commands()
+
+    def _repr_html_(self, content_only=False):
+        inbounds = [
+            dict(device=c.device, direction="in", options=c.options)
+            for c in self.inbounds
+        ]
+        outbounds = [
+            dict(device=c.device, direction="out", options=c.options)
+            for c in self.outbounds
+        ]
+        return html_from_sections(
+            str(self.__class__),
+            convert_list_to_html_table(inbounds + outbounds),
+            content_only=content_only,
+        )
 
 
 def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
@@ -191,8 +217,8 @@ class Netem(Service):
     ):
         """Set homogeneous network constraints on some hosts
 
-        Geometricaly speaking: nodes are put on the vertices of a regular
-        n-simplex.
+        Geometricaly speaking: nodes are put on a star topology.
+        Limitation are set from a node to/from the center of the Network.
 
         This calls :py:func:`~enoslib.service.emul.netem.netem` function
         internally. As a consequence when symetric is True, it will apply 4
@@ -253,3 +279,12 @@ class Netem(Service):
 
     def destroy(self, **kwargs):
         _destroy(list(self.sources.keys()), **kwargs)
+
+    def _repr_html_(self, content_only=False):
+        sections = [
+            html_to_foldable_section(h.alias, s._repr_html_(content_only=True))
+            for h, s in self.sources.items()
+        ]
+        return html_from_sections(
+            str(self.__class__), sections, content_only=content_only
+        )
