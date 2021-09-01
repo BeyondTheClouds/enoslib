@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+import copy
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
 import itertools
@@ -150,6 +151,8 @@ def _do_build_g5k_conf(vmong5k_conf, site):
 
 def _build_g5k_conf(vmong5k_conf):
     """Build the conf of the g5k provider from the vmong5k conf."""
+    # first of all, make sure we don't mutate the vmong5k_conf
+    vmong5k_conf = copy.deepcopy(vmong5k_conf)
     clusters = [m.cluster for m in vmong5k_conf.machines]
     sites = g5k_api_utils.get_clusters_sites(clusters)
     site_names = set(sites.values())
@@ -301,7 +304,10 @@ class VMonG5k(Provider):
         return self.g5k_roles, self.g5k_networks
 
     def destroy(self):
-        pass
+        """"Destroy the underlying job."""
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        g5k = g5kprovider.G5k(g5k_conf)
+        g5k.destroy()
 
     def __str__(self):
         return "VMonG5k"
