@@ -353,6 +353,8 @@ class G5k(Provider):
         """
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
+        self.networks = []
+        self.hosts = []
         self.launch()
 
         return self._to_enoslib()
