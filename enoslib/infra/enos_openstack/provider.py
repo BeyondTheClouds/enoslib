@@ -213,9 +213,6 @@ def check_network(
         # NOTE(msimonin): We should check the interface outside this block
         # in case the router is created but the interface is not added
         interface = {"subnet_id": subnet["id"]}
-        import ipdb
-
-        ipdb.set_trace()
         nclient.add_interface_router(str(r["router"]["id"]), interface)
 
     return (ext_net, network, subnet)
