@@ -20,6 +20,11 @@ Other Publications
   International Conference on Cluster Computing, Sep 2021, Portland, OR, United
   States. ⟨hal-03310540⟩
 
+- Stefano Tavonatti, Davaadorj Battulga, Mozhdeh Farhadi, Carlo Caprini, Daniele
+  Miorandi. An experimental evaluation of the scalability of permissioned
+  blockchains. FiCloud 2021 - 8th International Conference on Future Internet of
+  Things and Cloud, Aug 2021, Rome / Virtual, Italy. pp.1-8. ⟨hal-03263551⟩
+
 - Kubernetes WANWide: a Deployment Scenario to Expose and Use Edge Computing Resources?
   Karim Manaouil, Adrien Lebre
   IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
