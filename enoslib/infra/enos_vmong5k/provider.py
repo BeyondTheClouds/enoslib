@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
+from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
 import itertools
@@ -65,9 +66,12 @@ def start_virtualmachines(
     """
 
     extra: Dict = {}
-    if provider_conf.gateway:
-        extra.update(gateway="access.grid5000.fr")
-        extra.update(gateway_user=g5k_api_utils.get_api_username())
+    if provider_conf.gateway or not inside_g5k():
+        gateway = "access.grid5000.fr"
+        username = g5k_api_utils.get_api_username()
+        logger.debug(f"SSH to the VM requires a jump through {username}@{gateway}")
+        extra.update(gateway=gateway)
+        extra.update(gateway_user=username)
 
     vmong5k_roles = _distribute(
         provider_conf.machines, g5k_subnets, skip=skip, extra=extra
