@@ -111,7 +111,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
 
 def _build_g5k_conf(distemong5k_conf):
     """Build the conf of the g5k provider from the vmong5k conf."""
-    distemong5k_conf= copy.deepcopy(distemong5k_conf)
+    distemong5k_conf = copy.deepcopy(distemong5k_conf)
     clusters = [m.cluster for m in distemong5k_conf.machines]
     sites = g5k_api_utils.get_clusters_sites(clusters)
     site_names = set(sites.values())
