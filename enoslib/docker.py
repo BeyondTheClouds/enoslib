@@ -126,11 +126,12 @@ def get_dockers(
         pattern_hosts=pattern_hosts,
         roles=roles,
         on_error_continue=True,
+        gather_facts=False
     )
     # parsing the results
-    for alias, r in result["ok"].items():
-        dockers = json.loads(r["stdout"])
-        host = get_hosts(roles, alias)[0]
+    for r in result:
+        dockers = json.loads(r.stdout)
+        host = get_hosts(roles, r.host)[0]
         for docker in dockers:
             docker_host = DockerHost.from_state(docker, host)
             docker_hosts.append(docker_host)

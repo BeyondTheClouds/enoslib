@@ -3,6 +3,7 @@ import os
 from jsonschema import validate
 
 from enoslib.api import run_ansible
+from enoslib.objects import Roles
 from ..service import Service
 
 
@@ -116,12 +117,12 @@ class Docker(Service):
 
         self.bind_var_docker = bind_var_docker
         self.swarm = swarm
-        self._roles = {
+        self._roles = Roles({
             "agent": self.agent,
             "registry": self.registry,
             "swarm-manager": [self.agent[0]],
             "swarm-node": self.agent,
-        }
+        })
 
     def deploy(self):
         """Deploy docker and optionnaly a docker registry cache."""
