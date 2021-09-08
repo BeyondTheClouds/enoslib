@@ -13,6 +13,7 @@
     remote machines.  More precisely, it's a Union of some types: a ``Host``, a list
     of Host or a plain-old ``Roles`` datastructure. It's reduce the number of
     function of the API since function overloading isn't possible in Python.
+- api:run_command: can now use ``raw`` connections (no need for python at the dest)
 - api: introduce `bg_start`, `bg_stop` that generates the command for
   starting/stopping backgroung process on the remote nodes.
 - api: introduce `background` keyword. It serves the same purpose of
