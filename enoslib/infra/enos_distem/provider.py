@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
-from typing import List
-from enoslib.infra.enos_distem.configuration import Configuration
+import copy
 import itertools
 import logging
 import os
+from typing import List
 
 import distem as d
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend as crypto_default_backend
-
-from enoslib.api import play_on
-from enoslib.objects import Host, Network, Networks, Roles
 import enoslib.infra.enos_g5k.configuration as g5kconf
-from enoslib.infra.enos_g5k.constants import SLASH_22
-import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .constants import SUBNET_NAME, PATH_DISTEMD_LOGS
-from ..provider import Provider
+import enoslib.infra.enos_g5k.provider as g5kprovider
+from cryptography.hazmat.backends import \
+    default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import \
+    serialization as crypto_serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from enoslib.api import play_on
+from enoslib.infra.enos_distem.configuration import Configuration
+from enoslib.infra.enos_g5k.constants import SLASH_22
+from enoslib.objects import Host, Network, Networks, Roles
 
+from ..provider import Provider
+from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +111,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
 
 def _build_g5k_conf(distemong5k_conf):
     """Build the conf of the g5k provider from the vmong5k conf."""
+    distemong5k_conf= copy.deepcopy(distemong5k_conf)
     clusters = [m.cluster for m in distemong5k_conf.machines]
     sites = g5k_api_utils.get_clusters_sites(clusters)
     site_names = set(sites.values())
