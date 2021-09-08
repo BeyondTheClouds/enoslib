@@ -18,3 +18,4 @@ amazingly appreciated :)
     jupyter/01_remote_actions_and_variables.ipynb
     jupyter/02_observability.ipynb
     jupyter/03_using_several_networks.ipynb
+    jupyter/04_working_with_different_types_of_resources.ipynb
