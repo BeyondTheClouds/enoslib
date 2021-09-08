@@ -684,6 +684,7 @@ def run_command(
     run_as: Optional[str] = None,
     background: bool = False,
     task_name: str = None,
+    raw: bool = False,
     **kwargs: Any,
 ):
     """Run a shell command on some remote hosts.
@@ -707,6 +708,7 @@ def run_command(
             This is equivalent to passing async=one_year, poll=0
         task_name: name of the command to display, can be used for further
             filtering once the results is retrieved.
+        raw: Whether to use a raw connection (no python requires at the destination)
         kwargs: keywords argument to pass to the shell module or as top level
             args.
 
@@ -777,9 +779,13 @@ def run_command(
         # don't inject if background is False
         kwargs.update(background=True)
 
-    task = dict(name=command, shell=command)
+    task = dict(name=command)
     if task_name is not None:
         task.update(name=task_name)
+    if raw:
+        task.update(raw=command)
+    else:
+        task.update(shell=command)
 
     top_args, module_args = _split_args(**kwargs)
     task.update(top_args)
