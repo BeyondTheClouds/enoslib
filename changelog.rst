@@ -20,6 +20,7 @@
   `bg_start/end` but is more generic in the sense that many modules can benefit
   from the keyword and it doesn't have any dependencies. Under the hood this will
   generate an async Ansible tasks with infinite timeout.
+- api:``populate_keys``: make sure the public key is added only once to the remote `authorized_keys`
 - svc/dstat: make it a context manager, adapt the examples
 - svc/tcpdump: make it a context manager, adapt the examples
 - svc/locust: update to the latest version. align the API to support parameter-less ``deploy`` method
