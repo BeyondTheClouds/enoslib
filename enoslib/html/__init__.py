@@ -61,7 +61,7 @@ def html_to_foldable_section(
                 <li>
                     <input type="checkbox" id="{data_id}" class="att">
                     <label for="{data_id}">{name} {html_extra}</label>
-                    <ul id="{name}">
+                    <ul id="{name}" class="enoslist">
                         {"".join(html_objects)}
                     </ul>
                 </li>
@@ -157,7 +157,7 @@ def convert_list_to_html_table(list_input):
         output += "</table>"
         return output
     # list_input = basic list
-    output = "<ul><li>"
+    output = "<ul class=\"list\"><li>"
     output += "</li><li>".join([convert_to_html_table(child) for child in list_input])
     output += "</li></ul>"
     return output
@@ -188,7 +188,7 @@ def html_object(name: str, foldable_sections: Union[str, List[str]]):
             <div class="object_name">
                 {html_escape(name)}
             </div>
-            <ul class="list">
+            <ul class="enoslist">
                 {"".join(foldable_sections)}
             </ul>
                 </div>"""

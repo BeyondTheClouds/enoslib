@@ -34,7 +34,7 @@
     margin-bottom: 0;
 }
 
-ul {
+ul.enoslist {
     list-style: none !important;
     padding: 3px !important;
     margin: 0 !important;
