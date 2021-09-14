@@ -216,6 +216,7 @@ class Locust(Service):
                     "--master "
                     f"--host={self.master_ip} "
                     "--csv enoslib "
+                    "--csv-full-history "
                     f"--logfile={self.remote_working_dir}/locust-master.log &"
                 ),
                 environment=environment,
@@ -309,14 +310,14 @@ class Locust(Service):
             )
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
-        src_dir = os.path.abspath(expe_dir)
+        src_dir = os.path.join(os.path.abspath(expe_dir), '')
         remote_dir = os.path.join(self.remote_working_dir, expe_dir)
         with actions(
             pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars
         ) as p:
             p.copy(
                 src=src_dir,
-                dest=self.remote_working_dir,
+                dest=remote_dir,
                 mode="u=rw,g=r,o=r",
                 task_name="Copying the experiment directory into each hosts",
             )
@@ -325,5 +326,5 @@ class Locust(Service):
                     requirements=os.path.join(remote_dir, "requirements.txt"),
                     task_name="Installing python deps",
                 )
-        locustpath = os.path.join(self.remote_working_dir, expe_dir, locustfile)
+        locustpath = os.path.join(remote_dir, locustfile)
         return locustpath
