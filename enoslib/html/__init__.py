@@ -74,7 +74,7 @@ def inline_value(key: str, value: str):
         <li>
         <input type="checkbox" id="{data_id}" class="att" disabled="">
         <label for="{data_id}">
-            <span>{key}</span>
+            <span>{key}:&nbsp;</span>
         </label>
         <span>{_html_escape(value)}</span>
         </li>"""
