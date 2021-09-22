@@ -1,3 +1,4 @@
+from uuid import uuid4
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -251,10 +252,12 @@ class NetworkConfiguration:
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles
-        self.id = id
         self.roles = roles
         self.type = type
         self.site = site
+        self.id = id
+        if id is None:
+            self.id = str(uuid4())
 
     @classmethod
     def from_dictionnary(cls, dictionnary):
