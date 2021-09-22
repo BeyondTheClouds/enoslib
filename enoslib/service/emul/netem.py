@@ -7,6 +7,7 @@ from enoslib.html import (
     convert_list_to_html_table,
     html_from_sections,
     html_to_foldable_section,
+    repr_html_check,
 )
 from enoslib.objects import Host, Network, Roles
 from enoslib.service.service import Service
@@ -150,6 +151,7 @@ class NetemInOutSource(object):
     def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
         return self.remove_commands(), self.add_commands(), self.commands()
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         inbounds = [
             dict(device=c.device, direction="in", options=c.options)
@@ -280,6 +282,7 @@ class Netem(Service):
     def destroy(self, **kwargs):
         _destroy(list(self.sources.keys()), **kwargs)
 
+    @repr_html_check
     def _repr_html_(self, content_only=False):
         sections = [
             html_to_foldable_section(h.alias, s._repr_html_(content_only=True))

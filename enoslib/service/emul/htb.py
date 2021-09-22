@@ -1,4 +1,10 @@
 """HTB based emulation."""
+from enoslib.html import (
+    convert_list_to_html_table,
+    html_from_sections,
+    html_to_foldable_section,
+    repr_html_check,
+)
 import logging
 import os
 from dataclasses import dataclass, field
@@ -179,6 +185,24 @@ class HTBSource(object):
 
     def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
         return self.remove_commands(), self.add_commands(), self.commands()
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        d = [
+            dict(
+                device=c.device,
+                delay=c.delay,
+                rate=c.rate,
+                loss=c.loss,
+                target=c.target,
+            )
+            for c in self.constraints
+        ]
+        return html_from_sections(
+            str(self.__class__),
+            convert_list_to_html_table(d),
+            content_only=content_only,
+        )
 
 
 def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
@@ -435,4 +459,14 @@ class NetemHTB(Service):
             networks=networks,
             output_dir=output_dir,
             **kwargs,
+        )
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        sections = [
+            html_to_foldable_section(h.alias, s._repr_html_(content_only=True))
+            for h, s in self.sources.items()
+        ]
+        return html_from_sections(
+            str(self.__class__), sections, content_only=content_only
         )
