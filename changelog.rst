@@ -8,7 +8,7 @@
   For now this can be used to control the cache used when accessing the G5k API.
 - Jupyter integration
     - Provider configuration, roles and networks can be displayed in a rich format in a jupyter notebook
-    - svc/locust: can display some information
+    - There is an ongoing effort to port such integration in various part of the library
 - api/objects: introduce ``RolesLike`` type: something that looks like to some
     remote machines.  More precisely, it's a Union of some types: a ``Host``, a list
     of Host or a plain-old ``Roles`` datastructure. It's reduce the number of
@@ -16,6 +16,7 @@
 - api:run_command: can now use ``raw`` connections (no need for python at the dest)
 - api: introduce `bg_start`, `bg_stop` that generates the command for
   starting/stopping backgroung process on the remote nodes.
+  see also below
 - api: introduce `background` keyword. It serves the same purpose of
   `bg_start/end` but is more generic in the sense that many modules can benefit
   from the keyword and it doesn't have any dependencies. Under the hood this will
@@ -26,6 +27,8 @@
 - svc/locust: update to the latest version. align the API to support parameter-less ``deploy`` method
     (run ``headless`` by default)
 - Doc: they-use-it updated
+- g5k: NetworkConf doesn't need an id anymore.
+    The ``id`` is still mandatory when using a dictionnary to build the whole configuration.
 
 
 6.2.0
