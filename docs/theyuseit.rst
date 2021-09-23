@@ -14,6 +14,11 @@ Main Publication
 Other Publications
 ==================
 
+- Jolan Philippe, Massimo Tisi, Hélène Coullon, Gerson Sunyé. Executing
+  Certified Model Transformations on Apache Spark. 14th ACM SIGPLAN International
+  Conference on Software Language Engineering, Oct 2021, Chicago, Illinois, United
+  States. ⟨hal-03343942⟩
+
 - Daniel Rosendo, Alexandru Costan, Gabriel Antoniu, Matthieu Simonin,
   Jean-Christophe Lombardo, et al.. Reproducible Performance Optimization of
   Complex Applications on the Edge-to-Cloud Continuum. Cluster 2021 - IEEE
