@@ -1,21 +1,22 @@
 import logging
 from pathlib import Path
 
-from enoslib import *
+import enoslib as en
+
 
 logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
 # claim the resources
-prod_rennes = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
-prod_lille = G5kNetworkConf(id="n2", type="prod", roles=["my_network"], site="lille")
-kavlan_global = G5kNetworkConf(
+prod_rennes = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
+prod_lille = en.G5kNetworkConf(type="prod", roles=["my_network"], site="lille")
+kavlan_global = en.G5kNetworkConf(
     id="n3", type="kavlan-global", roles=["private"], site="lille"
 )
 
 conf = (
-    G5kConf()
+    en.G5kConf()
     .from_settings(job_name=__file__, walltime="00:33:00")
     .add_network_conf(prod_rennes)
     .add_network_conf(prod_lille)
@@ -42,7 +43,7 @@ conf = (
     .finalize()
 )
 
-provider = G5k(conf)
+provider = en.G5k(conf)
 try:
     # Get actual resources
     roles, networks = provider.init()

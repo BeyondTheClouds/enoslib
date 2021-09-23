@@ -1,7 +1,8 @@
 import logging
 from pathlib import Path
 
-from enoslib import *
+import enoslib as en
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -13,7 +14,7 @@ provider_conf = {
         "machines": [
             {
                 "roles": ["control"],
-                "cluster": "parapluie",
+                "cluster": "paravance",
                 "nodes": 1,
                 "primary_network": "n1",
                 "secondary_networks": [],
@@ -32,8 +33,8 @@ provider_conf = {
 }
 
 # claim the resources
-conf = G5kConf.from_dictionnary(provider_conf)
-provider = G5k(conf)
+conf = en.G5kConf.from_dictionnary(provider_conf)
+provider = en.G5k(conf)
 
 try:
     # Get actual resources

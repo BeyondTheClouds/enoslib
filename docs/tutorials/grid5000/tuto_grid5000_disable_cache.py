@@ -13,7 +13,7 @@ set_config(g5k_cache=False)
 job_name = Path(__file__).name
 
 # claim the resources
-network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
+network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
 
 
 conf = (

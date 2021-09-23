@@ -10,7 +10,7 @@ job_name = Path(__file__).name
 CLUSTER = "paravance"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 # claim the resources
-network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
+network = en.G5kNetworkConf(type="prod", roles=["my_network"], site=SITE)
 
 conf = (
     en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name=job_name)

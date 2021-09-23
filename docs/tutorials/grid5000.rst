@@ -222,6 +222,14 @@ Create a tunnel to a service
     :linenos:
 
 
+Disabling the cache
+===================
+
+.. literalinclude:: grid5000/tuto_grid5000_disable_cache.py
+    :language: python
+    :linenos:
+
+
 Docker's peculiarities
 ======================
 

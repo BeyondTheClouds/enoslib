@@ -1,7 +1,8 @@
 import logging
 from pathlib import Path
 
-from enoslib import *
+import enoslib as en
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -38,8 +39,8 @@ provider_conf = {
     },
 }
 
-conf = G5kConf.from_dictionnary(provider_conf)
-provider = G5k(conf)
+conf = en.G5kConf.from_dictionnary(provider_conf)
+provider = en.G5k(conf)
 
 try:
     # Get actual resources
