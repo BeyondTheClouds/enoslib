@@ -1,6 +1,11 @@
 ⚒️ Changelog
 ============
 
+7.0.1
+-----
+
+- svc/skydive: update to new Roles datastructure
+
 7.0.0
 -----
 
