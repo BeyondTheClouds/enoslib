@@ -7,7 +7,7 @@ from enoslib.api import (
     __python3__,
     __docker__,
 )
-from enoslib.objects import Host, Network
+from enoslib.objects import Host, Network, Roles
 from ..service import Service
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
@@ -63,10 +63,9 @@ class Skydive(Service):
         self.agents = list(set(agents)) if agents is not None else []
         assert self.agents is not None
         self.skydive = self.analyzers + self.agents
-        self.roles: Dict = {}
         self.networks = networks
         self.priors = priors
-        self.roles.update(analyzers=analyzers, agents=agents, skydive=self.skydive)
+        self.roles = Roles(analyzers=analyzers, agents=agents, skydive=self.skydive)
 
         self.extra_vars = {}
         self.extra_vars.update(DEFAULT_VARS)
@@ -114,7 +113,6 @@ class Skydive(Service):
         """Deploy Skydive service."""
         # Some requirements
         with actions(
-            pattern_hosts="all",
             roles=self.roles,
             priors=self.priors,
             extra_vars=self.extra_vars,
