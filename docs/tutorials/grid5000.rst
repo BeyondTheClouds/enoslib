@@ -230,6 +230,18 @@ Disabling the cache
     :linenos:
 
 
+Reconfigurable Firewall: Open ports to the external world
+=========================================================
+
+The reconfigurable firewall on Grid'5000 allows you to open some ports of some
+of your nodes. One rationale for this would be to allow connection from FIT
+platform to Grid'5000. To learn more about this you can visit the `dedicated
+documentation page. <https://www.grid5000.fr/w/Reconfigurable_Firewall>`_
+
+.. literalinclude:: grid5000/tuto_grid5000_reconfigurable_firewall.py
+    :language: python
+    :linenos:
+
 Docker's peculiarities
 ======================
 
