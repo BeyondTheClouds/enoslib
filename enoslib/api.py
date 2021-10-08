@@ -187,7 +187,6 @@ _AnsibleExecutionRecord = namedtuple(
 class _MyCallback(CallbackModule):
 
     CALLBACK_VERSION = 2.0
-    CALLBACK_TYPE = "stdout"
     CALLBACK_NAME = "mycallback"
 
     def __init__(self, storage):
@@ -426,9 +425,10 @@ def run_play(
         variable_manager=variable_manager,
         loader=loader,
         passwords=passwords,
-        stdout_callback=callback,
         forks=C.DEFAULT_FORKS,
     )
+    # hack ahead
+    tqm._callback_plugins.append(callback)
 
     # create play
     play_inst = play.Play().load(
