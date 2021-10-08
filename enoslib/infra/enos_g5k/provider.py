@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+from contextlib import contextmanager
 import logging
 import operator
 from itertools import groupby
@@ -515,6 +516,30 @@ class G5k(Provider):
             The context manager
         """
         return G5kTunnel(address, port).start()
+
+    @contextmanager
+    def firewall(
+        self,
+        hosts: List[Host] = None,
+        port: Optional[Union[int, List[int]]] = None,
+        src_addr: Optional[Union[str, List[str]]] = None,
+        proto: str = "tcp+udp"
+    ):
+        """Context manager to manage firewal rules
+
+        - Create a firewall opening when entering
+        - Delete the firewall opening when exiting
+
+        Args:
+            hosts: limit the rule to a set of hosts.
+                if None, rules will be applied on all hosts of all underlying jobs.
+            port: ports to open
+            src_addr: source addresses to consider
+            proto: protocol to consider
+        """
+        self.fw_create(hosts=hosts, port=port, src_addr=src_addr, proto=proto)
+        yield
+        self.fw_delete()
 
     def fw_delete(self):
         """Delete all existing rules."""
