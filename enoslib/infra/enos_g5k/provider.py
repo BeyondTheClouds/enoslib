@@ -3,7 +3,7 @@ import copy
 import logging
 import operator
 from itertools import groupby
-from typing import List, Optional, Tuple, cast
+from typing import Iterable, List, Optional, Tuple, Union, cast
 
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
@@ -515,6 +515,69 @@ class G5k(Provider):
             The context manager
         """
         return G5kTunnel(address, port).start()
+
+    def fw_delete(self):
+        """Delete all existing rules."""
+        jobs = self.driver.get_jobs()
+        for job in jobs:
+            job.firewall.delete()
+
+    def fw_create(
+        self,
+        hosts: List[Host] = None,
+        port: Optional[Union[int, List[int]]] = None,
+        src_addr: Optional[Union[str, List[str]]] = None,
+        proto: str = "tcp+udp",
+    ):
+        """Create a firewall rules
+
+        Reference: https://www.grid5000.fr/w/Reconfigurable_Firewall
+
+        Note that ``port`` and ``src_addr`` and ``proto`` are passed to the API
+        calls without any change. It means that accepted values are those
+        accepted by the REST API.
+
+        Args:
+            hosts: limit the rule to a set of hosts.
+                if None, rules will be applied on all hosts of all underlying jobs.
+            port: ports to open
+            src_addr: source addresses to consider
+            proto: protocol to consider
+        """
+        def to_ipv6_dests(hosts: Iterable[str]):
+            """util fonction to build the ipv6node string."""
+            dests = []
+            for dest in hosts:
+                _dest = dest.split(".")
+                _dest = [f"{_dest[0]}-ipv6"] + _dest[1:]
+                dests.append(".".join(_dest))
+            return dests
+
+        jobs = self.driver.get_jobs()
+
+        data = dict(proto=proto)
+        if port is not None:
+            # cannot give port if proto == all"
+            data.update(port=port)
+        if src_addr is not None:
+            # src_addr is optional
+            data.update(src_addr=src_addr)
+
+        for job in jobs:
+            # build the destinations to consider
+            # that either the set of all the nodes of the jobs
+            # or only the one corresponding to the hosts passed
+            assigned_hosts = job.assigned_nodes
+            if hosts is not None:
+                limit_hosts = [h.alias for h in hosts]
+            else:
+                limit_hosts = assigned_hosts
+            # restrict the list of addr to consider
+            # this is supposed to be a neutral operation if
+            # hosts=None
+            addrs = to_ipv6_dests(set(assigned_hosts).intersection(limit_hosts))
+            data.update(addr=addrs)
+            job.firewall.create([data])
 
     def __str__(self):
         return "G5k"

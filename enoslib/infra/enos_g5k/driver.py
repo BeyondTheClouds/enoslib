@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
-from typing import Union
+from typing import List, Union
+
+from grid5000.objects import Job
 from enoslib.infra.enos_g5k.configuration import Configuration
 import logging
 
@@ -11,6 +13,8 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     grid_destroy_from_ids,
     grid_get_or_create_job,
     grid_reload_from_ids,
+    grid_reload_jobs_from_ids,
+    grid_reload_jobs_from_name,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,6 +42,10 @@ class Driver:
 
     @abstractmethod
     def deploy(self, site, nodes, force_deploy, options):
+        pass
+
+    @abstractmethod
+    def get_job_ids(self) -> List[str]:
         pass
 
     def get_user(self):
@@ -68,6 +76,9 @@ class OargridStaticDriver(Driver):
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
+
+    def get_jobs(self):
+        return grid_reload_jobs_from_ids(self.oargrid_jobids)
 
 
 class OargridDynamicDriver(Driver):
@@ -117,6 +128,9 @@ class OargridDynamicDriver(Driver):
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
+
+    def get_jobs(self) -> List[Job]:
+        return grid_reload_jobs_from_name(self.job_name)
 
 
 def get_driver(

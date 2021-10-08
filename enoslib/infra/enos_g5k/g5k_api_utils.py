@@ -130,7 +130,24 @@ def _date2h(timestamp):
     return t
 
 
-def grid_reload_from_name(job_name):
+def grid_reload_jobs_from_ids(oargrid_jobids):
+    """Reload jobs of Grid'5000 from their ids
+
+    Args:
+        oargrid_jobids (list): list of ``(site, oar_jobid)`` identifying the
+            jobs on each site
+
+    Returns:
+        The list of python-grid5000 jobs retrieved
+    """
+    gk = get_api_client()
+    jobs = []
+    for site, job_id in oargrid_jobids:
+        jobs.append(gk.sites[site].jobs[job_id])
+    return jobs
+
+
+def grid_reload_jobs_from_name(job_name):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
     By default all the sites will be searched for jobs with the name
@@ -164,6 +181,10 @@ def grid_reload_from_name(job_name):
             jobs.append(_jobs[0])
         elif len(_jobs) > 1:
             raise EnosG5kDuplicateJobsError(site, job_name)
+    # finally refresh them
+    # this adds some extra info (assigned_nodes)
+    for job in jobs:
+        job.refresh()
     return jobs
 
 
@@ -177,11 +198,7 @@ def grid_reload_from_ids(oargrid_jobids):
     Returns:
         The list of python-grid5000 jobs retrieved
     """
-    gk = get_api_client()
-    jobs = []
-    for site, job_id in oargrid_jobids:
-        jobs.append(gk.sites[site].jobs[job_id])
-
+    jobs = grid_reload_jobs_from_ids(oargrid_jobids)
     wait_for_jobs(jobs)
 
     return build_resources(jobs)
@@ -238,7 +255,7 @@ def grid_destroy_from_name(job_name):
     Args:
        job_name (str): the job name
     """
-    jobs = grid_reload_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name)
     for job in jobs:
         job.delete()
         logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
@@ -765,7 +782,7 @@ def grid_get_or_create_job(
     networks,
     wait=True,
 ):
-    jobs = grid_reload_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name)
     if len(jobs) == 0:
         jobs = grid_make_reservation(
             job_name,
