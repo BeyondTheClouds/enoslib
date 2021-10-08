@@ -1,6 +1,15 @@
 ⚒️ Changelog
 ============
 
+7.1.0
+-----
+
+- G5k: add reconfigurable firewall facilities (see provider doc)
+    This allows to create an opening rule and delete it later.
+- api: custom stdout callback is now use as a regular plugin.
+    This allows to confgure the stdout plugin using the Ansible configuration
+    file
+
 7.0.1
 -----
 
