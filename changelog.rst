@@ -1,6 +1,11 @@
 ⚒️ Changelog
 ============
 
+7.1.1
+-----
+
+- api: `Results` exposes a `to_dict` method (purpose is to json serialize)
+
 7.1.0
 -----
 
