@@ -280,6 +280,14 @@ class BaseCommandResult(object):
             raise AttributeError()
         return self.payload.get(name)
 
+    def to_dict(self) -> Dict:
+        """A representation as a Dict.
+
+        Use case: json serialization
+        """
+        d = {name: self.payload.get(name) for name in self._payload_keys()}
+        return dict(host=self.host, task=self.task, status=self.status, **d)
+
 
 class CommandResult(BaseCommandResult):
     def _payload_keys(self):
@@ -328,6 +336,13 @@ class Results(UserList):
             convert_to_html_table([d._summarize() for d in self.data]),
             content_only=content_only,
         )
+
+    def to_dict(self):
+        """A dict representation of a Results
+
+        Use case: JSON serialization
+        """
+        return [r.to_dict() for r in self]
 
 
 def populate_keys(
