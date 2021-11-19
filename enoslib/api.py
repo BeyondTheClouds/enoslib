@@ -323,6 +323,7 @@ class Results(UserList):
             # get all the stderr of ko tasks (note the plural form)
             print(result.filter(status=STATUS_FAILED).stderrs)
     """
+
     def filter(self, **kwargs):
         return Results([c for c in self.data if c.match(**kwargs)])
 
@@ -393,9 +394,11 @@ def populate_keys(
     with actions(roles=roles) as p:
         p.copy(src=str(priv_path), dest=f"/root/.ssh/{priv_name}", mode="600")
         p.copy(src=str(pub_path), dest=f"/root/.ssh/{pub_name}")
-        p.lineinfile(path="/root/.ssh/authorized_keys",
-                     line=pub_path.read_text(),
-                     state="present")
+        p.lineinfile(
+            path="/root/.ssh/authorized_keys",
+            line=pub_path.read_text(),
+            state="present",
+        )
 
     return (priv_path, pub_path)
 
