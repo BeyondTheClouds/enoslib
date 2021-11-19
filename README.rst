@@ -2,7 +2,7 @@
 EnOSlib: Surviving the ☆homoterogeneous☆ world
 **************************************************
 
-|Build Status| |License| |Pypi| |Pepy| |Chat|
+|Build Status| |License| |Pypi| |Pepy| |Chat| |SW|
 
 
 What the ☆homoterogeneous☆ ?
@@ -78,4 +78,7 @@ Links
 
 .. |Chat| image:: https://img.shields.io/badge/mattermost-enoslib-blueviolet
    :target: https://framateam.org/enoslib/channels/town-square
+
+.. |SW| image:: https://archive.softwareheritage.org/badge/origin/https://gitlab.inria.fr/discovery/enoslib.git/
+    :target: https://archive.softwareheritage.org/browse/origin/?origin_url=https://gitlab.inria.fr/discovery/enoslib.git
 
