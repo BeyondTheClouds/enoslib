@@ -89,7 +89,7 @@ sonar:
     - ./coverage.xml
 
 doc:
-  image: python:3.7
+  image: python:3.9
   stage: test
   tags: [qlf-ci.inria.fr]
   script:
