@@ -2,14 +2,9 @@
   apt:
     name:
       - curl
-      - python-pip
+      - python3-pip
     state: present
     update_cache: yes
-
-- name: fix "No module named ssl_match_hostname" issue
-  apt:
-    name: python-backports.ssl-match-hostname
-    state: present
 
 - name: Installing docker python bindings
   pip:
