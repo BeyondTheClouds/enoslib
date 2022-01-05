@@ -292,6 +292,42 @@ def in_conda_cmd(cmd: str, env: str, prefix: str):
     return f"source {prefix}/etc/profile.d/conda.sh && conda activate andromak && {cmd}"
 
 
+def conda_from_env():
+  """
+  Infer the prefix and conda env name from the environment variable.
+
+  The documentation is weak about conda environment variables. FWIU the
+  CONDA_PREFIX will point to the location of the conda env. In this situation
+  CONDA_PREFIX could be something like: /home/msimonin/miniconda3/envs/myenv
+  so we want to return prefix=/home/msimonin/miniconda3/, env=myenv.
+
+  In the case the default (base) env is used, CONDA_PREFIX will look like this
+  /home/msimonin/miniconda3 because base related files are put at the to level
+  We can check the CONDA_DEFAULT_ENV to check the name of the current env
+  """
+  import os
+  from pathlib import Path
+
+  conda_prefix = os.environ.get("CONDA_PREFIX")
+  conda_env_name = os.environ.get("CONDA_DEFAULT_ENV")
+  if not conda_prefix:
+    raise ValueError("CONDA_PREFIX not set, are you running a conda environment ?")
+  if not conda_env_name:
+    raise ValueError("CONDA_DEFAULT_ENV not set, are you running a conda environment ?")
+
+  prefix = Path(conda_prefix)
+  if conda_env_name != "base":
+    prefix = prefix.parent.parent
+
+  # Check if prefix contains the etc/profile.d/conda.sh files
+  if not (prefix / "etc" / "profile.d" / "conda.sh").exists():
+    raise ValueError(f"Can't infer where are the profile scripts in the env {prefix}")
+
+  # all clear we got a correct prefix and env...
+  # returning them so that you can feed them in the module functions
+  return str(prefix), conda_env_name
+
+
 class Dask(Service):
     def __init__(
         self,

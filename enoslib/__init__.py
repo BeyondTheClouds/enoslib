@@ -18,7 +18,7 @@ from enoslib.docker import DockerHost, get_dockers
 from enoslib.local import LocalHost
 
 # Services
-from enoslib.service.conda.conda import Dask, in_conda_cmd
+from enoslib.service.conda.conda import Dask, in_conda_cmd, conda_from_env
 
 from enoslib.service.docker.docker import Docker
 from enoslib.service.dstat.dstat import Dstat
