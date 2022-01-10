@@ -14,6 +14,13 @@ from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 logger = logging.getLogger(__name__)
 
 
+def ssh_enabled(network_address: str) -> bool:
+    return (
+        network_address.startswith("a8")
+        or network_address.startswith("rpi")
+    )
+
+
 class IotlabHost(Host):
     """
     A IoT-LAB host
@@ -39,8 +46,7 @@ class IotlabHost(Host):
         self.archi = archi
         self._ssh_address: Optional[str] = None
 
-        # by now, only A8 nodes
-        if "a8" in self.archi:
+        if ssh_enabled(self.archi):
             self._ssh_address = "node-%s" % self.address
 
     @property

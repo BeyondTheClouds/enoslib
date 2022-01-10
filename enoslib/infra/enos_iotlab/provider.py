@@ -9,7 +9,7 @@ from enoslib.api import play_on
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
-from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork
+from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork, ssh_enabled
 from enoslib.infra.utils import mk_pools, pick_things
 
 from enoslib.infra.enos_iotlab.constants import PROD
@@ -122,7 +122,7 @@ class Iotlab(Provider):
                 pool_nodes, (config.site, config.archi), config.number
             )
             for node in iot_nodes:
-                if node["network_address"].startswith("a8"):
+                if ssh_enabled(node["network_address"]):
                     iotlab_host = IotlabHost(
                         address=node["network_address"],
                         roles=config.roles,
@@ -152,7 +152,7 @@ class Iotlab(Provider):
             for s in config.hostname:
                 # only 1 is available selecting by hostname
                 iot_node = pick_things(pool_nodes, s, 1)[0]
-                if iot_node["network_address"].startswith("a8"):
+                if ssh_enabled(iot_node["network_address"]):
                     iotlab_host = IotlabHost(
                         address=iot_node["network_address"],
                         roles=config.roles,
@@ -188,7 +188,7 @@ class Iotlab(Provider):
         for image, sensors in image_dict.items():
             self.client.flash_nodes(image, sensors)
 
-        self.client.wait_a8_nodes([h.ssh_address for h in self.hosts])
+        self.client.wait_ssh([h.ssh_address for h in self.hosts])
 
     def _reserve(self):
         """Reserve resources on platform"""

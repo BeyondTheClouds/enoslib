@@ -75,7 +75,29 @@ linux commands.
         $ python tuto_iotlab_a8_basic.py
 
 
- 
+Using RPi nodes
+----------------
+
+This script shows how to use the RPI node available in the platform.
+They have a Linux OS installed, so we can access them through SSH and run simple
+linux commands.
+
+
+.. literalinclude:: iotlab/tuto_iotlab_rpi_basic.py
+   :language: python
+   :linenos:
+
+.. note::
+
+   Note that the Linux version installed on nodes has limited capabilities.
+
+- You can launch the script using :
+
+    .. code-block:: bash
+
+        $ python tuto_iotlab_rpi_basic.py
+
+
 Advanced examples
 =================
 

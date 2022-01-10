@@ -225,7 +225,7 @@ class IotlabAPI:
             cmd_opt=image,
         )
 
-    def wait_a8_nodes(self, nodes: List[str]):
+    def wait_ssh(self, nodes: List[str]):
         """
         Wait A8 nodes to boot
 
@@ -238,7 +238,7 @@ class IotlabAPI:
 
         if len(nodes) == 0:
             return
-        logger.info("Waiting A8 nodes to boot: %s", str(nodes))
+        logger.info("Waiting nodes to boot: %s", str(nodes))
         res = iotlabsshcli.open_linux.wait_for_boot(
             {"user": self.user, "exp_id": self.job_id}, nodes
         )
@@ -246,15 +246,15 @@ class IotlabAPI:
         if "1" in res["wait-for-boot"] and len(res["wait-for-boot"]["1"]) > 0:
             msg = (
                 """
-Error initializing A8 nodes: %s. \
+Error initializing nodes: %s. \
 Try to restart them in frontend using 'iotlab-node' command \
-or choose other A8 nodes"""
+or choose other nodes"""
                 % res["wait-for-boot"]["1"]
             )
             logger.error(msg)
 
         if "0" in res["wait-for-boot"] and len(res["wait-for-boot"]["0"]) > 0:
-            logger.info("A8 nodes initialized: %s", res["wait-for-boot"]["0"])
+            logger.info("Nodes initialized: %s", res["wait-for-boot"]["0"])
 
     def send_cmd_node(self, cmd: str, nodes: List[str]):
         """

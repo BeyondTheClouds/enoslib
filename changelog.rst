@@ -4,6 +4,7 @@
 7.1.2
 -----
 
+- IOTlab: support for RPI3 added
 - G5k: firewall context manager clean the firewall rules when an exception is
   raised.
 - Conda: introduce ``conda_from_env`` to infer conda prefix location and current
