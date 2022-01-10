@@ -523,7 +523,7 @@ class G5k(Provider):
         hosts: List[Host] = None,
         port: Optional[Union[int, List[int]]] = None,
         src_addr: Optional[Union[str, List[str]]] = None,
-        proto: str = "tcp+udp"
+        proto: str = "tcp+udp",
     ):
         """Context manager to manage firewal rules
 
@@ -539,9 +539,9 @@ class G5k(Provider):
         """
         self.fw_create(hosts=hosts, port=port, src_addr=src_addr, proto=proto)
         try:
-          yield
+            yield
         except Exception as e:
-          raise e
+            raise e
         finally:
             self.fw_delete()
 
@@ -573,6 +573,7 @@ class G5k(Provider):
             src_addr: source addresses to consider
             proto: protocol to consider
         """
+
         def to_ipv6_dests(hosts: Iterable[str]):
             """util fonction to build the ipv6node string."""
             dests = []

@@ -9,7 +9,12 @@ from enoslib.api import play_on
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
-from enoslib.infra.enos_iotlab.objects import IotlabHost, IotlabSensor, IotlabNetwork, ssh_enabled
+from enoslib.infra.enos_iotlab.objects import (
+    IotlabHost,
+    IotlabSensor,
+    IotlabNetwork,
+    ssh_enabled,
+)
 from enoslib.infra.utils import mk_pools, pick_things
 
 from enoslib.infra.enos_iotlab.constants import PROD
@@ -92,7 +97,7 @@ class Iotlab(Provider):
         )
         with play_on(
             roles=[Host(site + ".iot-lab.info", user=user) for site in sites],
-            on_error_continue=True
+            on_error_continue=True,
         ) as p:
             filename = "%d-{{ inventory_hostname }}.tar.gz" % (exp_id)
             # use --ignore-command-error to avoid errors if monitoring
