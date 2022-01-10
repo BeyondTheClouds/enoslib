@@ -538,8 +538,12 @@ class G5k(Provider):
             proto: protocol to consider
         """
         self.fw_create(hosts=hosts, port=port, src_addr=src_addr, proto=proto)
-        yield
-        self.fw_delete()
+        try:
+          yield
+        except Exception as e:
+          raise e
+        finally:
+            self.fw_delete()
 
     def fw_delete(self):
         """Delete all existing rules."""

@@ -1,6 +1,15 @@
 ⚒️ Changelog
 ============
 
+7.1.2
+-----
+
+- G5k: firewall context manager clean the firewall rules when an exception is
+  raised.
+- Conda: introduce ``conda_from_env`` to infer conda prefix location and current
+  environment from environmental variables
+- Docker: adapt to debian11
+
 7.1.1
 -----
 
