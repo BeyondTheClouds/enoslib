@@ -38,7 +38,7 @@ from ansible.module_utils.common.collections import ImmutableDict
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
 from ansible.playbook import play
-from ansible.plugins.callback.default import CallbackModule
+from ansible.plugins.callback import CallbackBase
 
 # Note(msimonin): PRE 2.4 is
 # from ansible.vars import VariableManager
@@ -184,7 +184,7 @@ _AnsibleExecutionRecord = namedtuple(
 )
 
 
-class _MyCallback(CallbackModule):
+class _MyCallback(CallbackBase):
 
     CALLBACK_VERSION = 2.0
     CALLBACK_NAME = "mycallback"
