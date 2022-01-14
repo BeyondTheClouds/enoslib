@@ -990,10 +990,6 @@ def run_ansible(
             loader=loader,
             passwords=passwords,
         )
-        results = []
-        callback = _MyCallback(results)
-        # hack ahead
-        pbex._tqm._callback_plugins.append(callback)
 
         _ = pbex.run()
         stats = pbex._tqm._stats
@@ -1045,26 +1041,6 @@ def run_ansible(
                 basedir=basedir,
                 ansible_retries=ansible_retries - 1,
             )
-        # Handling errors
-        failed_hosts = []
-        unreachable_hosts = []
-        for r in results:
-            if r.status == STATUS_UNREACHABLE:
-                unreachable_hosts.append(r)
-            if r.status == STATUS_FAILED:
-                failed_hosts.append(r)
-
-        if len(failed_hosts) > 0:
-            logger.error("Failed hosts: %s" % failed_hosts)
-            if not on_error_continue:
-                raise EnosFailedHostsError(failed_hosts)
-        if len(unreachable_hosts) > 0:
-            logger.error("Unreachable hosts: %s" % unreachable_hosts)
-            if not on_error_continue:
-                raise EnosUnreachableHostsError(unreachable_hosts)
-
-    return results
-
 
 
 def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
