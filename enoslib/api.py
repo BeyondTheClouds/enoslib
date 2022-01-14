@@ -404,13 +404,13 @@ def populate_keys(
 
 
 def run_play(
-    play_source,
+    play_source: Dict,
     *,
-    inventory_path=None,
+    inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
-    extra_vars=None,
-    on_error_continue=False,
-):
+    extra_vars: Optional[Dict] = None,
+    on_error_continue: bool = False,
+) -> Results:
     """Run a play.
 
     Args:
@@ -692,7 +692,7 @@ def run_command(
     task_name: str = None,
     raw: bool = False,
     **kwargs: Any,
-):
+) -> Results:
     """Run a shell command on some remote hosts.
 
     Args:
@@ -814,7 +814,7 @@ def run_command(
     return Results([BaseCommandResult.from_play(r) for r in results])
 
 
-def run(cmd: str, roles: RolesLike, **kwargs):
+def run(cmd: str, roles: RolesLike, **kwargs) -> Results:
     """Run command on some hosts
 
     Args:
@@ -926,12 +926,12 @@ def gather_facts(
 
 
 def run_ansible(
-    playbooks,
-    inventory_path=None,
+    playbooks: List[str],
+    inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
-    tags=None,
-    on_error_continue=False,
-    basedir=".",
+    tags: List[str] = None,
+    on_error_continue: bool = False,
+    basedir: Optional[str] = ".",
     ansible_retries: int = 0,
     extra_vars: Optional[Mapping] = None,
 ):
