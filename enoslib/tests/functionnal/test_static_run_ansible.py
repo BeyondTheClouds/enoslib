@@ -1,8 +1,7 @@
-from enoslib.api import generate_inventory, run_command
+from enoslib.api import generate_inventory, run_ansible
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
-import json
 import logging
 import os
 
@@ -36,9 +35,7 @@ inventory = os.path.join(os.getcwd(), "hosts")
 provider = Static(Configuration.from_dictionnary(provider_conf))
 roles, networks = provider.init()
 generate_inventory(roles, networks, inventory, check_networks=True)
-# using an inventory
-result = run_command("date", pattern_hosts="control", inventory_path=inventory)
-print(result)
-# using the roles
-result = run_command("date", pattern_hosts="control", roles=roles)
-print(result)
+
+run_ansible(["site.yml"], inventory_path=inventory)
+
+run_ansible(["site.yml"], roles=roles)
