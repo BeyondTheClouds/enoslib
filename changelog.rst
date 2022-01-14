@@ -4,7 +4,7 @@
 7.2.0
 -----
 
-- API: fix an wrong inheritance that prevent ``stdout_callback`` to be taken into account.
+- API: fix a wrong inheritance that prevents ``stdout_callback`` to be taken into account.
 - Upgrade Ansible possible versions (from 3.X to 5.X)
 
 7.1.2
