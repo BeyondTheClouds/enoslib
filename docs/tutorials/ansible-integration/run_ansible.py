@@ -23,4 +23,5 @@ conf = VagrantConf.from_dictionnary(provider_conf)
 provider = Vagrant(conf)
 roles, networks = provider.init()
 
-run_ansible(["site.yml"], roles=roles)
+result = run_ansible(["site.yml"], roles=roles)
+print(result)
