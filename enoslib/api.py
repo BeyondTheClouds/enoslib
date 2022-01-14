@@ -678,20 +678,6 @@ def ensure_python3(make_default=True, **kwargs):
         p.raw("hostname")
 
 
-def ensure_python2(make_default=True, **kwargs):
-    """Make sure python is installed on the remote nodes and is the default.
-
-    It inherits the arguments of :py:class:`enoslib.api.play_on`.
-    """
-    kwargs.pop("priors", None)
-    kwargs.pop("gather_facts", None)
-    priors = [__python2__]
-    if make_default:
-        priors.append(__default_python2__)
-    with actions(priors=priors, gather_facts=False, **kwargs) as p:
-        p.raw("hostname")
-
-
 def run_command(
     command: str,
     *,
