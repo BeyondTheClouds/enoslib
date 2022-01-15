@@ -1,4 +1,4 @@
-from enoslib.api import generate_inventory, run_ansible
+from enoslib.api import generate_inventory, run_ansible, CommandResult
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 
@@ -16,7 +16,7 @@ provider_conf = {
                 "alias": "test_machine",
                 "address": "localhost",
                 "extra": {"ansible_connection": "local"},
-            }
+            },
         ],
         "networks": [
             {
@@ -34,8 +34,20 @@ provider_conf = {
 inventory = os.path.join(os.getcwd(), "hosts")
 provider = Static(Configuration.from_dictionnary(provider_conf))
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
+generate_inventory(roles, networks, inventory, check_networks=False)
+results = run_ansible(["site.yml"], inventory_path=inventory, on_error_continue=True)
+result = results.filter(host="test_machine", status="OK", task="One task")
+assert len(result) == 1
+assert isinstance(result[0], CommandResult)
+assert result[0].rc == 0
+assert result[0].stdout == "tototiti"
+assert result[0].stderr == ""
 
-run_ansible(["site.yml"], inventory_path=inventory)
 
-run_ansible(["site.yml"], roles=roles)
+results = run_ansible(["site.yml"], roles=roles)
+result = results.filter(host="test_machine", status="OK", task="One task")
+assert len(result) == 1
+assert isinstance(result[0], CommandResult)
+assert result[0].rc == 0
+assert result[0].stdout == "tototiti"
+assert result[0].stderr == ""

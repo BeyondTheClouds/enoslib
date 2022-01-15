@@ -1,6 +1,5 @@
 # flake8: noqa
 from enoslib.api import (
-    ensure_python2,
     ensure_python3,
     sync_info,
     get_hosts,

@@ -18,6 +18,8 @@ def _check_tmpdir(tmpdir):
 
 
 def remove_hosts(roles, hosts_to_keep):
+    if roles is None:
+        return None
     updated_roles = defaultdict(list)
     for role, hosts in roles.items():
         for host in hosts:

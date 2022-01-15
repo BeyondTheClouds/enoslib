@@ -21,23 +21,21 @@ import json
 import logging
 import os
 import signal
+from tempfile import TemporaryDirectory
 import time
 import warnings
 from collections import UserList, namedtuple
 from pathlib import Path
 import sys
-from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Set, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
 
 # These two imports are 2.9
-import ansible.constants as C
-from ansible.executor import task_queue_manager
 from ansible.executor.playbook_executor import PlaybookExecutor
 from ansible.module_utils.common.collections import ImmutableDict
 
 # Note(msimonin): PRE 2.4 is
 # from ansible.inventory import Inventory
 from ansible.parsing.dataloader import DataLoader
-from ansible.playbook import play
 from ansible.plugins.callback import CallbackBase
 
 # Note(msimonin): PRE 2.4 is
@@ -62,7 +60,7 @@ from enoslib.html import (
     repr_html_check,
 )
 from enoslib.objects import Host, Networks, Roles, RolesLike
-from enoslib.utils import _check_tmpdir, _hostslike_to_roles, remove_hosts
+from enoslib.utils import _check_tmpdir, _hostslike_to_roles
 
 logger = logging.getLogger(__name__)
 
@@ -345,6 +343,10 @@ class Results(UserList):
         """
         return [r.to_dict() for r in self]
 
+    @staticmethod
+    def from_ansible(results: List[Dict]):
+        return Results(BaseCommandResult.from_play(r) for r in results)
+
 
 def populate_keys(
     roles: RolesLike, local_dir: Path, key_name="id_rsa_enoslib"
@@ -430,54 +432,17 @@ def run_play(
     Returns:
         List of all the results
     """
-    logger.debug(play_source)
-    roles = _hostslike_to_roles(roles)
-    results: List = []
-    inventory, variable_manager, loader = _load_defaults(
-        inventory_path=inventory_path, roles=roles, extra_vars=extra_vars
-    )
-    callback = _MyCallback(results)
-    passwords: MutableMapping = {}
-    tqm = task_queue_manager.TaskQueueManager(
-        inventory=inventory,
-        variable_manager=variable_manager,
-        loader=loader,
-        passwords=passwords,
-        forks=C.DEFAULT_FORKS,
-    )
-    # hack ahead
-    tqm._callback_plugins.append(callback)
-
-    # create play
-    play_inst = play.Play().load(
-        play_source, variable_manager=variable_manager, loader=loader
-    )
-
-    # actually run it
-    try:
-        tqm.run(play_inst)
-    finally:
-        tqm.cleanup()
-
-    # Handling errors
-    failed_hosts = []
-    unreachable_hosts = []
-    for r in results:
-        if r.status == STATUS_UNREACHABLE:
-            unreachable_hosts.append(r)
-        if r.status == STATUS_FAILED:
-            failed_hosts.append(r)
-
-    if len(failed_hosts) > 0:
-        logger.error("Failed hosts: %s" % failed_hosts)
-        if not on_error_continue:
-            raise EnosFailedHostsError(failed_hosts)
-    if len(unreachable_hosts) > 0:
-        logger.error("Unreachable hosts: %s" % unreachable_hosts)
-        if not on_error_continue:
-            raise EnosUnreachableHostsError(unreachable_hosts)
-
-    return results
+    with TemporaryDirectory() as _tmp:
+        tmp = Path(_tmp)
+        play_path = tmp / "play"
+        play_path.write_text(json.dumps([play_source]))
+        return run_ansible(
+            [play_path],
+            inventory_path=inventory_path,
+            roles=roles,
+            extra_vars=extra_vars,
+            on_error_continue=on_error_continue,
+        )
 
 
 class actions(object):
@@ -600,7 +565,7 @@ class actions(object):
 
         # gather results (mutate the results attributes)
         for r in results:
-            self.results.append(BaseCommandResult.from_play(r))
+            self.results.append(r)
 
     def __getattr__(self, module_name):
         """Providers an handy way to use ansible module from python."""
@@ -811,7 +776,7 @@ def run_command(
         on_error_continue=on_error_continue,
     )
 
-    return Results([BaseCommandResult.from_play(r) for r in results])
+    return results
 
 
 def run(cmd: str, roles: RolesLike, **kwargs) -> Results:
@@ -932,7 +897,6 @@ def run_ansible(
     tags: List[str] = None,
     on_error_continue: bool = False,
     basedir: Optional[str] = ".",
-    ansible_retries: int = 0,
     extra_vars: Optional[Mapping] = None,
 ):
     """Run Ansible.
@@ -955,7 +919,6 @@ def run_ansible(
         :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
             unreachable (through ssh) and ``on_error_continue==False``
     """
-
     if not extra_vars:
         extra_vars = {}
     roles = _hostslike_to_roles(roles)
@@ -966,9 +929,12 @@ def run_ansible(
         tags=tags,
         basedir=basedir,
     )
+    results = []
     passwords: Dict = {}
     for path in playbooks:
         logger.debug("Running playbook %s with vars:\n%s" % (path, extra_vars))
+        _results = []
+        callback = _MyCallback(_results)
         pbex = PlaybookExecutor(
             playbooks=[path],
             inventory=inventory,
@@ -976,57 +942,32 @@ def run_ansible(
             loader=loader,
             passwords=passwords,
         )
+        # hack ahead
+        pbex._tqm._callback_plugins.append(callback)
 
         _ = pbex.run()
-        stats = pbex._tqm._stats
-        hosts = stats.processed.keys()
-        # result = [{h: stats.summarize(h)} for h in hosts]
-        # results = {"code": code, "result": result, "playbook": path}
-        # print(results)
 
+        results += _results
+
+        # Handling errors
         failed_hosts = []
         unreachable_hosts = []
+        for r in _results:
+            if r.status == STATUS_UNREACHABLE:
+                unreachable_hosts.append(r)
+            if r.status == STATUS_FAILED:
+                failed_hosts.append(r)
 
-        for h in hosts:
-            t = stats.summarize(h)
-            if t["failures"] > 0:
-                failed_hosts.append(h)
-
-            if t["unreachable"] > 0:
-                unreachable_hosts.append(h)
-
-        if len(failed_hosts) > 0 and ansible_retries == 0:
+        if len(failed_hosts) > 0:
             logger.error("Failed hosts: %s" % failed_hosts)
             if not on_error_continue:
                 raise EnosFailedHostsError(failed_hosts)
-        if len(unreachable_hosts) > 0 and ansible_retries == 0:
+        if len(unreachable_hosts) > 0:
             logger.error("Unreachable hosts: %s" % unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
-        if (
-            len(failed_hosts) > 0 or len(unreachable_hosts) > 0
-        ) and ansible_retries > 0:
-            # keep retrying until the number of retries is reached
-            # if an inventory is passed, the whole inventory will be retested
-            # if roles are passed only host that failed are retried
-            # this can be potentially harmfull id cross facts are used.
-            # But since it fails in the first place, retries can't be worth
-            updated_roles = remove_hosts(roles, failed_hosts + unreachable_hosts)
-            logger.info(
-                f"Retrying on the {len(failed_hosts) + len(unreachable_hosts)} "
-                f"hosts [{ansible_retries}]"
-            )
-            run_ansible(
-                playbooks,
-                inventory_path=inventory_path,
-                roles=updated_roles,
-                extra_vars=extra_vars,
-                tags=tags,
-                on_error_continue=on_error_continue,
-                basedir=basedir,
-                ansible_retries=ansible_retries - 1,
-            )
+    return Results.from_ansible(results)
 
 
 def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:

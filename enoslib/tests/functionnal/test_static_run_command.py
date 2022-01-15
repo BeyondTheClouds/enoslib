@@ -97,3 +97,15 @@ assert len(result) == 1
 assert isinstance(result[0], AsyncCommandResult)
 assert result[0].ansible_job_id
 assert result[0].results_file
+
+# interpolation
+results = run("echo {{ msg }}", roles["control"], extra_vars=dict(msg="tototiti"))
+print(results)
+result = results.filter(host="test_machine", status="OK")
+assert len(result) == 1
+assert isinstance(result[0], CommandResult)
+assert result[0].rc == 0
+assert result[0].stdout == "tototiti"
+assert result[0].stderr == ""
+
+
