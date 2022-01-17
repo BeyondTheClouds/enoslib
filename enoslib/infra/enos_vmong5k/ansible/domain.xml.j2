@@ -22,7 +22,7 @@
    </disk>
    <disk type='file' device='cdrom'>
      <source file='{{ libvirt_dir }}/cloud-init-data-{{ item.alias }}.iso'/>
-     <target dev='vdb' bus='virtio'/>
+     <target dev='vdb' bus='ide'/>
      <readonly/>
    </disk>
    <interface type='bridge'>
