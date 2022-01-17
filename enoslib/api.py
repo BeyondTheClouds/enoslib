@@ -222,6 +222,7 @@ class SpinnerCallback(CallbackBase):
         self.running_tasks = defaultdict(dict)
         self.console = Console()
         self.status = None
+        self.tasks_lst = []
 
     def v2_runner_on_start(self, host, task):
         """
@@ -232,8 +233,11 @@ class SpinnerCallback(CallbackBase):
         if the task exist, add the host (free strategy case // slow hosts)
             update the spinner
         """
-        self.running_tasks[task.get_name()][host.name] = HostStatus.NEUTRAL
-        self.update(task.get_name())
+        task_name = task.get_name()
+        if task_name not in self.tasks_lst:
+            self.tasks_lst.append(task_name)
+        self.running_tasks[task_name][host.name] = HostStatus.NEUTRAL
+        self.update(task_name)
 
     def update(self, task_name):
         # fire a new spinner if it doesn't exist
@@ -267,8 +271,10 @@ class SpinnerCallback(CallbackBase):
 
     def v2_playbook_on_stats(self, stats):
         self.status.stop()
+        tasks_str = ",".join(self.tasks_lst)
         self.console.print(
-            f"[bold blue]Finished {len(self.running_tasks)} tasks[/bold blue]"
+            f"[bold blue]Finished {len(self.running_tasks)} tasks[/bold blue] "
+            f"[italic]({tasks_str})[/italic]"
         )
         self.console.rule()
 
