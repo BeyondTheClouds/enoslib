@@ -1,5 +1,5 @@
 # Box
-DEFAULT_BOX = "generic/debian10"
+DEFAULT_BOX = "generic/debian11"
 
 # Backends
 BACKEND_VIRTUALBOX = "virtualbox"

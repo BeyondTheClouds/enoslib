@@ -2,7 +2,7 @@
 from pathlib import Path
 
 JOB_TYPE_DEPLOY = "deploy"
-DEFAULT_ENV_NAME = "debian10-x64-nfs"
+DEFAULT_ENV_NAME = "debian11-x64-nfs"
 DEFAULT_JOB_NAME = "EnOSlib"
 DEFAULT_JOB_TYPE = JOB_TYPE_DEPLOY
 DEFAULT_QUEUE = "default"
