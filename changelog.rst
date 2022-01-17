@@ -6,6 +6,11 @@
 
 - API: fix a wrong inheritance that prevents ``stdout_callback`` to be taken into account.
 - Upgrade Ansible possible versions (from 3.X to 5.X)
+- API: Introduce ``pimp_my_lib`` boolean config key to enforce a special
+  stdout_callback based on `rich <https://github.com/Textualize/rich>`_. The
+  rationale is to have nicer and more compact outputs.
+- Add an optional dependency ``jupyter`` to install extra library dedicated to
+  running EnOSlib from Jupyter.
 
 7.1.2
 -----
