@@ -1,4 +1,6 @@
 # flake8: noqa
+from enoslib.config import set_config, config_context
+
 from enoslib.api import (
     ensure_python3,
     sync_info,
