@@ -6,7 +6,10 @@ import copy
 from typing import Any, Dict, Optional
 
 
-_config = dict(g5k_cache=True, g5k_cache_dir="cachedir", display="html")
+_config = dict(g5k_cache=True,
+ g5k_cache_dir="cachedir",
+ display="html",
+ pimp_my_lib=False)
 
 
 def get_config() -> Dict:
@@ -23,6 +26,7 @@ def set_config(
     g5k_cache: Optional[bool] = None,
     g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
+    pimp_my_lib: Optional[bool] = None
 ):
     """Set a specific config value.
 
@@ -35,6 +39,7 @@ def set_config(
     _set("g5k_cache", g5k_cache)
     _set("g5k_cache_dir", g5k_cache_dir)
     _set("display", display)
+    _set("pimp_my_lib", pimp_my_lib)
 
 
 @contextmanager

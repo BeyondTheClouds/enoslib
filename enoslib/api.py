@@ -16,7 +16,8 @@ These function can be fed with library-level objects (see :ref:`objects
 """
 from abc import ABCMeta, abstractmethod
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 import json
 import logging
 import os
@@ -24,7 +25,7 @@ import signal
 from tempfile import TemporaryDirectory
 import time
 import warnings
-from collections import UserList, namedtuple
+from collections import UserList, defaultdict, namedtuple
 from pathlib import Path
 import sys
 from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
@@ -44,8 +45,11 @@ from ansible.vars.manager import VariableManager
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from rich.status import Console, Status
 
 from ansible import context
+
+from enoslib.config import get_config
 from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
 from enoslib.enos_inventory import EnosInventory
 from enoslib.errors import (
@@ -180,6 +184,89 @@ def _load_defaults(
 _AnsibleExecutionRecord = namedtuple(
     "_AnsibleExecutionRecord", ["host", "status", "task", "payload"]
 )
+
+
+class HostStatus(Enum):
+    NEUTRAL = "%s"
+    FAILED = "[red]%s[/red]"
+    OK = "[green]%s[/green]"
+    UNREACHABLE = "[orange]%s[/orange]"
+    SKIPPED = "[blue]%s[/blue]"
+
+
+@dataclass(unsafe_hash=True)
+class HostWithStatus(object):
+    name: str = field(compare=True, hash=True)
+    status: Status = field(compare=False, default=HostStatus.NEUTRAL, hash=False)
+
+    def set_status(self, status: Status):
+        self.status = status
+
+    def rich(self):
+        return self.status.value % self.name
+
+
+class SpinnerCallback(CallbackBase):
+    """Spinning during tasks execution.
+
+
+    Design goals:
+        - compatible with linear/free execution strategy
+    """
+
+    CALLBACK_VERSION = 2.0
+    CALLBACK_NAME = "spinner"
+    CALLBACK_TYPE = "stdout"
+
+    def __init__(self):
+        self.running_tasks = defaultdict(dict)
+        self.console = Console()
+        self.status = None
+
+    def v2_runner_on_start(self, host, task):
+        """
+        Misc notes:
+        in the free strategy there's no notion of current task
+        if the task doesn't exist add a description + initial list of host
+            update the spinner
+        if the task exist, add the host (free strategy case // slow hosts)
+            update the spinner
+        """
+        self.running_tasks[task.get_name()][host.name] = HostStatus.NEUTRAL
+        self.update(task.get_name())
+
+    def update(self, task_name):
+        # fire a new spinner if it doesn't exist
+        if self.status is None:
+            self.status = Status("", console=self.console)
+            self.status.start()
+        hosts_status = self.running_tasks[task_name]
+        status_str = " ".join(
+            [status.value % host for (host, status) in hosts_status.items()]
+        )
+        self.status.update(
+            f"[bold blue]Running[/bold blue] [magenta]{task_name}[/magenta] "
+            f"on {status_str}"
+        )
+
+    def v2_runner_on_failed(self, result, ignore_errors=False):
+        self.running_tasks[result.task_name][result._host.name] = HostStatus.FAILED
+        self.update(result.task_name)
+
+    def v2_runner_on_ok(self, result, ignore_errors=False):
+        self.running_tasks[result.task_name][result._host.name] = HostStatus.OK
+        self.update(result.task_name)
+
+    def v2_runner_on_unreachable(self, result):
+        self.running_tasks[result.task_name][result._host.name] = HostStatus.UNREACHABLE
+        self.update(result.task_name)
+
+    def v2_playbook_on_stats(self, stats):
+        self.status.stop()
+        self.console.print(
+            f"[bold blue]Finished {len(self.running_tasks)} tasks[/bold blue]"
+        )
+        self.console.rule()
 
 
 class _MyCallback(CallbackBase):
@@ -945,6 +1032,8 @@ def run_ansible(
         # hack ahead
         pbex._tqm._callback_plugins.append(callback)
 
+        if get_config()["pimp_my_lib"]:
+            pbex._tqm._stdout_callback = SpinnerCallback()
         _ = pbex.run()
 
         results += _results
