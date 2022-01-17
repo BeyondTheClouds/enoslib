@@ -1201,7 +1201,7 @@ def wait_for(
                 # python is installed
                 p.raw("hostname")
             break
-        except EnosUnreachableHostsError as e:
+        except EnosUnreachableHostsError:
             logger.info("Retrying... %s/%s" % (i + 1, retries))
             time.sleep(interval)
     else:
