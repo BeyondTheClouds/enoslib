@@ -250,7 +250,11 @@ class SpinnerCallback(CallbackBase):
         )
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
-        self.running_tasks[result.task_name][result._host.name] = HostStatus.FAILED
+        if not ignore_errors:
+            status = HostStatus.FAILED
+        else:
+            status = HostStatus.OK
+        self.running_tasks[result.task_name][result._host.name] = status
         self.update(result.task_name)
 
     def v2_runner_on_ok(self, result, ignore_errors=False):
@@ -294,7 +298,10 @@ class _MyCallback(CallbackBase):
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
         super(_MyCallback, self).v2_runner_on_failed(result)
-        self._store(result, STATUS_FAILED)
+        if not ignore_errors:
+            self._store(result, STATUS_FAILED)
+        else:
+            self._store(result, STATUS_OK)
 
     def v2_runner_on_ok(self, result):
         super(_MyCallback, self).v2_runner_on_ok(result)
@@ -1195,7 +1202,6 @@ def wait_for(
                 p.raw("hostname")
             break
         except EnosUnreachableHostsError as e:
-            logger.info("Hosts unreachable: %s " % e.hosts)
             logger.info("Retrying... %s/%s" % (i + 1, retries))
             time.sleep(interval)
     else:
