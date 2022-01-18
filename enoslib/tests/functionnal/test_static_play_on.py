@@ -1,15 +1,12 @@
-import logging
-from pathlib import Path
+import enoslib as en
+from enoslib.api import CommandResult, AsyncCommandResult
 
-from enoslib.api import actions, generate_inventory, CommandResult, AsyncCommandResult
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration
+from pathlib import Path
 
 
 # Dummy functionnal test running inside a docker container
 
-logging.basicConfig(level=logging.DEBUG)
-
+logging = en.init_logging()
 
 provider_conf = {
     "resources": {
@@ -38,10 +35,10 @@ inventory_path = Path.cwd() / "hosts"
 
 # we still need str instead of pathlib.Path in enoslib.api functions that uses inventory
 inventory = str(inventory_path)
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Static(conf)
+conf = en.StaticConf.from_dictionnary(provider_conf)
+provider = en.Static(conf)
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=True)
+en.generate_inventory(roles, networks, inventory, check_networks=True)
 
 # testing the generated inventory
 assert inventory_path.exists() and inventory_path.is_file()
@@ -49,7 +46,7 @@ assert "[all]\ntest_machine ansible_connection='local'" in inventory_path.read_t
 assert "[control]\n test_machine ansible_connection='local'"
 
 # from roles
-with actions(roles=roles) as a:
+with en.actions(roles=roles) as a:
     a.shell("echo tototiti")
     results = a.results
 print(results)
@@ -62,7 +59,7 @@ assert result[0].stdout == "tototiti"
 assert result[0].stderr == ""
 
 # from an inventory
-with actions(inventory_path=inventory) as a:
+with en.actions(inventory_path=inventory) as a:
     a.shell("echo tototiti")
     results = a.results
 print(results)
@@ -76,7 +73,7 @@ assert result[0].stderr == ""
 
 
 # async
-with actions(pattern_hosts="all", roles=roles, background=True) as a:
+with en.actions(pattern_hosts="all", roles=roles, background=True) as a:
     for i in range(10):
         a.shell("sleep 10")
     results = a.results

@@ -1,12 +1,10 @@
-from enoslib.api import generate_inventory, run_ansible, CommandResult
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration
+import enoslib as en
+from enoslib.api import CommandResult
 
-import logging
 import os
 
-# Dummy functionnal test running inside a docker container
-logging.basicConfig(level=logging.DEBUG)
+
+logging = en.init_logging()
 
 provider_conf = {
     "resources": {
@@ -32,10 +30,10 @@ provider_conf = {
 }
 
 inventory = os.path.join(os.getcwd(), "hosts")
-provider = Static(Configuration.from_dictionnary(provider_conf))
+provider = en.Static(en.StaticConf.from_dictionnary(provider_conf))
 roles, networks = provider.init()
-generate_inventory(roles, networks, inventory, check_networks=False)
-results = run_ansible(["site.yml"], inventory_path=inventory, on_error_continue=True)
+en.generate_inventory(roles, networks, inventory, check_networks=False)
+results = en.run_ansible(["site.yml"], inventory_path=inventory, on_error_continue=True)
 result = results.filter(host="test_machine", status="OK", task="One task")
 assert len(result) == 1
 assert isinstance(result[0], CommandResult)
@@ -44,7 +42,7 @@ assert result[0].stdout == "tototiti"
 assert result[0].stderr == ""
 
 
-results = run_ansible(["site.yml"], roles=roles)
+results = en.run_ansible(["site.yml"], roles=roles)
 result = results.filter(host="test_machine", status="OK", task="One task")
 assert len(result) == 1
 assert isinstance(result[0], CommandResult)

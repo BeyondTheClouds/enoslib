@@ -1,13 +1,6 @@
-from enoslib.api import gather_facts
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration
+import enoslib as en
 
-import json
-import logging
-import os
-
-# Dummy functionnal test running inside a docker container
-logging.basicConfig(level=logging.DEBUG)
+logging = en.init_logging()
 
 provider_conf = {
     "resources": {
@@ -32,8 +25,8 @@ provider_conf = {
     }
 }
 
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Static(conf)
+conf = en.StaticConf().from_dictionnary(provider_conf)
+provider = en.Static(conf)
 roles, networks = provider.init()
-result = gather_facts(roles=roles)
+result = en.gather_facts(roles=roles)
 print(result)
