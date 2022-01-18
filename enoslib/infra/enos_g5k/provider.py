@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import logging
 import operator
 from itertools import groupby
-from typing import Iterable, List, Optional, Tuple, Union, cast
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
@@ -585,7 +585,8 @@ class G5k(Provider):
 
         jobs = self.driver.get_jobs()
 
-        data = dict(proto=proto)
+        data: Dict[str, Any] = dict()
+        data.update(proto=proto)
         if port is not None:
             # cannot give port if proto == all"
             data.update(port=port)

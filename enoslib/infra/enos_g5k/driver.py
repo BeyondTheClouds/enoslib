@@ -44,10 +44,6 @@ class Driver:
     def deploy(self, site, nodes, force_deploy, options):
         pass
 
-    @abstractmethod
-    def get_job_ids(self) -> List[str]:
-        pass
-
     def get_user(self):
         return get_api_username()
 

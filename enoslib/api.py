@@ -197,9 +197,9 @@ class HostStatus(Enum):
 @dataclass(unsafe_hash=True)
 class HostWithStatus(object):
     name: str = field(compare=True, hash=True)
-    status: Status = field(compare=False, default=HostStatus.NEUTRAL, hash=False)
+    status: HostStatus = field(compare=False, default=HostStatus.NEUTRAL, hash=False)
 
-    def set_status(self, status: Status):
+    def set_status(self, status: HostStatus):
         self.status = status
 
     def rich(self):
@@ -444,7 +444,7 @@ class Results(UserList):
         return [r.to_dict() for r in self]
 
     @staticmethod
-    def from_ansible(results: List[Dict]):
+    def from_ansible(results: List[_AnsibleExecutionRecord]):
         return Results(BaseCommandResult.from_play(r) for r in results)
 
 
@@ -537,7 +537,7 @@ def run_play(
         play_path = tmp / "play"
         play_path.write_text(json.dumps([play_source]))
         return run_ansible(
-            [play_path],
+            [str(play_path)],
             inventory_path=inventory_path,
             roles=roles,
             extra_vars=extra_vars,
