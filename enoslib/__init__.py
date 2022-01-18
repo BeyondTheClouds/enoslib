@@ -4,6 +4,8 @@ from enoslib.config import set_config, config_context
 from enoslib.api import (
     ensure_python3,
     sync_info,
+    gather_facts,
+    generate_inventory,
     get_hosts,
     play_on,
     actions,
