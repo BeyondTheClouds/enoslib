@@ -757,7 +757,7 @@ def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[s
     deployment = gk.sites[site].deployments.create(config)
     while deployment.status not in ["terminated", "error"]:
         deployment.refresh()
-        print("Waiting for the end of deployment [%s]" % deployment.uid)
+        logger.info("Waiting for the end of deployment [%s]" % deployment.uid)
         time.sleep(10)
     # parse output
     deploy = []
