@@ -1,5 +1,5 @@
 ---
-- include: "{{ registry.type }}/agent.yml"
+- include_tasks: "{{ registry.type }}/agent.yml"
 
-- include: "{{ registry.type }}/registry.yml"
+- include_tasks: "{{ registry.type }}/registry.yml"
   when: inventory_hostname in groups['registry']

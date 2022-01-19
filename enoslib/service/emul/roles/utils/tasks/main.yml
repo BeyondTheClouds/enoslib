@@ -1,2 +1,2 @@
 ---
-- include: "{{ enos_action }}.yml"
+- include_tasks: "{{ enos_action }}.yml"

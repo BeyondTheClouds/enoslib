@@ -1,4 +1,4 @@
 ---
-- include: ../install_agent.yml
+- include_tasks: ../install_agent.yml
 
-- include: ../insecure_registry.yml
+- include_tasks: ../insecure_registry.yml

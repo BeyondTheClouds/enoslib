@@ -3,7 +3,7 @@ from pathlib import Path
 import logging
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging = en.init_logging()
 
 CLUSTER = "paravance"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
