@@ -8,7 +8,9 @@
 - Upgrade Ansible possible versions (from 3.X to 5.X)
 - API: Introduce ``pimp_my_lib`` boolean config key to enforce a special
   stdout_callback based on `rich <https://github.com/Textualize/rich>`_. The
-  rationale is to have nicer and more compact outputs.
+  rationale is to have nicer and more compact outputs for Ansible tasks (e.g.
+  ``api.actions`` and ``api.run*``)
+- API: 
 - Add an optional dependency ``jupyter`` to install extra library dedicated to
   running EnOSlib from Jupyter.
 
