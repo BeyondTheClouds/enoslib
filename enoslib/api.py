@@ -50,7 +50,7 @@ from rich.status import Console, Status
 from ansible import context
 
 from enoslib.config import get_config
-from enoslib.constants import ANSIBLE_DIR, TMP_DIRNAME
+from enoslib.constants import ANSIBLE_DIR
 from enoslib.enos_inventory import EnosInventory
 from enoslib.errors import (
     EnosFailedHostsError,
@@ -64,7 +64,7 @@ from enoslib.html import (
     repr_html_check,
 )
 from enoslib.objects import Host, Networks, Roles, RolesLike
-from enoslib.utils import _check_tmpdir, _hostslike_to_roles
+from enoslib.utils import _hostslike_to_roles
 
 logger = logging.getLogger(__name__)
 
@@ -1095,36 +1095,36 @@ def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
     """
 
     wait_for(roles, **kwargs)
-    tmpdir = os.path.join(os.getcwd(), TMP_DIRNAME)
-    _check_tmpdir(tmpdir)
 
-    utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
-    facts_file = os.path.join(tmpdir, "facts.json")
-    options = {
-        "enos_action": "check_network",
-        "facts_file": facts_file,
-    }
-    run_ansible(
-        [utils_playbook],
-        roles=roles,
-        extra_vars=options,
-        on_error_continue=False,
-        **kwargs,
-    )
+    with TemporaryDirectory() as tmp_dir:
+        facts_file = Path(tmp_dir) / "facts"
+        logger.debug("Syncing host description in %s", facts_file)
+        utils_playbook = os.path.join(ANSIBLE_DIR, "utils.yml")
+        options = {
+            "enos_action": "check_network",
+            "facts_file": str(facts_file),
+        }
+        run_ansible(
+            [utils_playbook],
+            roles=roles,
+            extra_vars=options,
+            on_error_continue=False,
+            **kwargs,
+        )
 
-    # Read the file
-    # Match provider networks to interface names for each host
-    # preserve the host from being mutated wildly
-    _roles = copy.deepcopy(roles)
-    with open(facts_file) as f:
-        facts = json.load(f)
-        for hosts in _roles.values():
-            for host in hosts:
-                # only sync if host is really a Host (not a Sensor for example)
-                if not isinstance(host, Host):
-                    continue
-                host_facts = facts[host.alias]
-                host.sync_from_ansible(networks, host_facts)
+        # Read the file
+        # Match provider networks to interface names for each host
+        # preserve the host from being mutated wildly
+        _roles = copy.deepcopy(roles)
+        with facts_file.open("r") as f:
+            facts = json.load(f)
+            for hosts in _roles.values():
+                for host in hosts:
+                    # only sync if host is really a Host (not a Sensor for example)
+                    if not isinstance(host, Host):
+                        continue
+                    host_facts = facts[host.alias]
+                    host.sync_from_ansible(networks, host_facts)
 
     return _roles
 

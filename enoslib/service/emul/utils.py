@@ -120,6 +120,6 @@ def _destroy(hosts: List[Host], **kwargs):
     _playbook = os.path.join(SERVICE_PATH, "netem.yml")
     extra_vars = kwargs.pop("extra_vars", {})
     options = _build_options(
-        extra_vars, {"enos_action": "tc_reset", "tc_output_dir": TMP_DIR}
+        extra_vars, {"enos_action": "tc_reset"}
     )
     run_ansible([_playbook], roles=hosts, extra_vars=options)

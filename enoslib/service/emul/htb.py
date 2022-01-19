@@ -12,7 +12,6 @@ from itertools import product
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import play_on
-from enoslib.constants import TMP_DIRNAME
 from enoslib.objects import Host, Network, Networks, Roles
 from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
 
@@ -21,7 +20,6 @@ from .utils import _build_commands, _build_options, _combine, _destroy, _validat
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
-TMP_DIR = os.path.join(os.getcwd(), TMP_DIRNAME)
 
 DEFAULT_RATE = "10gbit"
 
