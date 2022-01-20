@@ -22,7 +22,7 @@ import json
 import logging
 import os
 import signal
-from tempfile import TemporaryDirectory
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 import time
 import warnings
 from collections import UserList, defaultdict, namedtuple
@@ -532,9 +532,17 @@ def run_play(
     Returns:
         List of all the results
     """
-    with TemporaryDirectory() as _tmp:
-        tmp = Path(_tmp)
-        play_path = tmp / "play"
+    # create a temporary file for holding the playbook beware that the file
+    # might be re-opened during the context manager block and that lead to
+    # unknown behavior on non-unix system In case of trouble, we might want to
+    # have an home made tempfile generation.
+    #
+    # This is super important to generate the file in the current directory avs
+    # users often copy/sync file to remote machines using relative path on the
+    # local machine. In Ansible, such path is relative to the playbook location.
+    with NamedTemporaryFile(dir=Path.cwd()) as _tmp_file:
+        play_path = Path(_tmp_file.name)
+        logger.warn(play_path)
         play_path.write_text(json.dumps([play_source]))
         return run_ansible(
             [str(play_path)],
@@ -562,7 +570,7 @@ class actions(object):
         **kwargs,
     ):
         """
-        Args:
+       Args:
             pattern_hosts: pattern to describe ansible hosts to target.
                 see https://docs.ansible.com/ansible/latest/intro_patterns.html
             inventory_path: inventory to use
