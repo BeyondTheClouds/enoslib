@@ -1,7 +1,9 @@
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import enoslib as en
 from enoslib.api import AsyncCommandResult, CommandResult
+from enoslib.config import config_context
 
 
 logging = en.init_logging()
@@ -105,3 +107,24 @@ assert isinstance(result[0], CommandResult)
 assert result[0].rc == 0
 assert result[0].stdout == "tototiti"
 assert result[0].stderr == ""
+
+# dump results
+# test it in temporarty directory
+with TemporaryDirectory() as tmp:
+    dump_file = Path(tmp) / "run_command.out"
+    with config_context(dump_results=dump_file):
+        results = en.run("echo tototiti", roles["control"])
+    import json
+    assert dump_file.exists()
+    assert len(json.loads(dump_file.read_text())) == 1
+
+    # subsequent run creates a run_command.out.1 file
+    dump_file = Path(tmp) / "run_command.out"
+    with config_context(dump_results=dump_file):
+        results = en.run("echo tototiti", roles["control"])
+
+    new_dump_file = Path(f"{dump_file}.1")
+    import json
+    assert new_dump_file.exists()
+    assert len(json.loads(new_dump_file.read_text())) == 1
+
