@@ -3,13 +3,19 @@ Manage a configuration for EnOSlib.
 """
 from contextlib import contextmanager
 import copy
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 _config = dict(g5k_cache=True,
  g5k_cache_dir="cachedir",
  display="html",
- pimp_my_lib=False)
+ pimp_my_lib=False,
+ dump_results=None
+ )
 
 
 def get_config() -> Dict:
@@ -22,11 +28,37 @@ def _set(key: str, value: Optional[Any]):
         _config[key] = value
 
 
+def _set_dump_results(dump_results: Optional[Union[Path, str]]):
+    """Prechecks and set the dump_results key
+
+    If the dump_results file exists, don't override it.
+    Instead add a suffix (.1 or .2 ...).
+
+    Args:
+        dump_results:  Path or str-path where the file results
+            should be stored.
+
+    """
+    if dump_results is None:
+        _set("dump_results", dump_results)
+        return
+    assert dump_results is not None
+
+    candidate = str(dump_results)
+    i = 1
+    while Path(candidate).exists():
+        candidate = f"{dump_results}.{i}"
+        i += 1
+    # we found a candidate, use it
+    _set("dump_results", Path(candidate))
+
+
 def set_config(
     g5k_cache: Optional[bool] = None,
     g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
-    pimp_my_lib: Optional[bool] = None
+    pimp_my_lib: Optional[bool] = None,
+    dump_results: Optional[Union[Path, str]] = None
 ):
     """Set a specific config value.
 
@@ -40,6 +72,9 @@ def set_config(
     _set("g5k_cache_dir", g5k_cache_dir)
     _set("display", display)
     _set("pimp_my_lib", pimp_my_lib)
+    _set_dump_results(dump_results)
+
+    logger.debug("config = %s", get_config())
 
 
 @contextmanager

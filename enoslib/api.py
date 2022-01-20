@@ -378,12 +378,20 @@ class BaseCommandResult(object):
             raise AttributeError()
         return self.payload.get(name)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self, include_payload: bool = False) -> Dict:
         """A representation as a Dict.
 
         Use case: json serialization
+
+        Args:
+            include_payload: True wheter the payload must be included.
+
+        Returns:
+            A dict representing the object
         """
         d = {name: self.payload.get(name) for name in self._payload_keys()}
+        if include_payload:
+            d.update(payload=self.payload)
         return dict(host=self.host, task=self.task, status=self.status, **d)
 
 
@@ -436,12 +444,18 @@ class Results(UserList):
             content_only=content_only,
         )
 
-    def to_dict(self):
+    def to_dict(self, include_payload: bool = False) -> List[Dict]:
         """A dict representation of a Results
 
         Use case: JSON serialization
+
+        Args:
+            include_payload: True wheter the raw payload must be included.
+
+        Returns:
+            A list of the dict, each element represents one Result.
         """
-        return [r.to_dict() for r in self]
+        return [r.to_dict(include_payload=include_payload) for r in self]
 
     @staticmethod
     def from_ansible(results: List[_AnsibleExecutionRecord]):
@@ -998,6 +1012,23 @@ def gather_facts(
     return {"ok": ok, "failed": failed, "results": results}
 
 
+def _dump_obj(obj):
+    """Dump obj in a file.
+
+    Args:
+        obj: anything that is json serializable
+    """
+    try:
+        dump_result = get_config()["dump_results"]
+        if dump_result is not None:
+            with dump_result.open("a") as f:
+                json.dump(obj, f)
+
+    except Exception as e:
+        logger.error("Error while saving results"
+                    "dump_result=%s, exception=%s", dump_result, e)
+
+
 def run_ansible(
     playbooks: List[str],
     inventory_path: Optional[str] = None,
@@ -1077,7 +1108,10 @@ def run_ansible(
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
-    return Results.from_ansible(results)
+    results = Results.from_ansible(results)
+    # dump if needed
+    _dump_obj(results.to_dict(include_payload=True))
+    return results
 
 
 def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
