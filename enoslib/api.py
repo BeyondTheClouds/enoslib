@@ -542,7 +542,7 @@ def run_play(
     # local machine. In Ansible, such path is relative to the playbook location.
     with NamedTemporaryFile(dir=Path.cwd()) as _tmp_file:
         play_path = Path(_tmp_file.name)
-        logger.warn(play_path)
+        logger.debug("Generating playbook in %s ", play_path)
         play_path.write_text(json.dumps([play_source]))
         return run_ansible(
             [str(play_path)],
