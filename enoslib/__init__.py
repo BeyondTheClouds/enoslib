@@ -113,7 +113,10 @@ except ModuleNotFoundError:
 # Tasks
 from enoslib.task import enostask, Environment
 
-def init_logging(**kwargs):
+
+import logging
+
+def init_logging(level=logging.INFO, **kwargs):
   """Enable Rich display of log messages.
 
   kwargs: kwargs passed to RichHandler.
@@ -121,18 +124,19 @@ def init_logging(**kwargs):
       show_time=False,
   """
   from rich.logging import RichHandler
-  import logging
-  # enable Rich outputs
-  set_config(pimp_my_lib=True)
 
   default_kwargs = dict(
     show_time=False,
   )
-  default_kwargs.update(**kwargs)
 
+  default_kwargs.update(**kwargs)
   logging.basicConfig(
-      level=logging.INFO,
+      level=level,
       format="%(message)s",
       datefmt="[%X]", handlers=[RichHandler(**default_kwargs)]
   )
+
+  # enable Rich outputs
+  set_config(pimp_my_lib=True)
+
   return logging
