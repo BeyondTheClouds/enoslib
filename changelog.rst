@@ -4,15 +4,17 @@
 7.2.0
 -----
 
+- Upgrade and relax Ansible possible versions (from 3.X to 5.X)
 - API: fix a wrong inheritance that prevents ``stdout_callback`` to be taken into account.
-- Upgrade Ansible possible versions (from 3.X to 5.X)
-- API: Introduce ``pimp_my_lib`` boolean config key to enforce a special
+- Config: Introduce ``pimp_my_lib`` boolean config key to enforce a special
   stdout_callback based on `rich <https://github.com/Textualize/rich>`_. The
   rationale is to have nicer and more compact outputs for Ansible tasks (e.g.
   ``api.actions`` and ``api.run*``)
-- API: 
 - Add an optional dependency ``jupyter`` to install extra library dedicated to
   running EnOSlib from Jupyter.
+- API: Introduce an ``init_logging`` function: setup a good-enough logging mecanism.
+- Config: add a ``dump_results`` key to enable remote actions result collection
+  in a file.
 
 7.1.2
 -----
