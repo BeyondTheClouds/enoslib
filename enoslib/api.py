@@ -1247,7 +1247,7 @@ def wait_for(
             ) as p:
                 # We use the raw module because we can't assumed at this point that
                 # python is installed
-                p.raw("hostname")
+                p.raw("hostname", task_name="Waiting for connection")
             break
         except EnosUnreachableHostsError:
             logger.info("Retrying... %s/%s" % (i + 1, retries))
