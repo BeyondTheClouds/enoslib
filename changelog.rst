@@ -15,6 +15,9 @@
 - API: Introduce an ``init_logging`` function: setup a good-enough logging mecanism.
 - Config: add a ``dump_results`` key to enable remote actions result collection
   in a file.
+- Dstat: add an ``to_pandas`` static method to load all the metrics previously
+  backuped to pandas. This avoids to know the internal directory structures
+  EnOSlib uses.
 
 7.1.2
 -----
