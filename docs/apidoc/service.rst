@@ -29,15 +29,6 @@ Docker Service Class
 .. automodule:: enoslib.service.docker.docker
     :members: Docker
 
-Dstat (monitoring)
-==================
-
-Dstat Service Class
---------------------
-
-
-.. automodule:: enoslib.service.dstat.dstat
-    :members: Dstat
 
 K3s (container orchestration)
 =============================

@@ -116,6 +116,7 @@ class Dstat(Service):
                 dest=str(_backup_dir),
                 flat=False,
             )
+        return _backup_dir
 
     @repr_html_check
     def _repr_html_(self, content_only=False):
@@ -137,3 +138,38 @@ class Dstat(Service):
         return html_from_sections(
             str(self.__class__), sections, content_only=content_only
         )
+
+    @staticmethod
+    def to_pandas(backup_dir: Path):
+        """Get a pandas representation of the monitoring metrics.
+
+        Why static ?
+        You'll probably use this method when doing post-mortem analysis.  So the
+        Dstat object might not be around anymore: you'll be left with the dstat
+        directory.
+
+        Internals.
+        This work by scanning all csv files in ``backup_dir``: this directory
+        is assumed to have been created solely by a call to
+        :py:meth:`~enoslib.service.dstat.dstat.Dstat.backup`
+
+        Args:
+            backup_dir: The directory created by
+                :py:meth:`~enoslib.service.dstat.dstat.Dstat.backup`
+
+
+        Returns:
+            A pandas dataframe with all the metrics
+        """
+        import pandas as pd
+
+        result = pd.DataFrame()
+        csvs = backup_dir.rglob("*.csv")
+        for csv in csvs:
+            df = pd.read_csv(csv, skiprows=5, index_col=False)
+            _host = csv.relative_to(backup_dir)
+            # py310 will support negative indexing on parents list
+            df["host"] = _host.parents[len(_host.parents) - 2]
+            df["csv"] = csv
+            result = pd.concat([result, df], axis=0, ignore_index=True)
+        return result

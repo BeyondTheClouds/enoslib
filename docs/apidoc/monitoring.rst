@@ -8,6 +8,15 @@ Introduction
 
 .. _monitoring:
 
+Dstat (monitoring)
+==================
+
+Dstat Service Class
+--------------------
+
+.. automodule:: enoslib.service.dstat.dstat
+    :members: Dstat
+
 Telegraf/InfluxDB/Grafana stack
 -------------------------------
 

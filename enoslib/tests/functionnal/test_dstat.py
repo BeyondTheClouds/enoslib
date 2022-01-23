@@ -2,13 +2,10 @@ import logging
 import os
 import time
 
-from enoslib.api import sync_info
-from enoslib.service import Dstat
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration
-
+import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
+
 provider_conf = {
     "resources": {
         "machines": [
@@ -33,15 +30,21 @@ provider_conf = {
 }
 
 inventory = os.path.join(os.getcwd(), "hosts")
-conf = Configuration.from_dictionnary(provider_conf)
-provider = Static(conf)
+conf = en.StaticConf.from_dictionnary(provider_conf)
+provider = en.Static(conf)
 
 roles, networks = provider.init()
 
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
-m = Dstat(nodes=roles["control"])
+m = en.Dstat(nodes=roles["control"])
 m.deploy()
 # stop monitoring to be generated before backuping
+time.sleep(10)
 m.destroy()
 m.backup()
+
+
+df = en.Dstat.to_pandas(m.backup_dir)
+print(df)
+assert not df.empty
