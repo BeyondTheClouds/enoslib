@@ -52,6 +52,10 @@ SCHEMA = {
         "domain_type": {
             "type": "string",
             "description": "Domain type of the guest (kvm, qemu...)"
+        },
+        "reservation": {
+            "type": "string",
+            "description": "Reservation date %Y-%m-%d %H:%M:%S"
         }
     },
     "additionalProperties": False,

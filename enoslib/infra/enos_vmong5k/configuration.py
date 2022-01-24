@@ -31,6 +31,7 @@ class Configuration(BaseConfiguration):
         self.gateway = False
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE
+        self.reservation = None
         self.walltime = DEFAULT_WALLTIME
         self.image = DEFAULT_IMAGE
         self.skip = 0

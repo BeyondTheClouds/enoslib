@@ -128,6 +128,7 @@ def _do_build_g5k_conf(vmong5k_conf, site):
         walltime=vmong5k_conf.walltime,
         queue=vmong5k_conf.queue,
         job_type="allow_classic_ssh",
+        reservation=vmong5k_conf.reservation
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site
