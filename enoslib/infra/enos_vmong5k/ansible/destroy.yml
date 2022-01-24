@@ -46,4 +46,4 @@
         path: "{{ working_dir }}"
         state: absent
         mode: 0711
-      when: "{{ running_vms.stdout_lines | length == 0 }}"
+      when: running_vms.stdout_lines | length == 0
