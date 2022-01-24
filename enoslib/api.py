@@ -270,7 +270,8 @@ class SpinnerCallback(CallbackBase):
         self.update(result.task_name)
 
     def v2_playbook_on_stats(self, stats):
-        self.status.stop()
+        if self.status:
+            self.status.stop()
         tasks_str = ",".join(self.tasks_lst)
         self.console.print(
             f"[bold blue]Finished {len(self.running_tasks)} tasks[/bold blue] "
@@ -1135,7 +1136,9 @@ def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
         A copy of the original roles where some new attributes have been
         populated.
     """
-
+    if not roles:
+        logger.warn("The Roles are empty at this point !")
+        return roles
     wait_for(roles, **kwargs)
 
     with TemporaryDirectory() as tmp_dir:
