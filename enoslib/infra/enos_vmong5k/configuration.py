@@ -3,6 +3,7 @@ import uuid
 from enoslib.objects import Host
 from ..configuration import BaseConfiguration
 from .constants import (
+    DEFAULT_DOMAIN_TYPE,
     DEFAULT_FLAVOUR,
     DEFAULT_IMAGE,
     DEFAULT_JOB_NAME,
@@ -24,6 +25,7 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
+        self.domain_type = DEFAULT_DOMAIN_TYPE
         self.enable_taktuk = False
         self.force_deploy = False
         self.gateway = False

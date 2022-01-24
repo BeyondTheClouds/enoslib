@@ -226,6 +226,7 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
         "_strategy": provider_conf.strategy,
         "enable_taktuk": provider_conf.enable_taktuk,
         "libvirt_dir": LIBVIRT_DIR,
+        "domain_type": provider_conf.domain_type
     }
 
     # Take into account only the pms that will host the vms

@@ -49,6 +49,10 @@ SCHEMA = {
             "type": "string",
             "description": "Remote directory that hold the image",
         },
+        "domain_type": {
+            "type": "string",
+            "description": "Domain type of the guest (kvm, qemu...)"
+        }
     },
     "additionalProperties": False,
     "required": ["resources"],

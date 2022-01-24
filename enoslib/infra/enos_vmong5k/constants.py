@@ -24,6 +24,8 @@ FLAVOURS = {
     "extra-large": {"core": 6, "mem": 6144},
 }
 
+DEFAULT_DOMAIN_TYPE = "kvm"
+
 DEFAULT_FLAVOUR = "tiny", FLAVOURS["tiny"]
 
 DEFAULT_NETWORKS = ["enos_network"]
