@@ -18,8 +18,10 @@
 - Dstat: add an ``to_pandas`` static method to load all the metrics previously
   backuped to pandas. This avoids to know the internal directory structures
   EnOSlib uses.
-- VMonG5K: Allow to specify the domain type (kvm hwv/ qemu full emulation mode)
-- VMonG5K: Allow to specify a reservation date
+- VMonG5K: Allow to specify the domain type (``kvm`` for hardware assisted
+virtualizaton / ``qemu`` full emulation mode)
+- VMonG5K: Allow to specify a
+reservation date
 
 7.1.2
 -----
