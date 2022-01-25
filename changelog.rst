@@ -1,6 +1,12 @@
 ⚒️ Changelog
 ============
 
+7.2.1
+-----
+
+- jupyter is an optional dependency (if you want to have rich output)
+  ``pip install enoslib[jupyter]``
+
 7.2.0
 -----
 
