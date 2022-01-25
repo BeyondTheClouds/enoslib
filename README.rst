@@ -46,6 +46,8 @@ your code and cherry-pick any of its functions.
    .. code-block ::
 
       pip install enoslib
+      # If you are a Jupyter User
+      pip install enoslib[jupyter]
 
    For developping EnOSlib or get the *in development* version:
 
