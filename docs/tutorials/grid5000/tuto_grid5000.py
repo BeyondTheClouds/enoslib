@@ -1,10 +1,9 @@
-import logging
 from pathlib import Path
 
 import enoslib as en
 
 
-logging.basicConfig(level=logging.DEBUG)
+_ = en.init_logging()
 
 job_name = Path(__file__).name
 

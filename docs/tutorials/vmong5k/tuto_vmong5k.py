@@ -1,10 +1,10 @@
-import logging
 from pathlib import Path
 
 import enoslib as en
 
 
-logging.basicConfig(level=logging.INFO)
+_ = en.init_logging()
+
 
 job_name = Path(__file__).name
 
@@ -14,18 +14,12 @@ conf = (
     .from_settings(job_name=job_name, gateway=True)
     .add_machine(
         roles=["docker", "compute"],
-        cluster="paravance",
-        number=3,
+        cluster="chetemi",
+        number=1,
         flavour_desc={
             "core": 1,
             "mem": 1024
         }
-    )
-    .add_machine(
-        roles=["docker", "controller"],
-        cluster="paravance",
-        number=3,
-        flavour="tiny"
     )
     .finalize()
 )
