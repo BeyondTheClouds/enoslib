@@ -1,4 +1,5 @@
 """HTB based emulation."""
+from ipaddress import IPv4Interface, ip_interface
 from enoslib.html import (
     convert_list_to_html_table,
     html_from_sections,
@@ -44,7 +45,7 @@ class HTBConstraint(object):
     The purpose of this class is to give you the commands to create the slice
     (class and filter) that will be added to the root qdisc.
 
-     Args:
+    Args:
         target: the target ip
         device: the device name where the qdisc will be added
         delay: the delay (e.g 10ms)
@@ -100,12 +101,22 @@ class HTBConstraint(object):
                 f"loss {self.loss}"
             )
         cmds.append(cmd)
-        cmd = (
-            f"tc filter add dev {self.device} "
-            "parent 1: "
-            f"protocol ip u32 match ip dst {self.target} "
-            f"flowid 1:{idx + 1}"
-        )
+        target = ip_interface(self.target)
+        if isinstance(target, IPv4Interface):
+            cmd = (
+                f"tc filter add dev {self.device} "
+                "parent 1: "
+                f"protocol ip u32 match ip dst {self.target} "
+                f"flowid 1:{idx + 1}"
+            )
+        else:
+            cmd = (
+                f"tc filter add dev {self.device} "
+                "parent 1: "
+                f"protocol ipv6 u32 match ip6 dst {self.target} "
+                f"flowid 1:{idx + 1}"
+            )
+
         cmds.append(cmd)
         return cmds
 
@@ -182,7 +193,11 @@ class HTBSource(object):
         return htb_cmds
 
     def all_commands(self) -> Tuple[List[str], List[str], List[str]]:
-        return self.remove_commands(), self.add_commands(), self.commands()
+        r, a, c = self.remove_commands(), self.add_commands(), self.commands()
+        logger.debug("\n".join(r))
+        logger.debug("\n".join(a))
+        logger.debug("\n".join(c))
+        return r, a, c
 
     @repr_html_check
     def _repr_html_(self, content_only=False):

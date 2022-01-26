@@ -123,7 +123,8 @@ def is_valid_ipv4(instance):
     import ipaddress
 
     try:
-        ipaddress.IPv4Address(instance)
+        # accept ipv4 and ipv6
+        ipaddress.ip_interface(instance)
         return True
     except ipaddress.AddressValueError:
         return False
