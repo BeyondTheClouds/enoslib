@@ -84,6 +84,8 @@ def _concretize_nodes(
             except ValueError:
                 # The server is missing in the concrete version
                 # this shouldn't happen because it has been explicitly requested
+                logger.debug("The impossible happened: an explicitly requested "
+                              "server is missing in the concrete resource")
                 pass
         c = ConcreteServersConf(_concrete_servers, config)
         c.raise_for_min()
@@ -176,9 +178,11 @@ def _concretize_networks(
             if _networks != []:
                 g5k_network = G5kVlanNetwork(roles, n_id, site, _networks[0].descriptor)
         else:
+            logger.error("Missing Network: are you reloading the right job ?")
             raise MissingNetworkError(site, n_type)
         # pick_thing is best-effort
         if g5k_network is None:
+            logger.error("Missing Network: are you reloading the right job ?")
             raise MissingNetworkError(site, n_type)
 
         g5k_networks.append(g5k_network)
