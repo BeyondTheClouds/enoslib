@@ -1,19 +1,16 @@
 import copy
 from pathlib import Path
 from typing import List, Optional, Set, Union
-from enoslib.api import run_ansible
+from enoslib.api import run_command
 from enoslib.utils import _check_tmpdir
 import logging
 from collections import defaultdict
 from itertools import groupby
 from operator import attrgetter
-import os
 
 from enoslib.objects import Host, Network
 from enoslib.api import actions, Results
 
-SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
 
 FPING_FILE_SUFFIX = ".fpingout"
 
@@ -79,7 +76,6 @@ def _build_commands(sources):
 
 def validate_delay(
     hosts: List[Host],
-    output_dir: str,
     all_addresses: List[str],
     count: int = 10,
     **kwargs,
@@ -125,7 +121,10 @@ def _validate(
 def _destroy(hosts: List[Host], **kwargs):
     logger.debug("Reset the constraints")
 
-    _playbook = os.path.join(SERVICE_PATH, "netem.yml")
     extra_vars = kwargs.pop("extra_vars", {})
-    options = _build_options(extra_vars, {"enos_action": "tc_reset"})
-    run_ansible([_playbook], roles=hosts, extra_vars=options)
+    run_command(
+        "tc qdisc del dev {{ item }} root || true",
+        loop="{{ansible_interfaces}}",
+        roles=hosts,
+        extra_vars=extra_vars,
+    )

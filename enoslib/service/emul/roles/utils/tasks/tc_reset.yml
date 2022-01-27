@@ -1,5 +1,0 @@
----
-# Resetting network constraints
-- name: Removing root qdisc
-  shell: "tc qdisc del dev {{ item }} root || true"
-  with_items: "{{ ansible_interfaces }}"

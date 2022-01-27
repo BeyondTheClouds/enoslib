@@ -22,7 +22,6 @@ from ..service import Service
 from .utils import _build_commands, _build_options, _combine, _destroy, _validate
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
 
 DEFAULT_RATE = "10gbit"
 
