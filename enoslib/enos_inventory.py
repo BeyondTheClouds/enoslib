@@ -12,7 +12,11 @@ class EnosInventory(Inventory):
 
         if loader is None:
             loader = DataLoader()
-        super(EnosInventory, self).__init__(loader, sources=sources)
+        # NOTE(msimonin): In Ansible 2.11+ we can use parse=False to avoid to
+        # parse empty As a side effect this will suppress the warning about
+        # empty inventory...
+        super(EnosInventory, self).__init__(loader,
+                                            sources=sources)
 
         # We add the roles as defined in roles
         if roles is None:
