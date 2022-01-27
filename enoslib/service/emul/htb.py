@@ -15,7 +15,7 @@ from itertools import product
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import Results, play_on
-from enoslib.objects import Host, Network, Networks, Roles
+from enoslib.objects import Host, Network, Networks, PathLike, Roles
 from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
 
 from ..service import Service
@@ -449,7 +449,11 @@ class NetemHTB(Service):
         _destroy(list(self.sources.keys()), **kwargs)
 
     def validate(
-        self, *, networks: Optional[List[Network]] = None, output_dir=None, **kwargs
+        self,
+        *,
+        networks: Optional[List[Network]] = None,
+        output_dir: PathLike = None,
+        **kwargs,
     ) -> Results:
         """Validate the network parameters(latency, bandwidth ...)
 
@@ -503,6 +507,7 @@ class AccurateNetemHTB(NetemHTB):
     than the one existing on the infratructure. Always double check, the
     observed network condition before drawing any conclusion.
     """
+
     def deploy(self, chunk_size: int = 100, **kwargs):
         """We first estimate the current network conditions."""
 

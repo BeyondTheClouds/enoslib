@@ -7,8 +7,16 @@ CONSTRAINT_SCHEMA = {
     "properties": {
         "src": {"type": "string", "description": "Source group"},
         "dst": {"type": "string", "description": "Destination group"},
-        "delay": {"type": "string", "description": "Delay to apply", "format": "delay"},
-        "rate": {"type": "string", "description": "Rate to apply", "format": "rate"},
+        "delay": {
+            "type": "string",
+            "description": "Delay to apply [ms]",
+            "format": "delay",
+        },
+        "rate": {
+            "type": "string",
+            "description": "Rate to apply [kbit, mbit, gbit]",
+            "format": "rate",
+        },
         "loss": {
             "type": ["number", "null"],
             "description": "Loss to apply (percentage)",
@@ -95,10 +103,14 @@ def is_valid_delay(instance):
 
 @HTBFormatChecker.checks("rate")
 def is_valid_rate(instance):
-    """Something that ends with gbit or kbit"""
+    """Something that ends with kbit, mbit or gbit."""
     if not isinstance(instance, str):
         return False
-    if not instance.endswith("gbit") and not instance.endswith("kbit"):
+    if (
+        not instance.endswith("gbit")
+        and not instance.endswith("mbit")
+        and not instance.endswith("kbit")
+    ):
         return False
     return True
 

@@ -11,7 +11,7 @@ from enoslib.html import (
     html_to_foldable_section,
     repr_html_check,
 )
-from enoslib.objects import Host, Network, Roles
+from enoslib.objects import Host, Network, PathLike, Roles
 from enoslib.service.service import Service
 
 from .utils import _build_commands, _build_options, _combine, _destroy, _validate
@@ -274,7 +274,7 @@ class Netem(Service):
         pass
 
     def validate(
-        self, networks: List[Network] = None, output_dir=None, **kwargs
+        self, networks: List[Network] = None, output_dir: PathLike = None, **kwargs
     ) -> Results:
         if output_dir is None:
             output_dir = Path.cwd() / TMP_DIRNAME

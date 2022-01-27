@@ -26,6 +26,7 @@ from ipaddress import (
     ip_interface,
 )
 from itertools import islice
+from pathlib import Path
 from typing import (
     Dict,
     Iterable,
@@ -59,6 +60,8 @@ RolesNetworks = Tuple["Roles", "Networks"]
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
 RolesLike = Union["Roles", List["Host"], "Host"]
+
+PathLike = Union[Path, str]
 
 
 class Roles(UserDict):

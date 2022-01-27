@@ -1,6 +1,6 @@
 import copy
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Union
 from enoslib.api import run_ansible
 from enoslib.utils import _check_tmpdir
 import logging
@@ -97,7 +97,7 @@ def validate_delay(
 def _validate(
     hosts: List[Host],
     networks: Optional[List[Network]] = None,
-    output_dir: Optional[Path] = None,
+    output_dir: Optional[Union[Path, str]] = None,
     count: int = 10,
     **kwargs,
 ) -> Results:
@@ -113,6 +113,7 @@ def _validate(
     # save it if needed
     if output_dir is not None:
         _check_tmpdir(output_dir)
+        output_dir = Path(output_dir)
         for result in results:
             # one per host
             (output_dir / result.host).with_suffix(FPING_FILE_SUFFIX).write_text(
