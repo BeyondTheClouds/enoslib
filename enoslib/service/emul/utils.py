@@ -1,8 +1,8 @@
 import copy
+from pathlib import Path
 from typing import List, Optional, Set
 from enoslib.api import run_ansible
 from enoslib.utils import _check_tmpdir
-from enoslib.constants import TMP_DIRNAME
 import logging
 from collections import defaultdict
 from itertools import groupby
@@ -10,10 +10,12 @@ from operator import attrgetter
 import os
 
 from enoslib.objects import Host, Network
+from enoslib.api import actions, Results
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 PLAYBOOK = os.path.join(SERVICE_PATH, "netem.yml")
-TMP_DIR = os.path.join(os.getcwd(), TMP_DIRNAME)
+
+FPING_FILE_SUFFIX = ".fpingout"
 
 logger = logging.getLogger(__name__)
 
@@ -76,50 +78,53 @@ def _build_commands(sources):
 
 
 def validate_delay(
-    hosts: List[Host], output_dir: str, all_addresses: List[str], **kwargs
-):
+    hosts: List[Host],
+    output_dir: str,
+    all_addresses: List[str],
+    count: int = 10,
+    **kwargs,
+) -> Results:
     logger.debug("Checking the constraints")
-    if not output_dir:
-        output_dir = os.path.join(os.getcwd(), TMP_DIRNAME)
-
-    extra_vars = kwargs.pop("extra_vars", {})
-    output_dir = os.path.abspath(output_dir)
-    _check_tmpdir(output_dir)
-    _playbook = os.path.join(SERVICE_PATH, "netem.yml")
-    options = _build_options(
-        extra_vars,
-        dict(
-            enos_action="tc_validate",
-            tc_output_dir=output_dir,
-            all_addresses=all_addresses,
-        ),
-    )
-    run_ansible([_playbook], roles=hosts, extra_vars=options, **kwargs)
+    with actions(roles=hosts, extra_vars=kwargs.pop("extra_vars", {})) as a:
+        # NOTE(msimonin): ideally we'll want this to work offline if the packet
+        # is already there
+        a.raw("which fping || apt install -y fping", task="Check fping")
+        a.raw(f"fping -C {count} -q -s -e {' '.join(all_addresses)}", task_name="fping")
+        results = a.results
+    return results.filter(task="fping")
 
 
 def _validate(
     hosts: List[Host],
     networks: Optional[List[Network]] = None,
-    output_dir=None,
+    output_dir: Optional[Path] = None,
+    count: int = 10,
     **kwargs,
-):
+) -> Results:
     all_addresses: Set[str] = set()
     for host in hosts:
         addresses = host.filter_addresses(networks)
         all_addresses = all_addresses.union(
             set([str(addr.ip.ip) for addr in addresses if addr.ip])
         )
-    validate_delay(hosts, output_dir, list(all_addresses), **kwargs)
+    results = validate_delay(
+        hosts, output_dir, list(all_addresses), count=count, **kwargs
+    )
+    # save it if needed
+    if output_dir is not None:
+        _check_tmpdir(output_dir)
+        for result in results:
+            # one per host
+            (output_dir / result.host).with_suffix(FPING_FILE_SUFFIX).write_text(
+                result.stdout
+            )
+    return results
 
 
 def _destroy(hosts: List[Host], **kwargs):
     logger.debug("Reset the constraints")
 
-    _check_tmpdir(TMP_DIR)
-
     _playbook = os.path.join(SERVICE_PATH, "netem.yml")
     extra_vars = kwargs.pop("extra_vars", {})
-    options = _build_options(
-        extra_vars, {"enos_action": "tc_reset"}
-    )
+    options = _build_options(extra_vars, {"enos_action": "tc_reset"})
     run_ansible([_playbook], roles=hosts, extra_vars=options)

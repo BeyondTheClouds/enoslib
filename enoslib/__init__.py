@@ -35,7 +35,13 @@ from enoslib.service.emul.netem import (
     NetemInOutSource,
     NetemInConstraint,
 )
-from enoslib.service.emul.htb import netem_htb, NetemHTB, HTBConstraint, HTBSource
+from enoslib.service.emul.htb import (
+    netem_htb,
+    AccurateNetemHTB,
+    NetemHTB,
+    HTBConstraint,
+    HTBSource
+)
 from enoslib.service.tcpdump import TCPDump
 from enoslib.service.skydive.skydive import Skydive
 

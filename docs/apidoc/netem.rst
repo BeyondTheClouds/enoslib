@@ -18,4 +18,4 @@ HTB (Hierarchical Token Bucket) emulation
 -----------------------------------------
 
 .. automodule:: enoslib.service.emul.htb
-    :members: netem_htb, NetemHTB, HTBConstraint, HTBSource
+    :members: netem_htb, NetemHTB, HTBConstraint, HTBSource, AccurateNetemHTB

@@ -1,5 +1,7 @@
 """HTB based emulation."""
 from ipaddress import IPv4Interface, ip_interface
+from pathlib import Path
+from enoslib.constants import TMP_DIRNAME
 from enoslib.html import (
     convert_list_to_html_table,
     html_from_sections,
@@ -12,7 +14,7 @@ from dataclasses import dataclass, field
 from itertools import product
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from enoslib.api import play_on
+from enoslib.api import Results, play_on
 from enoslib.objects import Host, Network, Networks, Roles
 from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
 
@@ -286,10 +288,6 @@ class NetemHTB(Service):
         :py:meth:`~enoslib.service.emul.htb.NetemHTB.add_constraints` or by
         passing a description as a dictionnary using the
         :py:meth:`~enoslib.service.emul.htb.NetemHTB.from_dict` class method.
-
-        Args:
-            roles: the enoslib roles to consider
-            kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`
         """
         # populated later
         self.sources: Dict[Host, HTBSource] = dict()
@@ -452,7 +450,7 @@ class NetemHTB(Service):
 
     def validate(
         self, *, networks: Optional[List[Network]] = None, output_dir=None, **kwargs
-    ):
+    ) -> Results:
         """Validate the network parameters(latency, bandwidth ...)
 
         Performs ping tests to validate the constraints set by
@@ -467,7 +465,9 @@ class NetemHTB(Service):
             output_dir(str): directory where validation files will be stored.
                 Default to: py: const: `enoslib.constants.TMP_DIRNAME`.
         """
-        _validate(
+        if output_dir is None:
+            output_dir = Path.cwd() / TMP_DIRNAME
+        return _validate(
             list(self.sources.keys()),
             networks=networks,
             output_dir=output_dir,
@@ -483,3 +483,87 @@ class NetemHTB(Service):
         return html_from_sections(
             str(self.__class__), sections, content_only=content_only
         )
+
+
+class AccurateNetemHTB(NetemHTB):
+    """NetemHTB but taking the physical delays into account.
+
+    At deploy time AccurateNetemHTB will estimate the delay introduced by the
+    infrastructure and correct the wanted netem by this estimation.  For each
+    source and target in the wanted constraints it will send N ICMP probes and
+    aggregate their RTT time. The current estimation is based on the mean RTT.
+
+    The AccurateNetemHTB is useful when the delays introduced by the
+    infrastructure aren't neglictable in comparison to the wanted ones (e.g few
+    ms in a LAN environment).  Since correction is applied on each pair (source,
+    destination), the service can cope with the heterogeneity of delays in the
+    infrastracture.
+
+    Of course this service can't do any miracle like trying to set delays less
+    than the one existing on the infratructure. Always double check, the
+    observed network condition before drawing any conclusion.
+    """
+    def deploy(self, chunk_size: int = 100, **kwargs):
+        """We first estimate the current network conditions."""
+
+        def _stats(lines):
+            results = []
+            for line in lines:
+                try:
+                    # may fail if this isn't the head of the file
+                    dst, values = line.split(":")
+                    # may fail if addr isn't an address
+                    _ = ip_interface(dst.strip())
+                    pings = [float(v) for v in values.strip().split(" ")]
+                    results.append((dst.strip(), pings))
+                except Exception:
+                    continue
+            return results
+
+        from statistics import mean
+
+        # get all fpings between hosts
+        fpings = _validate(list(self.sources.keys()), count=100)
+        # get the estimates
+        results = []
+        for fping in fpings:
+            stats = _stats(fping.stdout.splitlines())
+            results.extend([(fping.host, dst, s) for (dst, s) in stats])
+
+        # foreach observed latency we look for a matching constraint
+        # and we correct it in term of latency
+        # naive heuristic here: we use the mean as correction factor
+        observed = [(alias, dst, mean(values)) for alias, dst, values in results]
+        new_sources: Dict[Host, HTBSource] = dict()
+        for alias, dst, obs in observed:
+            host_candidates = [h for h in self.sources.keys() if h.alias == alias]
+            if not host_candidates:
+                continue
+            assert len(host_candidates) == 1
+            host = host_candidates[0]
+            # Found an host
+            # we now check if there a constraint with target == dst
+            constraints = self.sources[host].constraints
+            constraints_candidates = [c for c in constraints if c.target == dst]
+            if not constraints_candidates:
+                continue
+            assert len(constraints_candidates) == 1
+            # Found a constraint
+            # Let's fix it (assuming symetric rtt...)
+            # copy it
+            constraint = constraints_candidates[0]
+            c = HTBConstraint(
+                device=constraint.device,
+                target=constraint.target,
+                # FIXME(msimonin): use delay(int) + delay unit(str)
+                delay=f"{(float(constraint.delay.replace('ms', '')) - obs/2)}ms",
+                rate=constraint.rate,
+                loss=constraint.loss,
+            )
+            logger.debug(f"Fixing constraint: {constraint} -> {c}")
+            new_sources.setdefault(host, HTBSource(host))
+            new_sources[host].add_constraints([c])
+        # actually correct the internal constraints
+        self.sources = new_sources
+
+        return super().deploy()

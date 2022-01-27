@@ -1,8 +1,10 @@
 import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Iterable, List, Optional, Set, Tuple
 
-from enoslib.api import play_on
+from enoslib.api import play_on, Results
+from enoslib.constants import TMP_DIRNAME
 from enoslib.html import (
     convert_list_to_html_table,
     html_from_sections,
@@ -271,8 +273,12 @@ class Netem(Service):
     def backup(self):
         pass
 
-    def validate(self, networks: List[Network] = None, output_dir=None, **kwargs):
-        _validate(
+    def validate(
+        self, networks: List[Network] = None, output_dir=None, **kwargs
+    ) -> Results:
+        if output_dir is None:
+            output_dir = Path.cwd() / TMP_DIRNAME
+        return _validate(
             list(self.sources.keys()),
             networks=networks,
             output_dir=output_dir,
