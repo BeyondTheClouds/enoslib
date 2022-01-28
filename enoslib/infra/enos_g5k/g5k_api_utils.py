@@ -865,7 +865,7 @@ def grid_make_reservation(
 
     # Submit them
     jobs = _do_grid_make_reservation(
-        criteria, job_name, walltime, reservation_date, queue, job_type, project
+        criteria, job_name, walltime,  _date2h(reservation_date), queue, job_type, project
     )
 
     return jobs
