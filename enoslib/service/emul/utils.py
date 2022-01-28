@@ -105,7 +105,7 @@ def _validate(
             set([str(addr.ip.ip) for addr in addresses if addr.ip])
         )
     results = validate_delay(
-        hosts, output_dir, list(all_addresses), count=count, **kwargs
+        hosts, list(all_addresses), count=count, **kwargs
     )
     # save it if needed
     if output_dir is not None:
