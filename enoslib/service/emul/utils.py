@@ -1,6 +1,7 @@
 import copy
+from ipaddress import ip_interface
 from pathlib import Path
-from typing import List, Optional, Set, Union
+from typing import List, Optional, Set, Tuple, Union
 from enoslib.api import run_command
 from enoslib.utils import _check_tmpdir
 import logging
@@ -128,3 +129,18 @@ def _destroy(hosts: List[Host], **kwargs):
         roles=hosts,
         extra_vars=extra_vars,
     )
+
+
+def _fping_stats(lines: List[str]) -> List[Tuple[str, str, List[float]]]:
+    results = []
+    for line in lines:
+        try:
+            # may fail if this isn't the head of the file
+            dst, values = line.split(":")
+            # may fail if addr isn't an address
+            _ = ip_interface(dst.strip())
+            pings = [float(v) for v in values.strip().split(" ")]
+            results.append((dst.strip(), pings))
+        except Exception:
+            continue
+    return results

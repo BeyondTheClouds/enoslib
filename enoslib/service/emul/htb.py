@@ -16,10 +16,17 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from enoslib.api import Results, play_on
 from enoslib.objects import Host, Network, Networks, PathLike, Roles
+from enoslib.service.emul.objects import BaseNetem
 from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
 
-from ..service import Service
-from .utils import _build_commands, _build_options, _combine, _destroy, _validate
+from .utils import (
+    _build_commands,
+    _build_options,
+    _combine,
+    _destroy,
+    _fping_stats,
+    _validate,
+)
 
 SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
@@ -273,7 +280,7 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
         )
 
 
-class NetemHTB(Service):
+class NetemHTB(BaseNetem):
     def __init__(
         self,
     ):
@@ -510,20 +517,6 @@ class AccurateNetemHTB(NetemHTB):
     def deploy(self, chunk_size: int = 100, **kwargs):
         """We first estimate the current network conditions."""
 
-        def _stats(lines):
-            results = []
-            for line in lines:
-                try:
-                    # may fail if this isn't the head of the file
-                    dst, values = line.split(":")
-                    # may fail if addr isn't an address
-                    _ = ip_interface(dst.strip())
-                    pings = [float(v) for v in values.strip().split(" ")]
-                    results.append((dst.strip(), pings))
-                except Exception:
-                    continue
-            return results
-
         from statistics import mean
 
         # get all fpings between hosts
@@ -531,7 +524,7 @@ class AccurateNetemHTB(NetemHTB):
         # get the estimates
         results = []
         for fping in fpings:
-            stats = _stats(fping.stdout.splitlines())
+            stats = _fping_stats(fping.stdout.splitlines())
             results.extend([(fping.host, dst, s) for (dst, s) in stats])
 
         # foreach observed latency we look for a matching constraint

@@ -12,7 +12,7 @@ from enoslib.html import (
     repr_html_check,
 )
 from enoslib.objects import Host, Network, PathLike, Roles
-from enoslib.service.service import Service
+from enoslib.service.emul.objects import BaseNetem
 
 from .utils import _build_commands, _build_options, _combine, _destroy, _validate
 
@@ -215,7 +215,7 @@ def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
         )
 
 
-class Netem(Service):
+class Netem(BaseNetem):
     def __init__(
         self,
     ):
