@@ -1,6 +1,14 @@
 ⚒️ Changelog
 ============
 
+7.3.0
+-----
+
+- svc/Netem: Introduce AccurateNetemHTB to apply more accurate network latency between node.
+  This takes into account the physical delay of targetted paths
+- svc/NetemHTB: support constraints on IPv6 addresses
+- g5k: fix an issue on the reservation date preventing multisite deployment
+
 7.2.1
 -----
 
