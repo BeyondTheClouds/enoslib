@@ -284,7 +284,7 @@ class NetemHTB(BaseNetem):
     def __init__(
         self,
     ):
-        """Set heterogeneous constraints on each host.
+        """Add extra delay to outgoing packets based on their destination.
 
         It allows to setup complex network topology. For a much simpler way of
         applying constraints see
@@ -496,7 +496,25 @@ class NetemHTB(BaseNetem):
 
 
 class AccurateNetemHTB(NetemHTB):
-    """NetemHTB but taking the physical delays into account.
+    """NetemHTB but for expressing end-to-end latency.
+
+    End-to-End (one way )latency between two distributed processes is composed
+    of:
+
+    - the latency for a packet to go out of the first machine
+    (e.g IP stack latency + network card latency).
+
+    - the latency for the packet to flight to the second machine
+    (e.g network, middle-boxes latency)
+
+    - the latency for a packet to be transfered to the application on the second
+    machine.
+
+    This service tries the compensate the extra latency added to outgoing
+    packets by TC so that the End-to-End latency stick to the one specified by
+    the user.
+
+    Internals hints:
 
     At deploy time AccurateNetemHTB will estimate the delay introduced by the
     infrastructure and correct the wanted netem by this estimation.  For each
@@ -515,7 +533,18 @@ class AccurateNetemHTB(NetemHTB):
     """
 
     def deploy(self, chunk_size: int = 100, **kwargs):
-        """We first estimate the current network conditions."""
+        """Deploy the network emulation.
+
+		This is where the hard work is done:
+
+		- estimate the current status of the network
+		- correct the user defined constraints
+		- enforce them
+
+		Args:
+			chunk_size: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
+			kwargs: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
+        """
 
         from statistics import mean
 
@@ -563,4 +592,4 @@ class AccurateNetemHTB(NetemHTB):
         # actually correct the internal constraints
         self.sources = new_sources
 
-        return super().deploy()
+        return super().deploy(chunk_size=chunk_size, **kwargs)

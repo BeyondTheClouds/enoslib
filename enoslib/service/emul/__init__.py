@@ -21,7 +21,7 @@ the vertices represent your nodes and the edges the limitations.
 Working at the device interface level provides you with great flexibility,
 however this comes at the cost of being very explicit. For instance you must
 know in advance the device names, the IP target... From a higher perpsective
-two Services, working at the ``role`` level are provided. The services will
+three Services, working at the ``role`` level are provided. The services will
 infer everything for you (device names, target IPs) based on high level
 parameters. Of course, those services are using internally the above
 functions.
@@ -33,6 +33,11 @@ functions.
 - :py:class:`~enoslib.service.emul.htb.NetemHTB` will enforce heterogeneous
   network limitations based on the role names (and thus based on the packets'
   destination)
+
+- :py:class:`~enoslib.service.emul.htb.AccurateNetemHTB` inherits from the
+  previous one, but will fix the latency limitations so that the user defined
+  delays match the end-to-end latency of the application.
+
 
 
 .. note::
