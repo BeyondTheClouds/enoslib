@@ -39,6 +39,11 @@ import diskcache
 from grid5000 import Grid5000
 import ring
 
+from ring.func.lru_cache import LruCache
+LRU = LruCache(128)
+
+logger = logging.getLogger(__name__)
+
 
 def runtime_cache(f):
     """Lazily reload a cache before calling the function.
@@ -50,17 +55,16 @@ def runtime_cache(f):
 
     def wrapper(*args, **kwargs):
         config = get_config()
-        if config["g5k_cache"]:
+        if config["g5k_cache"] == "disk":
             logger.debug(f"Reloading {f.__name__} from {config['g5k_cache_dir']}")
             with diskcache.Cache(config["g5k_cache_dir"]) as storage:
                 return ring.disk(storage)(f)(*args, **kwargs)
+        elif config["g5k_cache"] == "lru":
+            return ring.lru(lru=LRU)(f)(*args, **kwargs)
         else:
             return f(*args, **kwargs)
 
     return wrapper
-
-
-logger = logging.getLogger(__name__)
 
 
 _api_lock = threading.Lock()
@@ -454,6 +458,7 @@ def get_all_clusters_sites():
     for site in sites:
         clusters = site.clusters.list()
         result.update({c.uid: site.uid for c in clusters})
+    logger.debug(result)
     return result
 
 

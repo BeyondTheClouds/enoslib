@@ -10,12 +10,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-_config = dict(g5k_cache=True,
- g5k_cache_dir="cachedir",
- display="html",
- pimp_my_lib=False,
- dump_results=None
- )
+_config = dict(
+    g5k_cache="lru",
+    g5k_cache_dir="cachedir",
+    display="html",
+    pimp_my_lib=False,
+    dump_results=None
+)
 
 
 def get_config() -> Dict:
@@ -54,7 +55,7 @@ def _set_dump_results(dump_results: Optional[Union[Path, str]]):
 
 
 def set_config(
-    g5k_cache: Optional[bool] = None,
+    g5k_cache: Optional[str] = None,
     g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
     pimp_my_lib: Optional[bool] = None,
