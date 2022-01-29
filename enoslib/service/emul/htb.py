@@ -535,15 +535,15 @@ class AccurateNetemHTB(NetemHTB):
     def deploy(self, chunk_size: int = 100, **kwargs):
         """Deploy the network emulation.
 
-		This is where the hard work is done:
+        This is where the hard work is done:
 
-		- estimate the current status of the network
-		- correct the user defined constraints
-		- enforce them
+        - estimate the current status of the network
+        - correct the user defined constraints
+        - enforce them
 
-		Args:
-			chunk_size: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
-			kwargs: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
+        Args:
+            chunk_size: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
+            kwargs: see :py:meth:`~enoslib.service.emul.htb.NetemHTB.deploy`
         """
 
         from statistics import mean
