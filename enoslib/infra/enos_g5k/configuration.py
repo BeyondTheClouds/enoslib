@@ -18,6 +18,7 @@ from .schema import SCHEMA, G5kValidator
 class Configuration(BaseConfiguration):
 
     _SCHEMA = SCHEMA
+    _VALIDATOR = G5kValidator
 
     def __init__(self):
         super().__init__()
@@ -54,7 +55,7 @@ class Configuration(BaseConfiguration):
     @classmethod
     def from_dictionnary(cls, dictionnary, validate=True):
         if validate:
-            G5kValidator.validate(dictionnary)
+            cls.validate(dictionnary)
 
         self = cls()
         # populating the attributes

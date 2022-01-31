@@ -4,7 +4,7 @@ from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     Configuration,
     NetworkConfiguration,
-    GroupConfiguration,
+    ServersConfiguration,
 )
 import enoslib.infra.enos_g5k.constants as constants
 
@@ -77,13 +77,31 @@ class TestConfiguration(EnosTest):
         with self.assertRaises(ValidationError):
             conf = Configuration.from_dictionnary(d)
 
-    def test_servers_set_cluster(self):
+    def test_from_dictionnary_invalid_hostname(self):
         d = {
             "resources": {
                 "machines": [
                     {
                         "roles": ["r1"],
-                        "nodes": 1,
+                        "primary_network": "n1",
+                        "servers": ["foo-1"],
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "site", "type": "prod"}
+                ],
+            }
+        }
+
+        with self.assertRaises(ValidationError):
+            Configuration.from_dictionnary(d)
+
+    def test_servers_same_cluster(self):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
                         "primary_network": "n1",
                         "servers": ["foo-1.site.grid5000.fr", "foo-2.site.grid5000.fr"],
                     }
@@ -249,7 +267,7 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as ctx:
-            conf = Configuration.from_dictionnary(d)
+            Configuration.from_dictionnary(d)
 
     def test_from_dictionnary_unbound_secondary_networks(self):
         d = {
@@ -276,7 +294,7 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as ctx:
-            conf = Configuration.from_dictionnary(d)
+            Configuration.from_dictionnary(d)
 
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
@@ -301,6 +319,31 @@ class TestConfiguration(EnosTest):
 
         self.assertEqual(2, len(conf.machines))
         self.assertEqual(1, len(conf.networks))
+
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_programmatic_invalid(self, mock_get_cluster_site):
+        conf = Configuration.from_settings(walltime="02:00")
+        with self.assertRaises(ValidationError) as cm:
+            conf.finalize()
+        self.assertTrue("walltime" in cm.exception.message)
+
+        network = NetworkConfiguration(
+            id="id", roles=["my_network"], type="prod", site="rennes"
+        )
+        conf = (
+            Configuration.from_settings()
+                .add_machine_conf(ServersConfiguration(roles=["r2"],
+                    servers=["paragrid5000.fr"],
+                    primary_network=network))
+                .add_network_conf(network)
+        )
+        with self.assertRaises(ValidationError):
+            # the error is on the hostname format
+            # but for some reason this triggers a validation error on the
+            # cluster vs server conf (which is true but not accurate)
+            conf.finalize()
 
 
 class TestNetworkConfiguration(EnosTest):

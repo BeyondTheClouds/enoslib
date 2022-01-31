@@ -72,7 +72,11 @@ SCHEMA = {
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
-            "servers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "servers": {
+                "type": "array",
+                "items": {"type": "string", "format": "hostname"},
+                "minItems": 1,
+            },
             "min": {"type": "number"},
             "primary_network": {"type": "string"},
             "secondary_networks": {
