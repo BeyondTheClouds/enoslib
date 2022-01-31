@@ -83,7 +83,7 @@ from enoslib.infra.enos_vmong5k.configuration import Configuration as VMonG5kCon
 from enoslib.infra.enos_vmong5k.configuration import (
     MachineConfiguration as VMonG5KMachineConf,
 )
-from enoslib.infra.enos_vmong5k.provider import start_virtualmachines
+from enoslib.infra.enos_vmong5k.provider import start_virtualmachines, mac_range
 
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.configuration import Configuration as IotlabConf

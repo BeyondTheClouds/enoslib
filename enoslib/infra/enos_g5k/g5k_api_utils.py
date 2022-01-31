@@ -677,7 +677,7 @@ def _test_slot(
     )
     ko = False
     for cluster, nodes in demands.items():
-        cluster_status = clusters[cluster].status.list()
+        cluster_status = clusters[cluster].clusters[cluster].status.list()
         ko = ko or not can_start_on_cluster(
             cluster_status.nodes, nodes, exact_nodes[cluster], start, _walltime
         )

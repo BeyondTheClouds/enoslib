@@ -1,8 +1,9 @@
-import jsonschema
 import logging
 import json
 from typing import Dict, Optional, Any
 from enoslib.html import html_from_dict, repr_html_check
+
+import jsonschema
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"
@@ -16,6 +17,7 @@ class BaseConfiguration:
 
     # Setting this is defered to the inherited classes
     _SCHEMA: Optional[Dict[Any, Any]] = None
+    _VALIDATOR: Optional[Any] = None
 
     def __init__(self):
         # A configuration has a least these two
@@ -43,7 +45,10 @@ class BaseConfiguration:
 
     @classmethod
     def validate(cls, dictionnary):
-        jsonschema.validate(dictionnary, cls._SCHEMA)
+        if cls._VALIDATOR is None:
+            jsonschema.validate(dictionnary, cls._SCHEMA)
+        else:
+            cls._VALIDATOR.validate(dictionnary)
 
     def to_dict(self):
         return {}

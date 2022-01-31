@@ -1,4 +1,6 @@
+from typing import Iterable, Optional
 import uuid
+from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 
 from enoslib.objects import Host
 from ..configuration import BaseConfiguration
@@ -16,12 +18,13 @@ from .constants import (
     DEFAULT_WORKING_DIR,
     FLAVOURS,
 )
-from .schema import SCHEMA
+from .schema import SCHEMA, VMonG5kValidator
 
 
 class Configuration(BaseConfiguration):
 
     _SCHEMA = SCHEMA
+    _VALIDATOR = VMonG5kValidator
 
     def __init__(self):
         super().__init__()
@@ -94,7 +97,8 @@ class MachineConfiguration:
         flavour=None,
         flavour_desc=None,
         number=DEFAULT_NUMBER,
-        undercloud=None,
+        undercloud: Optional[Iterable[Host]] = None,
+        macs: Optional[Iterable[str]] = None,
         extra_devices=""
     ):
         self.roles = roles
@@ -119,9 +123,17 @@ class MachineConfiguration:
         # this could be used to express some affinity between vms
         self.cookie = uuid.uuid4().hex
 
-        #
+        # Which physical machine will be used to host the vms of this group
         self.undercloud = undercloud if undercloud else []
+        # Pool of mac to use to configure the virtual machines
+        # TODO(msimonin): Check that we have enough macs for the number of
+        # wanted VMs
+        self.macs = macs if macs else []
         self.extra_devices = extra_devices
+
+    @property
+    def site(self):
+        return get_cluster_site(self.cluster)
 
     @classmethod
     def from_dictionnary(cls, dictionnary):
@@ -150,6 +162,10 @@ class MachineConfiguration:
             undercloud = [Host.from_dict(h) for h in undercloud]
             kwargs.update(undercloud=undercloud)
 
+        macs = dictionnary.get("macs")
+        if macs is not None:
+            kwargs.update(macs=macs)
+
         extra_devices = dictionnary.get("extra_devices")
         if extra_devices is not None:
             kwargs.update(extra_devices=extra_devices)
@@ -170,5 +186,6 @@ class MachineConfiguration:
             flavour_desc=self.flavour_desc,
             number=self.number,
             extra_devices=self.extra_devices,
+            macs=self.macs,
         )
         return d

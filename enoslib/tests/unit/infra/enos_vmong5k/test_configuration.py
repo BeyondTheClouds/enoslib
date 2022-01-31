@@ -41,6 +41,20 @@ class TestConfiguration(EnosTest):
         with self.assertRaises(jsonschema.exceptions.ValidationError) as _:
             conf.finalize()
 
+    def test_wrong_mac_detected(self):
+        conf = Configuration()
+        conf.add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"],
+                flavour="large",
+                number=10,
+                cluster="test-cluster",
+                macs=["gg"]
+            )
+        )
+        with self.assertRaises(jsonschema.exceptions.ValidationError) as _:
+            conf.finalize()
+
 
 class TestMachineConfiguration(EnosTest):
     def test_from_dictionnary_minimal(self):

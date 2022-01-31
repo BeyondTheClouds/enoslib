@@ -24,7 +24,7 @@ To accesss your virtual machines from your local machine, see below.
 Basic example
 =============
 
-We'll imagine a system that requires 100 compute machines and 3 controller machines.
+We'll imagine a system that requires 5 compute machines and 1 controller machines.
 We express this using the ~VmonG5K~ provider:
 
 .. literalinclude:: vmong5k/tuto_vmong5k.py
@@ -174,5 +174,10 @@ Controlling the virtual machines placement
 .. literalinclude:: ./vmong5k/tuto_placement.py
    :language: python
    :linenos:
+
+
+Multisite Support
+=================
+
 
 

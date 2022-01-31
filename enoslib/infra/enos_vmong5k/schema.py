@@ -1,6 +1,6 @@
+from jsonschema import Draft7Validator, FormatChecker
+
 from .constants import FLAVOURS
-
-
 from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
 
 
@@ -51,12 +51,12 @@ SCHEMA = {
         },
         "domain_type": {
             "type": "string",
-            "description": "Domain type of the guest (kvm, qemu...)"
+            "description": "Domain type of the guest (kvm, qemu...)",
         },
         "reservation": {
             "type": "string",
-            "description": "Reservation date %Y-%m-%d %H:%M:%S"
-        }
+            "description": "Reservation date %Y-%m-%d %H:%M:%S",
+        },
     },
     "additionalProperties": False,
     "required": ["resources"],
@@ -99,6 +99,12 @@ SCHEMA = {
                 "items": {"type": "object"},
                 "description": "(optional)List of Host where the VM should be started.",
             },
+            "macs": {
+                "type": "array",
+                "items": {"type": "string", "format": "mac"},
+                "description": "(optional)List of MAC addresses to use for the vms"
+                               "(aa:bb:cc:dd:ee:ff)",
+            },
             "extra_devices": {
                 "type": "string",
                 "description": "Libvirt XML description for extra devices (e.g disks).",
@@ -120,3 +126,19 @@ SCHEMA = {
         "additionalProperties": False,
     },
 }
+
+
+VMonG5kFormatChecker = FormatChecker()
+
+
+@VMonG5kFormatChecker.checks("mac")
+def is_valid_mac(instance):
+    from netaddr import EUI, mac_unix_expanded
+    try:
+        EUI(instance, dialect=mac_unix_expanded)
+        return True
+    except Exception:
+        return False
+
+
+VMonG5kValidator = Draft7Validator(SCHEMA, format_checker=VMonG5kFormatChecker)
