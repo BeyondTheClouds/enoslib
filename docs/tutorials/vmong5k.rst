@@ -179,5 +179,9 @@ Controlling the virtual machines placement
 Multisite Support
 =================
 
+You can specify clusters from different sites in the configuration. The provider
+will take care of reserving nodes and subnet on the different sites and
+configure the VMs' network card accordingly.
+
 
 
