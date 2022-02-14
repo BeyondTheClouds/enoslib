@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 _config = dict(
-    g5k_cache="lru",
+    g5k_cache="disk",
     g5k_cache_dir="cachedir",
     display="html",
     pimp_my_lib=False,
