@@ -11,8 +11,12 @@ Main Publication
   Institute of Electrical and Electronics Engineers, In press. ⟨hal-03324177⟩
 
 
-Other Publications
-==================
+Other Publications (using or citing EnOSlib)
+============================================
+
+- Balouek-Thomert, D., Rodero, I., & Parashar, M. (2021, November). Evaluating
+  policy-driven adaptation on the Edge-to-Cloud Continuum. In 2021 IEEE/ACM HPC
+  for Urgent Decision Making (UrgentHPC) (pp. 11-20). IEEE.
 
 - Jolan Philippe, Massimo Tisi, Hélène Coullon, Gerson Sunyé. Executing
   Certified Model Transformations on Apache Spark. 14th ACM SIGPLAN International
@@ -49,6 +53,11 @@ Other Publications
   Replicable and Reproducible Edge-to-Cloud Experiments. Cluster 2020 - The IEEE
   2020 International Conference on Cluster Computing, Sep 2020, Kobe, Japan.
   ⟨hal-02916032⟩
+
+- M. Chardet, H. Coullon and C. Perez, "Predictable Efficiency for
+  Reconfiguration of Service-Oriented Systems with Concerto," 2020 20th IEEE/ACM
+  International Symposium on Cluster, Cloud and Internet Computing (CCGRID), 2020,
+  pp. 340-349, doi: 10.1109/CCGrid49817.2020.00-59.
 
 - David Sarmiento, Adrien Lebre, Lucas Nussbaum, Abdelhadi Chari. Multi-site
   Connectivity for Edge Infrastructures DIMINET:DIstributed Module for
