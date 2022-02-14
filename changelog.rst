@@ -1,13 +1,18 @@
 ⚒️ Changelog
 ============
 
-7.3.0
+8.0.0
 -----
 
 - svc/Netem: Introduce AccurateNetemHTB to apply more accurate network latency between node.
   This takes into account the physical delay of targetted paths
 - svc/NetemHTB: support constraints on IPv6 addresses
+- svc: Netem: Introduce ``fping_stats`` static method to read from the backuped
+  file easily after a call to ``validate``.
 - g5k: fix an issue on the reservation date preventing multisite deployment
+- vmong5k: support multisite deployment.
+- config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
+  Default to a Diskcache.
 
 7.2.1
 -----
