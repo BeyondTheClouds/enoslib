@@ -97,7 +97,7 @@ class Dstat(Service):
         """
         with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
             kill_cmd = bg_stop(TMUX_SESSION)
-            p.shell(kill_cmd)
+            p.shell(kill_cmd, task_name="Killing existing session")
 
     def backup(self, backup_dir: Optional[Path] = None):
         """Backup the dstat monitoring stack.

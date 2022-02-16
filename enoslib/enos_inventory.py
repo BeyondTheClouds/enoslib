@@ -16,7 +16,8 @@ class EnosInventory(Inventory):
         # parse empty As a side effect this will suppress the warning about
         # empty inventory...
         super(EnosInventory, self).__init__(loader,
-                                            sources=sources)
+                                            sources=sources,
+                                            parse=False)
 
         # We add the roles as defined in roles
         if roles is None:

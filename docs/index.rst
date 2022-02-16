@@ -8,12 +8,11 @@
 At a glance
 -----------
 
-The tip of the Iceberg featuring Vagrant and Grid'5000 testbed.
+The tip of the Iceberg featuring Grid'5000 testbed and a dummy benchmark.
 
 .. raw:: html
 
-   <script id="asciicast-iVBbJPeoWA8botcQXPcNGEac3" src="https://asciinema.org/a/iVBbJPeoWA8botcQXPcNGEac3.js" data-speed="3" data-rows="30" async></script>
-
+   <script id="asciicast-zFHSJ2PkXnvI5K18vECdhRvgZ" src="https://asciinema.org/a/zFHSJ2PkXnvI5K18vECdhRvgZ.js" data-speed="2" data-rows="50" async></script>
 
 .. toctree::
    :maxdepth: 2
