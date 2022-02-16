@@ -35,7 +35,6 @@ from .constants import (
 )
 from enoslib.config import get_config
 
-import diskcache
 from grid5000 import Grid5000
 import ring
 
@@ -56,6 +55,7 @@ def runtime_cache(f):
     def wrapper(*args, **kwargs):
         config = get_config()
         if config["g5k_cache"] == "disk":
+            import diskcache
             logger.debug(f"Reloading {f.__name__} from {config['g5k_cache_dir']}")
             with diskcache.Cache(config["g5k_cache_dir"]) as storage:
                 return ring.disk(storage)(f)(*args, **kwargs)
@@ -70,10 +70,6 @@ def runtime_cache(f):
 _api_lock = threading.Lock()
 # Keep track of the api client
 _api_client = None
-
-# Poor man's cache (for now)
-_cache_lock = threading.RLock()
-cache: Dict[Any, Any] = {}
 
 
 class Client(Grid5000):
