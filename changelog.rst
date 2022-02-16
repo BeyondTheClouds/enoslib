@@ -13,6 +13,8 @@
 - vmong5k: support multisite deployment.
 - config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
   Default to a Diskcache.
+- Ansible version must be > 2.11
+  This allows for removing the warning about empty role list.
 
 7.2.1
 -----
