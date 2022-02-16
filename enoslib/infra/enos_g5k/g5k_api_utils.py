@@ -13,7 +13,7 @@ from grid5000.objects import Job, Node, Vlan
 import os
 import time
 import threading
-from typing import Dict, Any, List, MutableMapping, Optional, Tuple
+from typing import Dict, List, MutableMapping, Optional, Tuple
 from pathlib import Path
 
 from .error import (
