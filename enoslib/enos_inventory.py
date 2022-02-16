@@ -1,12 +1,20 @@
+import ansible
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 
 from enoslib.objects import Host
 
+ANSIBLE_VERSION = ansible.__version__
+
 
 class EnosInventory(Inventory):
     def __init__(self, loader=None, sources=None, roles=None):
+        """Inventory can be buid from a role list or regular inventory files.
 
+        Roles or Sources must be given. If both are set, roles have precedence
+        and sources wont be taken into account (alternatively we could append
+        hosts from both sources, but I haven't seen this use case yet).
+        """
         if sources is None and roles is None:
             raise ValueError("sources or roles mus be set")
 
@@ -15,9 +23,15 @@ class EnosInventory(Inventory):
         # NOTE(msimonin): In Ansible 2.11+ we can use parse=False to avoid to
         # parse empty As a side effect this will suppress the warning about
         # empty inventory...
+
+        extra = dict()
+        # don't parse empty sources (avoid Warning)
+        # at this point roles isn't empty
+        if not sources and ANSIBLE_VERSION >= "2.11":
+            extra = dict(parse=False)
         super(EnosInventory, self).__init__(loader,
                                             sources=sources,
-                                            parse=False)
+                                            **extra)
 
         # We add the roles as defined in roles
         if roles is None:
