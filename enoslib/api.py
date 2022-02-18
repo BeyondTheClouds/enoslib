@@ -568,14 +568,23 @@ def run_play(
         )
 
 
-class Phantom(object):
+class _Phantom(object):
+    """Internal stuff to build a chain of prefixes:
+
+    a = actions()
+    a.b.c.d() will call:
+        action.__getattr__ and return p1 = Phantom(a, b, b)
+        p1.__getattr__ and return p2 = Phantom(a, c, b.c)
+        p2.__getattr__ and return p3 = Phantom(a, d, b.c.d)
+        p3.__call__ and will add the built task to the parent action
+    """
     def __init__(self, parent: "actions", current: str,  prefix: str):
         self.parent = parent
         self.current = current
         self.prefix = prefix
 
     def __getattr__(self, name):
-        return Phantom(self.parent, name, f"{self.prefix}.{name}")
+        return _Phantom(self.parent, name, f"{self.prefix}.{name}")
 
     def __call__(self, *args, **kwds):
         task_name = kwds.pop("task_name", self.prefix)
@@ -700,7 +709,7 @@ class actions(object):
         self._tasks.append(task)
 
     def __getattr__(self, name: str):
-        return Phantom(self, name, name)
+        return _Phantom(self, name, name)
 
     def __enter__(self):
         return self
