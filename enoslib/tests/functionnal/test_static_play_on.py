@@ -58,6 +58,20 @@ assert result[0].rc == 0
 assert result[0].stdout == "tototiti"
 assert result[0].stderr == ""
 
+# from roles
+with en.actions(roles=roles) as a:
+    a.ansible.builtin.shell("echo tototiti")
+    results = a.results
+print(results)
+# testing the results
+result = results.filter(host="test_machine", status="OK")
+assert len(result) == 1
+assert isinstance(result[0], CommandResult)
+assert result[0].rc == 0
+assert result[0].stdout == "tototiti"
+assert result[0].stderr == ""
+
+
 # from an inventory
 with en.actions(inventory_path=inventory) as a:
     a.shell("echo tototiti")
