@@ -568,9 +568,39 @@ def run_play(
         )
 
 
-class actions(object):
-    """A context manager to manage a sequence of Ansible module calls."""
+class Phantom(object):
+    def __init__(self, parent: "actions", current: str,  prefix: str):
+        self.parent = parent
+        self.current = current
+        self.prefix = prefix
 
+    def __getattr__(self, name):
+        return Phantom(self.parent, name, f"{self.prefix}.{name}")
+
+    def __call__(self, *args, **kwds):
+        task_name = kwds.pop("task_name", self.prefix)
+        task = {"name": task_name}
+        # retrieve global kwargs
+        _kwds = copy.copy(self.parent.kwds)
+        # override with specific ones
+        _kwds.update(kwds)
+        # extract our specific kwargs
+        background = _kwds.get("background", False)
+        if not background:
+            _kwds.pop("background", None)
+        top_args, module_args = _split_args(**_kwds)
+        task.update(top_args)
+
+        if len(args) > 0:
+            # free form (most likely shell, raw, command ...)
+            task.update({self.prefix: args[0], "args": dict(**module_args)})
+            self.parent.add_task(task)
+        else:
+            task.update({self.prefix: dict(**module_args)})
+            self.parent.add_task(task)
+
+
+class actions(object):
     def __init__(
         self,
         *,
@@ -585,7 +615,7 @@ class actions(object):
         **kwargs,
     ):
         """
-       Args:
+        Args:
             pattern_hosts: pattern to describe ansible hosts to target.
                 see https://docs.ansible.com/ansible/latest/intro_patterns.html
             inventory_path: inventory to use
@@ -641,8 +671,10 @@ class actions(object):
         self.priors = priors if priors is not None else []
         self.strategy = strategy
 
+        # run_ansible kwargs
         self.kwargs = kwargs
 
+        # our specific global modules kwargs
         self.kwds = {}
         # Handle modification of task level kwargs
         if run_as is not None:
@@ -650,7 +682,6 @@ class actions(object):
         if background:
             # don't inject if background is False
             self.kwds = dict(background=True)
-
         # Will hold the tasks of the play corresponding to the sequence
         # of module call in this context/p
         self._tasks: List[Mapping[Any, Any]] = []
@@ -664,6 +695,12 @@ class actions(object):
 
         # Placeholder (will be mutated) for the results
         self.results = Results()
+
+    def add_task(self, task: Dict):
+        self._tasks.append(task)
+
+    def __getattr__(self, name: str):
+        return Phantom(self, name, name)
 
     def __enter__(self):
         return self
@@ -689,40 +726,6 @@ class actions(object):
         # gather results (mutate the results attributes)
         for r in results:
             self.results.append(r)
-
-    def __getattr__(self, module_name):
-        """Providers an handy way to use ansible module from python."""
-
-        def _f(**kwargs):
-            task_name = kwargs.pop("task_name", "%s" % module_name)
-            task = {"name": task_name}
-            _kwds = copy.copy(self.kwds)
-            _kwds.update(kwargs)
-            background = _kwds.get("background", False)
-            if not background:
-                _kwds.pop("background", None)
-            top_args, module_args = _split_args(**_kwds)
-            task.update(top_args)
-            task.update({module_name: module_args})
-            self._tasks.append(task)
-
-        def _shell_like(command, **kwargs):
-            task_name = kwargs.pop("task_name", command)
-            task = {"name": task_name, module_name: command}
-            _kwds = copy.copy(self.kwds)
-            _kwds.update(kwargs)
-            background = _kwds.get("background", False)
-            if not background:
-                _kwds.pop("background", None)
-            top_args, module_args = _split_args(**_kwds)
-            task.update(top_args)
-            if module_args:
-                task.update(args=module_args)
-            self._tasks.append(task)
-
-        if module_name in ["command", "shell", "raw"]:
-            return _shell_like
-        return _f
 
 
 class play_on(actions):
