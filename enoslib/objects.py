@@ -527,6 +527,9 @@ class Host(object):
         keyfile: keyfile to use to authenticate (e.g when using SSH)
         port: port to connect to (e.g using SSH)
         extra: dictionnary of options. Will be passed to Ansible as host_vars.
+            Mutation of this attribute is possible and must be performed using the
+            :py:meth:`~enoslib.objects.Host.set_extra` or
+            :py:meth:`~enoslib.objects.Host.reset_extra`
         net_devices: list of network devices configured on this host.
             can be synced with the :py:func:`enoslib.api.sync_network_info`.
 
@@ -549,6 +552,7 @@ class Host(object):
     # - also there's a plan to make the provider fill that for you when
     #   possible (e.g in G5K we can use the REST API)
     net_devices: Set[NetDevice] = field(default_factory=set, hash=False)
+    __original_extra: Dict = field(default_factory=dict, init=False, hash=False)
 
     def __post_init__(self):
         if not self.alias:
@@ -566,6 +570,24 @@ class Host(object):
         # write by the sync_from_ansible_method
         # read by specific host accessor (e.g processor, memory)
         self.__facts = None
+
+        # keep track of the original extra vars
+        self.__original_extra = copy.deepcopy(self.extra)
+
+    def set_extra(self, **kwargs) -> "Host":
+        """Mutate the extra vars of this host."""
+        self.extra.update(**kwargs)
+        return self
+
+    def reset_extra(self) -> "Host":
+        """Recover the extra vars of this host to the original ones."""
+        # recover the original extra vars
+        self.extra = copy.deepcopy(self.__original_extra)
+        return self
+
+    def get_extra(self) -> Dict:
+        """Get a copy of the extra vars of this host."""
+        return copy.deepcopy(self.extra)
 
     def to_dict(self):
         p = None
