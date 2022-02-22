@@ -16,6 +16,7 @@
 - Remove warning about empty host list (Ansible>=2.11 only)
 - api: ``actions`` can now take fqdn names (e.g. ``ansible.builtin.shell``)
   This allows for using any third party Ansible modules.
+- api: ``actions`` can now takes the top-level ``vars`` options.
 - Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
   manipulate the extra vars of the host.
 
