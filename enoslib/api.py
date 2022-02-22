@@ -96,6 +96,7 @@ ANSIBLE_TOP_LEVEL = {
     "run_once": "run_once",
     "delegate_to": "delegate_to",
     "background": {"async": ONE_YEAR_SECONDS, "poll": 0},
+    "vars": "vars",
 }
 
 
