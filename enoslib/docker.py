@@ -92,7 +92,7 @@ class DockerHost(Host):
             extra=dict(
                 ansible_connection="docker",
                 ansible_docker_extra_args=f"-H {proto}://{self.remote}",
-                mitogen_via=f"{host.user}@{host.address}",
+                mitogen_via=f"{self.remote}",
             ),
         )
 
