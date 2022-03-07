@@ -47,9 +47,11 @@ SSH external access
 
 
    Host !access.grid5000.fr *.grid5000.fr
-   ProxyCommand ssh -A <login>@194.254.60.33 -W "$(basename %h):%p"
-   User <login>
-   ForwardAgent yes
+      User <login>
+      ProxyJump <login>@access.grid5000.fr
+      StrictHostKeyChecking no
+      UserKnownHostsFile /dev/null
+      ForwardAgent yes
 
 
 
