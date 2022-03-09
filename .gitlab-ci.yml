@@ -26,7 +26,7 @@ variables:
 python3.7:
   image: python:3.7
   stage: test
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - pip install tox
   - tox -e py37
@@ -35,7 +35,7 @@ python3.7:
 python3.8:
   image: python:3.8
   stage: test
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - pip install tox
   - tox -e py38
@@ -43,7 +43,7 @@ python3.8:
 python3.9:
   image: python:3.9
   stage: test
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - pip install tox
   - tox -e py39
@@ -51,7 +51,7 @@ python3.9:
 pep8:
   image: python:3.7
   stage: test
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - pip install tox
   - tox -e pep8
@@ -60,7 +60,7 @@ typecheck:
   image: python:3.7
   stage: test
   allow_failure: true
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - pip install tox
   - tox -e typecheck
@@ -73,7 +73,7 @@ sonar:
   - tags
   tags:
   - large
-  - qlf-ci.inria.fr
+  - ci.inria.fr
   script:
   - pip install -e .
   - apt update
@@ -93,7 +93,7 @@ sonar:
 doc:
   image: python:3.9
   stage: test
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - apt update
   - apt install -y pandoc
@@ -115,7 +115,7 @@ doc:
 test_ansible_3: &ansible
   image: debian:11
   stage: functionnal
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   variables:
     ANSIBLE_VERSION: ">=3,<4"
   script:
@@ -148,7 +148,7 @@ test_ansible_5:
 test_static_run_command$debian11$: &debian11
   image: debian:11
   stage: functionnal
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   script:
   - env
   - apt update
@@ -271,7 +271,7 @@ test_dstat$ubuntu$:
 package:
   image: python:3.7
   stage: package
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   only:
   - tags
   script:
@@ -290,7 +290,7 @@ package:
 pages:
   # when: manual
   stage: publish
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   only:
   - tags
   dependencies:
@@ -305,7 +305,7 @@ pages:
 pypi:
   image: python:3.7
   stage: publish
-  tags: [qlf-ci.inria.fr]
+  tags: [ci.inria.fr]
   only:
   - tags
   dependencies:
