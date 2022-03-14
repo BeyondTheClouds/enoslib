@@ -21,6 +21,6 @@ The tip of the Iceberg featuring Grid'5000 testbed and a dummy benchmark.
 
    tutorials/index.rst
    apidoc/index.rst
-   tutorials.rst
+   jupyter/index.rst
    theyuseit.rst
    changelog.rst

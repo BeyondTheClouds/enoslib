@@ -180,3 +180,7 @@ autoclass_content = "both"
 autodoc_default_options = {
     'autosummary': True,
 }
+
+# Don't execute notebooks
+# see https://nbsphinx.readthedocs.io/en/0.8.8/never-execute.html#Explicitly-Dis-/Enabling-Notebook-Execution
+nbsphinx_execute = 'never'

@@ -1,0 +1,3 @@
+[submodule "docs/jupyter"]
+	path = docs/jupyter
+	url = https://gitlab.inria.fr/msimonin/enoslib-tutorials.git
