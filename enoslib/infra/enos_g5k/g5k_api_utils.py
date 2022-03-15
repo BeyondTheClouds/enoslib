@@ -172,7 +172,7 @@ def grid_reload_jobs_from_name(job_name):
     sites = get_all_sites_obj()
     jobs = []
     for site in [s for s in sites if s.uid not in gk.excluded_site]:
-        logger.info("Reloading %s from %s" % (job_name, site.uid))
+        logger.debug("Reloading %s from %s" % (job_name, site.uid))
         _jobs = site.jobs.list(
             name=job_name, state="waiting,launching,running", user=get_api_username()
         )
