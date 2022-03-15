@@ -16,6 +16,7 @@ stages:
 variables:
   DEBIAN_FRONTEND: noninteractive
   TZ: Europe/Paris
+  GIT_SUBMODULE_STRATEGY: normal
 
 ###############################################################################
 #
