@@ -553,7 +553,7 @@ class G5k(Provider):
         """Delete all existing rules."""
         jobs = self.driver.get_jobs()
         for job in jobs:
-            logger.info(f"Removing firewall rules for {job}")
+            logger.info(f"Removing firewall rules for job({job.uid})")
             job.firewall.delete()
 
     def fw_create(
