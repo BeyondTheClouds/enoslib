@@ -270,6 +270,10 @@ class SpinnerCallback(CallbackBase):
         self.running_tasks[result.task_name][result._host.name] = HostStatus.UNREACHABLE
         self.update(result.task_name)
 
+    def v2_runner_on_skipped(self, result):
+        self.running_tasks[result.task_name][result._host.name] = HostStatus.SKIPPED
+        self.update(result.task_name)
+
     def v2_playbook_on_stats(self, stats):
         if self.status:
             self.status.stop()
