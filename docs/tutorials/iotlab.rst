@@ -252,10 +252,12 @@ the external network and M3 sensors in the platform.
 Monitoring A8 nodes - IPv6
 --------------------------
 
-This example shows how to install a monitoring stack (Grafana/Prometheus/Telegraf)
-on Grid'5000 and FIT/IoT-LAB nodes to collect infrastructure metrics. By using the
-IPv6 network and Prometheus, we're able to collect data from both testbed. Note that
-IPv6 connection from Grid'5000 to IoT-LAB is allowed (the inverse isn't true).
+This example shows how to install a monitoring stack
+(Grafana/Prometheus/Telegraf) on Grid'5000 and FIT/IoT-LAB nodes to collect
+infrastructure metrics. By using the IPv6 network and Prometheus, we're able to
+collect data from both testbed. Note that IPv6 connection from Grid'5000 to
+IoT-LAB is allowed (the inverse isn't true unless you open the firewall port
+accordingly).
 
 Summarizing, the example does the following:
 
