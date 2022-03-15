@@ -264,7 +264,7 @@ Summarizing, the example does the following:
 - Install Prometheus database in a node: accessible at port 9090. It is installed
   with the following parameters (scrape_interval: 10s, scrape_timeout: 10s, eval_interval: 15s).
   They are defined at: enoslib/service/monitoring/roles/prometheus/defaults/main.yml).
-  
+
 - Install Telegraf on remaining nodes: Telegraf is configured to receive incoming
   connections from Prometheus at port 9273.
 
@@ -281,51 +281,6 @@ Summarizing, the example does the following:
     .. code-block:: bash
 
         $ python tuto_iotlab_ipv6_monitoring.py
-
-Monitoring A8 nodes - Telegraf
-------------------------------
-
-This example has a twofold objective:
-
-1. **VPN** connection: Interconnect the A8 nodes in FIT/IoT-LAB platform with Grid'5000
-2. **Telegraf**: Install Telegraf agent on A8 nodes and use a monitoring stack from Grid'5000
-
-This example is based on the `Monitoring Service Class <../apidoc/service.html#monitoring>`_.
-It installs the Granafa/InfluxDB to visualize/store the monitoring metrics, which are collected by
-Telegraf agents running on each node of the infrastructure.
-
-In this scenario, a Grid'5000 node contains the collector(InfluxDB) and ui(Grafana).
-The telegraf agent is installed in both Grid'5000 and FIT/IoT-LAB nodes.
-
-Finally, to handle with the connectivity problem, because Grid'5000 and FIT/IoT-LAB are part of
-2 isolated networks, we need to run the openvpn client on A8 nodes. For that, it is necessary to
-follow the tutorial available at: `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_, to download and set your
-personal VPN credentials in FIT/IoT-LAB frontend, under the shared folder available in your home directory (~/A8/).
-Note that the openvpn client is already available in A8 nodes and no installation is necessary.
-
-**Requirement**: Grid'5000 VPN files on shared folder (~/A8/).
-
-.. warning::
-    This tutorial assumes that the files Grid5000_VPN.ovpn, .crt, .key are located on the FIT frontend.
-    Moreover it also assumes that no passphrase is given to the private key.
-    You private key is very sensitive so you must protect it the best you can (chmod 600).
-    Prefer using IPv6 if you can: :ref:`IoT-LAB Monitoring IPv6`
-
-.. literalinclude:: iotlab/tuto_iotlab_a8_monitoring.py
-   :language: python
-   :linenos:
-
-.. note::
-
-    The InfluxDB database is compressed and saved in the current folder.
-
-- You can launch the script using :
-
-    .. code-block:: bash
-
-        $ python tuto_iotlab_a8_monitoring.py
-
-- An *influxdb-data.tar.gz* file is generated containing a backup copy of InfluxDB database.
 
 
 Jupyter Notebooks
