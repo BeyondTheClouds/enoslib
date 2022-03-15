@@ -10,6 +10,7 @@
 - svc: Netem: Introduce ``fping_stats`` static method to read from the backuped
   file easily after a call to ``validate``.
 - g5k: fix an issue on the reservation date preventing multisite deployment
+- g5k: reduce number of log at the info level
 - vmong5k: support multisite deployment.
 - config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
   Default to a Diskcache.
@@ -19,6 +20,7 @@
 - api: ``actions`` can now takes the top-level ``vars`` options.
 - Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
   manipulate the extra vars of the host.
+- doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
 
 7.2.1
 -----
