@@ -65,11 +65,18 @@ class TCPDump(Service):
             host.extra.update(tcpdump_ifs=ifs)
 
     def deploy(self, force=False):
-        with play_on(roles=self.roles) as p:
-            p.apt(name=["tcpdump", "tmux"], state="present",
-                  task_name="Install dependencies (tcpdump, tmux ...)")
-            p.file(path=REMOTE_OUTPUT_DIR, state="directory",
-                   task_name="Create output directory")
+        with play_on(roles=self.roles, gather_facts=True) as p:
+            p.apt(
+                name=["tcpdump", "tmux"],
+                state="present",
+                task_name="Install dependencies (tcpdump, tmux ...)",
+                when="ansible_os_family == 'Debian'",
+            )
+            p.file(
+                path=REMOTE_OUTPUT_DIR,
+                state="directory",
+                task_name="Create output directory",
+            )
             # explicit ifnames has been given
             for session, ifname in self._tmux_sessions_maps:
                 p.shell(
@@ -78,9 +85,9 @@ class TCPDump(Service):
                         (
                             f"tcpdump -w {REMOTE_OUTPUT_DIR}/{ifname}.pcap"
                             f" -i {ifname} {self.options}"
-                        )
+                        ),
                     ),
-                    task_name=f"tcpdump for {ifname}"
+                    task_name=f"tcpdump for {ifname}",
                 )
             p.debug(var="tcpdump_ifs")
             cmd = bg_start(
@@ -91,9 +98,7 @@ class TCPDump(Service):
             # add some debug
             # p.debug(msg=cmd, loop="{{ tcpdump_ifs }}")
             p.shell(
-                cmd,
-                loop="{{ tcpdump_ifs }}",
-                task_name="tcpdump on some interfaces"
+                cmd, loop="{{ tcpdump_ifs }}", task_name="tcpdump on some interfaces"
             )
 
     def backup(self, backup_dir: Optional[Path] = None):
@@ -106,8 +111,10 @@ class TCPDump(Service):
     def destroy(self):
         with play_on(roles=self.roles) as p:
             for session, ifname in self._tmux_sessions_maps:
-                p.shell(bg_stop(session),
-                        task_name=f"Stopping tcpdump on {ifname}")
+                p.shell(bg_stop(session), task_name=f"Stopping tcpdump on {ifname}")
             p.debug(var="tcpdump_ifs")
-            p.shell(bg_stop("{{ item }}"), loop="{{ tcpdump_ifs }}",
-                    task_name="Stopping some tcpdumps")
+            p.shell(
+                bg_stop("{{ item }}"),
+                loop="{{ tcpdump_ifs }}",
+                task_name="Stopping some tcpdumps",
+            )

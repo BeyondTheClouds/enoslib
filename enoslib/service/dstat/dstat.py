@@ -77,8 +77,16 @@ class Dstat(Service):
 
     def deploy(self):
         """Deploy the dstat monitoring stack."""
-        with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
-            p.apt(name=["tmux"], state="present")
+        with play_on(
+            roles=self.nodes, extra_vars=self.extra_vars, gather_facts=True
+        ) as p:
+            # work on system that already have tmux or fallback to the
+            # installation of tmux (debian, ubuntu... only for now)
+            p.shell(
+                "which tmux || (apt update && apt install -y tmux)",
+                task_name="Checking tmux",
+                when="ansible_os_family == 'Debian'",
+            )
             # install dool
             p.file(path=str(self.remote_working_dir), state="directory", recurse="yes")
             p.get_url(url=DOOL_URL, dest=str(DOOL_PATH), mode="0755")
