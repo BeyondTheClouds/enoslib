@@ -114,6 +114,15 @@ class Iotlab(Provider):
         self.client.stop_experiment()
         self.client.del_profile()
 
+    def reset(self):
+        """Reset all sensors."""
+        image_dict = {}
+        for sensor in self.sensors:
+            if sensor.image is not None:
+                image_dict.setdefault(sensor.image, []).append(sensor.address)
+        for image, sensors in image_dict.items():
+            self.client.flash_nodes(image, sensors)
+
     def _assert_clear_pool(self, pool_nodes):
         """Auxiliary method to verify that all nodes from the pool were used"""
         for nodes in pool_nodes.values():
@@ -186,12 +195,7 @@ class Iotlab(Provider):
 
         Wait for A8 nodes to boot
         """
-        image_dict = {}
-        for sensor in self.sensors:
-            if sensor.image is not None:
-                image_dict.setdefault(sensor.image, []).append(sensor.address)
-        for image, sensors in image_dict.items():
-            self.client.flash_nodes(image, sensors)
+        self.reset()
 
         self.client.wait_ssh([h.ssh_address for h in self.hosts])
 
