@@ -128,6 +128,7 @@ def _destroy(hosts: List[Host], **kwargs):
         loop="{{ansible_interfaces}}",
         roles=hosts,
         extra_vars=extra_vars,
+        gather_facts=True
     )
 
 
