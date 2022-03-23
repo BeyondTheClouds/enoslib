@@ -136,7 +136,8 @@ def _fping_stats(lines: List[str]) -> List[Tuple[str, str, List[float]]]:
     for line in lines:
         try:
             # may fail if this isn't the head of the file
-            dst, values = line.split(":")
+            # beware that ipv6 may contains : too!
+            dst, values = line.split(" : ")
             # may fail if addr isn't an address
             _ = ip_interface(dst.strip())
             pings = [float(v) for v in values.strip().split(" ")]
