@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import iotlabcli.auth
 
-from enoslib.api import play_on
+from enoslib.api import play_on, run, CommandResult, CustomCommandResult
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
@@ -23,6 +23,54 @@ from enoslib.infra.enos_iotlab.configuration import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def check():
+    statuses = []
+    iotlab_user = None
+    try:
+        iotlab_user, _ = iotlabcli.auth.get_user_credentials()
+    except Exception as e:
+        statuses.append(("api:conf", False, str(e)))
+        return statuses
+    statuses.append(("api:conf", True, ""))
+
+    access = Host("grenoble.iot-lab.info", user=iotlab_user)
+    # beware: on access the homedir isn't writable (so using raw)
+    r = run(
+        "hostname",
+        access,
+        raw=True,
+        on_error_continue=True,
+        task_name=f"Connecting to {iotlab_user}@{access.alias}",
+    )
+    if isinstance(r[0], CommandResult):
+        statuses.append(
+            ("ssh:access", r[0].rc == 0, r[0].stderr if r[0].rc != 0 else "")
+        )
+    elif isinstance(r[0], CustomCommandResult):
+        # hostname don't fail so if we get an error at this point
+        # it's because of the connection
+        # The result in this case is a CustomCommandResult
+        # see:
+        # CustomCommandResult(host='acces.grid5000.fr', task='Connecting to
+        # msimonin@acces.grid5000.fr', status='UNREACHABLE',
+        # payload={'unreachable': True, 'msg': 'Failed to connect to the host
+        # via ssh: channel 0: open failed: administratively prohibited: open
+        # failed\r\nstdio forwarding failed\r\nssh_exchange_identification:
+        # Connection closed by remote host', 'changed': False})
+        statuses.append(("ssh:access", False, r[0].payload["msg"]))
+    else:
+        raise ValueError("Impossible command result type received, this is a bug")
+
+    try:
+        api = IotlabAPI()
+        api.healthcheck()
+        statuses.append(("api:access", True, ""))
+    except Exception as e:
+        statuses.append(("api:access", False, str(e)))
+
+    return statuses
 
 
 class Iotlab(Provider):

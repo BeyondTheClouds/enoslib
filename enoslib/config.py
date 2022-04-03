@@ -14,8 +14,8 @@ _config = dict(
     g5k_cache="disk",
     g5k_cache_dir="cachedir",
     display="html",
-    pimp_my_lib=False,
-    dump_results=None
+    dump_results=None,
+    ansible_stdout="spinner"
 )
 
 
@@ -58,8 +58,8 @@ def set_config(
     g5k_cache: Optional[str] = None,
     g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
-    pimp_my_lib: Optional[bool] = None,
-    dump_results: Optional[Union[Path, str]] = None
+    dump_results: Optional[Union[Path, str]] = None,
+    ansible_stdout: Optional[str] = None
 ):
     """Set a specific config value.
 
@@ -72,7 +72,7 @@ def set_config(
     _set("g5k_cache", g5k_cache)
     _set("g5k_cache_dir", g5k_cache_dir)
     _set("display", display)
-    _set("pimp_my_lib", pimp_my_lib)
+    _set("ansible_stdout", ansible_stdout)
     _set_dump_results(dump_results)
 
     logger.debug("config = %s", get_config())

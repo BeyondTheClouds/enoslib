@@ -15,10 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def ssh_enabled(network_address: str) -> bool:
-    return (
-        network_address.startswith("a8")
-        or network_address.startswith("rpi")
-    )
+    return network_address.startswith("a8") or network_address.startswith("rpi")
 
 
 class IotlabHost(Host):
@@ -258,9 +255,7 @@ class IotlabSerial:
                 self.sensor.alias.replace("-", ","),
                 self._filename,
             )
-            p.shell(
-                cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0
-            )
+            p.shell(cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0)
 
     def disable_logging_serial(self):
         """
@@ -270,7 +265,7 @@ class IotlabSerial:
         """
         with play_on(
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
-            on_error_continue=True
+            on_error_continue=True,
         ) as p:
             cmd = "pkill -f 'serial_aggregator -l %s,%s > %s 2>&1'" % (
                 self.sensor.site,
@@ -395,7 +390,7 @@ class IotlabSniffer:
         """
         with play_on(
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
-            on_error_continue=True
+            on_error_continue=True,
         ) as p:
             cmd = 'pkill -f "%s"' % (self._filename)
             p.command(cmd, task_name="Killing sniffer_aggregator")

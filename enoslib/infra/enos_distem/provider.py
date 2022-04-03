@@ -9,10 +9,8 @@ import distem as d
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 import enoslib.infra.enos_g5k.provider as g5kprovider
-from cryptography.hazmat.backends import \
-    default_backend as crypto_default_backend
-from cryptography.hazmat.primitives import \
-    serialization as crypto_serialization
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from enoslib.api import play_on
 from enoslib.infra.enos_distem.configuration import Configuration
@@ -23,6 +21,10 @@ from ..provider import Provider
 from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME
 
 logger = logging.getLogger(__name__)
+
+
+def check():
+    return [("access", None, "Check G5k status")]
 
 
 def start_containers(

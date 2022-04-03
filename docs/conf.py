@@ -170,9 +170,11 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
-rst_epilog = """
+from enoslib.version import __chat__
+
+rst_epilog = f"""
 .. |enoslib| replace:: EnOSlib
-.. |chat| replace:: https://framateam.org/enoslib/channels/town-square
+.. |chat| replace:: {__chat__}
 """
 
 # Document also the __init__

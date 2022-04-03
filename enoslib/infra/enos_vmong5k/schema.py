@@ -103,7 +103,7 @@ SCHEMA = {
                 "type": "array",
                 "items": {"type": "string", "format": "mac"},
                 "description": "(optional)List of MAC addresses to use for the vms"
-                               "(aa:bb:cc:dd:ee:ff)",
+                "(aa:bb:cc:dd:ee:ff)",
             },
             "extra_devices": {
                 "type": "string",
@@ -134,6 +134,7 @@ VMonG5kFormatChecker = FormatChecker()
 @VMonG5kFormatChecker.checks("mac")
 def is_valid_mac(instance):
     from netaddr import EUI, mac_unix_expanded
+
     try:
         EUI(instance, dialect=mac_unix_expanded)
         return True

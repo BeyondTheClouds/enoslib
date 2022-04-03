@@ -50,7 +50,7 @@ class IotlabAPI:
 
     @staticmethod
     def _walltime_to_minutes(walltime: str) -> int:
-        """ Convert from string format (HH:MM) to minutes """
+        """Convert from string format (HH:MM) to minutes"""
         _t = walltime.split(":")
         return int(_t[0]) * 60 + int(_t[1])
 
@@ -151,6 +151,12 @@ class IotlabAPI:
                 return job["id"], job["submitted_duration"]
 
         return None, None
+
+    def healthcheck(self):
+        """Used to check connectivity to the API."""
+        iotlabcli.experiment.get_experiments_list(
+            self.api, state=",".join(iotlabcli.helpers.ACTIVE_STATES), limit=0, offset=0
+        )
 
     def get_resources(
         self, name: str, walltime: str, resources: List[GroupConfiguration]

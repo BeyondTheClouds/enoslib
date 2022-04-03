@@ -21,4 +21,5 @@ def run_commands(hosts_cmds: List[Tuple[str, str]], conn_params: Dict):
 
 def inside_g5k():
     import socket
+
     return socket.gethostname().endswith("grid5000.fr")

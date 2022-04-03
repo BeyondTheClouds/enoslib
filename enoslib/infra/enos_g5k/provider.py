@@ -6,6 +6,8 @@ import operator
 from itertools import groupby
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
 
+
+from enoslib.api import run, CommandResult, CustomCommandResult
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
     ConcreteGroup,
@@ -30,6 +32,7 @@ from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
     _do_synchronise_jobs,
+    get_api_client,
     get_api_username,
 )
 from enoslib.infra.enos_g5k.objects import (
@@ -84,8 +87,10 @@ def _concretize_nodes(
             except ValueError:
                 # The server is missing in the concrete version
                 # this shouldn't happen because it has been explicitly requested
-                logger.debug("The impossible happened: an explicitly requested "
-                              "server is missing in the concrete resource")
+                logger.debug(
+                    "The impossible happened: an explicitly requested "
+                    "server is missing in the concrete resource"
+                )
                 pass
         c = ConcreteServersConf(_concrete_servers, config)
         c.raise_for_min()
@@ -291,6 +296,81 @@ def synchronise(*confs):
         walltime = max(walltime, conf.walltime)
 
     return _do_synchronise_jobs(walltime, machines, force=True)
+
+
+def check() -> List[Tuple[str, bool, str]]:
+    # firt check ssh to access.grid5000.fr
+    statuses = []
+    user = None
+
+    try:
+        # Get the username
+        # This might be empty and valid when running from a frontend
+        user = get_api_username()
+    except Exception as e:
+        statuses.append(("api:conf", False, str(e)))
+        # no need to continue
+        return statuses
+
+    access = Host("access.grid5000.fr", user=get_api_username())
+    # beware: on access the homedir isn't writable (so using raw)
+    r = run(
+        "hostname",
+        access,
+        raw=True,
+        on_error_continue=True,
+        task_name=f"Connecting to {user}@{access.alias}",
+    )
+    if isinstance(r[0], CommandResult):
+        statuses.append(
+            (
+                "ssh:access",
+                r[0].rc == 0,
+                r[0].stderr if r[0].rc != 0 else f"Connection to {access.alias}",
+            )
+        )
+    elif isinstance(r[0], CustomCommandResult):
+        # hostname don't fail so if we get an error at this point
+        # it's because of the connection
+        # The result in this case is a CustomCommandResult
+        # see:
+        # CustomCommandResult(host='acces.grid5000.fr', task='Connecting to
+        # msimonin@acces.grid5000.fr', status='UNREACHABLE',
+        # payload={'unreachable': True, 'msg': 'Failed to connect to the host
+        # via ssh: channel 0: open failed: administratively prohibited: open
+        # failed\r\nstdio forwarding failed\r\nssh_exchange_identification:
+        # Connection closed by remote host', 'changed': False})
+        statuses.append(("ssh:access", False, r[0].payload["msg"]))
+        # no need to continue if that's failing
+        return statuses
+    else:
+        raise ValueError("Impossible command result type received, this is a bug")
+
+    one_frontend = Host("rennes.grid5000.fr", user=get_api_username())
+    r = run(
+        "hostname",
+        access,
+        raw=True,
+        on_error_continue=True,
+        task_name=f"Connecting to {user}@{access.alias}",
+    )
+    if r[0].rc == 0:
+        statuses.append(("ssh:access:frontend", True, f"Connection {one_frontend}"))
+    else:
+        # see above
+        statuses.append(("ssh:access:frontend", False, r[0].payload["msg"]))
+
+    try:
+        gk = get_api_client()
+        _ = gk.sites.list()
+    except Exception as e:
+        statuses.append(("api:access", False, str(e)))
+        return statuses
+
+    # all clear
+    statuses.append(("api:access", True, ""))
+
+    return statuses
 
 
 class G5k(Provider):

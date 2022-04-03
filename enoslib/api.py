@@ -207,6 +207,12 @@ class HostWithStatus(object):
         return self.status.value % self.name
 
 
+class NoopCallback(CallbackBase):
+    CALLBACK_VERSION = 2.0
+    CALLBACK_NAME = "noop"
+    CALLBACK_TYPE = "stdout"
+
+
 class SpinnerCallback(CallbackBase):
     """Spinning during tasks execution.
 
@@ -583,7 +589,8 @@ class _Phantom(object):
         p2.__getattr__ and return p3 = Phantom(a, d, b.c.d)
         p3.__call__ and will add the built task to the parent action
     """
-    def __init__(self, parent: "actions", current: str,  prefix: str):
+
+    def __init__(self, parent: "actions", current: str, prefix: str):
         self.parent = parent
         self.current = current
         self.prefix = prefix
@@ -1043,8 +1050,9 @@ def _dump_obj(obj):
                 json.dump(obj, f)
 
     except Exception as e:
-        logger.error("Error while saving results"
-                    "dump_result=%s, exception=%s", dump_result, e)
+        logger.error(
+            "Error while saving results" "dump_result=%s, exception=%s", dump_result, e
+        )
 
 
 def run_ansible(
@@ -1102,8 +1110,13 @@ def run_ansible(
         # hack ahead
         pbex._tqm._callback_plugins.append(callback)
 
-        if get_config()["pimp_my_lib"]:
+        if get_config()["ansible_stdout"] == "noop":
+            pbex._tqm._stdout_callback = NoopCallback()
+        elif get_config()["ansible_stdout"] == "spinner":
             pbex._tqm._stdout_callback = SpinnerCallback()
+        else:
+            # let the ansible.cfg governs this
+            pass
         _ = pbex.run()
 
         results += _results

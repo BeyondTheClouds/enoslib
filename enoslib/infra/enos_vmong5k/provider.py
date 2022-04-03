@@ -302,6 +302,10 @@ class VirtualMachine(Host):
         return int(self.eui) == int(other.eui)
 
 
+def check():
+    return [("access", None, "Check G5k status")]
+
+
 class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 

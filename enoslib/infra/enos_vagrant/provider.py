@@ -18,6 +18,14 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+def check():
+    # At this point this should be ok
+    if vagrant.get_vagrant_executable() is None:
+        return [("access", False, "Vagrant executable not found")]
+    else:
+        return [("access", True, "Looks good so far")]
+
+
 class VagrantNetwork(DefaultNetwork):
     pass
 

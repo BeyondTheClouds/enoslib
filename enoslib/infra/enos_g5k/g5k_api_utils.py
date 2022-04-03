@@ -39,6 +39,7 @@ from grid5000 import Grid5000
 import ring
 
 from ring.func.lru_cache import LruCache
+
 LRU = LruCache(128)
 
 logger = logging.getLogger(__name__)
@@ -56,6 +57,7 @@ def runtime_cache(f):
         config = get_config()
         if config["g5k_cache"] == "disk":
             import diskcache
+
             logger.debug(f"Reloading {f.__name__} from {config['g5k_cache_dir']}")
             with diskcache.Cache(config["g5k_cache_dir"]) as storage:
                 return ring.disk(storage)(f)(*args, **kwargs)
