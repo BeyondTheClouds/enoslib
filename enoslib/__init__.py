@@ -200,7 +200,7 @@ def _print_deps_table(deps: List[Tuple[str, bool, str]], console):
     table.add_column("Hint", no_wrap=True, width=30)
     deps = _check_deps()
     for (shortname, deps_ok, hint, _) in deps:
-        table.add_row(shortname, "✅" if deps_ok else "❌", hint)
+        table.add_row(shortname, "[green]INSTALLED[/green]" if deps_ok else "[blue]NOT INSTALLED[/blue]", hint)
 
     console.print(table)
 
@@ -240,7 +240,19 @@ def _print_conn_table(deps: List[Tuple[str, bool, str]], console):
 
 
 def check():
-    """Check the dependencies status of the providers."""
+    """Check the status of EnOSlib.
+
+    This gives you a synthetic view of
+
+    - the installed providers (dependency check)
+    - the connectivity to the various providers (connectivity check)
+
+    The dependency check test which optional dependencies are installed with
+    your EnOSlib version.
+    The connectivity check if connection to the various providers'
+    infrastructure can be initiated. Since each provider setup is specific, this
+    gives you a quick feedback on your local configuration.
+    """
     _ = init_logging()
     deps = _check_deps()
 
