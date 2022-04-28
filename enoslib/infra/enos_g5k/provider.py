@@ -444,9 +444,9 @@ class G5k(Provider):
 
         return self._to_enoslib()
 
-    def destroy(self):
+    def destroy(self, wait=False):
         """Destroys the jobs."""
-        self.driver.destroy()
+        self.driver.destroy(wait=wait)
 
     def launch(self):
         # drop in replacement for Resource.launch

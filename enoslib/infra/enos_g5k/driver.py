@@ -37,7 +37,7 @@ class Driver:
         pass
 
     @abstractmethod
-    def destroy(self):
+    def destroy(self, wait=False):
         pass
 
     @abstractmethod
@@ -67,8 +67,8 @@ class OargridStaticDriver(Driver):
         nodes, networks = grid_reload_from_ids(self.oargrid_jobids)
         return nodes, networks
 
-    def destroy(self):
-        grid_destroy_from_ids(self.oargrid_jobids)
+    def destroy(self, wait=False):
+        grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
@@ -119,8 +119,8 @@ class OargridDynamicDriver(Driver):
             wait=wait,
         )
 
-    def destroy(self):
-        grid_destroy_from_name(self.job_name)
+    def destroy(self, wait=False):
+        grid_destroy_from_name(self.job_name, wait=wait)
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)

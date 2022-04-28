@@ -11,6 +11,7 @@
   file easily after a call to ``validate``.
 - g5k: fix an issue on the reservation date preventing multisite deployment
 - g5k: reduce number of log at the info level
+- g5k: ``provider.destroy`` can now wait for a state change (use ``wait=True``)
 - vmong5k: support multisite deployment.
 - config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
   Default to a Diskcache.

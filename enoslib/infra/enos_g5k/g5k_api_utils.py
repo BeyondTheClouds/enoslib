@@ -251,27 +251,41 @@ def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
     return nodes, networks
 
 
-def grid_destroy_from_name(job_name):
+def job_delete(job, wait=False):
+    job.delete()
+    if not wait:
+        return
+    while job.state == "running":
+        logger.debug("Waiting for the job (%s, %s) to be killed" % (job.site, job.uid))
+        time.sleep(1)
+        job.refresh()
+    logger.info("Job killed (%s, %s)" % (job.site, job.uid))
+
+
+def grid_destroy_from_name(job_name, wait=False):
     """Destroy all the jobs with a given name.
 
     Args:
        job_name (str): the job name
+       wait: True whether we should wait for a status change
     """
     jobs = grid_reload_jobs_from_name(job_name)
     for job in jobs:
-        job.delete()
         logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
+        job_delete(job, wait=wait)
 
 
-def grid_destroy_from_ids(oargrid_jobids):
+def grid_destroy_from_ids(oargrid_jobids, wait=False):
     """Destroy all the jobs with corresponding ids
 
     Args:
         oargrid_jobids (list): the ``(site, oar_job_id)`` list of tuple
-            identifying the jobs for each site."""
+            identifying the jobs for each site.
+        wait: True whether we should wait for a status change
+    """
     jobs = grid_reload_from_ids(oargrid_jobids)
     for job in jobs:
-        job.delete()
+        job_delete(job, wait=wait)
         logger.info("Killing the jobs %s" % oargrid_jobids)
 
 

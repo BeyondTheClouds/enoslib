@@ -72,7 +72,7 @@ class Provider:
         pass
 
     @abstractmethod
-    def destroy(self):
+    def destroy(self, **kwargs):
         "Abstract. Destroy the resources used for the deployment."
         pass
 
