@@ -4,7 +4,7 @@ from pathlib import Path
 import enoslib as en
 
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 

@@ -1,9 +1,11 @@
+import logging
 from pathlib import Path
 
 import enoslib as en
 
 
-_ = en.init_logging()
+en.init_logging(level=logging.DEBUG)
+
 
 job_name = Path(__file__).name
 

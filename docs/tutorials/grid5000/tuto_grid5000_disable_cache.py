@@ -5,7 +5,8 @@ import enoslib as en
 from enoslib.config import set_config
 
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.DEBUG)
+
 
 # Disabling the cache
 set_config(g5k_cache=False)
