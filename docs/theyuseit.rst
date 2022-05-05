@@ -14,6 +14,11 @@ Main Publication
 Other Publications (using or citing EnOSlib)
 ============================================
 
+- Daniel Rosendo, Alexandru Costan, Patrick Valduriez, Gabriel Antoniu.
+  Distributed intelligence on the Edge-to-Cloud Continuum: A systematic literature
+  review. Journal of Parallel and Distributed Computing, Elsevier, 2022, 166,
+  pp.71-94. ⟨10.1016/j.jpdc.2022.04.004⟩. ⟨hal-03654722⟩
+
 - Balouek-Thomert, D., Rodero, I., & Parashar, M. (2021, November). Evaluating
   policy-driven adaptation on the Edge-to-Cloud Continuum. In 2021 IEEE/ACM HPC
   for Urgent Decision Making (UrgentHPC) (pp. 11-20). IEEE.

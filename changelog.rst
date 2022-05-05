@@ -23,6 +23,7 @@
 - Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
   manipulate the extra vars of the host.
 - doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
+- doc/theys-use-it: add hal-03654722
 
 7.2.1
 -----
