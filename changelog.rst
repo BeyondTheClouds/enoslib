@@ -7,6 +7,7 @@
 - svc/Netem: Introduce AccurateNetemHTB to apply more accurate network latency between node.
   This takes into account the physical delay of targetted paths
 - svc/NetemHTB: support constraints on IPv6 addresses
+- svc/NetemHTB: loss parameter is explicitly a percentage
 - svc: Netem: Introduce ``fping_stats`` static method to read from the backuped
   file easily after a call to ``validate``.
 - g5k: fix an issue on the reservation date preventing multisite deployment
