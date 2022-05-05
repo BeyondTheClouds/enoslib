@@ -32,7 +32,7 @@ SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 DEFAULT_RATE = "10gbit"
 
-DEFAULT_LOSS = 0
+DEFAULT_LOSS = None
 
 
 logger = logging.getLogger(__name__)
@@ -55,17 +55,22 @@ class HTBConstraint(object):
 
     Args:
         target: the target ip
+            Can be an ipv4 or an ipv6.
         device: the device name where the qdisc will be added
+            The one you get when listing the interfaces using ``iproute2``.
         delay: the delay (e.g 10ms)
+            One way delay.
         rate: the rate (e.g 10gbit)
+            Bandwitdth of the link
         loss: the loss (e.g "0.05" == "5%")
+            Chance for a packet to be lost
     """
 
     device: str
     delay: str
     target: str
     rate: str = DEFAULT_RATE
-    loss: float = DEFAULT_LOSS
+    loss: str = DEFAULT_LOSS
 
     def __post_init__(self):
         HTBConcreteConstraintValidator.validate(

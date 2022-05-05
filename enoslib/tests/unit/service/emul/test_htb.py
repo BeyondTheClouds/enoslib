@@ -54,7 +54,7 @@ class TestGeneratedCommands(EnosTest):
             nc.commands(1))
 
     def test_ipv4_with_loss(self):
-        nc = HTBConstraint("eth0", "10ms", "1.1.1.2", loss=0.05)
+        nc = HTBConstraint("eth0", "10ms", "1.1.1.2", loss="0.5%")
         self.assertCountEqual(
             ["tc qdisc del dev eth0 root || true"],
             nc.remove_commands())
@@ -68,7 +68,7 @@ class TestGeneratedCommands(EnosTest):
         self.assertCountEqual(
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
-                "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms loss 0.05",
+                "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms loss 0.5%",
                 "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2"
             ],
             nc.commands(1))

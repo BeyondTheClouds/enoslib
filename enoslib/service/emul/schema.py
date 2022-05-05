@@ -18,7 +18,7 @@ CONSTRAINT_SCHEMA = {
             "format": "rate",
         },
         "loss": {
-            "type": ["number", "null"],
+            "type": ["string", "null"],
             "description": "Loss to apply (percentage)",
             "format": "loss",
         },
@@ -39,7 +39,7 @@ CONCRETE_CONSTRAINT_SCHEMA = {
         "delay": {"type": "string", "description": "Delay to apply", "format": "delay"},
         "rate": {"type": "string", "description": "Rate to apply", "format": "rate"},
         "loss": {
-            "type": ["number", "null"],
+            "type": ["string", "null"],
             "description": "Loss to apply (percentage)",
             "format": "loss",
         },
@@ -62,8 +62,8 @@ SCHEMA = {
             "format": "rate",
         },
         "default_loss": {
-            "type": "number",
-            "description": "default loss (percent) to apply on all groups (e.g. 0.1)",
+            "type": "str",
+            "description": "default loss (percent) to apply on all groups (e.g. 0.1%)",
             "format": "loss",
         },
         "except": {
@@ -119,15 +119,16 @@ def is_valid_rate(instance):
 def is_valid_loss(instance):
     """semantic:
     None: don't set any netem loss rule
-    x: set a rule with x% loss
+    x%: set a rule with x% loss
     """
     if instance is None:
         return True
-    if isinstance(instance, float) or isinstance(instance, int):
-        return True
-    if instance <= 1 and instance >= 0:
-        return True
-    return False
+    # whatever
+    if not isinstance(instance, str):
+        return False
+    # str
+    import re
+    return re.match(r"\d*.?\d*%", str(instance))
 
 
 @HTBFormatChecker.checks("ipv4")
