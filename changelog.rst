@@ -24,6 +24,7 @@
   manipulate the extra vars of the host.
 - doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
 - doc/theys-use-it: add hal-03654722
+- k3s: refresh service (deploy the dashboard automatically)
 
 7.2.1
 -----
