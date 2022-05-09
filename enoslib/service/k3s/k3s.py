@@ -111,7 +111,7 @@ class K3s(Service):
             p.shell(f"{GUARD_ADMIN_USER} || {CREATE_ADMIN_USER}")
             p.shell(f"{GUARD_ADMIN_USER_ROLE} || {CREATE_ADMIN_USER_ROLE}")
             p.shell(
-                "k$3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'", # noqa
+                "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'", # noqa
                 task_name="token",
             )
             p.shell(f"{GUARD_PROXY} || {CREATE_PROXY}", background=True)
