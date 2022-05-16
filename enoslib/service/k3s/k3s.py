@@ -52,7 +52,9 @@ GUARD_PROXY = f"ps aux | grep '{KEY}' | grep -v '{KEY}'"
 
 class K3s(Service):
     def __init__(self, master: List[Host], agent: List[Host]):
-        """Deploy a K3s cluster.
+        """Deploy a single K3s cluster.
+
+        In order to deploy multiple (independant) nodes, please do so by creating multiple instances of this service.
 
         Reference:
         https://rancher.com/docs/k3s/latest/en/quick-start/
