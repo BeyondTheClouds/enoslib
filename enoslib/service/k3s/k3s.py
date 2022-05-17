@@ -54,7 +54,10 @@ class K3s(Service):
     def __init__(self, master: List[Host], agent: List[Host]):
         """Deploy a single K3s cluster.
 
-        In order to deploy multiple (independant) nodes, please do so by creating multiple instances of this service.
+        Note:
+
+        In order to deploy multiple (independant) nodes, please do so by
+        creating multiple instances of this service.
 
         Reference:
         https://rancher.com/docs/k3s/latest/en/quick-start/
@@ -73,6 +76,7 @@ class K3s(Service):
             .. literalinclude:: examples/k3s.py
                 :language: python
                 :linenos:
+
         """
         self.master = master
         self.agent = agent
