@@ -1,4 +1,6 @@
 ---
+- name: Gather Facts
+  setup:
 - name: Start the manager
   # NOTE(msimonin): we could find something more elegant
   shell: "docker swarm init --advertise-addr {{hostvars[inventory_hostname].ansible_default_ipv4.address}} || true"
