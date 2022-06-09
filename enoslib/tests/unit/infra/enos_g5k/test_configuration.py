@@ -346,6 +346,21 @@ class TestConfiguration(EnosTest):
             conf.finalize()
 
 
+    def test_configuration_with_reservation(self):
+        conf = Configuration.from_settings(reservation="2022-06-09 16:22")
+        conf.finalize()
+
+    def test_configuration_raise_because_of_int(self):
+        conf = Configuration.from_settings(reservation=12345)
+        with self.assertRaises(ValidationError):
+            conf.finalize()
+
+    # def test_configuration_raise_because_of_int(self):
+    #     conf = Configuration.from_settings(reservation="12345")
+    #     with self.assertRaises(ValidationError):
+    #         conf.finalize()
+
+
 class TestNetworkConfiguration(EnosTest):
     def test_network_minimal(self):
         n = {"id": "n1", "roles": ["r1"], "site": "siteA", "type": "prod"}
