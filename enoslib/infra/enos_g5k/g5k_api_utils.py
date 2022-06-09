@@ -863,7 +863,7 @@ def _do_grid_make_reservation(
         if project:
             job_spec.update(project=project)
         if reservation_date:
-            job_spec.update(reservation=_date2h(reservation_date))
+            job_spec.update(reservation=reservation_date)
         job_specs.append((site, job_spec))
 
     jobs = submit_jobs(job_specs)
