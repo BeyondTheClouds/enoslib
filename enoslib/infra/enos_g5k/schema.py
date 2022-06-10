@@ -2,7 +2,7 @@
 from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES
-from .error import EnosG5kWalltimeFormatError
+from .error import EnosG5kReservationDateFormatError, EnosG5kWalltimeFormatError
 
 SCHEMA = {
     "type": "object",
@@ -22,7 +22,10 @@ SCHEMA = {
         "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},
         "project": {"type": "string"},
         "queue": {"type": "string", "enum": QUEUE_TYPES},
-        "reservation": {"type": "string"},
+        "reservation": {"type": "string",
+                        "format": "reservation",
+                        "description":
+                        "reservation date in YYYY-mm-dd HH:MM:SS format"},
         "walltime": {
             "type": "string",
             "format": "walltime",
@@ -154,6 +157,20 @@ def is_valid_walltime(instance):
         return True
     except ValueError:
         raise EnosG5kWalltimeFormatError()
+
+
+@G5kFormatChecker.checks("reservation", raises=EnosG5kReservationDateFormatError)
+def is_valid_reservation_date(instance):
+    if not isinstance(instance, str):
+        return False
+    # YYYY-MM-DD hh:mm:ss
+    from datetime import datetime
+
+    try:
+        datetime.strptime(instance, "%Y-%m-%d %H:%M:%S")
+        return True
+    except ValueError:
+        raise EnosG5kReservationDateFormatError()
 
 
 G5kValidator = Draft7Validator(SCHEMA, format_checker=G5kFormatChecker)

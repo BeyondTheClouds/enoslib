@@ -39,3 +39,10 @@ class EnosG5kWalltimeFormatError(EnosError):
         super(EnosG5kWalltimeFormatError, self).__init__(
             "Waltime must be specified in HH:MM:SS format"
         )
+
+
+class EnosG5kReservationDateFormatError(EnosError):
+    def __init__(self):
+        super(EnosG5kReservationDateFormatError, self).__init__(
+            "Reservation date must be specified in YYYY-MM-DD hh:mm:ss format"
+        )
