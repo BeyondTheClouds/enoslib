@@ -55,14 +55,34 @@ def get_session():
     # Chameleon cloud and its rc files
     if os.environ.get("OS_IDENTITY_API_VERSION") == "3":
         logging.info("Creating a v3 Keystone Session")
-        auth = v3.Password(
-            auth_url=os.environ["OS_AUTH_URL"],
-            username=os.environ["OS_USERNAME"],
-            password=os.environ["OS_PASSWORD"],
-            project_id=os.environ["OS_PROJECT_ID"],
-            user_domain_name=os.environ["OS_USER_DOMAIN_NAME"],
-        )
-
+        if os.environ["OS_AUTH_TYPE"] in ["v3oidcpassword"]:
+            auth = v3.OidcPassword(
+                auth_url=os.environ["OS_AUTH_URL"],
+                identity_provider=os.environ["OS_IDENTITY_PROVIDER"],
+                protocol=os.environ["OS_PROTOCOL"],
+                client_id=os.environ["OS_CLIENT_ID"],
+                client_secret=os.environ["OS_CLIENT_SECRET"],
+                discovery_endpoint=os.environ["OS_DISCOVERY_ENDPOINT"],
+                access_token_type=os.environ["OS_ACCESS_TOKEN_TYPE"],
+                username=os.environ["OS_USERNAME"],
+                password=os.environ["OS_PASSWORD"],
+                project_id=os.environ["OS_PROJECT_ID"],
+            )
+        elif os.environ["OS_AUTH_TYPE"] in ["v3applicationcredential"]:
+            auth = v3.ApplicationCredential(
+                auth_url=os.environ["OS_AUTH_URL"],
+                application_credential_secret=os.environ[
+                    "OS_APPLICATION_CREDENTIAL_SECRET"],
+                application_credential_id=os.environ["OS_APPLICATION_CREDENTIAL_ID"],
+            )
+        else:
+            auth = v3.Password(
+                auth_url=os.environ["OS_AUTH_URL"],
+                username=os.environ["OS_USERNAME"],
+                password=os.environ["OS_PASSWORD"],
+                project_id=os.environ["OS_PROJECT_ID"],
+                user_domain_name=os.environ["OS_USER_DOMAIN_NAME"],
+            )
     else:
         logging.info("Creating a v2 Keystone Session")
         auth = v2.Password(
@@ -333,7 +353,7 @@ def check_servers(
             server = nclient.servers.create(
                 name="-".join([DEFAULT_PREFIX, extra_prefix, str(total)]),
                 image=image_id,
-                flavor=flavor,
+                flavor=nclient.flavors.find(name=flavor),
                 nics=[{"net-id": network["id"]}],
                 key_name=key_name,
                 security_groups=[SECGROUP_NAME],
@@ -459,7 +479,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
                 "forward_agent": True,
             }
         )
-    extra.update({"ansible_become": "yes"})
+    extra.update({"ansible_become": "yes", "ansible_timeout": 10})
 
     # build the enos roles
     roles = Roles()

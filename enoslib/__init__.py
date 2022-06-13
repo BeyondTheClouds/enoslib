@@ -143,6 +143,15 @@ try:
 except ImportError as e:
     pass
 
+try:
+    from enoslib.infra.enos_chameleonedge.provider import ChameleonEdge
+    from enoslib.infra.enos_chameleonedge.configuration import Configuration as ChameleonEdgeConf
+except ImportError:
+    pass
+
+
+
+
 # Tasks
 from enoslib.task import enostask, Environment
 
@@ -173,6 +182,7 @@ def _check_deps():
     providers = [
         ("Chameleon", "enos_chameleonbaremetal", "pip install enoslib\[chameleon]"),
         ("ChameleonKVM", "enos_chameleonkvm", "pip install enoslib\[chameleon]"),
+        ("ChameleonEdge", "enos_chameleonedge", "pip install enoslib\[chameleon]"),
         ("Distem", "enos_distem", "pip install enoslib\[distem]"),
         ("IOT-lab", "enos_iotlab", "pip install enoslib\[iot]"),
         ("Grid'5000", "enos_g5k", ""),
