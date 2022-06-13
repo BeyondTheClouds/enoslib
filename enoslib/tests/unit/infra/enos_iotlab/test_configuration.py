@@ -412,6 +412,66 @@ class TestConfiguration(EnosTest):
             ),
         )
         conf.finalize()
+        
+    def test_configuration_with_start_time(self):
+        conf = Configuration.from_settings(start_time="2022-06-09 16:22:00")
+        conf = conf.add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"],
+                archi="m3:at86rf231",
+                site="grenoble",
+                number=10,
+                image="test.elf",
+            )
+        ).add_machine_conf(
+            BoardConfiguration(
+                roles=["r1"], archi="m3:at86rf231", site="grenoble", number=10
+            )
+        )
+        conf.finalize()
+        
+    def test_configuration_with_start_time_raise_because_incoherent_time(self):
+        conf = Configuration.from_settings(start_time="2022-06-09 16:61:00")
+        conf.add_machine(roles=["r2"], hostname=["m3-1.grenoble.iot-lab.info"])
+
+        with self.assertRaises(ValidationError):
+            conf.finalize()
+
+    def test_configuration_raise_because_of_int(self):
+        conf = Configuration.from_settings(start_time=12345)
+        conf = conf.add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"],
+                archi="m3:at86rf231",
+                site="grenoble",
+                number=10,
+                image="test.elf",
+            )
+        ).add_machine_conf(
+            BoardConfiguration(
+                roles=["r1"], archi="m3:at86rf231", site="grenoble", number=10
+            )
+        )
+        with self.assertRaises(ValidationError):
+            conf.finalize()
+
+    def test_configuration_raise_because_of_bad_format(self):
+        conf = Configuration.from_settings(start_time="123456")
+        conf = conf.add_machine_conf(
+            BoardConfiguration(
+                roles=["r2"],
+                archi="m3:at86rf231",
+                site="grenoble",
+                number=10,
+                image="test.elf",
+            )
+            ).add_machine_conf(
+            BoardConfiguration(
+                roles=["r1"], archi="m3:at86rf231", site="grenoble", number=10
+            )
+        )
+        with self.assertRaises(ValidationError):
+            conf.finalize()
 
 
 class TestNetworkConfiguration(EnosTest):

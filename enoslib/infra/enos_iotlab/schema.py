@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from jsonschema import Draft7Validator, FormatChecker
-from .error import EnosIotlabWalltimeFormatError
+from .error import EnosIotlabStartTimeFormatError, EnosIotlabWalltimeFormatError
 from .constants import (
     PROFILE_ARCHI_TYPES,
     RADIO_MODE_TYPES,
@@ -18,6 +18,11 @@ SCHEMA = {
             "type": "string",
             "format": "walltime",
             "description": "walltime in HH:MM format",
+        },
+        "start_time": {
+            "type": "string",
+            "format": "start_time",
+            "description": "start time in YYYY-mm-dd HH:MM:SS format",
         },
         "resources": {"$ref": "#/resources"},
         "monitoring": {"$ref": "#/monitoring"},
@@ -151,6 +156,20 @@ def is_valid_walltime(instance):
         return True
     except Exception:
         raise EnosIotlabWalltimeFormatError()
+
+
+@IotlabFormatChecker.checks("start_time", raises=EnosIotlabStartTimeFormatError)
+def is_valid_start_time(instance):
+    if not isinstance(instance, str):
+        return False
+    # YYYY-mm-dd HH:MM:SS
+    from datetime import datetime
+
+    try:
+        datetime.strptime(instance, "%Y-%m-%d %H:%M:%S")
+        return True
+    except ValueError:
+        raise EnosIotlabStartTimeFormatError()
 
 
 IotlabValidator = Draft7Validator(SCHEMA, format_checker=IotlabFormatChecker)

@@ -173,6 +173,7 @@ class TestSubmit(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
+            start_time = None,
             resources=[
                 exp_resources(
                     AliasNodes(2, site="grenoble", archi="a8:at86rf231", _alias=1)
@@ -198,6 +199,7 @@ class TestSubmit(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
+            start_time = None,
             resources=[exp_resources(list_nodes)],
         )
         self.assertEquals(nodes, {})  # no roles nothing to check
@@ -494,6 +496,7 @@ class TestProfiles(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
+            start_time = None,
             resources=[
                 exp_resources(
                     AliasNodes(2, site="grenoble", archi="m3:at86rf231", _alias=2),

@@ -10,5 +10,12 @@ class EnosIotlabCfgError(EnosError):
 class EnosIotlabWalltimeFormatError(EnosError):
     def __init__(self):
         super(EnosIotlabWalltimeFormatError, self).__init__(
-            "Waltime must be specified in HH:MM:SS format"
+            "Walltime must be specified in HH:MM:SS format"
+        )
+
+
+class EnosIotlabStartTimeFormatError(EnosError):
+    def __init__(self):
+        super(EnosIotlabStartTimeFormatError, self).__init__(
+            "Start time must be specified in YY-mm-dd HH:MM:SS format"
         )

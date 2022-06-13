@@ -253,6 +253,7 @@ class Iotlab(Provider):
             self.provider_conf.job_name,
             self.provider_conf.walltime,
             self.provider_conf.machines,
+            self.provider_conf.start_time,
         )
 
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):

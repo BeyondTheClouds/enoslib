@@ -95,6 +95,7 @@ class IotlabAPI:
         name: str,
         walltime: str,
         resources: List[GroupConfiguration],
+        start_time: str,
     ):
         """
         Submit experiment to FIT/IoT-LAB platform
@@ -105,6 +106,8 @@ class IotlabAPI:
             name: Job name
             walltime: Job walltime in HH:MM format
             resources: List of nodes in job
+            start_time: Time at which you precisely wish to start the job,
+                by default None (meaning now)
         """
         converted = self._translate_resources(resources)
         logger.info(
@@ -114,11 +117,19 @@ class IotlabAPI:
             str(converted),
         )
 
+        from datetime import datetime
+        start_time_timestamp = None
+        if (start_time):
+            start_time_timestamp = str(
+            int(datetime.strptime(
+            start_time, "%Y-%m-%d %H:%M:%S"
+            )))
         json_res = iotlabcli.experiment.submit_experiment(
             api=self.api,
             name=name,
             duration=self._walltime_to_minutes(walltime),
             resources=converted,
+            start_time=start_time_timestamp,
         )
         # urllib.error.HTTPError: HTTP Error 500:
         # {"code":500,"message":"Invalid nodes state : [m3-1.grenoble.iot-lab.info]"}
@@ -159,7 +170,8 @@ class IotlabAPI:
         )
 
     def get_resources(
-        self, name: str, walltime: str, resources: List[GroupConfiguration]
+        self, name: str, walltime: str, resources: List[GroupConfiguration],
+        start_time: str
     ) -> List[str]:
         """
         Get resources from FIT/IoT-LAB platform
@@ -171,12 +183,14 @@ class IotlabAPI:
             name: Job name
             walltime: Job walltime in HH:MM format
             resources: List of nodes in job
+            start_time: Time at which you precisely wish to start the job,
+            by default None
         Returns:
             list: List with nodes name
         """
         self.job_id, self.walltime = self._check_job_running(name)
         if self.job_id is None:
-            self.submit_experiment(name, walltime, resources)
+            self.submit_experiment(name, walltime, resources, start_time)
         logger.info("Waiting for job id (%d) to be in running state", self.job_id)
         iotlabcli.experiment.wait_experiment(api=self.api, exp_id=self.job_id)
         logger.info("Job id (%d) is running", self.job_id)

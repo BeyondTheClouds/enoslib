@@ -11,12 +11,14 @@ class Configuration(BaseConfiguration):
     """Global class for parsing IoT-LAB configuration"""
 
     _SCHEMA = SCHEMA
+    _VALIDATOR = IotlabValidator
 
     def __init__(self):
         super().__init__()
         self.job_name = DEFAULT_JOB_NAME
         self.walltime = DEFAULT_WALLTIME
         self.profiles = None
+        self.start_time = None
 
         self._machine_cls = GroupConfiguration
         self._network_cls = NetworkConfiguration
