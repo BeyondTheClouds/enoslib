@@ -225,9 +225,12 @@ def _print_conn_table(deps: List[Tuple[str, bool, str]], console):
         check_fnc = getattr(m, "check", None)
         if check_fnc is not None:
             # inject shortname again
-            statuses.extend((shortname, *status) for status in check_fnc())
+            try:
+                statuses.extend((shortname, *status) for status in check_fnc())
+            except Exception as e:
+                statuses.append((shortname, "❔", False, str(e)))
         else:
-            statuses.append((shortname, "❔", "no info available"))
+            statuses.append((shortname, "❔", None, "no info available"))
 
     from rich.table import Table
 
