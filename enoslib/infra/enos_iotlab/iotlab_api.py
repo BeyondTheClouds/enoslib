@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import sys
-from typing import List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Tuple, Set
 
 import iotlabcli
 import iotlabcli.experiment
@@ -401,3 +401,51 @@ or choose other nodes"""
                 return True
 
         return False
+
+
+def nodes_availability(
+    nodes_status: Dict, experiments_status: Dict, architecture: str, number: int,
+    exact_nodes: List[str], start: int, walltime: int
+) -> bool:
+    """Check if #nodes can be started
+
+    This is intended to give a good enough approximation.
+    This can be use to prefilter possible reservation dates before submitting
+    them on oar.
+
+    Args:
+        nodes_status: a dictionnary with all the status of the nodes as
+            returned by the api
+        experiment_status: a dictionnary with all the status of the experiments
+            as returned by the api
+        number: number of node in the demand
+        exact_nodes: the list of the fqdn of the machines to get
+        start: start time of the job
+        walltime: walltime of the job
+
+    Returns
+        True iff the job can start
+    """
+    candidates = []
+    from datetime import datetime
+    # network_address is the uid, e.g: m3-10.grenoble.iot-lab.info
+    nodes = nodes_status.get("items")
+    for node_status in nodes:
+        if node_status["archi"] == architecture:
+            if node_status["state"] == "Alive" or node_status["state"] == "Busy":
+                candidates.append(node_status['network_address'])
+    experiments = experiments_status.get("items")
+    for experiment_status in experiments:
+        experiment_start_date = datetime.strptime(
+        experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+        exp_end_date = experiment_start_date + experiment_status["submitted_duration"]
+        intersect_min = min(exp_end_date, start + walltime)
+        intersect_max = max(experiment_start_date, start)
+        intersect = intersect_min - intersect_max
+        if intersect > 0:
+            for node in experiment_status["nodes"]:
+                if node in candidates:
+                    candidates.remove(node)
+    if len(candidates) >= number and set(exact_nodes).issubset(candidates):
+        return True
+    return False
