@@ -25,6 +25,7 @@
 - doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
 - doc/theys-use-it: add hal-03654722
 - k3s: refresh service (deploy the dashboard automatically)
+- 🚀 Chameleon Edge provider
 
 7.2.1
 -----
