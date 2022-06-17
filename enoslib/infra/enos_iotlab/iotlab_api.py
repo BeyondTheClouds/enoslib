@@ -16,6 +16,7 @@ from enoslib.infra.enos_iotlab.constants import (
 )
 
 from enoslib.infra.enos_iotlab.configuration import (
+    Configuration,
     GroupConfiguration,
     BoardConfiguration,
     PhysNodeConfiguration,
@@ -118,12 +119,12 @@ class IotlabAPI:
         )
 
         from datetime import datetime
+
         start_time_timestamp = None
-        if (start_time):
+        if start_time:
             start_time_timestamp = str(
-            int(datetime.strptime(
-            start_time, "%Y-%m-%d %H:%M:%S"
-            )))
+                int(datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S"))
+            )
         json_res = iotlabcli.experiment.submit_experiment(
             api=self.api,
             name=name,
@@ -170,8 +171,11 @@ class IotlabAPI:
         )
 
     def get_resources(
-        self, name: str, walltime: str, resources: List[GroupConfiguration],
-        start_time: str
+        self,
+        name: str,
+        walltime: str,
+        resources: List[GroupConfiguration],
+        start_time: str,
     ) -> List[str]:
         """
         Get resources from FIT/IoT-LAB platform
@@ -403,49 +407,99 @@ or choose other nodes"""
         return False
 
 
-def nodes_availability(
-    nodes_status: Dict, experiments_status: Dict, architecture: str, number: int,
-    exact_nodes: List[str], start: int, walltime: int
-) -> bool:
-    """Check if #nodes can be started
-
-    This is intended to give a good enough approximation.
-    This can be use to prefilter possible reservation dates before submitting
-    them on oar.
-
-    Args:
-        nodes_status: a dictionnary with all the status of the nodes as
-            returned by the api
-        experiment_status: a dictionnary with all the status of the experiments
-            as returned by the api
-        number: number of node in the demand
-        exact_nodes: the list of the fqdn of the machines to get
-        start: start time of the job
-        walltime: walltime of the job
-
-    Returns
-        True iff the job can start
+def get_candidates(nodes_status: Dict) -> Dict:
     """
-    candidates = []
-    from datetime import datetime
-    # network_address is the uid, e.g: m3-10.grenoble.iot-lab.info
+    Takes a dictionnary with the status of all the nodes as returned by the api and
+    returns the functionning ones (Alive or Busy) indexed by their network_address(fqn)
+    """
+    candidates = {}
     nodes = nodes_status.get("items")
     for node_status in nodes:
-        if node_status["archi"] == architecture:
-            if node_status["state"] == "Alive" or node_status["state"] == "Busy":
-                candidates.append(node_status['network_address'])
+        if node_status["state"] == "Alive" or node_status["state"] == "Busy":
+            candidates[node_status["network_address"]] = node_status
+    return candidates
+
+
+def get_free_nodes(
+    candidates: Dict, experiments_status: Dict, start: int, walltime: int
+) -> Dict:
+    """
+    Takes a dictionnary with all functionning nodes, all experiments status,
+    a start timestamp and a walltime and return all free nodes on that period of time
+
+    Args:
+        candidates: All functionning nodes in a dictionnary
+        experiments_status: All experiments and their status in a dictionnary
+        start: start timestamp
+        walltime: length required
+
+    Returns:
+        free node indexed by their network_address(fqdn)
+
+    """
     experiments = experiments_status.get("items")
+    from datetime import datetime
+    import copy
+
+    # at start every node is considered as free
+    # and we'll remove from them the nodes with conflicting reservation
+    copy_candidates = copy.deepcopy(candidates)
     for experiment_status in experiments:
         experiment_start_date = datetime.strptime(
-        experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ").timestamp()
-        exp_end_date = experiment_start_date + experiment_status["submitted_duration"]
+            experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ"
+        ).timestamp()
+        exp_end_date = experiment_start_date + int(
+            experiment_status["submitted_duration"]
+        )
         intersect_min = min(exp_end_date, start + walltime)
         intersect_max = max(experiment_start_date, start)
         intersect = intersect_min - intersect_max
         if intersect > 0:
             for node in experiment_status["nodes"]:
-                if node in candidates:
-                    candidates.remove(node)
-    if len(candidates) >= number and set(exact_nodes).issubset(candidates):
-        return True
-    return False
+                if node in copy_candidates:
+                    copy_candidates.pop(node)
+    return copy_candidates
+
+
+def test_slot(
+    conf: Configuration, nodes_status: Dict, experiments_status: Dict, start_time: int
+) -> bool:
+    """
+    Check if it is possible to start nodes requested by conf at time start_time
+    This is intended to give a good enough approximation.
+    This can be use to prefilter possible reservation dates before submitting
+    them on oar.
+
+    Args:
+        conf: an iotlab configuration object
+        nodes_status: a dictionnary with all the status of the nodes as
+            returned by the api
+        experiment_status: a dictionnary with all the status of the experiments
+            as returned by the api
+        start_time: start time of the job to test
+
+    Returns:
+        True iff the slot is free and thus can be reserved
+    """
+    machines_required = {}
+    candidates = get_candidates(nodes_status)
+    walltime = conf.walltime_s
+    free_nodes = get_free_nodes(candidates, experiments_status, start_time, walltime)
+    for machines in conf.machines:
+        if isinstance(machines, BoardConfiguration):
+            machines_required.setdefault(machines.archi, 0)
+            machines_required[machines.archi] = (
+                machines_required[machines.archi] + machines.number
+            )
+        else:
+            if not set(machines.hostname).issubset([f for f in free_nodes]):
+                return False
+            # machines share the same architecture within a group
+            archi = free_nodes[machines.hostname[0]]["archi"]
+            machines_required.setdefault(archi, 0)
+            machines_required[archi] = machines_required[archi] + len(machines.hostname)
+    for archi, number in machines_required.items():
+        available = len([f for f in free_nodes if free_nodes[f]["archi"] == archi])
+        if available < number:
+            return False
+    return True

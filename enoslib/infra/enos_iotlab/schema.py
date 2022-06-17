@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from jsonschema import Draft7Validator, FormatChecker
-from .error import EnosIotlabStartTimeFormatError, EnosIotlabWalltimeFormatError
+from .error import EnosIotLabPhysicalNodesError, EnosIotlabStartTimeFormatError
+from .error import EnosIotlabWalltimeFormatError
 from .constants import (
     PROFILE_ARCHI_TYPES,
     RADIO_MODE_TYPES,
@@ -74,7 +75,12 @@ SCHEMA = {
         "type": "object",
         "properties": {
             "roles": {"type": "array", "items": {"type": "string"}},
-            "hostname": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "hostname": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "format": "hostname",
+            },
             "image": {"type": "string"},
             "profile": {"type": "string"},
         },
@@ -170,6 +176,19 @@ def is_valid_start_time(instance):
         return True
     except ValueError:
         raise EnosIotlabStartTimeFormatError()
+
+
+@IotlabFormatChecker.checks("hostname", raises=EnosIotLabPhysicalNodesError)
+def is_valid_physical_nodes(instance):
+    if not isinstance(instance, list):
+        return False
+    archis = [machine.split("-")[0] for machine in instance]
+    n_archis = len(set(archis))
+    if n_archis != 1:
+        raise EnosIotLabPhysicalNodesError(
+            f"Found {n_archis} architecture(s) instead of 1"
+        )
+    return True
 
 
 IotlabValidator = Draft7Validator(SCHEMA, format_checker=IotlabFormatChecker)

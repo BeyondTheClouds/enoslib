@@ -100,6 +100,12 @@ class Configuration(BaseConfiguration):
         self.profiles.append(ProfileConfiguration(*args, **kwargs))
         return self
 
+    @property
+    def walltime_s(self):
+        """Returns the walltime of a configuration in seconds"""
+        split = self.walltime.split(":")
+        return int(split[0]) * 60 + int(split[1])
+
 
 class GroupConfiguration:
     """Base class for a group of machines"""

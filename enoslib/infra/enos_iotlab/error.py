@@ -19,3 +19,8 @@ class EnosIotlabStartTimeFormatError(EnosError):
         super(EnosIotlabStartTimeFormatError, self).__init__(
             "Start time must be specified in YY-mm-dd HH:MM:SS format"
         )
+
+
+class EnosIotLabPhysicalNodesError(EnosError):
+    def __init__(self, msg):
+        super(EnosIotLabPhysicalNodesError, self).__init__(msg)
