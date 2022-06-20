@@ -236,14 +236,21 @@ class ChameleonAPI:
     def release_resources(lease_name: str, rc_file: str):
         with source_credentials_from_rc_file(rc_file) as _site:
             chi.use_site(_site)
+            ChameleonAPI._delete_containers(lease_name)
             ChameleonAPI._delete_lease(lease_name)
+
+    @staticmethod
+    def _delete_containers(lease_name: str):
+        _lease = ChameleonAPI._get_lease(lease_name)
+        if _lease:
+            logger.info("Deleting containers...")
+            for _container in ChameleonAPI.get_containers_by_lease_id(_lease['id']):
+                container.destroy_container(_container.uuid)
+                logger.info(f"Container {_container.uuid} deleted!")
 
     @staticmethod
     def _delete_lease(lease_name: str):
         if ChameleonAPI._get_lease(lease_name):
-            logger.info("Deleting containers...")
-            for device_container in container.list_containers():
-                container.destroy_container(device_container.uuid)
             logger.info("Deleting lease...")
             lease.delete_lease(lease_name)
 
