@@ -1,8 +1,14 @@
 import os
 import logging
 from typing import List, Tuple
-from .constants import ROLES, ROLES_SEPARATOR, ROLES_CONTAINER_ATTR
-from enoslib.infra.enos_chameleonedge.chi_api_utils import check_connection_to_api
+from .constants import (
+    ROLES,
+    ROLES_SEPARATOR,
+    CONTAINER_LABELS
+)
+from enoslib.infra.enos_chameleonedge.chi_api_utils import (
+    check_connection_to_api
+)
 from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.objects import Networks, Roles
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
@@ -112,8 +118,8 @@ class ChameleonEdge(Provider):
     @staticmethod
     def get_node_roles(node):
         roles = None
-        if hasattr(node, ROLES_CONTAINER_ATTR):
-            container_roles = getattr(node, ROLES_CONTAINER_ATTR)
+        if hasattr(node, CONTAINER_LABELS):
+            container_roles = getattr(node, CONTAINER_LABELS)
             roles = container_roles[ROLES].split(ROLES_SEPARATOR)
         return roles
 

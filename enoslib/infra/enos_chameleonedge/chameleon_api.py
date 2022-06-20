@@ -98,12 +98,12 @@ class ChameleonAPI:
         filtered_containers = []
         for _container in container.list_containers():
             # filter containers by status: "Running" or "Creating"
-            if _container['status'] not in CONTAINER_STATUS:
+            if _container.status not in CONTAINER_STATUS:
                 continue
             # filter containers by lease id
-            if CONTAINER_LABELS in _container and \
-                    LEASE_ID in _container[CONTAINER_LABELS] and \
-                    _container[CONTAINER_LABELS][LEASE_ID] == lease_id:
+            if hasattr(_container, CONTAINER_LABELS) and \
+                    LEASE_ID in _container.__getattr__(CONTAINER_LABELS) and \
+                    _container.__getattr__(CONTAINER_LABELS)[LEASE_ID] == lease_id:
                 filtered_containers.append(_container)
         return filtered_containers
 
@@ -263,11 +263,6 @@ class ChameleonAPI:
         for kwarg in kwargs:
             if kwarg in cfg.container.kwargs:
                 extra_attr[kwarg] = cfg.container.kwargs[kwarg]
-        print("*" * 80)
-        print("*" * 80)
-        print(extra_attr)
-        print("*" * 80)
-        print("*" * 80)
         return extra_attr
 
     @staticmethod
