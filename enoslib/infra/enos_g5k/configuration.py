@@ -33,6 +33,7 @@ class Configuration(BaseConfiguration):
         # At some point we'll need to rename this to job_type*s*
         self.job_type = [DEFAULT_JOB_TYPE]
         self.key = DEFAULT_SSH_KEYFILE
+        self.monitor = None
         self.oargrid_jobids = None
         self.project = None
         self.queue = DEFAULT_QUEUE

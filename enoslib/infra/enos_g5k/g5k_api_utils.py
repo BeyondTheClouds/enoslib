@@ -794,6 +794,7 @@ def grid_get_or_create_job(
     reservation_date,
     queue,
     job_type,
+    monitor,
     project,
     machines,
     networks,
@@ -807,6 +808,7 @@ def grid_get_or_create_job(
             reservation_date,
             queue,
             job_type,
+            monitor,
             project,
             machines,
             networks,
@@ -845,11 +847,13 @@ def _build_reservation_criteria(machines, networks):
 
 
 def _do_grid_make_reservation(
-    criterias, job_name, walltime, reservation_date, queue, job_type, project
+    criterias, job_name, walltime, reservation_date, queue, job_type, monitor, project
 ):
     job_specs = []
     if isinstance(job_type, str):
         job_type = [job_type]
+    if monitor is not None:
+        job_type.append(f"monitor={monitor}")
     for site, criteria in criterias.items():
         resources = "+".join(criteria)
         resources = "%s,walltime=%s" % (resources, walltime)
@@ -871,7 +875,15 @@ def _do_grid_make_reservation(
 
 
 def grid_make_reservation(
-    job_name, walltime, reservation_date, queue, job_type, project, machines, networks
+    job_name,
+    walltime,
+    reservation_date,
+    queue,
+    job_type,
+    monitor,
+    project,
+    machines,
+    networks,
 ):
     if not reservation_date:
         # First check if synchronisation is required
@@ -888,6 +900,7 @@ def grid_make_reservation(
         reservation_date,
         queue,
         job_type,
+        monitor,
         project,
     )
 

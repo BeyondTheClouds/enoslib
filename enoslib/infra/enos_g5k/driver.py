@@ -91,6 +91,7 @@ class OargridDynamicDriver(Driver):
         job_name,
         walltime,
         job_type,
+        monitor,
         project,
         reservation_date,
         queue,
@@ -100,6 +101,7 @@ class OargridDynamicDriver(Driver):
         self.job_name = job_name
         self.walltime = walltime
         self.job_type = job_type
+        self.monitor = monitor
         self.project = project
         self.reservation_date = reservation_date
         self.queue = queue
@@ -113,6 +115,7 @@ class OargridDynamicDriver(Driver):
             self.reservation_date,
             self.queue,
             self.job_type,
+            self.monitor,
             self.project,
             self.machines,
             self.networks,
@@ -145,6 +148,7 @@ def get_driver(
         job_name = configuration.job_name
         walltime = configuration.walltime
         job_type = configuration.job_type
+        monitor = configuration.monitor
         reservation_date = configuration.reservation
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect
         # the queues and it was quiet convenient
@@ -156,6 +160,7 @@ def get_driver(
             job_name,
             walltime,
             job_type,
+            monitor,
             project,
             reservation_date,
             queue,
