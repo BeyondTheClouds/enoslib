@@ -12,7 +12,7 @@ class ChameleonDevice:
     """
     def __init__(
         self,
-        address: List[str],
+        address: str,
         roles: List[str],
         uuid: str,
         rc_file: str,

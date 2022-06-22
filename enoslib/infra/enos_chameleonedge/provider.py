@@ -88,7 +88,7 @@ class ChameleonEdge(Provider):
         for node in concrete_resources:
             devices.append(
                 ChameleonDevice(
-                    address=ChameleonEdge.get_node_address(node),
+                    address=ChameleonEdge.get_node_address(node)[0],
                     roles=ChameleonEdge.get_node_roles(node),
                     uuid=ChameleonEdge.get_node_uuid(node),
                     rc_file=rc_file,
