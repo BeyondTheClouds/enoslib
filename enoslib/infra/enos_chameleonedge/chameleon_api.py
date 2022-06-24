@@ -17,7 +17,9 @@ from enoslib.infra.enos_chameleonedge.chi_api_utils import (
 from .constants import (
     ROLES,
     ROLES_SEPARATOR,
-    ROLES_CONTAINER_ATTR
+    CONTAINER_LABELS,
+    CONTAINER_STATUS,
+    LEASE_ID,
 )
 
 logger = logging.getLogger(__name__)
@@ -76,8 +78,9 @@ class ChameleonAPI:
     ) -> List[Container]:
         with source_credentials_from_rc_file(rc_file) as _site:
             chi.use_site(_site)
-            if container.list_containers():
-                self.concrete_resources += container.list_containers()
+            self.concrete_resources = \
+                ChameleonAPI.get_containers_by_lease_id(leased_resources['id'])
+            if self.concrete_resources:
                 logger.info(f" Getting existing containers: {self.concrete_resources}.")
             else:
                 logger.info("Creating new containers.")
@@ -89,6 +92,20 @@ class ChameleonAPI:
                     logger.info(
                         container.wait_for_active(concrete_resource.uuid).status)
         return self.concrete_resources
+
+    @staticmethod
+    def get_containers_by_lease_id(lease_id: str):
+        filtered_containers = []
+        for _container in container.list_containers():
+            # filter containers by status: "Running" or "Creating"
+            if _container['status'] not in CONTAINER_STATUS:
+                continue
+            # filter containers by lease id
+            if CONTAINER_LABELS in _container and \
+                    LEASE_ID in _container[CONTAINER_LABELS] and \
+                    _container[CONTAINER_LABELS][LEASE_ID] == lease_id:
+                filtered_containers.append(_container)
+        return filtered_containers
 
     @staticmethod
     def lease_is_reusable(_lease):
@@ -211,7 +228,7 @@ class ChameleonAPI:
                     reservation_id=reservation_id,
                     start=cfg.container.start,
                     start_timeout=cfg.container.start_timeout,
-                    **self.get_container_kwargs(cfg)
+                    **self.get_container_kwargs(cfg, leased_resources['id'])
                 )
             )
 
@@ -231,17 +248,26 @@ class ChameleonAPI:
             lease.delete_lease(lease_name)
 
     @staticmethod
-    def get_container_kwargs(cfg):
+    def get_container_kwargs(cfg, lease_id: str):
         kwargs = zunclient.v1.containers.CREATION_ATTRIBUTES.copy()
-        for attr in ['name', 'image', 'exposed_ports', ROLES_CONTAINER_ATTR]:
+        for attr in ['name', 'image', 'exposed_ports', CONTAINER_LABELS]:
             kwargs.remove(attr) if attr in kwargs else None
         extra_attr = {
             "interactive": True,
-            ROLES_CONTAINER_ATTR:
-                {ROLES: ChameleonAPI.add_roles_in_container(cfg.roles)}}
+            CONTAINER_LABELS:
+                {
+                    ROLES: ChameleonAPI.add_roles_in_container(cfg.roles),
+                    LEASE_ID: lease_id,
+                }
+        }
         for kwarg in kwargs:
             if kwarg in cfg.container.kwargs:
                 extra_attr[kwarg] = cfg.container.kwargs[kwarg]
+        print("*" * 80)
+        print("*" * 80)
+        print(extra_attr)
+        print("*" * 80)
+        print("*" * 80)
         return extra_attr
 
     @staticmethod
