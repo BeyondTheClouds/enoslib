@@ -6,6 +6,7 @@ SCHEMA = {
         "key_name": {"type": "string"},
         "image": {"type": "string"},
         "user": {"type": "string"},
+        "rc_file": {"type": "string"},
         # optional keys
         "allocation_pool": {"$ref": "#/os_allocation_pool"},
         "configure_network": {"type": "boolean"},

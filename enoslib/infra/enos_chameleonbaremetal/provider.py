@@ -12,6 +12,9 @@ from neutronclient.neutron import client as neutron
 import enoslib.infra.enos_openstack.provider as openstack
 import enoslib.infra.enos_chameleonkvm.provider as cc
 
+from enoslib.infra.enos_openstack.utils import (
+    source_credentials_from_rc_file
+)
 
 logger = logging.getLogger(__name__)
 
@@ -160,43 +163,45 @@ def check_extra_ports(session, network, total):
 
 class Chameleonbaremetal(cc.Chameleonkvm):
     def init(self, force_deploy=False):
+        with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
+            logger.info(f"Using {_site}...")
+            conf = self.provider_conf
+            env = openstack.check_environment(conf)
+            lease = check_reservation(conf, env["session"])
+            extra_ips = check_extra_ports(
+                env["session"], env["network"], conf.extra_ips)
+            reservations = lease["reservations"]
+            machines = self.provider_conf.machines
+            machines = sorted(machines, key=by_flavor)
+            servers = []
+            for flavor, descs in groupby(machines, key=by_flavor):
+                _machines = list(descs)
+                # NOTE(msimonin): There should be only one reservation per flavor
+                hints = [
+                    {"reservation": r["id"]}
+                    for r in reservations
+                    if flavor in r["resource_properties"]
+                ]
+                # It's still a bit tricky here
+                os_servers = openstack.check_servers(
+                    env["session"],
+                    _machines,
+                    # NOTE(msimonin): we should be able to deduce the flavour from
+                    # the name
+                    extra_prefix="-o-{}-o-".format(flavor.replace("_", "-")),
+                    force_deploy=force_deploy,
+                    key_name=conf.key_name,
+                    image_id=env["image_id"],
+                    flavors="baremetal",
+                    network=env["network"],
+                    ext_net=env["ext_net"],
+                    scheduler_hints=hints,
+                )
+                servers.extend(os_servers)
 
-        conf = self.provider_conf
-        env = openstack.check_environment(conf)
-        lease = check_reservation(conf, env["session"])
-        extra_ips = check_extra_ports(env["session"], env["network"], conf.extra_ips)
-        reservations = lease["reservations"]
-        machines = self.provider_conf.machines
-        machines = sorted(machines, key=by_flavor)
-        servers = []
-        for flavor, descs in groupby(machines, key=by_flavor):
-            _machines = list(descs)
-            # NOTE(msimonin): There should be only one reservation per flavor
-            hints = [
-                {"reservation": r["id"]}
-                for r in reservations
-                if flavor in r["resource_properties"]
-            ]
-            # It's still a bit tricky here
-            os_servers = openstack.check_servers(
-                env["session"],
-                _machines,
-                # NOTE(msimonin): we should be able to deduce the flavour from
-                # the name
-                extra_prefix="-o-{}-o-".format(flavor.replace("_", "-")),
-                force_deploy=force_deploy,
-                key_name=conf.key_name,
-                image_id=env["image_id"],
-                flavors="baremetal",
-                network=env["network"],
-                ext_net=env["ext_net"],
-                scheduler_hints=hints,
-            )
-            servers.extend(os_servers)
+            deployed, _ = openstack.wait_for_servers(env["session"], servers)
 
-        deployed, _ = openstack.wait_for_servers(env["session"], servers)
-
-        gateway_ip, _ = openstack.check_gateway(env, conf.gateway, deployed)
+            gateway_ip, _ = openstack.check_gateway(env, conf.gateway, deployed)
 
         # NOTE(msimonin) build the roles and networks This is a bit tricky here
         # since flavor (e.g compute_haswell) doesn"t correspond to a flavor
@@ -213,12 +218,14 @@ class Chameleonbaremetal(cc.Chameleonkvm):
         )
 
     def destroy(self):
-        # destroy the associated lease should be enough
-        session = openstack.get_session()
-        bclient = create_blazar_client(self.provider_conf, session)
-        lease = get_reservation(bclient, self.provider_conf)
-        if lease is None:
-            logger.info("No lease to destroy")
-            return
-        bclient.lease.delete(lease["id"])
-        logger.info("Destroyed %s" % lease_to_s(lease))
+        with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
+            logger.info(f"Using {_site}...")
+            # destroy the associated lease should be enough
+            session = openstack.get_session()
+            bclient = create_blazar_client(self.provider_conf, session)
+            lease = get_reservation(bclient, self.provider_conf)
+            if lease is None:
+                logger.info("No lease to destroy")
+                return
+            bclient.lease.delete(lease["id"])
+            logger.info("Destroyed %s" % lease_to_s(lease))

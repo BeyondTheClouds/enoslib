@@ -21,6 +21,7 @@ class Configuration(BaseConfiguration):
         self.key_name = None
         self.image = None
         self.user = None
+        self.rc_file = None
 
         self.allocation_pool = DEFAULT_ALLOCATION_POOL
         self.configure_network = DEFAULT_CONFIGURE_NETWORK
