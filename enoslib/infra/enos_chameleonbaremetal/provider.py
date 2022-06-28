@@ -164,7 +164,7 @@ def check_extra_ports(session, network, total):
 class Chameleonbaremetal(cc.Chameleonkvm):
     def init(self, force_deploy=False):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f"Using {_site}...")
+            logger.info(f" Using {_site}.")
             conf = self.provider_conf
             env = openstack.check_environment(conf)
             lease = check_reservation(conf, env["session"])
@@ -219,7 +219,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
 
     def destroy(self):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f"Using {_site}...")
+            logger.info(f" Using {_site}.")
             # destroy the associated lease should be enough
             session = openstack.get_session()
             bclient = create_blazar_client(self.provider_conf, session)

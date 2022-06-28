@@ -525,7 +525,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
 class Openstack(Provider):
     def init(self, force_deploy=False):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f"Using {_site}...")
+            logger.info(f" Using {_site}.")
             logger.info("Checking the existing environment")
 
             env = check_environment(self.provider_conf)
@@ -566,7 +566,7 @@ class Openstack(Provider):
 
     def destroy(self):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f"Using {_site}...")
+            logger.info(f" Using {_site}.")
             session = get_session()
             nclient = nova.Client(
                 NOVA_VERSION, session=session, region_name=os.environ["OS_REGION_NAME"]
