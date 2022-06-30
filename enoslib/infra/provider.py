@@ -76,6 +76,12 @@ class Provider:
         "Abstract. Destroy the resources used for the deployment."
         pass
 
+    @abstractmethod
+    def test_slot(self, start_time: int):
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        pass
+
     def __enter__(self):
         return self.init()
 

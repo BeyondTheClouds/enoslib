@@ -9,3 +9,9 @@ class Chameleonkvm(openstack.Openstack):
 
     def destroy(self):
         super(Chameleonkvm, self).destroy()
+
+    def test_slot(self, start_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        # Unimplemented
+        return False

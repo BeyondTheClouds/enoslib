@@ -487,19 +487,28 @@ def test_slot(
     free_nodes = get_free_nodes(candidates, experiments_status, start_time, walltime)
     for machines in conf.machines:
         if isinstance(machines, BoardConfiguration):
-            machines_required.setdefault(machines.archi, 0)
-            machines_required[machines.archi] = (
-                machines_required[machines.archi] + machines.number
+            machines_required.setdefault((machines.archi, machines.site), 0)
+            machines_required[(machines.archi, machines.site)] = (
+                machines_required[(machines.archi, machines.site)] + machines.number
             )
         else:
             if not set(machines.hostname).issubset([f for f in free_nodes]):
                 return False
             # machines share the same architecture within a group
             archi = free_nodes[machines.hostname[0]]["archi"]
-            machines_required.setdefault(archi, 0)
-            machines_required[archi] = machines_required[archi] + len(machines.hostname)
-    for archi, number in machines_required.items():
-        available = len([f for f in free_nodes if free_nodes[f]["archi"] == archi])
+            site = free_nodes[machines.hostname[0]]["site"]
+            machines_required.setdefault((archi, site), 0)
+            machines_required[(archi, site)] = machines_required[(archi, site)] + len(
+                machines.hostname
+            )
+    for (archi, site), number in machines_required.items():
+        available = len(
+            [
+                f
+                for f in free_nodes
+                if free_nodes[f]["archi"] == archi and free_nodes[f]["site"] == site
+            ]
+        )
         if available < number:
             return False
     return True

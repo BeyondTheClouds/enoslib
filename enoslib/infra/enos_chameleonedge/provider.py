@@ -1,14 +1,8 @@
 import os
 import logging
 from typing import List, Tuple
-from .constants import (
-    ROLES,
-    ROLES_SEPARATOR,
-    ROLES_CONTAINER_ATTR
-)
-from enoslib.infra.enos_chameleonedge.chi_api_utils import (
-    check_connection_to_api
-)
+from .constants import ROLES, ROLES_SEPARATOR, ROLES_CONTAINER_ATTR
+from enoslib.infra.enos_chameleonedge.chi_api_utils import check_connection_to_api
 from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.objects import Networks, Roles
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
@@ -19,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 class ChameleonEdge(Provider):
     """
-        The provider to be used when deploying on CHI@Edge testbed
+    The provider to be used when deploying on CHI@Edge testbed
 
-        Args:
-            provider_conf: Configuration file for Chameleon platform
+    Args:
+        provider_conf: Configuration file for Chameleon platform
     """
 
     def __init__(self, *args, **kwargs):
@@ -34,11 +28,11 @@ class ChameleonEdge(Provider):
 
     def init(self, force_deploy=False):
         """
-            Take ownership over CHI@Edge resources
-            Return inventory of resources allocated.
+        Take ownership over CHI@Edge resources
+        Return inventory of resources allocated.
 
-            Returns:
-                (roles, dict): representing the inventory of resources.
+        Returns:
+            (roles, dict): representing the inventory of resources.
         """
         leased_resources = self._reserve()
         self._deploy(leased_resources)
@@ -59,12 +53,11 @@ class ChameleonEdge(Provider):
         Deploy container on devices.
         """
         concrete_resources = self.client.deploy_containers(
-            self.provider_conf.rc_file,
-            self.provider_conf.machines,
-            leased_resources
+            self.provider_conf.rc_file, self.provider_conf.machines, leased_resources
         )
         self.devices = self.from_api_resources_to_enoslib_chameleon_device(
-            concrete_resources, self.provider_conf.rc_file)
+            concrete_resources, self.provider_conf.rc_file
+        )
 
         logger.info("Deployment finished: %s", str(self.devices))
 
@@ -99,18 +92,21 @@ class ChameleonEdge(Provider):
     @staticmethod
     def get_node_address(node):
         addrs = []
-        if hasattr(node, 'addresses'):
-            addresses = getattr(node, 'addresses')
-            for k, v, in addresses.items():
+        if hasattr(node, "addresses"):
+            addresses = getattr(node, "addresses")
+            for (
+                k,
+                v,
+            ) in addresses.items():
                 for ip in v:
-                    addrs.append(ip['addr'])
+                    addrs.append(ip["addr"])
         return addrs
 
     @staticmethod
     def get_node_uuid(node):
         uuid = None
-        if hasattr(node, 'uuid'):
-            uuid = getattr(node, 'uuid')
+        if hasattr(node, "uuid"):
+            uuid = getattr(node, "uuid")
         return uuid
 
     @staticmethod
@@ -127,6 +123,12 @@ class ChameleonEdge(Provider):
             self.provider_conf.lease_name,
             self.provider_conf.rc_file,
         )
+
+    def test_slot(self, start_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        # Unimplemented
+        return False
 
 
 def check() -> List[Tuple[str, bool, str]]:
@@ -145,7 +147,8 @@ def check() -> List[Tuple[str, bool, str]]:
 
     if not statuses:
         statuses.append(
-            ("api:access", False, f"No openrc files found at: {os.getcwd()}"))
+            ("api:access", False, f"No openrc files found at: {os.getcwd()}")
+        )
     return statuses
 
 

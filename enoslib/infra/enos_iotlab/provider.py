@@ -8,7 +8,7 @@ import iotlabcli.auth
 from enoslib.api import play_on, run, CommandResult, CustomCommandResult
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
-from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
+from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI, test_slot
 from enoslib.infra.enos_iotlab.objects import (
     IotlabHost,
     IotlabSensor,
@@ -88,6 +88,8 @@ class Iotlab(Provider):
         self.hosts: List[IotlabHost] = []
         self.sensors: List[IotlabSensor] = []
         self.networks: List[IotlabNetwork] = []
+        self.nodes_status = None
+        self.experiments_status = None
 
     def init(self, force_deploy: bool = False):
         """
@@ -358,3 +360,23 @@ class Iotlab(Provider):
                 networks.setdefault(role, []).append(network)
 
         return roles, networks
+
+    def test_slot(self, start_time: int, end_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        if self.nodes_status is None:
+            self.nodes_status = self.client.api.get_nodes()
+            from datetime import datetime
+
+            start_param = datetime.fromtimestamp(
+                datetime.now().timestamp() + 60
+            ).strftime("%Y-%m-%dT%H:%M:%SZ")
+            stop_param = datetime.fromtimestamp(
+                end_time + self.provider_conf.walltime_s
+            ).strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.experiments_status = self.client.api.method(
+                url=f"drawgantt/experiments?start={start_param}&stop={stop_param}"
+            )
+        return test_slot(
+            self.provider_conf, self.nodes_status, self.experiments_status, start_time
+        )

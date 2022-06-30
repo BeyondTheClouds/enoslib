@@ -104,7 +104,7 @@ class Configuration(BaseConfiguration):
     def walltime_s(self):
         """Returns the walltime of a configuration in seconds"""
         split = self.walltime.split(":")
-        return int(split[0]) * 60 + int(split[1])
+        return int(split[0]) * 3600 + int(split[1]) * 60
 
 
 class GroupConfiguration:
