@@ -640,17 +640,19 @@ def can_start_on_cluster(
 
 
 def _test_slot(
-    start: float, walltime: str, machines: Dict, force: bool = False
-) -> Optional[bool]:
+    start: float,
+    walltime: str,
+    machines: Dict,
+    clusters_status: Dict,
+) -> bool:
     """
-    To address https://gitlab.inria.fr/discovery/enoslib/-/issues/104 we add
-    a force option. Indeed machines can come from different job_types (and
-    synchronisation is mandatory in this case even for nodes on the same
-    site).
+    This function test if it is possible at a specified start time to
+    make a reservation using the machines specified in machines dictionnary
+    To do so it takes clusters_status as an entry, which is the result of api calls
+    to get the status of the corresponding clusters
 
     Returns:
         The return value follows this semantic:
-            - None: no reservervation is required (e.g single site)
             - False: the proposed slot isn't available for the reservation
             - True: the proposed start date seems to be available
                 (at the time of probing the API)
@@ -670,34 +672,20 @@ def _test_slot(
         demands[cluster] += number
         exact_nodes[cluster].extend(exact)
 
-    # Early leave if only one cluster is there (and not force set)
-    if not force and len(list(demands.keys())) <= 1:
-        logger.debug("Only one cluster detected: no synchronisation needed")
-        return None
-
-    clusters = clusters_sites_obj(list(demands.keys()))
-
-    # Early leave if only one site is concerned (and not force set
-    sites = set(list(clusters.values()))
-    if not force and len(sites) <= 1:
-        logger.debug("Only one site detected: no synchronisation needed")
-        return None
-
-    # Test the proposed reservation_date
-    logger.debug(
-        f"Testing slot candidate start={_date2h(start)} walltime={walltime} on {sites}"
-    )
     ko = False
+
     for cluster, nodes in demands.items():
-        cluster_status = clusters[cluster].clusters[cluster].status.list()
         ko = ko or not can_start_on_cluster(
-            cluster_status.nodes, nodes, exact_nodes[cluster], start, _walltime
+            clusters_status[cluster]["nodes"],
+            nodes,
+            exact_nodes[cluster],
+            start,
+            _walltime,
         )
         if ko:
             return False
     if not ko:
         # The proposed reservation_date fits
-        logger.info("Reservation_date=%s (%s)" % (_date2h(start), sites))
         return True
     return False
 
@@ -719,17 +707,35 @@ def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float
     Raises:
         EnosG5kSynchronisationError if no slot can't be found.
     """
+    demands: MutableMapping[str, int] = defaultdict(int)
+    for machine in machines:
+        cluster = machine.cluster
+        number, exact = machine.get_demands()
+        demands[cluster] += number
+
+    # Early leave if only one cluster is there (and not force set)
+    if not force and len(list(demands.keys())) <= 1:
+        logger.debug("Only one cluster detected: no synchronisation needed")
+        return None
+    clusters = clusters_sites_obj(list(demands.keys()))
+
+    # Early leave if only one site is concerned (and not force set
+    sites = set(list(clusters.values()))
+    if not force and len(sites) <= 1:
+        logger.debug("Only one site detected: no synchronisation needed")
+        return None
+
     offset = SYNCHRONISATION_OFFSET
     delay = SYNCHRONISATION_INTERVAL
     start = time.time() + offset
-    test_slot = _test_slot(start, walltime, machines, force=force)
+    test_slot = _test_slot(start, walltime, machines)
     # the returned value of test slot is the following
     # - None: no reservation is needed
     # - True: the tested slot is ok
     # - False: the tested slot is ko (need to test another one)
     while test_slot is not None and not test_slot:
         start = start + delay
-        test_slot = _test_slot(start, walltime, machines, force=force)
+        test_slot = _test_slot(start, walltime, machines)
     if test_slot is None:
         # no synchronisation needed
         return None

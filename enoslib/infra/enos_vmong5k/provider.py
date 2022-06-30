@@ -350,3 +350,10 @@ class VMonG5k(Provider):
 
     def __str__(self):
         return "VMonG5k"
+
+    def test_slot(self, start_time: int, end_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        g5k_provider = g5kprovider.G5k(g5k_conf)
+        return g5k_provider.test_slot(start_time, end_time)

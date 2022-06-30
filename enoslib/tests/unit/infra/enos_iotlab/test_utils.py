@@ -29,42 +29,45 @@ class TestIotStuffs(EnosTest):
             "items": [
                 {
                     "state": "Alive",
-                    "network_address": "test-id.site",
+                    "network_address": "test-id.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 }
             ]
         }
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 1,
-                    "nodes": ["test-id.site"],
+                    "submitted_duration": 1 * 60,
+                    "nodes": ["test-id.siteTest"],
                 }
             ]
         }
 
         conf = Configuration.from_settings(walltime="00:04")
-        conf.add_machine_conf(BoardConfiguration(archi="test:xxx", number=1))
+        conf.add_machine_conf(
+            BoardConfiguration(archi="test:xxx", site="siteTest", number=1)
+        )
 
         ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 1)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 1 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 3)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 3 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 5)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 5 * 60)
         self.assertTrue(ok)
 
     def test_nodes_availability_2_1(self):
@@ -87,13 +90,15 @@ class TestIotStuffs(EnosTest):
             "items": [
                 {
                     "state": "Alive",
-                    "network_address": "test-id.site",
+                    "network_address": "test-id.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
                 {
                     "state": "Alive",
-                    "network_address": "test-id2.site",
+                    "network_address": "test-id2.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
             ]
         }
@@ -101,38 +106,40 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 4,
-                    "nodes": ["test-id.site"],
+                    "submitted_duration": 4 * 60,
+                    "nodes": ["test-id.siteTest"],
                 },
                 {
                     "start_date": datetime.fromtimestamp(0).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 4,
-                    "nodes": ["test-id2.site"],
+                    "submitted_duration": 4 * 60,
+                    "nodes": ["test-id2.siteTest"],
                 },
             ]
         }
 
         conf = Configuration.from_settings(walltime="00:04")
-        conf.add_machine_conf(BoardConfiguration(archi="test:xxx", number=1))
+        conf.add_machine_conf(
+            BoardConfiguration(archi="test:xxx", site="siteTest", number=1)
+        )
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0 * 60)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4 * 60)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6 * 60)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8 * 60)
         self.assertTrue(ok)
 
     def test_can_start_on_cluster_2_2(self):
@@ -159,7 +166,7 @@ class TestIotStuffs(EnosTest):
                     ),
                     "submitted_duration": 4,
                     "nodes": [
-                        "test-id.site",
+                        "test-id.siteTest",
                     ],
                 },
                 {
@@ -167,7 +174,7 @@ class TestIotStuffs(EnosTest):
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
-                    "nodes": ["test-id2.site"],
+                    "nodes": ["test-id2.siteTest"],
                 },
                 {
                     "start_date": datetime.fromtimestamp(4).strftime(
@@ -175,7 +182,7 @@ class TestIotStuffs(EnosTest):
                     ),
                     "submitted_duration": 4,
                     "nodes": [
-                        "test-id2.site",
+                        "test-id2.siteTest",
                     ],
                 },
             ]
@@ -185,19 +192,23 @@ class TestIotStuffs(EnosTest):
             "items": [
                 {
                     "state": "Alive",
-                    "network_address": "test-id.site",
+                    "network_address": "test-id.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
                 {
                     "state": "Alive",
-                    "network_address": "test-id2.site",
+                    "network_address": "test-id2.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
             ]
         }
 
         conf = Configuration.from_settings(walltime="00:04")
-        conf.add_machine_conf(BoardConfiguration(archi="test:xxx", number=2))
+        conf.add_machine_conf(
+            BoardConfiguration(archi="test:xxx", site="siteTest", number=2)
+        )
 
         ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
         self.assertFalse(ok)
@@ -237,14 +248,14 @@ class TestIotStuffs(EnosTest):
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
-                    "nodes": ["test-id.site"],
+                    "nodes": ["test-id.siteTest"],
                 },
                 {
                     "start_date": datetime.fromtimestamp(0).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
-                    "nodes": ["test-id2.site"],
+                    "nodes": ["test-id2.siteTest"],
                 },
             ]
         }
@@ -253,19 +264,21 @@ class TestIotStuffs(EnosTest):
             "items": [
                 {
                     "state": "Alive",
-                    "network_address": "test-id.site",
+                    "network_address": "test-id.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
                 {
                     "state": "Busy",
-                    "network_address": "test-id2.site",
+                    "network_address": "test-id2.siteTest",
                     "archi": "test:xxx",
+                    "site": "siteTest",
                 },
             ]
         }
 
         conf = Configuration.from_settings(walltime="00:04")
-        conf.add_machine_conf(PhysNodeConfiguration(hostname=["test-id2.site"]))
+        conf.add_machine_conf(PhysNodeConfiguration(hostname=["test-id2.siteTest"]))
 
         ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
         self.assertFalse(ok)
@@ -281,3 +294,24 @@ class TestIotStuffs(EnosTest):
 
         ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8)
         self.assertTrue(ok)
+
+    def test_cannot_start_no_free_machine_on_site(self):
+        nodes_status = {
+            "items": [
+                {
+                    "state": "Alive",
+                    "network_address": "test-id.siteTest",
+                    "archi": "test:xxx",
+                    "site": "siteTest",
+                },
+            ]
+        }
+
+        experiments_status = {"items": []}
+
+        conf = Configuration().from_settings(walltime="00:01")
+        conf.add_machine_conf(
+            BoardConfiguration(archi="test:xxx", site="siteTest2", number=1)
+        )
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
+        self.assertFalse(ok)

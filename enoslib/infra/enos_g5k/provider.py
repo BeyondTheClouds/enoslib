@@ -1,10 +1,21 @@
 # -*- coding: utf-8 -*-
+from collections import defaultdict
 import copy
 from contextlib import contextmanager
 import logging
 import operator
 from itertools import groupby
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 
 from enoslib.api import run, CommandResult, CustomCommandResult
@@ -32,8 +43,10 @@ from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
     _do_synchronise_jobs,
+    clusters_sites_obj,
     get_api_client,
     get_api_username,
+    _test_slot,
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -385,6 +398,7 @@ class G5k(Provider):
         self.networks = []
         self.deployed = []
         self.undeployed = []
+        self.clusters_status = None
 
         # execo connection params for routines configuration and checks
         # the priv key path is built from the public key path by removing the
@@ -698,6 +712,30 @@ class G5k(Provider):
 
     def __str__(self):
         return "G5k"
+
+    def test_slot(self, start_time: int, end_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        demands: MutableMapping[str, int] = defaultdict(int)
+        exact_nodes = defaultdict(list)
+        for machine in self.provider_conf.machines:
+            cluster = machine.cluster
+            number, exact = machine.get_demands()
+            demands[cluster] += number
+            exact_nodes[cluster].extend(exact)
+        if self.clusters_status is None:
+            clusters = clusters_sites_obj(list(demands.keys()))
+            self.clusters_status = {}
+            for cluster, nodes in demands.items():
+                self.clusters_status[cluster] = (
+                    clusters[cluster].clusters[cluster].status.list()
+                )
+        return _test_slot(
+            start_time,
+            self.provider_conf.walltime,
+            self.provider_conf.machines,
+            self.clusters_status,
+        )
 
 
 def _lookup_networks(network_id: str, networks: List[G5kNetwork]):

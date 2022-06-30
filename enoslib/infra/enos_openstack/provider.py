@@ -72,7 +72,8 @@ def get_session():
             auth = v3.ApplicationCredential(
                 auth_url=os.environ["OS_AUTH_URL"],
                 application_credential_secret=os.environ[
-                    "OS_APPLICATION_CREDENTIAL_SECRET"],
+                    "OS_APPLICATION_CREDENTIAL_SECRET"
+                ],
                 application_credential_id=os.environ["OS_APPLICATION_CREDENTIAL_ID"],
             )
         else:
@@ -569,3 +570,9 @@ class Openstack(Provider):
             if is_in_current_deployment(server):
                 logger.info("Deleting %s" % server)
                 server.delete()
+
+    def test_slot(self, start_time: int, end_time: int) -> bool:
+        """Test if it is possible to reserve the configuration corresponding
+        to this provider at start_time"""
+        # Unimplemented
+        return False
