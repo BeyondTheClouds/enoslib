@@ -1,7 +1,6 @@
 import time
 from typing import List, Set
 import logging
-import chi
 import zunclient.v1.containers
 from chi import lease
 from chi import container
@@ -53,8 +52,6 @@ class ChameleonAPI:
             dict: The lease representation
         """
         with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
-
             _lease = ChameleonAPI._get_lease(lease_name)
             if _lease is not None:
                 if ChameleonAPI.lease_is_reusable(_lease):
@@ -77,7 +74,6 @@ class ChameleonAPI:
             leased_resources: dict
     ) -> List[Container]:
         with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
             self.concrete_resources = \
                 ChameleonAPI.get_containers_by_lease_id(leased_resources['id'])
             if self.concrete_resources:
@@ -234,8 +230,7 @@ class ChameleonAPI:
 
     @staticmethod
     def release_resources(lease_name: str, rc_file: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             ChameleonAPI._delete_lease(lease_name)
 
     @staticmethod
@@ -276,52 +271,45 @@ class ChameleonAPI:
 
     @staticmethod
     def execute(uuid: str, rc_file: str, command: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.execute(uuid, command)
         return result
 
     @staticmethod
     def upload(uuid: str, rc_file: str, source: str, dest: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.upload(uuid, source, dest)
         return result
 
     @staticmethod
     def download(uuid: str, rc_file: str, source: str, dest: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.download(uuid, source, dest)
         return result
 
     @staticmethod
     def associate_floating_ip(uuid: str, rc_file: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.associate_floating_ip(uuid)
         return result
 
     @staticmethod
     def destroy_container(uuid: str, rc_file: str):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.destroy_container(uuid)
         return result
 
     @staticmethod
     def get_logs(uuid: str, rc_file: str,
                  stdout: bool = True, stderr: bool = True):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.get_logs(uuid, stdout, stderr)
         return result
 
     @staticmethod
     def snapshot_container(uuid: str, rc_file: str,
                            repository: str, tag: str = 'latest'):
-        with source_credentials_from_rc_file(rc_file) as _site:
-            chi.use_site(_site)
+        with source_credentials_from_rc_file(rc_file):
             result = container.snapshot_container(uuid, repository, tag)
         return result
 

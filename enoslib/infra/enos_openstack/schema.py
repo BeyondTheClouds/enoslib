@@ -18,7 +18,7 @@ SCHEMA = {
         "prefix": {"type": "string"},
     },
     "additionalProperties": False,
-    "required": ["resources", "key_name", "image", "user"],
+    "required": ["resources", "key_name", "image", "user", "rc_file"],
     "os_allocation_pool": {
         "title": "OSallocationPool",
         "type": "object",
