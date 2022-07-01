@@ -309,12 +309,23 @@ def check():
 class VMonG5k(Provider):
     """The provider to use when deploying virtual machines on Grid'5000."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._g5k_provider = None
+        # see if we can remove this since we can access them through the g5k_provider
+        self.g5k_roles = None
+        self.g5k_networks = None
+
+    @property
+    def g5k_provider(self):
+        return self._g5k_provider
+
     def init(self, force_deploy=False):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
-        g5k_provider = g5kprovider.G5k(g5k_conf)
-        self.g5k_roles, self.g5k_networks = g5k_provider.init()
+        self._g5k_provider = g5kprovider.G5k(g5k_conf)
+        self.g5k_roles, self.g5k_networks = self._g5k_provider.init()
 
         # we concretize the virtualmachines
         # assign each group of vms to a list of possible pms and macs

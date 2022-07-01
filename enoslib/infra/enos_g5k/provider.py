@@ -462,6 +462,10 @@ class G5k(Provider):
         """Destroys the jobs."""
         self.driver.destroy(wait=wait)
 
+    @property
+    def jobs(self):
+        return self.driver.get_jobs()
+
     def launch(self):
         # drop in replacement for Resource.launch
         self.reserve()
