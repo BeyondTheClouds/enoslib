@@ -123,7 +123,7 @@ class IotlabAPI:
         start_time_timestamp = None
         if start_time:
             start_time_timestamp = str(
-                int(datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S"))
+                int(datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp())
             )
         json_res = iotlabcli.experiment.submit_experiment(
             api=self.api,
