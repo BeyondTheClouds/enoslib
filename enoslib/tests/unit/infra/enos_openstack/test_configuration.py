@@ -11,6 +11,7 @@ class TestConfiguration(EnosTest):
             "key_name": "test_key",
             "user": "test_user",
             "image": "test_image",
+            "rc_file": "test_rc_file",
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionnary(d)
@@ -27,6 +28,7 @@ class TestConfiguration(EnosTest):
             "key_name": "test_key",
             "user": "test_user",
             "image": "test_image",
+            "rc_file": "rc_file",
             "resources": {
                 "machines": [{"roles": ["r1"], "flavour": "m1.tiny", "number": 1}],
                 "networks": ["api"],

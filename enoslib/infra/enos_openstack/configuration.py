@@ -59,6 +59,7 @@ class Configuration(BaseConfiguration):
             key_name=self.key_name,
             image=self.image,
             user=self.user,
+            rc_file=self.rc_file,
             resources={
                 "machines": [m.to_dict() for m in self.machines],
                 "networks": self.networks,
