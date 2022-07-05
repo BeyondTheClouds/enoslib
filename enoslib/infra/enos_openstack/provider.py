@@ -43,6 +43,9 @@ from .constants import (
 )
 from .objects import OSNetwork
 
+from enoslib.infra.enos_openstack.utils import (
+    source_credentials_from_rc_file
+)
 
 logger = logging.getLogger(__name__)
 
@@ -522,32 +525,34 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
 
 class Openstack(Provider):
     def init(self, force_deploy=False):
-        logger.info("Checking the existing environment")
+        with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
+            logger.info(f" Using {_site}.")
+            logger.info("Checking the existing environment")
 
-        env = check_environment(self.provider_conf)
-        servers = check_servers(
-            env["session"],
-            self.provider_conf.machines,
-            extra_prefix=self.provider_conf.prefix,
-            force_deploy=force_deploy,
-            key_name=self.provider_conf.key_name,
-            image_id=env["image_id"],
-            flavors=(env["flavor_to_id"], env["id_to_flavor"]),
-            network=env["network"],
-            ext_net=env["ext_net"],
-        )
+            env = check_environment(self.provider_conf)
+            servers = check_servers(
+                env["session"],
+                self.provider_conf.machines,
+                extra_prefix=self.provider_conf.prefix,
+                force_deploy=force_deploy,
+                key_name=self.provider_conf.key_name,
+                image_id=env["image_id"],
+                flavors=(env["flavor_to_id"], env["id_to_flavor"]),
+                network=env["network"],
+                ext_net=env["ext_net"],
+            )
 
-        logger.info("Waiting for the all the servers to be active")
-        deployed, _ = wait_for_servers(env["session"], servers)
-        # NOTE(msimonin): handle the case of undeployed nodes
+            logger.info("Waiting for the all the servers to be active")
+            deployed, _ = wait_for_servers(env["session"], servers)
+            # NOTE(msimonin): handle the case of undeployed nodes
 
-        deployed = sorted(deployed, key=lambda s: s.name)
+            deployed = sorted(deployed, key=lambda s: s.name)
 
-        gateway_ip, _ = check_gateway(env, self.provider_conf.gateway, deployed)
+            gateway_ip, _ = check_gateway(env, self.provider_conf.gateway, deployed)
 
-        allow_address_pairs(
-            env["session"], env["network"], self.provider_conf.subnet["cidr"]
-        )
+            allow_address_pairs(
+                env["session"], env["network"], self.provider_conf.subnet["cidr"]
+            )
 
         # NOTE(msimonin): polling is missing
         # we aren't sure that machines are ssh-reachable
@@ -561,15 +566,17 @@ class Openstack(Provider):
         )
 
     def destroy(self):
-        session = get_session()
-        nclient = nova.Client(
-            NOVA_VERSION, session=session, region_name=os.environ["OS_REGION_NAME"]
-        )
-        servers = nclient.servers.list()
-        for server in servers:
-            if is_in_current_deployment(server):
-                logger.info("Deleting %s" % server)
-                server.delete()
+        with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
+            logger.info(f" Using {_site}.")
+            session = get_session()
+            nclient = nova.Client(
+                NOVA_VERSION, session=session, region_name=os.environ["OS_REGION_NAME"]
+            )
+            servers = nclient.servers.list()
+            for server in servers:
+                if is_in_current_deployment(server):
+                    logger.info("Deleting %s" % server)
+                    server.delete()
 
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test if it is possible to reserve the configuration corresponding

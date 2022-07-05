@@ -7,6 +7,7 @@ logging.basicConfig(level=logging.INFO)
 provider_conf = {
     "key_name": "enos_matt",
     "lease_name": "mylease",
+    "rc_file": "./my-app-cred-edge-openrc.sh",  # FIXME use your OPENRC file
     "resources": {
         "machines": [{
             "roles": ["server"],

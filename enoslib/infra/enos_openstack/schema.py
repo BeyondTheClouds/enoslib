@@ -6,6 +6,7 @@ SCHEMA = {
         "key_name": {"type": "string"},
         "image": {"type": "string"},
         "user": {"type": "string"},
+        "rc_file": {"type": "string"},
         # optional keys
         "allocation_pool": {"$ref": "#/os_allocation_pool"},
         "configure_network": {"type": "boolean"},
@@ -17,7 +18,7 @@ SCHEMA = {
         "prefix": {"type": "string"},
     },
     "additionalProperties": False,
-    "required": ["resources", "key_name", "image", "user"],
+    "required": ["resources", "key_name", "image", "user", "rc_file"],
     "os_allocation_pool": {
         "title": "OSallocationPool",
         "type": "object",
