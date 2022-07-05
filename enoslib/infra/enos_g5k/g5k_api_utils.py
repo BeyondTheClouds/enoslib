@@ -911,3 +911,78 @@ def grid_make_reservation(
     )
 
     return jobs
+
+
+def enable_home_for_job(job: Job, ips: List[str]):
+    """Enable access to home dir from ips.
+
+    This allows to mount the home dir corresponding to the site of job
+    from any of the ips provided.
+
+
+    Examples:
+
+        .. code-block:: python
+
+            roles, networks = provider.init()
+            # get some ips to allow
+            ips = [str(ip) for ip in networks["role"][0].network]
+
+            # get the underlying job
+            job = provider.jobs[0]
+            enable_home_for_job(job, ips)
+
+    For enabling any group storage, please refer to
+    :py:func:`~.enable_group_storage`
+
+    Args:
+        job: A (running) job.
+            home site and access duration will be infered from
+            this job
+        ips: list of IPs
+            Every machine connecting from one of this IPs will be granted an
+            access to the home directory
+
+    """
+    username = get_api_username()
+    enable_group_storage(job.site, "home", username, ips, job)
+
+
+def enable_group_storage(
+    storage_site: str,
+    storage_server: str,
+    storage_name: str,
+    ips: List[str],
+    termination_job: Job,
+):
+    """Enable access to a group storage from ips.
+
+    Args:
+        storage_site: a grid'5000 site.
+            Site where the storage is located
+        storage_server: a server name
+            Storage server where the storage is located (e.g. ~"storage1"~  or
+            ~"home"~)
+        storage_name: name of the group storage
+            The name is the one used to identify a Group Storage (this might be
+            your username if you plan to allow your home dir)
+        ips: list of ips
+            Ips to allow the access from (only IPv4 for now).
+        termination_job: a job
+            This is used as a termination condition
+    """
+    gk = get_api_client()
+    (
+        gk.sites[storage_site]
+        .storage[storage_server]
+        .access[storage_name]
+        .rules.create(
+            {
+                "ipv4": ips,
+                "termination": {
+                    "job": termination_job.uid,
+                    "site": termination_job.site,
+                },
+            }
+        )
+    )
