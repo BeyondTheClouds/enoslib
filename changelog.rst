@@ -14,8 +14,8 @@ Providers
 - g5k: ``provider.destroy`` can now wait for a state change (use ``wait=True``)
 - g5k: exposes the jobs through the ``provider.jobs`` property
 - g5k: Introduce ``enable_home_for_job`` and ``enable_group_storage`` to mount
-- g5k: Implement ``test_slot``
-- iotlab: Impement ``test_slot``
+- g5k: Implement ``test_slot`` (non naïve implementation)
+- iotlab: Implement ``test_slot`` (non naïve implementation)
 - vmong5k: support multisite deployment.
 - vmong5k: document how to mount group storage on the VMs
 - 🚀 Chameleon Edge provider
