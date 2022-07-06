@@ -4,16 +4,34 @@
 8.0.0
 -----
 
-- svc/Netem: Introduce AccurateNetemHTB to apply more accurate network latency between node.
-  This takes into account the physical delay of targetted paths
-- svc/NetemHTB: support constraints on IPv6 addresses
-- svc/NetemHTB: loss parameter is explicitly a percentage
-- svc: Netem: Introduce ``fping_stats`` static method to read from the backuped
-  file easily after a call to ``validate``.
+Providers
++++++++++
+
+- all: introduce ``test_slot`` at the interface level (prepare multi-provider experiment)
+  This will test if a slot (time x resource) can be started on the corresponding platform
 - g5k: fix an issue on the reservation date preventing multisite deployment
 - g5k: reduce number of log at the info level
 - g5k: ``provider.destroy`` can now wait for a state change (use ``wait=True``)
+- g5k: exposes the jobs through the ``provider.jobs`` property
+- g5k: Introduce ``enable_home_for_job`` and ``enable_group_storage`` to mount
+- g5k: Implement ``test_slot``
+- iotlab: Impement ``test_slot``
 - vmong5k: support multisite deployment.
+- vmong5k: document how to mount group storage on the VMs
+- 🚀 Chameleon Edge provider
+
+Services
+++++++++
+
+- NetemHTB: support constraints on IPv6 addresses
+- NetemHTB: loss parameter is explicitly a percentage
+- Netem: Introduce ``fping_stats`` static method to read from the backuped
+  file easily after a call to ``validate``.
+- k3s: refresh service (deploy the dashboard automatically)
+
+Library
++++++++
+
 - config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
   Default to a Diskcache.
 - Remove warning about empty host list (Ansible>=2.11 only)
@@ -22,10 +40,12 @@
 - api: ``actions`` can now takes the top-level ``vars`` options.
 - Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
   manipulate the extra vars of the host.
+
+Misc
+++++
+
 - doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
 - doc/theys-use-it: add hal-03654722
-- k3s: refresh service (deploy the dashboard automatically)
-- 🚀 Chameleon Edge provider
 
 7.2.1
 -----
