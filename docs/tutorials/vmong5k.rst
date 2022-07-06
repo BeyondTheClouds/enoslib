@@ -24,7 +24,7 @@ To accesss your virtual machines from your local machine, see below.
 Basic example
 =============
 
-We'll imagine a system that requires 5 compute machines and 1 controller machines.
+We'll imagine a system that requires 5 compute machines and 1 controller machine.
 We express this using the ~VmonG5K~ provider:
 
 .. literalinclude:: vmong5k/tuto_vmong5k.py
@@ -184,4 +184,19 @@ will take care of reserving nodes and subnet on the different sites and
 configure the VMs' network card accordingly.
 
 
+Mounting your home directory (or a group storage)
+=================================================
+
+Mounting your home directory within the VMs is a two steps process.  It first
+relies on a white list of IPS allowed to mount the NFS exported home: so you need
+to add your VM's IPS to this list. This is done using an REST API call.
+Second, you need to mount the home inside your VMs.
+
+
+.. literalinclude:: ./vmong5k/tuto_vmong5k_home.py
+   :language: python
+   :linenos:
+
+
+Note that you can allow any group storage using :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_group_storage`
 
