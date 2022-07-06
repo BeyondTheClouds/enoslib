@@ -43,10 +43,10 @@ from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
     _do_synchronise_jobs,
-    clusters_sites_obj,
     get_api_client,
     get_api_username,
-    _test_slot,
+    get_clusters_status,
+    _test_slot
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -727,13 +727,10 @@ class G5k(Provider):
             number, exact = machine.get_demands()
             demands[cluster] += number
             exact_nodes[cluster].extend(exact)
+
         if self.clusters_status is None:
-            clusters = clusters_sites_obj(list(demands.keys()))
-            self.clusters_status = {}
-            for cluster, nodes in demands.items():
-                self.clusters_status[cluster] = (
-                    clusters[cluster].clusters[cluster].status.list()
-                )
+            self.clusters_status = get_clusters_status(demands.keys())
+
         return _test_slot(
             start_time,
             self.provider_conf.walltime,

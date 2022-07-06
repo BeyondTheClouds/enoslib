@@ -13,7 +13,7 @@ from grid5000.objects import Job, Node, Vlan
 import os
 import time
 import threading
-from typing import Dict, List, MutableMapping, Optional, Tuple
+from typing import Dict, Iterable, List, MutableMapping, Optional, Tuple
 from pathlib import Path
 
 from .error import (
@@ -676,7 +676,7 @@ def _test_slot(
 
     for cluster, nodes in demands.items():
         ko = ko or not can_start_on_cluster(
-            clusters_status[cluster]["nodes"],
+            clusters_status[cluster].nodes,
             nodes,
             exact_nodes[cluster],
             start,
@@ -725,17 +725,20 @@ def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float
         logger.debug("Only one site detected: no synchronisation needed")
         return None
 
+    # get the status for all the involved cluster
+    clusters_status = get_clusters_status(demands.keys())
+
     offset = SYNCHRONISATION_OFFSET
     delay = SYNCHRONISATION_INTERVAL
     start = time.time() + offset
-    test_slot = _test_slot(start, walltime, machines)
+    test_slot = _test_slot(start, walltime, machines, clusters_status)
     # the returned value of test slot is the following
     # - None: no reservation is needed
     # - True: the tested slot is ok
     # - False: the tested slot is ko (need to test another one)
     while test_slot is not None and not test_slot:
         start = start + delay
-        test_slot = _test_slot(start, walltime, machines)
+        test_slot = _test_slot(start, walltime, machines, clusters_status)
     if test_slot is None:
         # no synchronisation needed
         return None
@@ -772,6 +775,18 @@ def get_ipv6(site):
 def get_vlan(site, vlan_id) -> Vlan:
     site_info = get_site_obj(site)
     return site_info.vlans[vlan_id]
+
+
+def get_clusters_status(clusters: Iterable[str]):
+    """Get the status of the clusters (current and future reservations)."""
+    # mapping cluster -> site
+    clusters = clusters_sites_obj(clusters)
+    clusters_status = {}
+    for cluster in clusters:
+        clusters_status[cluster] = (
+            clusters[cluster].clusters[cluster].status.list()
+        )
+    return clusters_status
 
 
 def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[str]]:
@@ -893,7 +908,12 @@ def grid_make_reservation(
 ):
     if not reservation_date:
         # First check if synchronisation is required
-        reservation_date = _do_synchronise_jobs(walltime, machines)
+        candidate_date = _do_synchronise_jobs(walltime, machines)
+        if candidate_date is not None:
+            # convert it to something understandable by the API
+            # TODO: check if G5K can accept UTC timestamps or make sure this is
+            # converted to the right timezone
+            reservation_date = _date2h(candidate_date)
 
     # Build the OAR criteria
     criteria = _build_reservation_criteria(machines, networks)

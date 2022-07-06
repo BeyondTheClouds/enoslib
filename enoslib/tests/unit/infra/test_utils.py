@@ -17,6 +17,9 @@ from enoslib.infra.utils import find_slot
 from mock import patch
 from datetime import datetime
 
+from collections import namedtuple
+# mimicking a grid5000.Status object (we only need to access the node attribute)
+Status = namedtuple('Status', ['nodes'])
 
 def _build_iot_provider(machines: List[str], walltime: str) -> Iotlab:
     """
@@ -134,8 +137,8 @@ IOT_EXPERIMENTS_STATUS = {
 }
 
 G5K_NODES_STATUS = {
-    "paravance": {
-        "nodes": {
+    "paravance": Status(
+        {
             "paravance-1.rennes.grid5000.fr": {
                 "reservations": [
                     {
@@ -158,10 +161,9 @@ G5K_NODES_STATUS = {
                     }
                 ]
             },
-        }
-    },
-    "parasilo": {
-        "nodes": {
+        }),
+    "parasilo": Status(
+        {
             "parasilo-12.rennes.grid5000.fr": {
                 "reservations": [
                     {
@@ -173,8 +175,7 @@ G5K_NODES_STATUS = {
                     }
                 ]
             }
-        }
-    },
+        }),
 }
 
 
