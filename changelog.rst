@@ -23,6 +23,8 @@ Providers
 Services
 ++++++++
 
+- Netem: Introduce ``AccurateNetemHTB`` to apply more accurate network latency between node.
+  This takes into account the physical delay of targetted paths
 - NetemHTB: support constraints on IPv6 addresses
 - NetemHTB: loss parameter is explicitly a percentage
 - Netem: Introduce ``fping_stats`` static method to read from the backuped
