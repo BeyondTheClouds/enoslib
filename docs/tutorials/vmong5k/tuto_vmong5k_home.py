@@ -33,7 +33,7 @@ job = provider.g5k_provider.jobs[0]
 # get the ips to white list
 ips = [vm.address for vm in roles["vms"]]
 
-# add ips to the white list fot the job duration
+# add ips to the white list for the job duration
 en.g5k_api_utils.enable_home_for_job(job, ips)
 
 # mount the home dir
