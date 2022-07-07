@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
 import pathlib
+import re
 from typing import List, Optional
+from urllib.error import HTTPError
 
 import iotlabcli.auth
 
 from enoslib.api import play_on, run, CommandResult, CustomCommandResult
+from enoslib.errors import InvalidReservationError
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI, test_slot
@@ -251,13 +254,23 @@ class Iotlab(Provider):
 
     def _reserve(self):
         """Reserve resources on platform"""
-        iotlab_nodes = self.client.get_resources(
-            self.provider_conf.job_name,
-            self.provider_conf.walltime,
-            self.provider_conf.machines,
-            self.provider_conf.start_time,
-        )
-
+        try:
+            iotlab_nodes = self.client.get_resources(
+                self.provider_conf.job_name,
+                self.provider_conf.walltime,
+                self.provider_conf.machines,
+                self.provider_conf.start_time,
+            )
+        except HTTPError as error:
+            search = re.search(
+                r"""Reservation not valid --> KO \(This reservation could run at (\d{4}-
+                \d{2}-\d{2} \d{2}:\d{2}:\d{2})\)""",
+                format(error),
+            )
+            if search is not None:
+                raise InvalidReservationError(search.group(1))
+            else:
+                raise Exception
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):
             self._populate_from_phys_nodes(iotlab_nodes)
         else:

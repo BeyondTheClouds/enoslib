@@ -4,6 +4,7 @@ import copy
 from contextlib import contextmanager
 import logging
 import operator
+import re
 from itertools import groupby
 from typing import (
     Any,
@@ -46,7 +47,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_api_client,
     get_api_username,
     get_clusters_status,
-    _test_slot
+    _test_slot,
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -57,10 +58,13 @@ from enoslib.infra.enos_g5k.objects import (
 )
 from enoslib.infra.enos_g5k.remote import DEFAULT_CONN_PARAMS, get_execo_remote
 from enoslib.infra.enos_g5k.utils import run_commands
+from enoslib.errors import InvalidReservationError
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
 from sshtunnel import SSHTunnelForwarder
+
+from grid5000.exceptions import Grid5000CreateError
 
 logger = logging.getLogger(__name__)
 
@@ -478,7 +482,18 @@ class G5k(Provider):
             self.grant_root_access()
 
     def reserve(self) -> List[G5kHost]:
-        oar_nodes, oar_networks = self.driver.reserve(wait=True)
+        try:
+            oar_nodes, oar_networks = self.driver.reserve(wait=True)
+        except Grid5000CreateError as error:
+            search = re.search(
+                r"""Reservation not valid --> KO \(This reservation could run at (\d{4}-
+                \d{2}-\d{2} \d{2}:\d{2}:\d{2})\)""",
+                format(error),
+            )
+            if search is not None:
+                raise InvalidReservationError(search.group(1))
+            else:
+                raise Exception
         machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
         self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
         self.hosts = _join(machines, self.networks)

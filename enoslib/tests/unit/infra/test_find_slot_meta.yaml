@@ -48,8 +48,6 @@ test_ok_in_between_jobs:
   iot_request: *iot_request_11
   expected: "1800"
 
-
-
 test_unknown_iot_node:
   g5k_status: *g5k_status_1
   g5k_request: *g5k_request_1
@@ -58,7 +56,7 @@ test_unknown_iot_node:
   iot_request: &iot_request_2 |
     test-4.lille.iot-lab.info
     00:05
-  expected: "None"
+  expected: "InvalidReservationError"
 
 test_unknown_g5k_node:
   g5k_status: *g5k_status_1
@@ -69,4 +67,4 @@ test_unknown_g5k_node:
   iot_status: *iot_status_1
   iot_experiment_status: *iot_status_experiments_1
   iot_request: *iot_request_1
-  expected: "None"
+  expected: "InvalidReservationError"
