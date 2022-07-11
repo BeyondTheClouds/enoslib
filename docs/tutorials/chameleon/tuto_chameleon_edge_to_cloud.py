@@ -10,13 +10,13 @@ import os
 logging.basicConfig(level=logging.INFO)
 prefix = os.getlogin()
 _walltime = "02:00:00"
-
+providers = []
 # Leasing resources on Chameleon Cloud
 provider_conf = {
     "walltime": _walltime,
     "lease_name": f"{prefix}-enoslib-chicloud-lease",
     "rc_file": "./my-app-cred-cloud-openrc.sh",  # FIXME use your OPENRC file
-    "key_name": "drosendo",
+    "key_name": "drosendo",  # FIXME use your key_name
     "image": "CC-Ubuntu20.04",
     "resources": {
         "machines": [{
@@ -30,7 +30,7 @@ provider_conf = {
 conf = en.CBMConf().from_dictionnary(provider_conf)
 provider = en.CBM(conf)
 roles, networks = provider.init()
-provider_cloud = provider
+providers.append(provider)
 roles = en.sync_info(roles, networks)
 floating_ip = roles["server"][0].extra['gateway']
 
@@ -55,7 +55,7 @@ provider_conf = {
 conf = en.ChameleonEdgeConf.from_dictionnary(provider_conf)
 provider = en.ChameleonEdge(conf)
 roles_edge, networks_edge = provider.init()
-provider_edge = provider
+providers.append(provider)
 
 
 # Merging Chameleon Cloud and Edge resources
@@ -99,5 +99,5 @@ time.sleep(300)
 
 # Releasing resources from Chameleon Cloud and Edge
 logging.info("Releasing resources.")
-provider_cloud.destroy()
-provider_edge.destroy()
+for p in providers:
+    p.destroy()
