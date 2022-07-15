@@ -69,13 +69,7 @@ logging.info('*' * 40 + f" networks{type(networks)} = {networks}")
 # Chameleon Cloud
 dest_dir = "/home/cc"
 with en.play_on(roles=roles["server"]) as p:
-    p.copy(src="./artifacts_cloud/mosquitto.conf",
-           dest=dest_dir)
-    p.copy(src="./artifacts_cloud/predict_loop.py",
-           dest=dest_dir)
-    p.copy(src="./artifacts_cloud/edge_cloud.service",
-           dest=dest_dir)
-    p.copy(src="./artifacts_cloud/cloud_worker.sh",
+    p.copy(src="./artifacts_cloud/",
            dest=dest_dir)
 with en.play_on(roles=roles["server"]) as p:
     p.shell(f"bash {dest_dir}/cloud_worker.sh > {dest_dir}/tests")
