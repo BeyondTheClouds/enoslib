@@ -1,4 +1,5 @@
 from typing import List
+from enoslib.errors import InvalidReservationError
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     NetworkConfiguration,
@@ -21,162 +22,183 @@ from collections import namedtuple
 # mimicking a grid5000.Status object (we only need to access the node attribute)
 Status = namedtuple('Status', ['nodes'])
 
-def _build_iot_provider(machines: List[str], walltime: str) -> Iotlab:
-    """
-    Create a provider from a list of strings corresponded to the machines
-    wanted and the walltime
-    machines' items are under this format: "archi#number#site" or
-    "hostname"
-    """
-    conf = IOTConfig()
-    for machine in machines:
-        if len(machine.split("#")) == 3:
-            archi, number, site = machine.split("#")
-            conf.add_machine_conf(
-                BoardConfiguration(
-                    archi=archi,
-                    number=int(number),
-                    site=site,
-                    roles=["test"],
-                )
-            )
-        else:
-            if len(machine.split("#")) == 1:
-                hostname = machine
-                conf.add_machine_conf(
-                    PhysNodeConfiguration(hostname=[hostname], roles=["test"])
-                )
-            else:
-                continue
-    conf.walltime = walltime
-    conf.finalize()
-    return Iotlab(conf)
-
-
-def _build_g5k_provider(machines: List[str], walltime: str) -> G5k:
-    """
-    Create a provider from a list of strings corresponded to the machines wanted
-    and the walltime
-    machines' items are under this format:
-    "cluster#nodes" or "hostname"
-    """
-    conf = G5k_Configuration()
-    network = NetworkConfiguration(
-        type="kavlan", site="rennes", id="roles1", roles=["role1"]
-    )
-    for machine in machines:
-        len_machine = len(machine.split("#"))
-        if len_machine == 1:
-            server = machine
-            conf.add_machine_conf(
-                ServersConfiguration(
-                    primary_network=network,
-                    servers=[server],
-                    roles=["test"],
-                )
-            )
-        else:
-            if len_machine == 2:
-                cluster, nodes = machine.split("#")
-                conf.add_machine_conf(
-                    ClusterConfiguration(
-                        primary_network=network,
-                        cluster=cluster,
-                        nodes=int(nodes),
+def parse_g5k_config(path: str) -> G5k:
+    with open(f"enoslib/tests/unit/infra/Parsed_files_for_tests/{path}") as file:
+        config = G5k_Configuration()
+        network = NetworkConfiguration(
+            type="kavlan", site="rennes", id="network1", roles=["role1"]
+        )
+        while True:
+            line = file.readline()
+            if line.startswith(("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")):
+                break
+            line_args = line.rstrip("\n").split(" ")
+            if len(line_args) == 1:
+                config.add_machine_conf(
+                    ServersConfiguration(
+                        servers=[line_args[0]],
                         roles=["test"],
+                        primary_network=network,
                     )
                 )
             else:
-                continue
-    conf.walltime = walltime
-    conf.finalize()
-    return G5k(conf)
+                config.add_machine_conf(
+                    ClusterConfiguration(
+                        cluster=line_args[0],
+                        nodes=int(line_args[1]),
+                        roles=["test"],
+                        primary_network=network,
+                    )
+                )
+        config.walltime = line
+    return G5k(config)
 
 
-IOT_NODES_STATUS = {
-    "items": [
-        {
-            "state": "Alive",
-            "network_address": "m3-1.lille.iot-lab.info",
-            "archi": "m3:at86rf231",
-            "site": "lille",
-        },
-        {
-            "state": "Busy",
-            "network_address": "m3-2.lille.iot-lab.info",
-            "archi": "m3:at86rf231",
-            "site": "lille",
-        },
-        {
-            "state": "Alive",
-            "network_address": "m3-3.lille.iot-lab.info",
-            "archi": "m3:at86rf231",
-            "site": "lille",
-        },
-    ]
-}
+def parse_iot_config(path: str) -> Iotlab:
+    with open(f"enoslib/tests/unit/infra/Parsed_files_for_tests/{path}") as file:
+        config = IOTConfig()
+        while True:
+            line = file.readline()
+            if line.startswith(("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")):
+                break
+            line_args = line.rstrip("\n").split(" ")
+            if len(line_args) == 1:
+                config.add_machine_conf(
+                    PhysNodeConfiguration(hostname=[line_args[0]], roles=["test"])
+                )
+            else:
+                config.add_machine_conf(
+                    BoardConfiguration(
+                        archi=line_args[0],
+                        number=int(line_args[1]),
+                        site=line_args[2],
+                        roles=["test"],
+                    )
+                )
+        config.walltime = line
+    return Iotlab(config)
 
-IOT_EXPERIMENTS_STATUS = {
-    "items": [
-        {
-            "start_date": datetime.fromtimestamp(30).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "submitted_duration": 60,
-            "nodes": ["m3-1.lille.iot-lab.info"],
-        },
-        {
-            "start_date": datetime.fromtimestamp(60).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "submitted_duration": 120,
-            "nodes": ["m3-2.lille.iot-lab.info"],
-        },
-        {
-            "start_date": datetime.fromtimestamp(60).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "submitted_duration": 60,
-            "nodes": ["m3-3.lille.iot-lab.info"],
-        },
-    ]
-}
 
-G5K_NODES_STATUS = {
-    "paravance": Status(
-        {
-            "paravance-1.rennes.grid5000.fr": {
-                "reservations": [
+def parse_g5k_clusters_status(path: str) -> dict:
+    clusters_status = {}
+    with open(f"enoslib/tests/unit/infra/Parsed_files_for_tests/{path}") as file:
+        while True:
+            line = file.readline()
+            if not line:
+                break
+            args = line.rstrip("\n").split(" ")
+            if len(args) == 1:
+                current_cluster = args[0]
+                clusters_status.setdefault(current_cluster, Status(nodes={}))
+            else:
+                gantt = args[0]
+                hostname = args[1]
+                start_time = -1
+                walltime = 0
+                for i in range(0, len(gantt)):
+                    if gantt[i] == "*":
+                        if start_time == -1:
+                            start_time = i * 30
+                        walltime = walltime + 30
+                    else:
+                        if start_time != -1:
+                            clusters_status[current_cluster].nodes.setdefault(
+                                hostname, {"reservations": []}
+                            )
+                            clusters_status[current_cluster].nodes[hostname][
+                                "reservations"
+                            ].append(
+                                {
+                                    "walltime": walltime,
+                                    "queue": "default",
+                                    "submitted_at": 0,
+                                    "scheduled_at": start_time,
+                                    "started_at": start_time,
+                                }
+                            )
+                            start_time = -1
+                            walltime = 0
+                if start_time != -1:
+                    clusters_status[current_cluster].nodes.setdefault(
+                        hostname, {"reservations": []}
+                    )
+                clusters_status[current_cluster].nodes[hostname]["reservations"].append(
                     {
-                        "walltime": 120,
+                        "walltime": walltime,
                         "queue": "default",
-                        "submitted_at": 60,
-                        "scheduled_at": 60,
-                        "started_at": 60,
+                        "submitted_at": 0,
+                        "scheduled_at": start_time,
+                        "started_at": start_time,
                     }
-                ]
-            },
-            "paravance-2.rennes.grid5000.fr": {
-                "reservations": [
+                )
+    return clusters_status
+
+
+def parse_iot_status_experiments(path: str) -> dict:
+    experiments_status = {}
+    experiments_status["items"] = []
+    with open(f"enoslib/tests/unit/infra/Parsed_files_for_tests/{path}") as file:
+        while True:
+            line = file.readline()
+            if not line:
+                break
+            args = line.rstrip("\n").split(" ")
+            gantt = args[0]
+            hostname = args[1]
+            start_time = -1
+            walltime = 0
+            for i in range(0, len(gantt)):
+                if gantt[i] == "*":
+                    if start_time == -1:
+                        start_time = i * 30
+                    walltime = walltime + 30
+                else:
+                    if start_time != -1:
+                        experiments_status["items"].append(
+                            {
+                                "start_date": datetime.fromtimestamp(
+                                    start_time
+                                ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                "submitted_duration": walltime,
+                                "nodes": [hostname],
+                            }
+                        )
+                        start_time = -1
+                        walltime = 0
+            if start_time != 0:
+                experiments_status["items"].append(
                     {
-                        "walltime": 180,
-                        "queue": "default",
-                        "submitted_at": 120,
-                        "scheduled_at": 120,
-                        "started_at": 120,
+                        "start_date": datetime.fromtimestamp(start_time).strftime(
+                            "%Y-%m-%dT%H:%M:%SZ"
+                        ),
+                        "submitted_duration": walltime,
+                        "nodes": [hostname],
                     }
-                ]
-            },
-        }),
-    "parasilo": Status(
-        {
-            "parasilo-12.rennes.grid5000.fr": {
-                "reservations": [
-                    {
-                        "walltime": 300,
-                        "queue": "default",
-                        "submitted_at": 60,
-                        "scheduled_at": 60,
-                        "started_at": 60,
-                    }
-                ]
-            }
-        }),
-}
+                )
+    return experiments_status
+
+
+def parse_iot_nodes_status(path: str) -> dict:
+    nodes_status = {}
+    nodes_status["items"] = []
+    with open(f"enoslib/tests/unit/infra/Parsed_files_for_tests/{path}") as file:
+        while True:
+            line = file.readline()
+            if not line:
+                break
+            args = line.rstrip("\n").split(" ")
+            hostname = args[0]
+            archi = args[1]
+            site = args[2]
+            nodes_status["items"].append(
+                {
+                    "state": "Alive",
+                    "network_address": hostname,
+                    "archi": archi,
+                    "site": site,
+                }
+            )
+    return nodes_status
 
 
 class TestUtils(EnosTest):
@@ -184,150 +206,21 @@ class TestUtils(EnosTest):
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
-    def test_synchronization_g5k_iot(self, mock_get_cluster_site, cred):
-
-        """
-        One - represents 30 seconds
-
-        status iot:
-        test-1.lille -**---------
-        test-2.lille --****------
-        test-3.lille --**--------
-
-        job iot:
-                     **********  2 machines, 10 units of time
-
-        status g5k:
-        paravance-1  --****------
-        paravance-2  ----******--
-        parasilo-12  --**********
-
-        job g5k:
-                     ********** 1 machine + parasilo-12, 10 units of time
-        """
-
+    def test_find_slot(self, mock_get_cluster_site, cred):
         cred.return_value = ["test", "test"]
-
-        iot_provider = _build_iot_provider(["m3:at86rf231#2#lille"], "00:05")
-        iot_provider.nodes_status = IOT_NODES_STATUS
-
-        iot_provider.experiments_status = IOT_EXPERIMENTS_STATUS
-
-        # This config should be free after 00:02:00
-
-        g5k_provider = _build_g5k_provider(
-            ["paravance#1", "parasilo-12.rennes.grid5000.fr"],
-            "00:05:00",
-        )
-        g5k_provider.clusters_status = G5K_NODES_STATUS
-
-        # This config should be free after 00:06:00
-
-        assert (
-            find_slot(
-                providers=[g5k_provider, iot_provider], time_window=7200, start_time=0
-            )
-            == 600
-        )
-
-    @patch("iotlabcli.auth.get_user_credentials")
-    @patch(
-        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
-    )
-    def test_synchronization_g5k_iot_fail_no_specific_machine_free_iot(
-        self, mock_get_cluster_site, cred
-    ):
-
-        """
-        One - represents 30 seconds
-
-        status iot:
-        test-1.lille -**---------
-        test-2.lille --****------
-        test-3.lille --**--------
-
-        job iot:
-                     **********  test-4.lille, 10 units of time
-
-        status g5k:
-        paravance-1  --****------
-        paravance-2  ----******--
-        parasilo-12  --**********
-
-        job g5k:
-                     ********** 1 machine + parasilo-12, 10 units of time
-        """
-
-        cred.return_value = ["test", "test"]
-        iot_provider = _build_iot_provider(["test-4.lille.iot-lab.info"], "00:05")
-        iot_provider.nodes_status = IOT_NODES_STATUS
-
-        iot_provider.experiments_status = IOT_EXPERIMENTS_STATUS
-
-        # This config should never be free
-
-        g5k_provider = _build_g5k_provider(
-            ["paravance#1", "parasilo-12.rennes.grid5000.fr"],
-            "00:05:00",
-        )
-        g5k_provider.clusters_status = G5K_NODES_STATUS
-
-        # This config should be free after 00:06:00
-
-        assert (
-            find_slot(
-                providers=[g5k_provider, iot_provider], time_window=3600, start_time=0
-            )
-            is None
-        )
-
-    @patch("iotlabcli.auth.get_user_credentials")
-    @patch(
-        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
-    )
-    def test_synchronization_g5k_iot_fail_no_specific_machine_free_g5k(
-        self, mock_get_cluster_site, cred
-    ):
-
-        """
-        One - represents 30 seconds
-
-        status iot:
-        test-1.lille -**---------
-        test-2.lille --****------
-        test-3.lille --**--------
-
-        job iot:
-                     **********  2 machines, 10 units of time
-
-        status g5k:
-        paravance-1  --****------
-        paravance-2  ----******--
-        parasilo-12  --**********
-
-        job g5k:
-                     ********** 1 machine + parasilo-13, 10 units of time
-        """
-
-        cred.return_value = ["test", "test"]
-        iot_provider = _build_iot_provider(["m3:at86rf231#2#lille"], "00:05")
-        iot_provider.nodes_status = IOT_NODES_STATUS
-
-        iot_provider.experiments_status = IOT_EXPERIMENTS_STATUS
-
-        # This config should be free after 00:02:00
-
-        g5k_provider = _build_g5k_provider(
-            ["paravance#1", "parasilo-13.rennes.grid5000.fr"],
-            "00:05:00",
-        )
-        g5k_provider.clusters_status = G5K_NODES_STATUS
-
-        # This config should never be free
-
-        assert (
-            find_slot(
-                providers=[g5k_provider, iot_provider], time_window=3600, start_time=0
-            )
-            is None
-        )
+        with open(
+            "enoslib/tests/unit/infra/Parsed_files_for_tests/tests_to_make.txt"
+        ) as file:
+            while True:
+                line = file.readline()
+                if not line:
+                    break
+                args = line.rstrip("\n").split(" ")
+                g5k_provider = parse_g5k_config(args[0])
+                iot_provider = parse_iot_config(args[1])
+                g5k_provider.clusters_status = parse_g5k_clusters_status(args[2])
+                iot_provider.experiments_status = parse_iot_status_experiments(args[3])
+                iot_provider.nodes_status = parse_iot_nodes_status(args[4])
+                assert find_slot(
+                    [g5k_provider, iot_provider], 3600, start_time=0
+                ) == eval(args[5]), f"Line {line} failed"

@@ -1,0 +1,3 @@
+g5k_config_1.txt iot_config_1.txt g5k_status_1.txt iot_status_experiments_1.txt iot_status_nodes_1.txt 600
+g5k_config_1.txt iot_config_2.txt g5k_status_1.txt iot_status_experiments_1.txt iot_status_nodes_1.txt None
+g5k_config_2.txt iot_config_1.txt g5k_status_1.txt iot_status_experiments_1.txt iot_status_nodes_1.txt None
