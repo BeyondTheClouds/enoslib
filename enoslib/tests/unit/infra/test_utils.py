@@ -23,6 +23,9 @@ from mock import patch
 # mimicking a grid5000.Status object (we only need to access the node attribute)
 Status = namedtuple('Status', ['nodes'])
 
+# time increment used in the graphical representation of the statuses
+GANTT_INCREMENT = 300
+
 def parse_g5k_request(g5k_request: str) -> G5k:
     config = G5k_Configuration()
     network = NetworkConfiguration(
@@ -88,15 +91,14 @@ def parse_g5k_clusters_status(status: str) -> dict:
             current_cluster = args[0]
             clusters_status.setdefault(current_cluster, Status(nodes={}))
         else:
-            gantt = args[0]
-            hostname = args[1]
+            gantt, hostname = args
             start_time = -1
             walltime = 0
             for i in range(0, len(gantt)):
                 if gantt[i] == "*":
                     if start_time == -1:
-                        start_time = i * 30
-                    walltime = walltime + 30
+                        start_time = i * GANTT_INCREMENT
+                    walltime = walltime + GANTT_INCREMENT
                 else:
                     if start_time != -1:
                         clusters_status[current_cluster].nodes.setdefault(
@@ -119,14 +121,14 @@ def parse_g5k_clusters_status(status: str) -> dict:
                 clusters_status[current_cluster].nodes.setdefault(
                     hostname, {"reservations": []}
                 )
-            clusters_status[current_cluster].nodes[hostname]["reservations"].append(
-                {
-                    "walltime": walltime,
-                    "queue": "default",
-                    "submitted_at": 0,
-                    "scheduled_at": start_time,
-                    "started_at": start_time,
-                }
+                clusters_status[current_cluster].nodes[hostname]["reservations"].append(
+                    {
+                        "walltime": walltime,
+                        "queue": "default",
+                        "submitted_at": 0,
+                        "scheduled_at": start_time,
+                        "started_at": start_time,
+                    }
             )
     return clusters_status
 
@@ -138,16 +140,16 @@ def parse_iot_status_experiments(status: str) -> dict:
         if not line:
             continue
         args = line.rstrip("\n").split(" ")
-        gantt = args[0]
-        hostname = args[1]
+        gantt, hostname = args
         start_time = -1
         walltime = 0
         for i in range(0, len(gantt)):
             if gantt[i] == "*":
                 if start_time == -1:
-                    start_time = i * 30
-                walltime = walltime + 30
+                    start_time = i * GANTT_INCREMENT
+                walltime = walltime + GANTT_INCREMENT
             else:
+                # transition "*" -> "-"
                 if start_time != -1:
                     experiments_status["items"].append(
                         {
@@ -158,9 +160,12 @@ def parse_iot_status_experiments(status: str) -> dict:
                             "nodes": [hostname],
                         }
                     )
+                    # reset state
                     start_time = -1
                     walltime = 0
-        if start_time != 0:
+
+        if start_time != -1:
+            # handle the case we're at the end of the line and thus we don't have any transition "*" -> "-"
             experiments_status["items"].append(
                 {
                     "start_date": datetime.fromtimestamp(start_time).strftime(
@@ -180,9 +185,7 @@ def parse_iot_status(status: str) -> dict:
         if not line:
             break
         args = line.rstrip("\n").split(" ")
-        hostname = args[0]
-        archi = args[1]
-        site = args[2]
+        hostname, archi, site = args
         nodes_status["items"].append(
             {
                 "state": "Alive",

@@ -10,6 +10,9 @@ from enoslib.infra.provider import Provider
 logger = logging.getLogger(__name__)
 
 
+TIME_INCREMENT = 300
+
+
 def mk_pools(things, keyfnc=lambda x: x):
     "Indexes a thing by the keyfnc to construct pools of things."
     pools = {}
@@ -30,7 +33,10 @@ def pick_things(pools, key, n):
 
 
 def find_slot(
-    providers: List[Provider], time_window: int, start_time: Optional[int] = None
+    providers: List[Provider],
+    time_window: int,
+    start_time: Optional[int] = None,
+    time_increment=TIME_INCREMENT,
 ) -> Optional[int]:
     """
     Search for a time slot at which all of the provider in "providers" are able to
@@ -52,7 +58,7 @@ def find_slot(
                 break
         if not ko:
             break
-        start_time = start_time + 300
+        start_time = start_time + TIME_INCREMENT
     if ko:
         return None
     logger.info("Reservation_date=%s" % (_date2h(start_time)))
