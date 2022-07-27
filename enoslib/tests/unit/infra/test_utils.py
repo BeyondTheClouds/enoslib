@@ -1,24 +1,25 @@
-from typing import List
-from enoslib.errors import InvalidReservationError
-from enoslib.infra.enos_g5k.configuration import (
-    ClusterConfiguration,
-    NetworkConfiguration,
-    ServersConfiguration,
-    Configuration as G5k_Configuration,
-)
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_iotlab.configuration import (
-    BoardConfiguration,
-    Configuration as IOTConfig,
-    PhysNodeConfiguration,
-)
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.tests.unit import EnosTest
-from enoslib.infra.utils import find_slot
-from mock import patch
-from datetime import datetime
-
 from collections import namedtuple
+from datetime import datetime
+from typing import List
+import yaml
+
+from enoslib.errors import InvalidReservationError
+from enoslib.infra.enos_g5k.configuration import ClusterConfiguration
+from enoslib.infra.enos_g5k.configuration import \
+    Configuration as G5k_Configuration
+from enoslib.infra.enos_g5k.configuration import (NetworkConfiguration,
+                                                  ServersConfiguration)
+from enoslib.infra.enos_g5k.provider import G5k
+from enoslib.infra.enos_iotlab.configuration import BoardConfiguration
+from enoslib.infra.enos_iotlab.configuration import Configuration as IOTConfig
+from enoslib.infra.enos_iotlab.configuration import PhysNodeConfiguration
+from enoslib.infra.enos_iotlab.provider import Iotlab
+from enoslib.infra.utils import find_slot
+from enoslib.tests.unit import EnosTest
+
+import ddt
+from mock import patch
+
 # mimicking a grid5000.Status object (we only need to access the node attribute)
 Status = namedtuple('Status', ['nodes'])
 
@@ -201,26 +202,35 @@ def parse_iot_nodes_status(path: str) -> dict:
     return nodes_status
 
 
+def parse_statuses(fun):
+    def wrapped(self, f_g5k_status, f_g5k_request, f_iot_status, f_iot_experiment_status, f_iot_request, expected):
+        """At this stage the status file has been injected by ddt.
+
+        So we parse them here and reinject them as the new parameters
+        """
+        g5k_provider = parse_g5k_config(f_g5k_request)
+        iot_provider = parse_iot_config(f_iot_request)
+        # dirty hack (changing the internal state) we should find a better way
+        g5k_provider.clusters_status = parse_g5k_clusters_status(f_g5k_status)
+        iot_provider.experiments_status = parse_iot_status_experiments(f_iot_experiment_status)
+        iot_provider.nodes_status = parse_iot_nodes_status(f_iot_status)
+
+        return fun(self, g5k_provider, iot_provider, expected)
+    return wrapped
+
+@ddt.ddt
 class TestUtils(EnosTest):
-    @patch("iotlabcli.auth.get_user_credentials")
-    @patch(
-        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
-    )
-    def test_find_slot(self, mock_get_cluster_site, cred):
-        cred.return_value = ["test", "test"]
-        with open(
-            "enoslib/tests/unit/infra/Parsed_files_for_tests/tests_to_make.txt"
-        ) as file:
-            while True:
-                line = file.readline()
-                if not line:
-                    break
-                args = line.rstrip("\n").split(" ")
-                g5k_provider = parse_g5k_config(args[0])
-                iot_provider = parse_iot_config(args[1])
-                g5k_provider.clusters_status = parse_g5k_clusters_status(args[2])
-                iot_provider.experiments_status = parse_iot_status_experiments(args[3])
-                iot_provider.nodes_status = parse_iot_nodes_status(args[4])
-                assert find_slot(
-                    [g5k_provider, iot_provider], 3600, start_time=0
-                ) == eval(args[5]), f"Line {line} failed"
+
+    @ddt.file_data("./Parsed_files_for_tests/meta.yaml", yaml.UnsafeLoader)
+    @parse_statuses
+    def test_ddt(self, g5k_provider, iot_provider, expected):
+        # TODO: check if we need to patch some internal function
+        # as it wa done by Alexandre:
+        #
+        # @patch("iotlabcli.auth.get_user_credentials")
+        # @patch(
+        #     "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+        # )
+        # def test_find_slot(self, mock_get_cluster_site, cred):
+        #    cred.return_value = ["test", "test"]
+        self.assertEqual(find_slot([g5k_provider, iot_provider], 3600, start_time=0), eval(expected))
