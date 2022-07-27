@@ -1,5 +1,0 @@
-paravance
---****------ paravance-1.rennes.grid5000.fr
-----******-- paravance-2.rennes.grid5000.fr
-parasilo
---********** parasilo-12.rennes.grid5000.fr
