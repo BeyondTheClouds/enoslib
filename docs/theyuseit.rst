@@ -14,6 +14,11 @@ Main Publication
 Other Publications (using or citing EnOSlib)
 ============================================
 
+- Quentin Guilloteau, Jonathan Bleuzen, Millian Poquet, Olivier Richard.
+  Painless Transposition of Reproducible Distributed Environments with NixOS
+  Compose. CLUSTER 2022 - IEEE International Conference on Cluster Computing, Sep
+  2022, Heidelberg, Germany. pp.1-12. ⟨hal-03723771⟩
+
 - Daniel Rosendo, Alexandru Costan, Patrick Valduriez, Gabriel Antoniu.
   Distributed intelligence on the Edge-to-Cloud Continuum: A systematic literature
   review. Journal of Parallel and Distributed Computing, Elsevier, 2022, 166,
