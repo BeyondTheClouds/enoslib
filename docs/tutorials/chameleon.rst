@@ -1,12 +1,14 @@
-*****************************
-Provider::Openstack/Chameleon
-*****************************
+**********************************
+Provider::Chameleon/ChameleonEdge
+**********************************
 
 .. contents::
    :depth: 2
 
-This tutorial will let you get started using |enoslib| and Openstack and/or Chameleon.
-Chameleon provider is an Openstak provider specialization.
+This tutorial will let you get started using |enoslib| and
+Chameleon/ChameleonEdge.  Chameleon provider is a specialization of the
+OpenStack provider (so this should be theorically possible to work with a custom
+OpenStack platform, but we didn't push too much effort on this lately :))
 
 Here we present you the bare minimum to install the library with the required
 dependencies.
@@ -28,46 +30,13 @@ Installation
   It's a good practice to use a virtualenv or a python version manager like `pyenv`.
 
 
-Openstack example
-=================
+Chameleon Baremetal Example
+===========================
 
-The following reserve 2 nodes on the chameleon baremetal infrastructure.
-Prior to the execution you must source your openrc file.
-
-.. code-block:: bash
-
-   $ source admin-rc.sh
-
-
-You must also configure an access key in you project and replace with its name
-in the following.
-
-
-.. literalinclude:: chameleon/tuto_openstack.py
-   :language: python
-   :linenos:
-
-
-.. note::
-
-   Similarly to other provider the configuration can be generated
-   programmatically instead of using a dict.
-
-
-
-Chameleon example
-=================
-
-The following reserve 2 nodes on the chameleon baremetal infrastructure.
-Prior to the execution you must source your openrc file.
-
-.. code-block:: bash
-
-   $ source CH-XXXXX.sh
-
-
-You must also configure an access key in you project and replace with its name
-in the following.
+The following reserve 2 nodes on the chameleon baremetal infrastructure.  The
+prefered way of authenticating to the Chameleon provider using EnOSlib is
+through application credentials (EnOSlib will transparently source your
+application credentials when needed)
 
 
 .. literalinclude:: chameleon/tuto_chameleonbaremetal.py
@@ -80,7 +49,23 @@ in the following.
    Similarly to other provider the configuration can be generated
    programmatically instead of using a dict.
 
-
 The result of the above code is the following:
 
 .. image:: chameleon/result.png
+
+
+Chameleon / ChameleonEdge Example
+=================================
+
+To mimic an FOG deployment you can claim resources on the Chameleon
+Infrastructure (acting as the Cloud) and the ChameleonEdge Infrastructure
+(acting as the Edge). The following example lets you deploy a simple Machine
+Learning pipeline: images are collected at the Edge and sent to the cloud for
+inference. We show the main script, other resources can be found in |enoslib|
+source code.
+
+
+.. literalinclude:: chameleon/tuto_chameleon_edge_to_cloud.py
+   :language: python
+   :linenos:
+
