@@ -1,0 +1,13 @@
+[Unit]
+Description=Edge to Cloud ML service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=cc
+ExecStart=/usr/bin/env python3 /home/cc/predict_loop.py
+
+[Install]
+WantedBy=multi-user.target
