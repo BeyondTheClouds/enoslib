@@ -42,6 +42,7 @@ Library
 - api: ``actions`` can now takes the top-level ``vars`` options.
 - Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
   manipulate the extra vars of the host.
+- Dependencies: Increase the Ansible version ranged (>=2.9,<=6.1)
 
 Misc
 ++++
