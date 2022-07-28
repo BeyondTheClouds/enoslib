@@ -144,6 +144,11 @@ test_ansible_5:
   variables:
     ANSIBLE_VERSION: ">=5,<6"
 
+test_ansible_6:
+  <<: *ansible
+  variables:
+    ANSIBLE_VERSION: ">=6,<7"
+
 ## TEST AGAINST DIFFERENT DISTROS
 #-----------------------------------------------
 test_static_run_command$debian11$: &debian11
