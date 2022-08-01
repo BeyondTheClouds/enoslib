@@ -5,6 +5,11 @@ class EnosError(Exception):
     pass
 
 
+class InvalidReservationError(EnosError):
+    def __init__(self, time):
+        self.time = time
+
+
 class EnosFailedHostsError(EnosError):
     def __init__(self, hosts):
         self.hosts = hosts

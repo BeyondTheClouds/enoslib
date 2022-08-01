@@ -1,0 +1,72 @@
+test_ok_at_0:
+  g5k_status: &g5k_status_1 |
+    paravance
+    --****------ paravance-1.rennes.grid5000.fr
+    ----******-- paravance-2.rennes.grid5000.fr
+    parasilo
+    --********-- parasilo-12.rennes.grid5000.fr
+  g5k_request: &g5k_request_1 |
+    paravance 1
+    parasilo-12.rennes.grid5000.fr
+    00:05:00
+  iot_status: &iot_status_1 |
+    m3-1.lille.iot-lab.info m3:at86rf231 lille
+    m3-2.lille.iot-lab.info m3:at86rf231 lille
+    m3-3.lille.iot-lab.info m3:at86rf231 lille
+  iot_experiment_status: &iot_status_experiments_1 |
+    -**--------- m3-1.lille.iot-lab.info
+    -*****------ m3-2.lille.iot-lab.info
+    --**-------- m3-3.lille.iot-lab.info
+  iot_request: &iot_request_1 |
+    m3:at86rf231 2 lille
+    00:05
+  expected: "0"
+
+test_ok_later:
+  g5k_status: *g5k_status_1
+  g5k_request: &g5k_request_11 |
+    paravance 1
+    parasilo-12.rennes.grid5000.fr
+    00:10:00
+  iot_status: *iot_status_1
+  iot_experiment_status: *iot_status_experiments_1
+  iot_request: &iot_request_11 |
+    m3:at86rf231 2 lille
+    00:10
+  expected: "3000"
+
+test_ok_in_between_jobs:
+  g5k_status: |
+    paravance
+    --****--**** paravance-1.rennes.grid5000.fr
+    -**-******-- paravance-2.rennes.grid5000.fr
+    parasilo
+    --****--**-- parasilo-12.rennes.grid5000.fr
+  g5k_request: *g5k_request_11
+  iot_status: *iot_status_1
+  iot_experiment_status: *iot_status_experiments_1
+  iot_request: *iot_request_11
+  expected: "1800"
+
+
+
+test_unknown_iot_node:
+  g5k_status: *g5k_status_1
+  g5k_request: *g5k_request_1
+  iot_status: *iot_status_1
+  iot_experiment_status: *iot_status_experiments_1
+  iot_request: &iot_request_2 |
+    test-4.lille.iot-lab.info
+    00:05
+  expected: "None"
+
+test_unknown_g5k_node:
+  g5k_status: *g5k_status_1
+  g5k_request: &g5k_request_2 |
+    paravance 1
+    parasilo-13.rennes.grid5000.fr
+    00:05:00
+  iot_status: *iot_status_1
+  iot_experiment_status: *iot_status_experiments_1
+  iot_request: *iot_request_1
+  expected: "None"
