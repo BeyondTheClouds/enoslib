@@ -19,6 +19,11 @@ Other Publications (using or citing EnOSlib)
   Compose. CLUSTER 2022 - IEEE International Conference on Cluster Computing, Sep
   2022, Heidelberg, Germany. pp.1-12. ⟨hal-03723771⟩
 
+- T. Lambert, S. Ibrahim, T. Jain and D. Guyon, "Stragglers' Detection in Big
+  Data Analytic Systems: The Impact of Heartbeat Arrival," 2022 22nd IEEE
+  International Symposium on Cluster, Cloud and Internet Computing (CCGrid), 2022,
+  pp. 747-751, doi: 10.1109/CCGrid54584.2022.00084.
+
 - Daniel Rosendo, Alexandru Costan, Patrick Valduriez, Gabriel Antoniu.
   Distributed intelligence on the Edge-to-Cloud Continuum: A systematic literature
   review. Journal of Parallel and Distributed Computing, Elsevier, 2022, 166,
