@@ -57,7 +57,7 @@ class IotlabAPI:
 
     @staticmethod
     def _translate_resources(resources: List[GroupConfiguration]) -> list:
-        """Convert from node Configuration to a list of resources acceptable by FIT/IoT-LAB
+        """Convert from node Configuration to a list of resources of FIT/IoT-LAB
 
         Args:
             resources: list of resources from schema configuration
