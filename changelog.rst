@@ -48,7 +48,7 @@ Misc
 ++++
 
 - doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
-- doc/theys-use-it: add hal-03654722
+- doc/theys-use-it: add hal-03654722, 10.1109/CCGrid54584.2022.00084
 - doc: update chameleon tutorial with an edge-to-cloud example
 
 7.2.1
