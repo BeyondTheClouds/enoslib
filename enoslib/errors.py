@@ -10,6 +10,11 @@ class InvalidReservationError(EnosError):
         self.time = time
 
 
+class NoSlotError(EnosError):
+    def __init__(self):
+        self.msg = "No slot found"
+
+
 class EnosFailedHostsError(EnosError):
     def __init__(self, hosts):
         self.hosts = hosts

@@ -23,6 +23,7 @@ class Configuration(BaseConfiguration):
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE
         self.walltime = DEFAULT_WALLTIME
+        self.reservation = None
         ###
         self.force_deploy = DEFAULT_FORCE_DEPLOY
 

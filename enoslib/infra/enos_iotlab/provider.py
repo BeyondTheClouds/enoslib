@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import logging
 import pathlib
 import re
@@ -374,6 +375,9 @@ class Iotlab(Provider):
 
         return roles, networks
 
+    def __str__(self):
+        return "Iotlab"
+
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test if it is possible to reserve the configuration corresponding
         to this provider at start_time"""
@@ -392,4 +396,9 @@ class Iotlab(Provider):
             )
         return test_slot(
             self.provider_conf, self.nodes_status, self.experiments_status, start_time
+        )
+
+    def set_reservation(self, timestamp: int):
+        self.provider_conf.start_time = datetime.fromtimestamp(timestamp).strftime(
+            "%Y-%m-%d %H:%M:%S"
         )

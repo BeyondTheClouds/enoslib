@@ -82,6 +82,26 @@ class Roles(UserDict):
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
+    def all_roles(self):
+        all_roles = set()
+        for hosts in self:
+            all_roles.union(hosts)
+        return all_roles
+
+    def __add__(self, other):
+        result = Roles()
+        for role, hosts in self.items():
+            result.setdefault(role, []).extend(hosts)
+        for role, hosts in other.items():
+            result.setdefault(role, []).extend(hosts)
+            result[role] = list(set(result[role]))
+        return result
+
+    def extend(self, roles):
+        for role, hosts in roles.items():
+            self.setdefault(role, []).extend(hosts)
+            self[role] = list(set(self[role]))
+
 
 class Networks(UserDict):
     def to_dict(self):
@@ -109,6 +129,26 @@ class Networks(UserDict):
                 html_to_foldable_section(role, repr_networks, str(len(self.data[role])))
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
+
+    def all_networks(self):
+        all_networks = set()
+        for networks in self:
+            all_networks.union(networks)
+        return all_networks
+
+    def __add__(self, other):
+        result = Networks()
+        for network, network_info in self.items():
+            result.setdefault(network, []).extend(network_info)
+        for network, network_info in other.items():
+            result.setdefault(network, []).extend(network_info)
+            result[network] = list(set(result[network]))
+        return result
+
+    def extend(self, networks):
+        for network, network_info in networks.items():
+            self.setdefault(network, []).extend(network_info)
+            self[network] = list(set(self[network]))
 
 
 def _build_devices(facts, networks):
