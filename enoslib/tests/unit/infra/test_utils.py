@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 import yaml
 
-from enoslib.errors import InvalidReservationError
+from enoslib.errors import NoSlotError
 from enoslib.infra.enos_g5k.configuration import ClusterConfiguration
 from enoslib.infra.enos_g5k.configuration import Configuration as G5k_Configuration
 from enoslib.infra.enos_g5k.configuration import (
@@ -238,8 +238,8 @@ class TestUtils(EnosTest):
     @ddt.file_data("test_find_slot_meta.yaml", yaml.UnsafeLoader)
     @parse_statuses
     def test_ddt(self, g5k_provider, iot_provider, expected):
-        if expected == "InvalidReservationError":
-            with self.assertRaises(InvalidReservationError):
+        if expected == "NoSlotError":
+            with self.assertRaises(NoSlotError):
                 find_slot([g5k_provider, iot_provider], 3600, start_time=0),
         else:
             self.assertEqual(

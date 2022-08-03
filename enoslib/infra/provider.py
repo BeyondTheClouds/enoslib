@@ -82,6 +82,9 @@ class Provider:
         to this provider at start_time"""
         pass
 
+    def set_reservation(self, timestamp: int):
+        pass
+
     def __enter__(self):
         return self.init()
 

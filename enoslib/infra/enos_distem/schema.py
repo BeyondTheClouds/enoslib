@@ -14,6 +14,11 @@ SCHEMA = {
         "queue": {"type": "string", "enum": QUEUE_TYPES},
         "walltime": {"type": "string"},
         "image": {"type": "string"},
+        "reservation": {
+            "type": "string",
+            "format": "reservation",
+            "description": "reservation date in YYYY-mm-dd HH:MM:SS format",
+        },
         ###
         "force_deploy": {"type": "boolean"},
     },

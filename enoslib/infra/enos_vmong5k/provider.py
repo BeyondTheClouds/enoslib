@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
+from datetime import datetime
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
@@ -368,3 +369,8 @@ class VMonG5k(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         return g5k_provider.test_slot(start_time, end_time)
+
+    def set_reservation(self, timestamp: int):
+        self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )

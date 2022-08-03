@@ -2,6 +2,7 @@
 from collections import defaultdict
 import copy
 from contextlib import contextmanager
+from datetime import datetime
 import logging
 import operator
 import re
@@ -751,6 +752,11 @@ class G5k(Provider):
             self.provider_conf.walltime,
             self.provider_conf.machines,
             self.clusters_status,
+        )
+
+    def set_reservation(self, timestamp: int):
+        self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
+            "%Y-%m-%d %H:%M:%S"
         )
 
 
