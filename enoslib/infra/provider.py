@@ -77,13 +77,25 @@ class Provider:
         "Abstract. Destroy the resources used for the deployment."
         pass
 
-    @abstractmethod
-    def test_slot(self, start_time: int):
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        pass
+    def test_slot(self, start_time: int) -> bool:
+        """Test a slot that starts at a given point in time.
+
+        Args:
+            start_time:
+                given point in time. Timestamp in seconds.
+
+        Returns:
+            True iff the slot is available
+        """
+        return True
 
     def set_reservation(self, timestamp: int):
+        """Change the internal reservation date.
+
+        Args:
+            timestamp
+                The reservation date as timestamp in seconds.
+        """
         pass
 
     def __str__(self):

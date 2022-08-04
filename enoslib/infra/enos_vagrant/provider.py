@@ -135,8 +135,3 @@ class Enos_vagrant(Provider):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()
-
-    def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        return True

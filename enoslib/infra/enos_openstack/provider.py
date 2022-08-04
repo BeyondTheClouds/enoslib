@@ -577,9 +577,3 @@ class Openstack(Provider):
                 if is_in_current_deployment(server):
                     logger.info("Deleting %s" % server)
                     server.delete()
-
-    def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        # Unimplemented
-        return False

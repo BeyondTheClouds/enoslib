@@ -45,6 +45,11 @@ class ChameleonEdge(Provider):
 
         return self._to_enoslib()
 
+    def set_reservation(self, timestamp: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )
+
     def _reserve(self):
         """Reserve resources on platform"""
         return self.client.get_resources(
@@ -129,12 +134,6 @@ class ChameleonEdge(Provider):
             self.provider_conf.lease_name,
             self.provider_conf.rc_file,
         )
-
-    def test_slot(self, start_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        # Unimplemented
-        return False
 
 
 def check() -> List[Tuple[str, bool, str]]:

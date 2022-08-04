@@ -47,9 +47,3 @@ class Static(Provider):
 
     def destroy(self):
         pass
-
-    def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        # Unimplemented
-        return False

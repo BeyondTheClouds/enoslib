@@ -230,8 +230,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             bclient.lease.delete(lease["id"])
             logger.info("Destroyed %s" % lease_to_s(lease))
 
-    def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
-        # Unimplemented
-        return False
+    def set_reservation(self, timestamp: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )

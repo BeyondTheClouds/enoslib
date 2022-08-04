@@ -87,3 +87,7 @@ class Providers(Provider):
             if not ok:
                 break
         return ok
+
+    def set_reservation(timestamp: int):
+        for provider in self.providers:
+            provider.set_reservation(timestamp)
