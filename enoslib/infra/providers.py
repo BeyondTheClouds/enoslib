@@ -26,13 +26,15 @@ class Providers(Provider):
         date to all providers
 
         Args:
-            time_window: 
+            time_window:
                 How long in the future are you willing to look for for a start time
-            start_time: 
-                The first start_time you will test, incremented after each try (5 minutes)
+            start_time:
+                The first start_time you will test, incremented after each try
+                (5 minutes increment)
 
         Returns:
-            Providers' roles and networks similar to :py:meth:`~enoslib.infra.provider.Provider.init` return value.
+            Providers' roles and networks similar to
+            :py:meth:`~enoslib.infra.provider.Provider.init` return value.
 
         Raises:
             NoSlotError: If no common slot can be found

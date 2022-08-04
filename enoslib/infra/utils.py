@@ -46,8 +46,6 @@ def find_slot(
     Raises:
         NoSlotError: If no compatible slot can be found for all provided providers
     """
-    from datetime import datetime
-
     ko = True
     start_time_initial = start_time
     while start_time < start_time_initial + time_window:
