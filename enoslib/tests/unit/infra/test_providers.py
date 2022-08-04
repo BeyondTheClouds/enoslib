@@ -62,7 +62,7 @@ class TestFindSlot(EnosTest):
             provider = Mock()
             provider.init.side_effect = [InvalidReservationError(datetime.fromtimestamp(500).strftime("%Y-%m-%d %H:%M:%S")), (roles, networks)]
             providers = Providers([provider])
-            roles, networks = providers.init(time_window=1000, start_time=0, all_or_nothing=True)
+            roles, networks = providers.init(time_window=1000, start_time=0)
             self.assertEqual(2, patch_find_slot.call_count, "find_slot must have been twice")
             # we assert on the last call of find_slot
             patch_find_slot.assert_called_with(
