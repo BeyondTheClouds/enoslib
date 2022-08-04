@@ -10,7 +10,23 @@ from enoslib.objects import Host, Networks, Roles, DefaultNetwork
 from enoslib.tests.unit import EnosTest
 
 
-class TestUtils(EnosTest):
+class TestFindSlot(EnosTest):
+    """ Test high level synchronization logic between various providers.
+    
+    - test_synchronized_reservation: ideal case 
+        a common slot is found, we check that the roles are merged correctly
+
+    - test_synchronized_reservation_init_raise_exception:
+        a common slot is found, but the reservation can't be made (e.g
+        out-of-date planning at the time of the submission)
+        we check that we jump to the hint wrapped in the exception
+
+    - test_synchronized_reservation_possible_reservation_not_in_time_window:
+        same as above but the hint is after the time window
+
+    - test_start_time_exceed_time_window_raise_an_exception
+    
+    """
     @patch("enoslib.infra.providers.find_slot", return_value=0)
     def test_synchronized_reservation(
         self,
@@ -21,119 +37,49 @@ class TestUtils(EnosTest):
         network1 = DefaultNetwork("10.0.0.1/24")
         network2 = DefaultNetwork("10.0.0.2/24")
 
-        class DummyProvider1(Provider):
-            def __init__(self):
-                pass
+        provider1 = Mock()
+        provider1.init.return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))
 
-            def init(self):
-                return (
-                    Roles(Dummy=[host1]),
-                    Networks(Dummy=[network1]),
-                )
+        provider2 = Mock()
+        provider2.init.return_value = (Roles(Dummy=[host2]), Networks(Dummy=[network2]))
 
-            def __str__(self):
-                return "Dummy1"
-
-        class DummyProvider2(Provider):
-            def __init__(self):
-                pass
-
-            def init(self):
-                return (
-                    Roles(Dummy=[host2]),
-                    Networks(Dummy=[network2]),
-                )
-
-            def __str__(self):
-                return "Dummy2"
-
-        provider1 = DummyProvider1()
-        provider2 = DummyProvider2()
         providers = Providers([provider1, provider2])
-        roles, networks = providers.init(0, start_time=0)
+        roles, networks = providers.init(time_window=0, start_time=0)
         assert str(provider1) in roles and str(provider2) in roles
         assert str(provider1) in networks and str(provider2) in networks
         assert host1 in roles["Dummy"] and host2 in roles["Dummy"]
         assert network1 in networks["Dummy"] and network2 in networks["Dummy"]
 
-    def test_synchronized_reservation_busy_until(self):
-        host = Host("dummy-host")
-        network = DefaultNetwork("10.0.0.1/24")
-
-        class DummyProvider(Provider):
-            def __init__(self):
-                pass
-
-            def init(self):
-                return (
-                    Roles(Dummy=[host]),
-                    Networks(Dummy=[network]),
-                )
-
-            def test_slot(self, start_time: int, time_window: int):
-                pass
-
-            def __str__(self):
-                return "Dummy1"
-
-        with patch.object(
-            DummyProvider, "test_slot", side_effect=[False, True]
-        ) as patch_find_slot:
-            provider = DummyProvider()
-            providers = Providers([provider])
-            roles, networks = providers.init(1000, start_time=0)
-            patch_find_slot.assert_called_with(300, 1000)
 
     def test_synchronized_reservation_init_raise_exception(self):
         host = Host("dummy-host")
         network = DefaultNetwork("10.0.0.1/24")
-
-        class DummyProvider(Provider):
-            def __init__(self):
-                self.x = 0
-                pass
-
-            def init(self):
-                if self.x == 0:
-                    self.x += 1
-                    raise (
-                        InvalidReservationError(
-                            datetime.fromtimestamp(500).strftime("%Y-%m-%d %H:%M:%S")
-                        )
-                    )
-                return (
-                    Roles(Dummy=[host]),
-                    Networks(Dummy=[network]),
-                )
-
-            def test_slot(self, start_time: int, time_window: int):
-                pass
-
-            def __str__(self):
-                return "Dummy1"
-
+        roles, networks = Roles(Dummy=[host]), Networks(Dummy=[network]),
+        
         with patch(
-            "enoslib.infra.providers.find_slot", return_value=0
+            "enoslib.infra.providers.find_slot", side_effect=[0, 500]
         ) as patch_find_slot:
-            provider = DummyProvider()
+            provider = Mock()
+            provider.init.side_effect = [InvalidReservationError(datetime.fromtimestamp(500).strftime("%Y-%m-%d %H:%M:%S")), (roles, networks)]
             providers = Providers([provider])
-            roles, networks = providers.init(1000, start_time=0, all_or_nothing=True)
+            roles, networks = providers.init(time_window=1000, start_time=0, all_or_nothing=True)
+            self.assertEqual(2, patch_find_slot.call_count, "find_slot must have been twice")
+            # we assert on the last call of find_slot
             patch_find_slot.assert_called_with(
-                providers.providers, 500, 500
+                [provider], 500, 500
             )  # 500, 500 because base start_time 0 and window 1000 so if start time = 500 then window = 500
 
-    def test_synchronized_reservation_invalid(self):
-        class DummyProvider(Provider):
-            def __init__(self):
-                pass
+    def test_synchronized_reservation_possible_reservation_not_in_time_window(self):
+        provider = Mock()
+        provider.init.side_effect = InvalidReservationError(datetime.fromtimestamp(1500).strftime("%Y-%m-%d %H:%M:%S"))
+        providers = Providers([provider])
+        with patch("enoslib.infra.providers.find_slot", return_value=500) as patch_find_slot:
+            with self.assertRaises(NoSlotError):
+               roles, networks = providers.init(1000, 0)
 
-            def init():
-                return ("Dummy", "Dummy")
 
-            def test_slot(self, start_time: int, time_window: int):
-                return False
-
-        provider = DummyProvider()
+    def test_start_time_exceed_time_window_raise_an_exception(self):
+        provider = Mock()
         providers = Providers([provider])
         with self.assertRaises(NoSlotError):
-            roles, networks = providers.init(1, 0)
+            providers.init(time_window=1000, start_time=1500)

@@ -49,8 +49,6 @@ def find_slot(
     from datetime import datetime
 
     ko = True
-    if start_time is None:
-        start_time = datetime.timestamp(datetime.now()) + 60
     start_time_initial = start_time
     while start_time < start_time_initial + time_window:
         ko = False

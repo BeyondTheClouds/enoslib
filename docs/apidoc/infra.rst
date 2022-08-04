@@ -160,3 +160,13 @@ Sensor
 ------
 
 .. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
+
+
+Providers Class
+===============
+
+.. automodule:: enoslib.infra.providers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
