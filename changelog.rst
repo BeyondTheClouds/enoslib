@@ -9,6 +9,7 @@ Providers
 
 - all: introduce ``test_slot`` at the interface level (prepare multi-provider experiment)
   This will test if a slot (time x resource) can be started on the corresponding platform
+- all: Providers can now take a name
 - g5k: fix an issue on the reservation date preventing multisite deployment
 - g5k: reduce number of log at the info level
 - g5k: ``provider.destroy`` can now wait for a state change (use ``wait=True``)

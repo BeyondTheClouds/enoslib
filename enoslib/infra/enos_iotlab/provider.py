@@ -375,9 +375,6 @@ class Iotlab(Provider):
 
         return roles, networks
 
-    def __str__(self):
-        return "Iotlab"
-
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test if it is possible to reserve the configuration corresponding
         to this provider at start_time"""

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 import datetime
 import itertools
@@ -305,9 +304,6 @@ class Distem(Provider):
 
     def destroy(self):
         pass
-
-    def __str__(self):
-        return "DISTEMonG5k"
 
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test if it is possible to reserve the configuration corresponding

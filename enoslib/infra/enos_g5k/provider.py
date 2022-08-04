@@ -730,9 +730,6 @@ class G5k(Provider):
             logger.info(f"Creating firewall rules {data}")
             job.firewall.create([data])
 
-    def __str__(self):
-        return "G5k"
-
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test if it is possible to reserve the configuration corresponding
         to this provider at start_time"""

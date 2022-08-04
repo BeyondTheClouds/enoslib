@@ -50,8 +50,9 @@ class Provider:
 
     __metaclass__ = ABCMeta
 
-    def __init__(self, provider_conf):
+    def __init__(self, provider_conf, name: str = None):
         self.provider_conf = provider_conf
+        self.name = self.__class__.__name__ if name is None else name
 
     @abstractmethod
     def init(self, force_deploy=False):
@@ -84,6 +85,9 @@ class Provider:
 
     def set_reservation(self, timestamp: int):
         pass
+
+    def __str__(self):
+        return self.name
 
     def __enter__(self):
         return self.init()
