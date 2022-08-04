@@ -2,7 +2,7 @@
 
 from itertools import groupby
 import logging
-from typing import List, Optional
+from typing import List
 from enoslib.infra.enos_g5k.g5k_api_utils import _date2h
 from enoslib.errors import NoSlotError
 
@@ -34,7 +34,7 @@ def pick_things(pools, key, n):
 
 
 def find_slot(
-    providers: List[Provider], time_window: int, start_time: Optional[int] = None
+    providers: List[Provider], time_window: int, start_time: int
 ) -> int:
     """
     Search for a time slot at which all of the provider in "providers" are able to
@@ -42,6 +42,16 @@ def find_slot(
     time_window is how long in the future are we willing to be looking for
     start_time is when we start trying to look for a slot, by default a minute after
     the function is called
+
+    Args:
+        providers:
+            A list of providers
+        time_window:
+            How long in the future are you willing to look for for a start time
+            Must be positive.
+        start_time:
+            The first start_time you will test, incremented after each try
+            (5 minutes increment). Must be positive.
 
     Raises:
         NoSlotError: If no compatible slot can be found for all provided providers

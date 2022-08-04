@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from enoslib.errors import InvalidReservationError, NoSlotError
+from enoslib.errors import InvalidReservationError
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import find_slot
 from enoslib.objects import Networks, Roles
@@ -39,18 +39,18 @@ class Providers(Provider):
         Raises:
             NoSlotError: If no common slot can be found
         """
-        if time_window is None:
+        if time_window is None or time_window < 0:
             # TODO(msimonin): make it a global configuration
             time_window = 7200
-        if start_time is None:
+
+        if start_time is None or start_time < 0:
             # TODO(msimonin): make it a global configuration
             start_time = datetime.timestamp(datetime.now()) + 60
 
         while True:
-            if start_time > time_window:
-                raise NoSlotError()
             # Will raise a NoSlotError exception if no slot is found
             reservation_timestamp = find_slot(self.providers, time_window, start_time)
+            # reservation_timestamp >= start_time
             roles = Roles()
             networks = Networks()
             providers_done = []

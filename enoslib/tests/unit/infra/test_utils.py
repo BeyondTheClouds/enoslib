@@ -19,7 +19,8 @@ from enoslib.infra.utils import find_slot
 from enoslib.tests.unit import EnosTest
 
 import ddt
-from mock import patch
+from mock import patch, Mock
+
 
 # mimicking a grid5000.Status object (we only need to access the node attribute)
 Status = namedtuple("Status", ["nodes"])
@@ -246,3 +247,17 @@ class TestUtils(EnosTest):
                 find_slot([g5k_provider, iot_provider], 3600, start_time=0),
                 eval(expected),
             )
+
+
+    def test_find_slot_parameters(self):
+        provider = Mock()
+        with self.assertRaises(NoSlotError):
+            find_slot([provider], -1, start_time=0)
+
+        start_time = 42
+        self.assertEquals(
+            start_time,
+            find_slot([], 10, start_time),
+            "find_slot returns start time when the list of providers is empty")
+
+                

@@ -73,13 +73,9 @@ class TestFindSlot(EnosTest):
         provider = Mock()
         provider.init.side_effect = InvalidReservationError(datetime.fromtimestamp(1500).strftime("%Y-%m-%d %H:%M:%S"))
         providers = Providers([provider])
-        with patch("enoslib.infra.providers.find_slot", return_value=500) as patch_find_slot:
+        with patch("enoslib.infra.providers.find_slot") as patch_find_slot:
+            patch_find_slot.side_effect = [500, NoSlotError()]
             with self.assertRaises(NoSlotError):
                roles, networks = providers.init(1000, 0)
-
-
-    def test_start_time_exceed_time_window_raise_an_exception(self):
-        provider = Mock()
-        providers = Providers([provider])
-        with self.assertRaises(NoSlotError):
-            providers.init(time_window=1000, start_time=1500)
+            patch_find_slot.assert_called_with([provider], -500, 1500)
+            self.assertEquals(2, patch_find_slot.call_count)
