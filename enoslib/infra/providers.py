@@ -22,8 +22,15 @@ class Providers(Provider):
     ):
         """Tries to start the providers in providers list
 
-        This calls the find_slot function in order to find a common free reservation
-        date to all providers
+
+        This will call init on each provider after finding a common possible
+        reservation date for each one of them. It uses
+        :py:func:`~enoslib.infra.utils.find_slot` internally.
+
+        Idempotency: ideally calling this function twice should reload existing
+        reservations on each platform. However the current behaviour might
+        differ from this specification but we'll be happy to get your feedback
+        on this.
 
         Args:
             time_window:
