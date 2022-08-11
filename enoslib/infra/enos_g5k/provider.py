@@ -2,7 +2,7 @@
 from collections import defaultdict
 import copy
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, time
 import logging
 import operator
 import re
@@ -59,7 +59,12 @@ from enoslib.infra.enos_g5k.objects import (
 )
 from enoslib.infra.enos_g5k.remote import DEFAULT_CONN_PARAMS, get_execo_remote
 from enoslib.infra.enos_g5k.utils import run_commands
-from enoslib.errors import InvalidReservationError
+from enoslib.errors import (
+    InvalidReservationCritical,
+    InvalidReservationTime,
+    InvalidReservationTooOld,
+    NegativeWalltime,
+)
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
@@ -412,7 +417,7 @@ class G5k(Provider):
         priv_key = self.key_path.replace(".pub", "")
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
-    def init(self, force_deploy: bool = False):
+    def init(self, force_deploy: bool = False, **kwargs):
         """Take ownership over some Grid'5000 resources (compute and networks).
 
         The function does the heavy lifting of transforming your
@@ -450,6 +455,12 @@ class G5k(Provider):
             MissingNetworkError: If one network is missing in comparison to
                 what is claimed.
             NotEnoughNodesError: If the `min` constraints can't be met.
+            InvalidReservationTime: If the set reservation_date from provider.conf
+            isn't free
+            InvalidReservationOld: If the set reservation_date from provider.conf
+            is in the past
+            InvalidReservationCritical: Any other error that might occur during
+            the reservation
 
         Returns:
             Two dictionnaries (roles, networks) representing the inventory of
@@ -486,15 +497,25 @@ class G5k(Provider):
         try:
             oar_nodes, oar_networks = self.driver.reserve(wait=True)
         except Grid5000CreateError as error:
+            # OAR is kind enough to provide an estimate for a possible start time.
+            # we capture this start time (if it exists in the error) to forge a special
+            # error. This error is used for example in a multi-providers setting
+            # to update the search window of the common slot.
             search = re.search(
                 r"""Reservation not valid --> KO \(This reservation could run at (\d{4}-
                 \d{2}-\d{2} \d{2}:\d{2}:\d{2})\)""",
                 format(error),
             )
             if search is not None:
-                raise InvalidReservationError(search.group(1))
+                raise InvalidReservationTime(search.group(1))
+            search = re.search(
+                "Reservation too old",
+                format(error),
+            )
+            if search is not None:
+                raise InvalidReservationTooOld()
             else:
-                raise Exception
+                raise InvalidReservationCritical(format(error))
         machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
         self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
         self.hosts = _join(machines, self.networks)
@@ -755,6 +776,21 @@ class G5k(Provider):
         self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
+        self.driver.reservation_date = self.provider_conf.reservation
+
+    def offset_walltime(self, offset: int):
+        walltime_part = self.provider_conf.walltime.split(":")
+        walltime_sec = int(
+            walltime_part[0]) * 3600 + int(
+                walltime_part[1]
+                ) * 60 + int(walltime_part[2]) + offset
+        if walltime_sec <= 0:
+            raise NegativeWalltime
+        new_walltime = time(hour=int(walltime_sec / 3600),
+                            minute=int((walltime_sec % 3600) / 60),
+                            second=walltime_sec % 60)
+
+        self.provider_conf.walltime = new_walltime.strftime("%H:%M:%S")
 
 
 def _lookup_networks(network_id: str, networks: List[G5kNetwork]):

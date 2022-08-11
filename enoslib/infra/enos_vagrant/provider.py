@@ -33,7 +33,7 @@ class VagrantNetwork(DefaultNetwork):
 class Enos_vagrant(Provider):
     """The provider to use when working with vagrant (local machine)."""
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         """Reserve and deploys the vagrant boxes.
 
         Args:
@@ -135,3 +135,8 @@ class Enos_vagrant(Provider):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()
+
+    def offset_walltime(self, difference: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )

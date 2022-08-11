@@ -1,6 +1,7 @@
 import ipaddress
 from typing import Dict
 import mock
+from enoslib.errors import NegativeWalltime
 
 from enoslib.infra.enos_g5k.provider import (
     G5k,
@@ -94,6 +95,20 @@ class TestG5kEnos(EnosTest):
         self.assertEqual(1022, len(list(enos_subnet.free_ips)))
         self.assertTrue(enos_subnet.has_free_macs)
         self.assertEqual(1022, len(list(enos_subnet.free_macs)))
+        
+    def test_offset_walltime(self):
+        conf = Configuration()
+        conf.walltime = "02:00:00"
+        provider = G5k(conf)
+        provider.offset_walltime(-3600)
+        self.assertEquals(provider.provider_conf.walltime, "01:00:00")
+        
+    def test_offset_walltime_negative_walltime(self):
+        conf = Configuration()
+        conf.walltime = "02:00:00"
+        provider = G5k(conf)
+        with self.assertRaises(NegativeWalltime):
+            provider.offset_walltime(-7200)
 
 
 class TestTranslate(EnosTest):
@@ -346,3 +361,4 @@ class TestDeploy(EnosTest):
         # check that the names is ok
         names = [n[1] for n in vlan.translate(oar_nodes_2)]
         self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
+

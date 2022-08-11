@@ -2,6 +2,7 @@
 import mock
 import tempfile
 from unittest.mock import patch
+from enoslib.errors import NegativeWalltime
 
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
@@ -805,3 +806,20 @@ class TestProfiles(EnosTest):
                 ],
                 any_order=True,
             )
+    
+    def test_offset_walltime(self):
+        conf = Configuration()
+        conf.walltime = "02:00"
+        with patch.object(Configuration,'finalize',return_value=conf) as patch_finalize:
+            provider = Iotlab(conf)
+            provider.offset_walltime(-3600)
+            self.assertEquals(provider.provider_conf.walltime,"01:00")
+        
+    def test_offset_walltime_negative_walltime(self):
+        conf = Configuration()
+        conf.walltime = "02:00"
+        with patch.object(Configuration,'finalize',return_value=conf) as patch_finalize:
+            provider = Iotlab(conf)
+            with self.assertRaises(NegativeWalltime):
+                provider.offset_walltime(-7200)
+        

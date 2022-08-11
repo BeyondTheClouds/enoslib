@@ -82,11 +82,11 @@ class Roles(UserDict):
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
-    def all_roles(self):
-        all_roles = set()
-        for hosts in self:
-            all_roles.union(hosts)
-        return all_roles
+    def all_hosts(self):
+        all_hosts = set()
+        for hosts in self.values():
+            all_hosts = all_hosts.union(hosts)
+        return all_hosts
 
     def __add__(self, other):
         result = Roles()
@@ -132,8 +132,8 @@ class Networks(UserDict):
 
     def all_networks(self):
         all_networks = set()
-        for networks in self:
-            all_networks.union(networks)
+        for networks in self.values():
+            all_networks = all_networks.union(networks)
         return all_networks
 
     def __add__(self, other):

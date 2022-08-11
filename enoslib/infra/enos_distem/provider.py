@@ -6,6 +6,7 @@ import os
 from typing import List
 
 import distem as d
+from enoslib.errors import NegativeWalltime
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -288,7 +289,7 @@ def distem_bootstrap(roles, path_sshkeys):
 class Distem(Provider):
     """Use Distem on G5k"""
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
@@ -316,3 +317,15 @@ class Distem(Provider):
         self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
+
+    def offset_walltime(self, offset: int):
+        walltime_part = self.provider_conf.walltime.split(":")
+        walltime_sec = (
+            int(walltime_part[0]) * 3600
+            + int(walltime_part[1]) * 60
+            + int(walltime_part[2])
+        ) + offset
+        if walltime_sec <= 0:
+            raise NegativeWalltime()
+        self.provider_conf.walltime = f"{int(walltime_sec/3600)}:\
+            {int((walltime_sec%3600)/60)}:{int(walltime_sec%60)}"

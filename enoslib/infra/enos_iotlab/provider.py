@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, time
 import logging
 import pathlib
 import re
@@ -9,7 +9,12 @@ from urllib.error import HTTPError
 import iotlabcli.auth
 
 from enoslib.api import play_on, run, CommandResult, CustomCommandResult
-from enoslib.errors import InvalidReservationError
+from enoslib.errors import (
+    InvalidReservationCritical,
+    InvalidReservationTime,
+    InvalidReservationTooOld,
+    NegativeWalltime,
+)
 from enoslib.objects import Host, Networks, Roles
 from enoslib.infra.provider import Provider
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI, test_slot
@@ -95,7 +100,7 @@ class Iotlab(Provider):
         self.nodes_status = None
         self.experiments_status = None
 
-    def init(self, force_deploy: bool = False):
+    def init(self, force_deploy: bool = False, **kwargs):
         """
         Take ownership over FIT/IoT-LAB resources
 
@@ -106,7 +111,13 @@ class Iotlab(Provider):
 
         Returns:
             (roles, dict): representing the inventory of resources.
-
+        Raises:
+            InvalidReservationTime: If the set reservation_date from
+            provider.conf isn't free
+            InvalidReservationOld: If the set reservation_date from
+            provider.conf is in the past
+            InvalidReservationCritical: Any other error that might
+            occur during the reservation
         """
         self._profiles()
         self._reserve()
@@ -263,15 +274,25 @@ class Iotlab(Provider):
                 self.provider_conf.start_time,
             )
         except HTTPError as error:
+            # OAR is kind enough to provide an estimate for a possible start time.
+            # we capture this start time (if it exists in the error) to forge a special
+            # error. This error is used for example in a multi-providers setting
+            # to update the search window of the common slot.
             search = re.search(
                 r"""Reservation not valid --> KO \(This reservation could run at (\d{4}-
                 \d{2}-\d{2} \d{2}:\d{2}:\d{2})\)""",
                 format(error),
             )
             if search is not None:
-                raise InvalidReservationError(search.group(1))
+                raise InvalidReservationTime(search.group(1))
+            search = re.search(
+                "Reservation too old",
+                format(error),
+            )
+            if search is not None:
+                raise InvalidReservationTooOld()
             else:
-                raise Exception
+                raise InvalidReservationCritical(format(error))
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):
             self._populate_from_phys_nodes(iotlab_nodes)
         else:
@@ -399,3 +420,16 @@ class Iotlab(Provider):
         self.provider_conf.start_time = datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
+
+    def offset_walltime(self, offset: int):
+        walltime_part = self.provider_conf.walltime.split(":")
+        walltime_sec = (
+            int(walltime_part[0]) * 3600 + int(walltime_part[1]) * 60 + offset
+        )
+        if walltime_sec <= 0:
+            raise NegativeWalltime()
+        # The walltime being in Hours:Minutes format, it will be rounded down if
+        # there're spare seconds
+        new_walltime = time(hour=int(walltime_sec / 3600),
+                            minute=int((walltime_sec % 3600) / 60))
+        self.provider_conf.walltime = new_walltime.strftime("%H:%M")

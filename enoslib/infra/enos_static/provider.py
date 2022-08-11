@@ -13,7 +13,7 @@ class Static(Provider):
     the exact settings of his machines and networks.
     """
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         machines = self.provider_conf.machines
         roles = Roles()
         for machine in machines:
@@ -47,3 +47,8 @@ class Static(Provider):
 
     def destroy(self):
         pass
+
+    def offset_walltime(self, difference: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )
