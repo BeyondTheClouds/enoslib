@@ -12,9 +12,7 @@ from neutronclient.neutron import client as neutron
 import enoslib.infra.enos_openstack.provider as openstack
 import enoslib.infra.enos_chameleonkvm.provider as cc
 
-from enoslib.infra.enos_openstack.utils import (
-    source_credentials_from_rc_file
-)
+from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 
 logger = logging.getLogger(__name__)
 
@@ -162,14 +160,15 @@ def check_extra_ports(session, network, total):
 
 
 class Chameleonbaremetal(cc.Chameleonkvm):
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
             logger.info(f" Using {_site}.")
             conf = self.provider_conf
             env = openstack.check_environment(conf)
             lease = check_reservation(conf, env["session"])
             extra_ips = check_extra_ports(
-                env["session"], env["network"], conf.extra_ips)
+                env["session"], env["network"], conf.extra_ips
+            )
             reservations = lease["reservations"]
             machines = self.provider_conf.machines
             machines = sorted(machines, key=by_flavor)
@@ -231,6 +230,11 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             logger.info("Destroyed %s" % lease_to_s(lease))
 
     def set_reservation(self, timestamp: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )
+
+    def offset_walltime(self, offset: int):
         raise NotImplementedError(
             "Please Implement me to enjoy the power of multi plaforms experiments."
         )

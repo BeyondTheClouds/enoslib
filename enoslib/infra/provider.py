@@ -55,7 +55,7 @@ class Provider:
         self.name = self.__class__.__name__ if name is None else name
 
     @abstractmethod
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         """Abstract. Provides resources and provisions the environment.
 
         This calls the underlying provider and provision resources (machines
@@ -106,3 +106,7 @@ class Provider:
 
     def __exit__(self, *args):
         self.destroy()
+
+    @abstractmethod
+    def offset_walltime(self, offset: int):
+        pass

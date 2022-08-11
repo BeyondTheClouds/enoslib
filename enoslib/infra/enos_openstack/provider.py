@@ -43,9 +43,7 @@ from .constants import (
 )
 from .objects import OSNetwork
 
-from enoslib.infra.enos_openstack.utils import (
-    source_credentials_from_rc_file
-)
+from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 
 logger = logging.getLogger(__name__)
 
@@ -524,7 +522,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
 
 
 class Openstack(Provider):
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
             logger.info(f" Using {_site}.")
             logger.info("Checking the existing environment")
@@ -577,3 +575,8 @@ class Openstack(Provider):
                 if is_in_current_deployment(server):
                     logger.info("Deleting %s" % server)
                     server.delete()
+
+    def offset_walltime(self, difference: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
+        )

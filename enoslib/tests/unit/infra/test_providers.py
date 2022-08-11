@@ -2,19 +2,19 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch, call
 
-from enoslib.errors import InvalidReservationError, NoSlotError
+from enoslib.errors import InvalidReservationCritical, InvalidReservationTime, NoSlotError
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
-
+from freezegun import freeze_time
 
 class TestFindSlot(EnosTest):
-    """ Test high level synchronization logic between various providers.
-    
-    - test_synchronized_reservation: ideal case 
+    """Test high level synchronization logic between various providers.
+
+    - test_synchronized_reservation: ideal case
         a common slot is found, we check that the roles are merged correctly
 
     - test_synchronized_reservation_init_raise_exception:
@@ -26,76 +26,54 @@ class TestFindSlot(EnosTest):
         same as above but the hint is after the time window
 
     - test_start_time_exceed_time_window_raise_an_exception
-    
+
     """
-    @patch("enoslib.infra.providers.find_slot", return_value=0)
+
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
     def test_synchronized_reservation(
-        self,
-        mock_find_slot,
+        self
     ):
+        
+        # now() is used now so that the time ticks forward by 10 seconds when providers.init() 
+        # will be called, simulating the time a request would take
+        datetime.now()
+        
         host1 = Host("dummy-host1")
         host2 = Host("dummy-host2")
         network1 = DefaultNetwork("10.0.0.1/24")
         network2 = DefaultNetwork("10.0.0.2/24")
-
+                    
         provider1 = Mock()
         provider1.init.return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))
+        provider1.test_slot.return_value = True
+        provider1.__str__ = Mock()
+        provider1.__str__.return_value = "provider1"
 
         provider2 = Mock()
         provider2.init.return_value = (Roles(Dummy=[host2]), Networks(Dummy=[network2]))
+        provider2.test_slot.return_value = True
+        provider2.__str__ = Mock()
+        provider2.__str__.return_value = "provider2"
 
         providers = Providers([provider1, provider2])
-        roles, networks = providers.init(time_window=0, start_time=0)
+        roles, networks = providers.init(time_window=500, start_time=0)
         self.assertTrue(str(provider1) in roles and str(provider2) in roles)
         self.assertTrue(str(provider1) in networks and str(provider2) in networks)
         self.assertTrue(host1 in roles["Dummy"] and host2 in roles["Dummy"])
         self.assertTrue(network1 in networks["Dummy"] and network2 in networks["Dummy"])
-
-        provider1.set_reservation.assert_called_with(0)
-        provider2.set_reservation.assert_called_with(0)
-
-
-    def test_synchronized_reservation_init_raise_exception(self):
-        host = Host("dummy-host")
-        network = DefaultNetwork("10.0.0.1/24")
-        roles, networks = Roles(Dummy=[host]), Networks(Dummy=[network]),
+     
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
+    @patch('enoslib.infra.providers.find_slot_and_start', side_effect=[InvalidReservationTime("1970-01-01 00:01:00"),(Roles() ,Networks())])
+    def test_synchronized_reservation_raise_InvalidReservationTime(self, patch_find_slot_and_start):
+        providers = Providers([])
+        roles, networks = providers.init(time_window=300, start_time=0)
+        patch_find_slot_and_start.assert_has_calls([call([],0,300), call([],60,240)])
         
-        with patch(
-            "enoslib.infra.providers.find_slot", side_effect=[0, 500]
-        ) as patch_find_slot:
-            provider = Mock()
-            provider.init.side_effect = [InvalidReservationError(datetime.fromtimestamp(500).strftime("%Y-%m-%d %H:%M:%S")), (roles, networks)]
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
+    @patch('enoslib.infra.providers.find_slot_and_start', side_effect=NoSlotError)
+    def test_synchronized_reservation_raise_InvalidReservationTime(self, patch_find_slot_and_start):
+        providers = Providers([])
+        with self.assertRaises(InvalidReservationCritical):
+            roles, networks = providers.init(time_window=300, start_time=0)
 
-            providers = Providers([provider])
-            roles, networks = providers.init(time_window=1000, start_time=0)
-
-            self.assertEqual(2, patch_find_slot.call_count, "find_slot must have been twice")
-            patch_find_slot.assert_has_calls([
-                call([provider], 1000, 0),
-                call([provider], 500, 500)
-            ])
-
-            self.assertEquals(2, provider.set_reservation.call_count)
-            provider.set_reservation.assert_has_calls([call(0), call(500)])
-
-
-    def test_synchronized_reservation_possible_reservation_not_in_time_window(self):
-        provider = Mock()
-        provider.init.side_effect = InvalidReservationError(datetime.fromtimestamp(1500).strftime("%Y-%m-%d %H:%M:%S"))
-        providers = Providers([provider])
-        with patch("enoslib.infra.providers.find_slot") as patch_find_slot:
-            patch_find_slot.side_effect = [500, NoSlotError()]
-
-            with self.assertRaises(NoSlotError):
-               roles, networks = providers.init(1000, 0)
-
-            self.assertEqual(2, patch_find_slot.call_count, "find_slot must have been twice")
-            patch_find_slot.assert_has_calls([
-                call([provider], 1000, 0),
-                call([provider], -500, 1500)
-            ])
-
-            self.assertEquals(1, provider.set_reservation.call_count)
-            provider.set_reservation.assert_has_calls([call(500)])
-
-
+        

@@ -1,9 +1,11 @@
 from collections import namedtuple
 from datetime import datetime
 from typing import List
+from freezegun import freeze_time
 import yaml
 
-from enoslib.errors import NoSlotError
+from enoslib.errors import InvalidReservationTime, InvalidReservationTooOld
+from enoslib.errors import NegativeWalltime, NoSlotError
 from enoslib.infra.enos_g5k.configuration import ClusterConfiguration
 from enoslib.infra.enos_g5k.configuration import Configuration as G5k_Configuration
 from enoslib.infra.enos_g5k.configuration import (
@@ -15,11 +17,13 @@ from enoslib.infra.enos_iotlab.configuration import BoardConfiguration
 from enoslib.infra.enos_iotlab.configuration import Configuration as IOTConfig
 from enoslib.infra.enos_iotlab.configuration import PhysNodeConfiguration
 from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.utils import find_slot
+from enoslib.infra.provider import Provider
+from enoslib.infra.utils import do_init, find_slot, find_slot_and_start, start_provider_within_bounds
+from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 
 import ddt
-from mock import patch, Mock
+from mock import patch, Mock, call
 
 
 # mimicking a grid5000.Status object (we only need to access the node attribute)
@@ -259,5 +263,138 @@ class TestUtils(EnosTest):
             start_time,
             find_slot([], 10, start_time),
             "find_slot returns start time when the list of providers is empty")
+        
+    @freeze_time("1970-01-01 00:00:00")
+    def test_start_provider_within_bounds(self):
+        host = Host("dummy-host1")
+        network = DefaultNetwork("10.0.0.1/24")
+        
+        provider = Mock()
+        provider.init.return_value = (Roles(Dummy=[host]), Networks(Dummy=[network]))
 
+        roles,networks = start_provider_within_bounds(provider, 80)
+        provider.set_reservation.assert_called_with(80)
+        
+        self.assertTrue(host in roles["Dummy"] and network in networks["Dummy"])
+        
+    @freeze_time("1970-01-01 00:00:00")
+    def test_start_provider_within_bounds_start_time_too_close(self):
+        host = Host("dummy-host1")
+        network = DefaultNetwork("10.0.0.1/24")
+        
+        provider = Mock()
+        provider.init.return_value = (Roles(Dummy=[host]), Networks(Dummy=[network]))
+
+        roles,networks = start_provider_within_bounds(provider, 10)
+        provider.set_reservation.assert_called_with(60)
+        provider.offset_walltime.assert_called_with(-50)
+        
+        
+    def test_start_provider_within_bounds_NegativeWalltime_error(self):
+        provider = Mock()
+        provider.offset_walltime.side_effect=[NegativeWalltime]
+
+        with self.assertRaises(NoSlotError):
+            roles,networks = start_provider_within_bounds(provider, 80)
+            
+    @freeze_time("1970-01-01 00:00:00")
+    def test_start_provider_within_bounds_invalidReservationTime_error(self):
+        provider = Mock()
+        provider.init.side_effect = [InvalidReservationTime("1970-01-01 10:00:00")]
+        with self.assertRaises(InvalidReservationTime):
+            roles,networks = start_provider_within_bounds(provider, 80)
+    
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    def test_start_provider_within_bounds_retry(self):
+        host = Host("dummy-host1")
+        network = DefaultNetwork("10.0.0.1/24")
+        
+        provider = Mock()
+        provider.init.side_effect = [InvalidReservationTooOld,InvalidReservationTooOld,(Roles(Dummy=[host]), Networks(Dummy=[network]))]
+
+        roles,networks = start_provider_within_bounds(provider, 60)
+        provider.set_reservation.assert_has_calls([call(60),call(300),call(660)])
+        self.assertTrue(host in roles["Dummy"] and network in networks["Dummy"])
+        
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    def test_start_provider_within_bounds_retry(self):
+        
+        provider = Mock()
+        provider.init.side_effect = InvalidReservationTooOld
+
+        with self.assertRaises(NoSlotError):
+            roles,networks = start_provider_within_bounds(provider, 60)
+        
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    def test_do_init(self):
+        host1 = Host("dummy-host1")
+        network1 = DefaultNetwork("10.0.0.1/24")
+        host2 = Host("dummy-host2")
+        network2 = DefaultNetwork("10.0.0.2/24")
+        
+        provider1 = Mock()
+        provider1.init.return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))
+        provider1.__str__ = Mock()
+        provider1.__str__.return_value = "provider1"
+        provider2 = Mock()
+        provider2.init.return_value = (Roles(Dummy=[host2]), Networks(Dummy=[network2]))
+        provider2.__str__ = Mock()
+        provider2.__str__.return_value = "provider2"
+
+        roles, networks = do_init([provider1, provider2], 0)
+        
+        self.assertTrue(host1 in roles["Dummy"] and network1 in networks["Dummy"])
+        self.assertTrue(host2 in roles["Dummy"] and network2 in networks["Dummy"])
+        self.assertTrue(host1 in roles["provider1"] and network1 in networks["provider1"])
+        self.assertTrue(host2 in roles["provider2"] and network2 in networks["provider2"])
+        
+        provider1.set_reservation.assert_called_with(60)
+        provider2.set_reservation.assert_called_with(120)
+        
+    def test_do_init_provider_raise_NegativeWalltime(self):
+        provider1 = Mock()
+        provider1.offset_walltime.side_effect = NegativeWalltime
+        
+        with self.assertRaises(NoSlotError):
+            do_init([provider1], 0)
+            
+    def test_do_init_provider_raise_InvalidReservationTime(self):
+        provider1 = Mock()
+        provider1.offset_walltime.side_effect = InvalidReservationTime("1970:01:01 01:00:00")
+        
+        with self.assertRaises(InvalidReservationTime):
+            do_init([provider1], 0)
+         
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    @patch('enoslib.infra.utils.find_slot', return_value = 0)
+    def test_find_slot_and_start(self,patch_find_slot):
+        host1 = Host("dummy-host1")
+        network1 = DefaultNetwork("10.0.0.1/24")
+
+        provider1 = Mock()
+        with patch('enoslib.infra.utils.do_init', return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))) as patch_do_init:     
+            roles, networks = find_slot_and_start([provider1], 0, 300)
+            patch_do_init.assert_called_with([provider1], 0)
+        
+            self.assertTrue(host1 in roles["Dummy"] and network1 in networks["Dummy"])
+        
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    @patch('enoslib.infra.utils.find_slot', return_side_effect = [0,120])
+    def test_find_slot_and_start_init_failed(self, mock_find_slot):
+        host1 = Host("dummy-host1")
+        network1 = DefaultNetwork("10.0.0.1/24")
+        
+        provider1 = Mock()
+        with patch('enoslib.infra.utils.do_init',side_effect=NoSlotError):
+            with self.assertRaises(InvalidReservationTime):
+                find_slot_and_start([provider1], 0, 500)
                 
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
+    def test_find_slot_and_start_no_slot_within_window(self):
+        
+        provider1 = Mock()
+        provider1.test_slot.return_value = False
+
+        with self.assertRaises(NoSlotError):
+            find_slot_and_start([provider1], 0, 300)
+            

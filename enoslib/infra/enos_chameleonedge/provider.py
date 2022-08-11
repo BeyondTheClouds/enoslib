@@ -1,14 +1,8 @@
 import os
 import logging
 from typing import List, Tuple
-from .constants import (
-    ROLES,
-    ROLES_SEPARATOR,
-    CONTAINER_LABELS
-)
-from enoslib.infra.enos_chameleonedge.chi_api_utils import (
-    check_connection_to_api
-)
+from .constants import ROLES, ROLES_SEPARATOR, CONTAINER_LABELS
+from enoslib.infra.enos_chameleonedge.chi_api_utils import check_connection_to_api
 from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.objects import Networks, Roles
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
@@ -32,7 +26,7 @@ class ChameleonEdge(Provider):
         self.devices: List[ChameleonDevice] = []
         self.networks: List[ChameleonNetwork] = []
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         """
         Take ownership over CHI@Edge resources
         Return inventory of resources allocated.
@@ -133,6 +127,11 @@ class ChameleonEdge(Provider):
         self.client.release_resources(
             self.provider_conf.lease_name,
             self.provider_conf.rc_file,
+        )
+
+    def offset_walltime(self, offset: int):
+        raise NotImplementedError(
+            "Please Implement me to enjoy the power of multi plaforms experiments."
         )
 
 

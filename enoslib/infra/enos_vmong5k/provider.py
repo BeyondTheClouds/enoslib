@@ -321,12 +321,12 @@ class VMonG5k(Provider):
     def g5k_provider(self):
         return self._g5k_provider
 
-    def init(self, force_deploy=False):
+    def init(self, force_deploy=False, **kwargs):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
         self._g5k_provider = g5kprovider.G5k(g5k_conf)
-        self.g5k_roles, self.g5k_networks = self._g5k_provider.init()
+        self.g5k_roles, self.g5k_networks = self._g5k_provider.init(**kwargs)
 
         # we concretize the virtualmachines
         # assign each group of vms to a list of possible pms and macs
@@ -371,3 +371,13 @@ class VMonG5k(Provider):
         self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
+
+    def offset_walltime(self, difference: int):
+        walltime_part = self.provider_conf.walltime.split(":")
+        current_walltime_sec = (
+            int(walltime_part[0]) * 3600
+            + int(walltime_part[1]) * 60
+            + int(walltime_part[2])
+        ) + difference
+        self.provider_conf.walltime = f"{int(current_walltime_sec/3600)}:\
+            {int((current_walltime_sec%3600)/60)}:{int(current_walltime_sec%60)}"

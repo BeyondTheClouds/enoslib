@@ -5,14 +5,29 @@ class EnosError(Exception):
     pass
 
 
-class InvalidReservationError(EnosError):
+class InvalidReservationTime(EnosError):
     def __init__(self, time):
         self.time = time
+
+
+class InvalidReservationTooOld(EnosError):
+    def __init__(self):
+        self.msg = "Reservation time too old"
+
+
+class InvalidReservationCritical(EnosError):
+    def __init__(self, msg):
+        self.msg = msg
 
 
 class NoSlotError(EnosError):
     def __init__(self):
         self.msg = "No slot found"
+
+
+class NegativeWalltime(EnosError):
+    def __init__(self):
+        self.msg = "Walltime is negative"
 
 
 class EnosFailedHostsError(EnosError):

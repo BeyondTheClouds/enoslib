@@ -1,5 +1,6 @@
 flake8>=3.3.0
 pytest
+freezegun>=1.2.1
 pytest-cov
 mock>=2.0.0
 ddt>=1.1.0
