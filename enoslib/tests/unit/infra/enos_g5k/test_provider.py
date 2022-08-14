@@ -279,6 +279,7 @@ class TestDeploy(EnosTest):
         # no nodes has been deployed initially
         p._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
         p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+
         p.deploy()
 
         p.driver.deploy.assert_called_with(
@@ -286,8 +287,9 @@ class TestDeploy(EnosTest):
             deployed,
             {"environment": DEFAULT_ENV_NAME, "key": DEFAULT_SSH_KEYFILE},
         )
-        self.assertCountEqual(p.hosts, p.deployed)
-        self.assertCountEqual(undeployed, p.undeployed)
+        # self.assertCountEqual(actual_deployed, p.hosts)
+        self.assertCountEqual([], p.undeployed)
+        self.assertCountEqual(p.sshable_hosts, p.deployed)
 
     def test_prod_alt_key(self):
         p, site, oar_nodes = self.build_provider(dict(key="test_key"))
@@ -302,8 +304,9 @@ class TestDeploy(EnosTest):
         p.driver.deploy.assert_called_with(
             site, deployed, {"environment": DEFAULT_ENV_NAME, "key": "test_key"}
         )
-        self.assertCountEqual(p.hosts, p.deployed)
-        self.assertCountEqual(undeployed, p.undeployed)
+        # self.assertCountEqual(p.hosts, p.deployed)
+        self.assertCountEqual([], p.undeployed)
+        self.assertCountEqual(p.sshable_hosts, p.deployed)
 
     def test_dont_deploy_if_check_deployed_pass(self):
         p, site, oar_nodes = self.build_provider()
@@ -313,11 +316,12 @@ class TestDeploy(EnosTest):
         # no nodes has been deployed initially
         p._check_deployed_nodes = mock.Mock(return_value=(deployed, undeployed))
         p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
-        p.deploy()
+        actual_deployed, _ = p.deploy()
 
         p.driver.deploy.assert_not_called()
-        self.assertCountEqual(p.hosts, p.deployed)
+        # self.assertCountEqual(p.hosts, p.deployed)
         self.assertCountEqual([], p.undeployed)
+        self.assertCountEqual(actual_deployed, p.sshable_hosts)
 
     def test_1_deployments_with_undeployed(self):
         p, site, oar_nodes = self.build_provider()
@@ -327,11 +331,14 @@ class TestDeploy(EnosTest):
 
         p._check_deployed_nodes = mock.Mock(side_effect=[(deployed, undeployed)])
         p.driver.deploy = mock.Mock(side_effect=[(deployed, undeployed)])
+
         p.deploy()
 
         self.assertEqual(1, p.driver.deploy.call_count)
         self.assertCountEqual([], p.deployed)
-        self.assertCountEqual(p.hosts, p.undeployed)
+        self.assertCountEqual([], p.sshable_hosts)
+        self.assertCountEqual(p.undeployed, p.hosts)
+
 
     def test_2_primary_network_one_vlan_ko(self):
         p, oar_nodes_1, oar_nodes_2, _ = self.build_complex_provider()
@@ -361,4 +368,3 @@ class TestDeploy(EnosTest):
         # check that the names is ok
         names = [n[1] for n in vlan.translate(oar_nodes_2)]
         self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
-

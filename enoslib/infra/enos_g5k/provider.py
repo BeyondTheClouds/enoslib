@@ -406,8 +406,16 @@ class G5k(Provider):
         self.hosts = []
         # will hold the concrete version of the networks
         self.networks = []
+        # will hold the concrete hosts deployed/undeployed after calling (ka)deploy3
         self.deployed = []
         self.undeployed = []
+
+        # will hold the hosts reachable through ssh
+        # - if allow_classic_ssh is used this will self.hosts
+        # - if a deployment has been performed this will be self.deployed
+        self.sshable_hosts = []
+
+        # will hold the status of the cluster
         self.clusters_status = None
 
         # execo connection params for routines configuration and checks
@@ -522,7 +530,8 @@ class G5k(Provider):
         # trigger necessary side effects on the API for instance
         for h in self.hosts:
             h.mirror_state()
-        return self.hosts
+
+        self.sshable_hosts = self.hosts
 
     def reserve_async(self):
         """Reserve but don't wait.
@@ -531,7 +540,7 @@ class G5k(Provider):
         """
         self.driver.reserve(wait=False)
 
-    def deploy(self):
+    def deploy(self) -> Tuple[List[G5kHost], List[G5kNetwork]]:
         def _key(host):
             """Get the site and the primary network of a concrete description"""
             site, _, _ = host._where
@@ -542,7 +551,9 @@ class G5k(Provider):
 
         # G5k api requires to create one deployment per site and per
         # network type.
-        s_hosts = sorted(self.hosts, key=_key)
+        # hosts = copy.deepcopy(self.hosts)
+        hosts = self.hosts
+        s_hosts = sorted(hosts, key=_key)
         for (site, net), i_hosts in groupby(s_hosts, key=_key):
             _hosts = list(i_hosts)
             fqdns = [h.fqdn for h in _hosts]
@@ -572,10 +583,11 @@ class G5k(Provider):
             # set the ssh_address atrribute of the concrete hosts
             for fqdn, t_fqdn in net.translate(fqdns):
                 # get the corresponding host
-                h = [host for host in self.hosts if host.fqdn == fqdn][0]
+                h = [host for host in hosts if host.fqdn == fqdn][0]
                 h.ssh_address = t_fqdn
             self.deployed = [h for h in _hosts if h.fqdn in deployed]
             self.undeployed = [h for h in _hosts if h.fqdn in undeployed]
+            self.sshable_hosts = self.deployed
         return self.deployed, self.undeployed
 
     def dhcp_networks(self):
@@ -583,7 +595,7 @@ class G5k(Provider):
         if dhcp:
             logger.debug("Configuring network interfaces on the nodes")
             hosts_cmds = [
-                (h.ssh_address, h.dhcp_networks_command()) for h in self.hosts
+                (h.ssh_address, h.dhcp_networks_command()) for h in self.sshable_hosts
             ]
             run_commands(hosts_cmds, self.root_conn_params)
 
@@ -591,7 +603,7 @@ class G5k(Provider):
         user_conn_params = copy.deepcopy(self.root_conn_params)
         user_conn_params.update(user=self.driver.get_user())
         hosts_cmds = [
-            (h.ssh_address, h.grant_root_access_command()) for h in self.hosts
+            (h.ssh_address, h.grant_root_access_command()) for h in self.sshable_hosts
         ]
         run_commands(hosts_cmds, user_conn_params)
 
@@ -629,7 +641,7 @@ class G5k(Provider):
         """Transform from provider specific resources to framework resources."""
         # index the host by their associated roles
         hosts = Roles()
-        for host in self.hosts:
+        for host in self.sshable_hosts:
             for role in host.roles:
                 hosts.setdefault(role, [])
                 h = Host(host.ssh_address, user="root")
@@ -780,15 +792,19 @@ class G5k(Provider):
 
     def offset_walltime(self, offset: int):
         walltime_part = self.provider_conf.walltime.split(":")
-        walltime_sec = int(
-            walltime_part[0]) * 3600 + int(
-                walltime_part[1]
-                ) * 60 + int(walltime_part[2]) + offset
+        walltime_sec = (
+            int(walltime_part[0]) * 3600
+            + int(walltime_part[1]) * 60
+            + int(walltime_part[2])
+            + offset
+        )
         if walltime_sec <= 0:
             raise NegativeWalltime
-        new_walltime = time(hour=int(walltime_sec / 3600),
-                            minute=int((walltime_sec % 3600) / 60),
-                            second=walltime_sec % 60)
+        new_walltime = time(
+            hour=int(walltime_sec / 3600),
+            minute=int((walltime_sec % 3600) / 60),
+            second=walltime_sec % 60,
+        )
 
         self.provider_conf.walltime = new_walltime.strftime("%H:%M:%S")
 
