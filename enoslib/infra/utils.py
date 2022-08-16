@@ -127,7 +127,9 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
             # - this allows for offsetting the walltime with the right value
             start_time = candidate_start_time
             # attempt to get the resources for this time slot
-            provider.async_init(start_time=candidate_start_time, time_window=0, **kwargs)
+            provider.async_init(
+                start_time=candidate_start_time, time_window=0, **kwargs
+            )
             return
         except NegativeWalltime:
             # we did our best but the walltime is too short
