@@ -61,7 +61,7 @@ class Driver:
     def wait(self):
         wait_for_jobs(self.jobs)
 
-    def resources(self) -> Tuple[list[str], list[OarNetwork]]:
+    def resources(self) -> Tuple[List[str], List[OarNetwork]]:
         return build_resources(self.jobs)
 
 
