@@ -48,6 +48,10 @@ python3.9:
   script:
   - pip install tox
   - tox -e py39
+  artifacts:
+    paths:
+    - htmlcov
+    expire_in: 1 week
 
 pep8:
   image: python:3.7
