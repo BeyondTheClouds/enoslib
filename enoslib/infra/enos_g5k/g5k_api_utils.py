@@ -204,7 +204,7 @@ def grid_reload_from_ids(oargrid_jobids):
     return jobs
 
 
-def build_resources(jobs: List[Job]) -> Tuple[list[str], list[OarNetwork]]:
+def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
