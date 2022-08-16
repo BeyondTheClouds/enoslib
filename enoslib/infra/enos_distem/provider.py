@@ -1,12 +1,11 @@
 import copy
-import datetime
+import datetime as dt
 import itertools
 import logging
 import os
 from typing import List
 
 import distem as d
-from enoslib.errors import NegativeWalltime
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -19,6 +18,7 @@ from enoslib.infra.enos_g5k.constants import SLASH_22
 from enoslib.objects import Host, Network, Networks, Roles
 
 from ..provider import Provider
+from ..utils import offset_from_format
 from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME
 
 logger = logging.getLogger(__name__)
@@ -303,6 +303,18 @@ class Distem(Provider):
         roles, networks = start_containers(g5k_roles, self.provider_conf, g5k_subnets)
         return roles, networks
 
+    def async_init(self, **kwargs):
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        g5k_provider = g5kprovider.G5k(g5k_conf)
+        g5k_provider.async_init(**kwargs)
+
+    def is_created(self):
+        # check that the reservation is created
+        # as usual we build everything from scratch and from our source of truth
+        # aka the conf
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        return g5kprovider.G5k(g5k_conf).is_created()
+
     def destroy(self):
         pass
 
@@ -314,18 +326,11 @@ class Distem(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
+        self.provider_conf.reservation = dt.datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 
     def offset_walltime(self, offset: int):
-        walltime_part = self.provider_conf.walltime.split(":")
-        walltime_sec = (
-            int(walltime_part[0]) * 3600
-            + int(walltime_part[1]) * 60
-            + int(walltime_part[2])
-        ) + offset
-        if walltime_sec <= 0:
-            raise NegativeWalltime()
-        self.provider_conf.walltime = f"{int(walltime_sec/3600)}:\
-            {int((walltime_sec%3600)/60)}:{int(walltime_sec%60)}"
+        self.provider_conf.walltime = offset_from_format(
+            self.provider_conf.walltime, offset, "%H:%M:%S"
+        )

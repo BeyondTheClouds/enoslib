@@ -9,6 +9,7 @@ from enoslib.errors import (
 )
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import find_slot_and_start
+from enoslib.objects import Roles, Networks
 
 
 class Providers(Provider):
@@ -19,6 +20,7 @@ class Providers(Provider):
             providers: List of Provider instances that you wish to use
         """
         self.providers = providers
+        self.name = "-".join([str(p) for p in self.providers])
 
     def init(
         self,
@@ -53,6 +55,23 @@ class Providers(Provider):
         Raises:
             NoSlotError: If no common slot can be found
         """
+        # Reserve the resources
+        self._reserve(time_window=time_window, start_time=start_time, **kwargs)
+
+        # actually reload the corresponding resources
+        roles = Roles()
+        networks = Networks()
+        for provider in self.providers:
+            # init will actually reload any existing reservation
+            _roles, _networks = provider.init(**kwargs)
+            roles.extend(_roles)
+            roles[str(provider)] = _roles.all_hosts()
+            networks.extend(_networks)
+            networks[str(provider)] = _networks.all_networks()
+
+        return roles, networks
+
+    def _reserve(self, time_window: Optional[int], start_time: Optional[int], **kwargs):
         if time_window is None or time_window < 0:
             # TODO(msimonin): make it a global configuration
             time_window = 7200
@@ -66,11 +85,11 @@ class Providers(Provider):
             # reservation_timestamp >= start_time
             providers = copy.deepcopy(self.providers)
             try:
-                # providers will be mutated inside doInit
-                roles, networks = find_slot_and_start(
-                    providers, start_time, time_window, **kwargs)
+                # providers will be mutated in there
+                find_slot_and_start(providers, start_time, time_window, **kwargs)
+                # keep track of the providers states
                 self.providers = providers
-                return roles, networks
+                return
             except InvalidReservationTime as error:
                 self.destroy()
                 # We hit a possible race condition
@@ -90,16 +109,22 @@ class Providers(Provider):
             except NoSlotError:
                 self.destroy()
                 raise InvalidReservationCritical(
-                    "Unable to start the providers within given time window")
+                    "Unable to start the providers within given time window"
+                )
+
+    def async_init(
+        self, time_window: Optional[int] = None, start_time: Optional[int] = None
+    ):
+        self._reserve(time_window=time_window, start_time=start_time)
 
     def destroy(self):
         for provider in self.providers:
             provider.destroy()
 
-    def test_slot(self, start_time: int):
+    def test_slot(self, start_time: int, end_time: int):
         ok = True
         for provider in self.providers:
-            ok = ok and provider.test_slot(start_time)
+            ok = ok and provider.test_slot(start_time, end_time)
             if not ok:
                 break
         return ok

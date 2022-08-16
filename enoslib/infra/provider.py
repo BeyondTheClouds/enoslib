@@ -70,19 +70,31 @@ class Provider:
             the value is the machines associated with this role. networks is
             the list of networks configured by the provider. see
             :py:class:`~enoslib.infra.enos_vagrant.provider.Enos_vagrant`"""
+
         pass
+
+    def async_init(self, **kwargs):
+        """Partial init: secure the resources to the targetted infrastructure."""
+        self.init(**kwargs)
+
+    def is_created(self) -> bool:
+        """Is the provider already created."""
+        return False
 
     @abstractmethod
     def destroy(self, **kwargs):
         "Abstract. Destroy the resources used for the deployment."
         pass
 
-    def test_slot(self, start_time: int) -> bool:
+    def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test a slot that starts at a given point in time.
 
         Args:
             start_time:
                 given point in time. Timestamp in seconds.
+            end_time:
+                how much time in the future we should look for possible reservation.
+                Unused on most platform.
 
         Returns:
             True iff the slot is available

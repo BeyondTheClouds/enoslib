@@ -208,7 +208,6 @@ def _concretize_networks(
         else:
             logger.error("Missing Network: are you reloading the right job ?")
             raise MissingNetworkError(site, n_type)
-        # pick_thing is best-effort
         if g5k_network is None:
             logger.error("Missing Network: are you reloading the right job ?")
             raise MissingNetworkError(site, n_type)
@@ -482,6 +481,9 @@ class G5k(Provider):
 
         return self._to_enoslib()
 
+    def ensure_reserved(self):
+        self.reserve()
+
     def destroy(self, wait=False):
         """Destroys the jobs."""
         self.driver.destroy(wait=wait)
@@ -491,8 +493,19 @@ class G5k(Provider):
         return self.driver.get_jobs()
 
     def launch(self):
-        # drop in replacement for Resource.launch
         self.reserve()
+
+        self.wait()
+
+        oar_nodes, oar_networks = self.driver.resources()
+        machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
+        self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
+        self.hosts = _join(machines, self.networks)
+
+        # trigger necessary side effects on the API for instance
+        for h in self.hosts:
+            h.mirror_state()
+
         if JOB_TYPE_DEPLOY in self.provider_conf.job_type:
             self.deploy()
             self.dhcp_networks()
@@ -501,9 +514,10 @@ class G5k(Provider):
             # even if they won't do much with enoslib in this case.
             self.grant_root_access()
 
-    def reserve(self) -> List[G5kHost]:
+    def reserve(self):
         try:
-            oar_nodes, oar_networks = self.driver.reserve(wait=True)
+            # this is async (will keep the info of the jobs)
+            self.driver.reserve()
         except Grid5000CreateError as error:
             # OAR is kind enough to provide an estimate for a possible start time.
             # we capture this start time (if it exists in the error) to forge a special
@@ -524,6 +538,8 @@ class G5k(Provider):
                 raise InvalidReservationTooOld()
             else:
                 raise InvalidReservationCritical(format(error))
+
+        oar_nodes, oar_networks = self.driver.resources()
         machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
         self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
         self.hosts = _join(machines, self.networks)
@@ -533,12 +549,17 @@ class G5k(Provider):
 
         self.sshable_hosts = self.hosts
 
-    def reserve_async(self):
+        # wait and get the resources
+
+    def async_init(self, **kwargs):
         """Reserve but don't wait.
 
         No node/network information can't be retrieved at this moment.
         """
-        self.driver.reserve(wait=False)
+        self.reserve()
+
+    def wait(self):
+        self.driver.wait()
 
     def deploy(self) -> Tuple[List[G5kHost], List[G5kNetwork]]:
         def _key(host):
@@ -803,10 +824,13 @@ class G5k(Provider):
         new_walltime = time(
             hour=int(walltime_sec / 3600),
             minute=int((walltime_sec % 3600) / 60),
-            second=walltime_sec % 60,
+            second=int(walltime_sec % 60),
         )
 
         self.provider_conf.walltime = new_walltime.strftime("%H:%M:%S")
+
+    def is_created(self):
+        return not (not self.driver.get_jobs())
 
 
 def _lookup_networks(network_id: str, networks: List[G5kNetwork]):

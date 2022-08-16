@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
-from datetime import datetime
+import datetime as dt
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
@@ -20,6 +20,7 @@ import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 from .configuration import Configuration
 from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
 from ..provider import Provider
+from ..utils import offset_from_format
 
 logger = logging.getLogger(__name__)
 
@@ -350,6 +351,20 @@ class VMonG5k(Provider):
         )
         return roles, self.g5k_networks
 
+    def async_init(self, force_deploy=False, **kwargs):
+        _force_deploy = self.provider_conf.force_deploy
+        self.provider_conf.force_deploy = _force_deploy or force_deploy
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        self._g5k_provider = g5kprovider.G5k(g5k_conf)
+        self._g5k_provider.async_init(**kwargs)
+
+    def is_created(self):
+        # check that the reservation is created
+        # as usual we build everything from scratch and from our source of truth
+        # aka the conf
+        g5k_conf = _build_g5k_conf(self.provider_conf)
+        return g5kprovider.G5k(g5k_conf).is_created()
+
     def undercloud(self):
         """Gets the undercloud information (bare-metal machines)."""
         return self.g5k_roles, self.g5k_networks
@@ -361,23 +376,17 @@ class VMonG5k(Provider):
         g5k.destroy()
 
     def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve the configuration corresponding
-        to this provider at start_time"""
+        """Test if it is possible to reserve ressources at start_time"""
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
+        self.provider_conf.reservation = dt.datetime.fromtimestamp(timestamp).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 
     def offset_walltime(self, difference: int):
-        walltime_part = self.provider_conf.walltime.split(":")
-        current_walltime_sec = (
-            int(walltime_part[0]) * 3600
-            + int(walltime_part[1]) * 60
-            + int(walltime_part[2])
-        ) + difference
-        self.provider_conf.walltime = f"{int(current_walltime_sec/3600)}:\
-            {int((current_walltime_sec%3600)/60)}:{int(current_walltime_sec%60)}"
+        self.provider_conf.walltime = offset_from_format(
+            self.provider_conf.walltime, difference, "%H:%M:%S"
+        )

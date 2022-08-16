@@ -44,14 +44,14 @@ class TestFindSlot(EnosTest):
         network2 = DefaultNetwork("10.0.0.2/24")
                     
         provider1 = Mock()
+        provider1.async_init.return_value = ...
         provider1.init.return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))
-        provider1.test_slot.return_value = True
         provider1.__str__ = Mock()
         provider1.__str__.return_value = "provider1"
 
         provider2 = Mock()
+        provider1.async_init.return_value = ...
         provider2.init.return_value = (Roles(Dummy=[host2]), Networks(Dummy=[network2]))
-        provider2.test_slot.return_value = True
         provider2.__str__ = Mock()
         provider2.__str__.return_value = "provider2"
 

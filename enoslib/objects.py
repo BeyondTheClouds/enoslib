@@ -82,11 +82,11 @@ class Roles(UserDict):
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
-    def all_hosts(self):
+    def all_hosts(self) -> List["Host"]:
         all_hosts = set()
         for hosts in self.values():
             all_hosts = all_hosts.union(hosts)
-        return all_hosts
+        return list(all_hosts)
 
     def __add__(self, other):
         result = Roles()
@@ -130,11 +130,11 @@ class Networks(UserDict):
             )
         return html_from_sections(repr_title, role_contents, content_only=content_only)
 
-    def all_networks(self):
+    def all_networks(self) -> List["Network"]:
         all_networks = set()
         for networks in self.values():
             all_networks = all_networks.union(networks)
-        return all_networks
+        return list(all_networks)
 
     def __add__(self, other):
         result = Networks()

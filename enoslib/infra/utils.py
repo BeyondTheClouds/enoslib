@@ -37,9 +37,7 @@ def pick_things(pools, key, n):
     return things
 
 
-def find_slot(
-    providers: List[Provider], time_window: int, start_time: int
-) -> int:
+def find_slot(providers: List[Provider], time_window: int, start_time: int) -> int:
     """
     Search for a time slot at which all of the provider in "providers" are able to
     reserve their configurations
@@ -62,7 +60,9 @@ def find_slot(
     """
     ko = True
     start_time_initial = start_time
-    while start_time < start_time_initial + time_window:
+    # don't look for a slot if we exceed the time_window
+    # but test one slot if time_window = 0
+    while start_time <= start_time_initial + time_window:
         ko = False
         for provider in providers:
             ko = ko or not provider.test_slot(
@@ -75,55 +75,57 @@ def find_slot(
         start_time = start_time + TIME_INCREMENT
     if ko:
         raise NoSlotError()
-    logger.info("Reservation_date=%s" % (_date2h(start_time)))
+    logger.info(
+        "Common reservation_date=%s [%s providers]"
+        % (_date2h(start_time), len(providers))
+    )
     return start_time
 
 
-def start_provider_within_bounds(
-        provider: Provider, start_time: int, **kwargs
-        ) -> Tuple[Roles, Networks]:
+def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
     """Adjust provider walltime and reservation_date to fit into a slot
 
-        Mutate the reservation/walltime attributes until finding a slot within
-        [start_time, start_time + provider.walltime] where the provider can
-        be started.
+    Mutate the reservation/walltime attributes until finding a slot within
+    [start_time, start_time + provider.walltime] where the provider can
+    be started.
 
-        The slot found is guaranteed to
-        - not exceed the right bound (a negative walltime would raise an error)
-          in the current implementation, we chose to work with a fixed end time.
-        - and start in the future: start_time might be in the past, and reserving
-          resources in the past is weird (and not allowed in some testbeds). We
-          do our best to fiddle with the start_time to make sure it's in the
-          future. If not we retry with an even further start_time.
+    The slot found is guaranteed to
+    - not exceed the right bound (a negative walltime would raise an error)
+      in the current implementation, we chose to work with a fixed end time.
+    - and start in the future: start_time might be in the past, and reserving
+      resources in the past is weird (and not allowed in some testbeds). We
+      do our best to fiddle with the start_time to make sure it's in the
+      future. If not we retry with an even further start_time.
 
-        Finding the slot depends on a loop on error strategy which is stopped
-        when the retry limit is hit or the walltime become to small. In both
-        cases NoSlotError is raised.
-        Otherwise the same errors as
-        :py:meth:`~enoslib.infra.provider.Provider.init` can be raised (except
-        InvalidReservationTooOld which can be catched internally)
+    Finding the slot depends on a loop on error strategy which is stopped
+    when the retry limit is hit or the walltime become to small. In both
+    cases NoSlotError is raised.
+    Otherwise the same errors as
+    :py:meth:`~enoslib.infra.provider.Provider.init` can be raised (except
+    InvalidReservationTooOld which can be catched internally)
 
-        Raises:
-            InvalidReservationTime: If a provider object cannot be initialized anymore,
-            due to an update to it's related platform status since we first
-            fetched it
-            NoSlotError: If a Providers object cannot be initalized at its
-            given start_time or if a provider fails to be initialized after too many
-            retries.
+    Raises:
+        InvalidReservationTime: If a provider object cannot be initialized anymore,
+        due to an update to it's related platform status since we first
+        fetched it
+        NoSlotError: If a Providers object cannot be initalized at its
+        given start_time or if a provider fails to be initialized after too many
+        retries.
     """
     for retry in range(3):
         try:
             now = ceil(datetime.now().timestamp())
             # make sure the reservation is really in the future by adding an offset
             # (growing exponentially with the number of retries)
-            candidate_start_time = max(now + 60 * (retry + 1) ** 2, start_time)
+            candidate_start_time = int(max(now + 60 * (retry + 1) ** 2, start_time))
             # set the reservation date to this computed start_time
             provider.set_reservation(candidate_start_time)
             # also reduce accordingly the walltime to make sure we don't exceed to
             # initial right bound
             provider.offset_walltime(start_time - candidate_start_time)
             # attempt to get the resources for this time slot
-            return provider.init(start_time=start_time, time_window=0, **kwargs)
+            provider.async_init(start_time=start_time, time_window=0, **kwargs)
+            return
         except NegativeWalltime:
             # we did our best but the walltime is too short
             raise NoSlotError
@@ -136,48 +138,10 @@ def start_provider_within_bounds(
     raise NoSlotError
 
 
-def do_init(
-    providers: List[Provider], start_time: int, **kwargs
-    ) -> Tuple[Roles, Networks]:
-    """ Tries to initialize providers inside of self.providers
-
-    This set the reservation date of each of Providers.providers and tries to take
-    into account the time that passed to make the request, adjusting walltimes
-    to fit into the slot it was called for.
-
-    Args:
-        start_time: timestamp in seconds
-            Time at which it will try to start the first provider
-
-    Raises:
-        NegativeWalltime: Happens if while trying to adjust walltime it ends up
-        with a negative
-            walltime. It means all of the providers aren't able to initialize and
-            the function need
-            a new start time
-        NoSlotError: If a Providers object cannot be initalized at its
-            given start_time
-        InvalidReservationTime: If a provider object cannot be initialized anymore,
-            due to an update to it's related platform status since we first
-            fetched it
-    """
-    all_roles = Roles()
-    all_networks = Networks()
-    for provider in providers:
-        provider_roles, provider_networks = start_provider_within_bounds(
-            provider, start_time, **kwargs
-            )
-        all_roles.extend(provider_roles)
-        all_roles[str(provider)] = provider_roles.all_hosts()
-        all_networks.extend(provider_networks)
-        all_networks[str(provider)] = provider_networks.all_networks()
-    return all_roles, all_networks
-
-
 def find_slot_and_start(
     providers: List[Provider], start_time: int, time_window: int, **kwargs
-    ) -> Tuple[Roles, Networks]:
-    """ Try to find a common time slot for all the Provider in providers to start and
+) -> Tuple[Roles, Networks]:
+    """Try to find a common time slot for all the Provider in providers to start and
     then start them
 
     This search for a reservation date that will fit all provider in providers and the
@@ -190,15 +154,45 @@ def find_slot_and_start(
         with reservation_timestamp as reservation date. Will provide an indication
         for a potential next possible time slot
     """
-    reservation_timestamp = find_slot(providers, time_window, start_time)
+    # Don't look for a common date if a job is already running
+    _providers = [p for p in providers if not p.is_created()]
+    # Expected output here
+    # - _providers is empty:
+    #   ideal case we can proceed to find a common slot on for all of them
+    # - _providers equals providers:
+    #   normal case also, that means we're only reloading a previously init'ed
+    #   Providers instance.
+    # - providers have been partially init'ed
+    #   This is an annoying corner case (e.g you ctrl-c in the middle of the
+    #   Providers.init)
+    if not _providers:
+        return
+    reservation_timestamp = find_slot(_providers, time_window, start_time)
     try:
-        return do_init(providers, reservation_timestamp, **kwargs)
+        for provider in providers:
+            start_provider_within_bounds(provider, start_time, **kwargs)
     except NoSlotError:
         # we transform to an InvalidReservationTime with a time hint
         # set to the next increment.
-        logger.debug(f'Found slot \
+        logger.debug(
+            f'Found slot \
           {datetime.fromtimestamp(reservation_timestamp).strftime("%Y-%m-%d %H:%M:%S")}\
-            turned out to be invalid')
-        raise InvalidReservationTime(datetime.fromtimestamp(
-          start_time + TIME_INCREMENT
-          ).strftime("%Y-%m-%d %H:%M:%S"))
+            turned out to be invalid'
+        )
+        raise InvalidReservationTime(
+            datetime.fromtimestamp(start_time + TIME_INCREMENT).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+        )
+
+
+def offset_from_format(date_str: str, offset: int, fmt: str):
+    import datetime as dt
+
+    as_dt = dt.datetime.strptime(date_str, fmt)
+    as_td = dt.timedelta(hours=as_dt.hour, minutes=as_dt.minute, seconds=as_dt.second)
+    offset_as_td = dt.timedelta(seconds=offset)
+    if as_td + offset_as_td < dt.timedelta(0):
+        raise NegativeWalltime()
+    new_as_dt = as_dt + offset_as_td
+    return new_as_dt.strftime(fmt)

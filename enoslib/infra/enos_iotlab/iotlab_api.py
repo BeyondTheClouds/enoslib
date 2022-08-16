@@ -112,8 +112,15 @@ class IotlabAPI:
         """
         converted = self._translate_resources(resources)
         logger.info(
-            "Submitting FIT/IoT-LAB: job id: %s, duration: %s, resources: %s",
+            (
+                "Submitting FIT/IoT-LAB: "
+                " job id: %s, "
+                "start_time=%s, "
+                "duration: %s, "
+                "resources: %s"
+            ),
             name,
+            start_time,
             walltime,
             str(converted),
         )
@@ -139,7 +146,7 @@ class IotlabAPI:
         self.walltime = self._walltime_to_minutes(walltime)
         logger.info("Job submitted: %d", self.job_id)
 
-    def _check_job_running(self, name: str) -> Tuple[int, int]:
+    def check_job_running(self, name: str) -> Tuple[int, int]:
         """
         Check if job is already running
 
@@ -192,12 +199,10 @@ class IotlabAPI:
         Returns:
             list: List with nodes name
         """
-        self.job_id, self.walltime = self._check_job_running(name)
+        self.job_id, self.walltime = self.check_job_running(name)
         if self.job_id is None:
             self.submit_experiment(name, walltime, resources, start_time)
-        logger.info("Waiting for job id (%d) to be in running state", self.job_id)
-        iotlabcli.experiment.wait_experiment(api=self.api, exp_id=self.job_id)
-        logger.info("Job id (%d) is running", self.job_id)
+
         job_info = iotlabcli.experiment.get_experiment(
             api=self.api, exp_id=self.job_id, option="nodes"
         )
@@ -209,6 +214,14 @@ class IotlabAPI:
 
         self.nodes = job_info["items"]
         return self.nodes
+
+    def wait_experiment(self):
+        if self.job_id:
+            logger.info("Waiting for job id (%d) to be in running state", self.job_id)
+            iotlabcli.experiment.wait_experiment(api=self.api, exp_id=self.job_id)
+            logger.info("Job id (%d) is running", self.job_id)
+        else:
+            raise ValueError("Can't wait on an experiment that hasn't been submitted")
 
     def stop_experiment(self):
         """Stop experiment if it's running"""

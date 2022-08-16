@@ -125,6 +125,10 @@ class Iotlab(Provider):
 
         return self._to_enoslib()
 
+    def async_init(self, **kwargs):
+        self._profiles()
+        self._reserve(wait=False)
+
     def collect_data_experiment(self, exp_dir: Optional[str] = None):
         """
         Collects data about experiment from frontends
@@ -264,7 +268,7 @@ class Iotlab(Provider):
 
         self.client.wait_ssh([h.ssh_address for h in self.hosts])
 
-    def _reserve(self):
+    def _reserve(self, wait: bool = True):
         """Reserve resources on platform"""
         try:
             iotlab_nodes = self.client.get_resources(
@@ -293,6 +297,12 @@ class Iotlab(Provider):
                 raise InvalidReservationTooOld()
             else:
                 raise InvalidReservationCritical(format(error))
+
+        if not wait:
+            return
+
+        self.client.wait_experiment()
+
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):
             self._populate_from_phys_nodes(iotlab_nodes)
         else:
@@ -430,6 +440,13 @@ class Iotlab(Provider):
             raise NegativeWalltime()
         # The walltime being in Hours:Minutes format, it will be rounded down if
         # there're spare seconds
-        new_walltime = time(hour=int(walltime_sec / 3600),
-                            minute=int((walltime_sec % 3600) / 60))
+        new_walltime = time(
+            hour=int(walltime_sec / 3600), minute=int((walltime_sec % 3600) / 60)
+        )
         self.provider_conf.walltime = new_walltime.strftime("%H:%M")
+
+    def is_created(self):
+        return self.client.check_job_running(self.provider_conf.job_name) != (
+            None,
+            None,
+        )

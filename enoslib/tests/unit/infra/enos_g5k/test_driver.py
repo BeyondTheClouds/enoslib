@@ -41,5 +41,4 @@ class TestDriverPassConf(unittest.TestCase):
                 "project_test",
                 [],
                 [],
-                wait=True,
             )

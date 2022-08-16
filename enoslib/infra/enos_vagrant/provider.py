@@ -137,6 +137,4 @@ class Enos_vagrant(Provider):
         v.destroy()
 
     def offset_walltime(self, difference: int):
-        raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
-        )
+        pass

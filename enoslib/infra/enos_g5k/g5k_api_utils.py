@@ -201,12 +201,10 @@ def grid_reload_from_ids(oargrid_jobids):
         The list of python-grid5000 jobs retrieved
     """
     jobs = grid_reload_jobs_from_ids(oargrid_jobids)
-    wait_for_jobs(jobs)
-
-    return build_resources(jobs)
+    return jobs
 
 
-def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
+def build_resources(jobs: List[Job]) -> Tuple[list[str], list[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
@@ -783,9 +781,7 @@ def get_clusters_status(clusters: Iterable[str]):
     clusters = clusters_sites_obj(clusters)
     clusters_status = {}
     for cluster in clusters:
-        clusters_status[cluster] = (
-            clusters[cluster].clusters[cluster].status.list()
-        )
+        clusters_status[cluster] = clusters[cluster].clusters[cluster].status.list()
     return clusters_status
 
 
@@ -834,10 +830,7 @@ def grid_get_or_create_job(
             machines,
             networks,
         )
-    if wait:
-        wait_for_jobs(jobs)
-        return build_resources(jobs)
-    return None
+    return jobs
 
 
 def _build_reservation_criteria(machines, networks):

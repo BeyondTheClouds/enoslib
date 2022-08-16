@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from abc import ABCMeta, abstractmethod
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from grid5000.objects import Job
 from enoslib.infra.enos_g5k.configuration import Configuration
 import logging
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
+    build_resources,
     get_api_username,
     grid_deploy,
     grid_destroy_from_name,
@@ -15,6 +16,8 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     grid_reload_from_ids,
     grid_reload_jobs_from_ids,
     grid_reload_jobs_from_name,
+    wait_for_jobs,
+    OarNetwork,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,6 +35,10 @@ class Driver:
 
     __metaclass__ = ABCMeta
 
+    def __init__(self):
+        # underlying jobs
+        self.jobs = []
+
     @abstractmethod
     def reserve(self, wait=True):
         pass
@@ -44,8 +51,18 @@ class Driver:
     def deploy(self, site, nodes, force_deploy, options):
         pass
 
-    def get_user(self):
+    @abstractmethod
+    def get_jobs(self):
+        pass
+
+    def get_user(self) -> str:
         return get_api_username()
+
+    def wait(self):
+        wait_for_jobs(self.jobs)
+
+    def resources(self) -> Tuple[list[str], list[OarNetwork]]:
+        return build_resources(self.jobs)
 
 
 class OargridStaticDriver(Driver):
@@ -61,11 +78,11 @@ class OargridStaticDriver(Driver):
     """
 
     def __init__(self, oargrid_jobids):
+        super().__init__()
         self.oargrid_jobids = oargrid_jobids
 
-    def reserve(self, wait=True):
-        nodes, networks = grid_reload_from_ids(self.oargrid_jobids)
-        return nodes, networks
+    def reserve(self):
+        self.jobs = grid_reload_from_ids(self.oargrid_jobids)
 
     def destroy(self, wait=False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
@@ -73,8 +90,11 @@ class OargridStaticDriver(Driver):
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
 
-    def get_jobs(self):
-        return grid_reload_jobs_from_ids(self.oargrid_jobids)
+    def get_jobs(self) -> List[Job]:
+        if self.jobs:
+            return self.jobs
+        else:
+            grid_reload_jobs_from_ids(self.oargrid_jobids)
 
 
 class OargridDynamicDriver(Driver):
@@ -98,6 +118,8 @@ class OargridDynamicDriver(Driver):
         machines,
         networks,
     ):
+
+        super().__init__()
         self.job_name = job_name
         self.walltime = walltime
         self.job_type = job_type
@@ -108,8 +130,8 @@ class OargridDynamicDriver(Driver):
         self.machines = machines
         self.networks = networks
 
-    def reserve(self, wait=True):
-        return grid_get_or_create_job(
+    def reserve(self):
+        self.jobs = grid_get_or_create_job(
             self.job_name,
             self.walltime,
             self.reservation_date,
@@ -119,7 +141,6 @@ class OargridDynamicDriver(Driver):
             self.project,
             self.machines,
             self.networks,
-            wait=wait,
         )
 
     def destroy(self, wait=False):
@@ -129,7 +150,10 @@ class OargridDynamicDriver(Driver):
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
-        return grid_reload_jobs_from_name(self.job_name)
+        if self.jobs:
+            return self.jobs
+        else:
+            return grid_reload_jobs_from_name(self.job_name)
 
 
 def get_driver(
