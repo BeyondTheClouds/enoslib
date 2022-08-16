@@ -273,7 +273,9 @@ class TestFindSlot(EnosTest):
 
         start_provider_within_bounds(provider, 80)
         provider.set_reservation.assert_called_with(80)
-        
+        # async_init is called with this new start_time
+        provider.async_init.assert_called_with(start_time=80, time_window=0)
+
         
     @freeze_time("1970-01-01 00:00:00")
     def test_start_provider_within_bounds_start_time_too_close(self):
@@ -284,9 +286,14 @@ class TestFindSlot(EnosTest):
         provider.init.return_value = (Roles(Dummy=[host]), Networks(Dummy=[network]))
 
         start_provider_within_bounds(provider, 10)
+        # now = 0 so we start at now + 60  = 60 to make sure to start in the
+        # future
         provider.set_reservation.assert_called_with(60)
+        # the walltime is reduced accordingly 10 - 60
         provider.offset_walltime.assert_called_with(-50)
-        
+        # async_init is called with this new start_time
+        provider.async_init.assert_called_with(start_time=60, time_window=0)
+
         
     def test_start_provider_within_bounds_NegativeWalltime_error(self):
         provider = Mock()
@@ -303,16 +310,21 @@ class TestFindSlot(EnosTest):
             start_provider_within_bounds(provider, 80)
     
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
-    def test_start_provider_within_bounds_retry(self):
+    def test_start_provider_within_bounds_three_retries(self):
         host = Host("dummy-host1")
         network = DefaultNetwork("10.0.0.1/24")
         
         provider = Mock()
-        provider.init.side_effect = [InvalidReservationTooOld,InvalidReservationTooOld,(Roles(Dummy=[host]), Networks(Dummy=[network]))]
+        provider.async_init.side_effect = [InvalidReservationTooOld,InvalidReservationTooOld,(Roles(Dummy=[host]), Networks(Dummy=[network]))]
 
-        roles,networks = start_provider_within_bounds(provider, 60)
-        provider.set_reservation.assert_has_calls([call(60),call(300),call(660)])
-        self.assertTrue(host in roles["Dummy"] and network in networks["Dummy"])
+        start_provider_within_bounds(provider, 60)
+        provider.set_reservation.assert_has_calls([call(60), call(300), call(660)])
+        provider.offset_walltime.assert_has_calls([call(0), call(-240), call(-360)])
+        provider.async_init.assert_has_calls([
+            call(start_time=60, time_window=0),
+            call(start_time=300, time_window=0),
+            call(start_time=660, time_window=0),
+        ])
         
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
     def test_start_provider_within_bounds_retry(self):
