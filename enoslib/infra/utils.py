@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+from datetime import datetime, timezone
 from itertools import groupby
 import logging
 from math import ceil
@@ -114,7 +114,7 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
     """
     for retry in range(3):
         try:
-            now = ceil(datetime.now().timestamp())
+            now = ceil(datetime.now(timezone.utc).timestamp())
             # make sure the reservation is really in the future by adding an offset
             # (growing exponentially with the number of retries)
             candidate_start_time = int(max(now + 60 * (retry + 1) ** 2, start_time))
@@ -179,13 +179,14 @@ def find_slot_and_start(
     except NoSlotError:
         # we transform to an InvalidReservationTime with a time hint
         # set to the next increment.
+        slot_found = datetime.fromtimestamp(
+        reservation_timestamp, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         logger.debug(
-            f'Found slot \
-          {datetime.fromtimestamp(reservation_timestamp).strftime("%Y-%m-%d %H:%M:%S")}\
-            turned out to be invalid'
+            f'Found slot {slot_found} turned out to be invalid'
         )
         raise InvalidReservationTime(
-            datetime.fromtimestamp(start_time + TIME_INCREMENT).strftime(
+            datetime.fromtimestamp(start_time + TIME_INCREMENT,
+                                   tz=timezone.utc).strftime(
                 "%Y-%m-%d %H:%M:%S"
             )
         )

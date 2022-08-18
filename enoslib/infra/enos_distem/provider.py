@@ -1,11 +1,12 @@
 import copy
-import datetime as dt
+from datetime import datetime, timezone
 import itertools
 import logging
 import os
 from typing import List
 
 import distem as d
+import pytz
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
 import enoslib.infra.enos_g5k.provider as g5kprovider
@@ -326,7 +327,10 @@ class Distem(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.reservation = dt.datetime.fromtimestamp(timestamp).strftime(
+        tz = pytz.timezone('Europe/Paris')
+        date = datetime.fromtimestamp(timestamp, timezone.utc)
+        date = date.astimezone(tz=tz)
+        self.provider_conf.reservation = date.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 

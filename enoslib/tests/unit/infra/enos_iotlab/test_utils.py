@@ -1,4 +1,5 @@
 from cmath import exp
+from datetime import timezone
 from enoslib.infra.enos_iotlab import iotlab_api
 from enoslib.infra.enos_iotlab.configuration import (
     BoardConfiguration,
@@ -38,7 +39,7 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 1 * 60,
@@ -106,14 +107,14 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4 * 60,
                     "nodes": ["test-id.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0).strftime(
+                    "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4 * 60,
@@ -161,7 +162,7 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4).strftime(
+                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
@@ -170,14 +171,14 @@ class TestIotStuffs(EnosTest):
                     ],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0).strftime(
+                    "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
                     "nodes": ["test-id2.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(4).strftime(
+                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
@@ -244,14 +245,14 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4).strftime(
+                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
                     "nodes": ["test-id.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0).strftime(
+                    "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,

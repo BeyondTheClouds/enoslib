@@ -1,5 +1,5 @@
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from freezegun import freeze_time
 import yaml
@@ -159,7 +159,7 @@ def parse_iot_status_experiments(status: str) -> dict:
                 if start_time != -1:
                     experiments_status["items"].append(
                         {
-                            "start_date": datetime.fromtimestamp(start_time).strftime(
+                            "start_date": datetime.fromtimestamp(start_time, tz=timezone.utc).strftime(
                                 "%Y-%m-%dT%H:%M:%SZ"
                             ),
                             "submitted_duration": walltime,
@@ -174,7 +174,7 @@ def parse_iot_status_experiments(status: str) -> dict:
             # handle the case we're at the end of the line and thus we don't have any transition "*" -> "-"
             experiments_status["items"].append(
                 {
-                    "start_date": datetime.fromtimestamp(start_time).strftime(
+                    "start_date": datetime.fromtimestamp(start_time, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": walltime,
@@ -338,7 +338,6 @@ class TestFindSlot(EnosTest):
     def test_do_init_provider_raise_NegativeWalltime(self):
         provider1 = Mock()
         provider1.offset_walltime.side_effect = NegativeWalltime
-        
         with self.assertRaises(NoSlotError):
             start_provider_within_bounds(provider1, 0)
             
