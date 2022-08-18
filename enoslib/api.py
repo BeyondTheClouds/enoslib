@@ -1145,7 +1145,24 @@ def run_ansible(
     return results
 
 
-def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
+def _sync_from_facts(roles: Roles, networks: Networks, facts: Dict) -> Roles:
+    """Add the network information to the host in roles.
+
+    Do it in place.
+    """
+    for hosts in roles.values():
+        for host in hosts:
+            # only sync if host is really a Host (not a Sensor for example)
+            if not isinstance(host, Host):
+                continue
+            host_facts = facts[host.alias]
+            host.sync_from_ansible(networks, host_facts)
+    return roles
+
+
+def sync_info(
+    roles: RolesLike, networks: Networks, inplace=False, **kwargs
+) -> RolesLike:
     """Sync each host network information with their actual configuration
 
     If the command is successful some of the host attributes will be
@@ -1160,11 +1177,13 @@ def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
             :py:meth:`enoslib.infra.provider.Provider.init`
         networks (list): network list as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
+        inplace: bool, defaut False
+            If False, return a copy of roles. Otherwise, do operation inplace.
         kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
     Returns:
-        A copy of the original roles where some new attributes have been
-        populated.
+        RolesLike of the same type as passed. With updated informations.
+
     """
     if not roles:
         logger.warn("The Roles are empty at this point !")
@@ -1190,18 +1209,22 @@ def sync_info(roles: Roles, networks: Networks, **kwargs) -> Roles:
         # Read the file
         # Match provider networks to interface names for each host
         # preserve the host from being mutated wildly
-        _roles = copy.deepcopy(roles)
         with facts_file.open("r") as f:
             facts = json.load(f)
-            for hosts in _roles.values():
-                for host in hosts:
-                    # only sync if host is really a Host (not a Sensor for example)
-                    if not isinstance(host, Host):
-                        continue
-                    host_facts = facts[host.alias]
-                    host.sync_from_ansible(networks, host_facts)
+            _roles = _hostslike_to_roles(roles)
+            if not inplace:
+                _roles = copy.deepcopy(_roles)
+            _roles = _sync_from_facts(_roles, networks, facts)
 
-    return _roles
+            # return the right type
+            if isinstance(roles, Roles):
+                return _roles
+            if isinstance(roles, Host):
+                return _roles["all"][0]
+            if isinstance(roles, list):
+                return _roles["all"]
+
+    raise ValueError("The impossible happened ! The roles aren't Roles")
 
 
 def generate_inventory(
