@@ -1,9 +1,112 @@
-from enoslib.objects import Host, NetDevice, IPAddress, DefaultNetwork
+from enoslib.objects import Host, NetDevice, IPAddress, DefaultNetwork, Roles, HostsView
 from enoslib.local import LocalHost
 from enoslib.docker import DockerHost
 
 from . import EnosTest
 
+
+class TestRoles(EnosTest):
+    def test_roles(self):
+        r = Roles()
+        initial_id = id(r)       
+
+        r["a"] = [Host("1.2.3.4")]
+        self.assertCountEqual([Host("1.2.3.4")], r["a"])
+        self.assertEquals(initial_id, id(r), "Insertion doesn't change the id")
+
+        
+        r = Roles()
+        initial_id = id(r)
+
+        r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r["a"])
+        self.assertEquals(initial_id, id(r), "Extending a key doesn't change the id of the Roles")
+
+        view_id = id(r["a"])
+        r["a"] += [Host("1.2.3.6")]
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertEquals(view_id, id(r["a"]), "View's ids aren't changed when using +=")
+
+        r = Roles()
+
+        r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
+        view_id = id(r["a"])
+        r["a"].extend([Host("1.2.3.6")])
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using extend")
+
+        r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
+        view_id = id(r["a"])
+        r["a"].add(Host("1.2.3.6"))
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using add")
+        
+        r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
+        view_id = id(r["a"])
+        r["a"].append(Host("1.2.3.6"))
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using append")
+
+    def test_roles_init_with_duplicates(self):
+        r = Roles(tag1=[Host("1.2.3.4"), Host("1.2.3.5")], tag2=[Host("1.2.3.4")])
+
+        self.assertCountEqual([Host("1.2.3.4")], r["tag1"] & r["tag2"])
+        self.assertCountEqual([Host("1.2.3.5")], r["tag1"] - r["tag2"])
+        self.assertCountEqual([Host("1.2.3.5")], r["tag1"] ^ r["tag2"])
+
+
+    def test_roles__add__(self):
+        r1 = Roles()
+        r1["a"] = [Host("1.2.3.4")]
+        id_r1 = id(r1)
+        id_r1_a = id(r1["a"])
+        r2 = Roles()
+        r2["a"] = [Host("1.2.3.5")]
+
+        r1 += r2
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
+        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+
+
+    def test_roles__iadd__(self):
+        r1 = Roles()
+        r1["a"] = [Host("1.2.3.4")]
+        id_r1 = id(r1)
+        id_r1_a = id(r1["a"])
+        r2 = Roles()
+        r2["a"] = [Host("1.2.3.5")]
+
+        r1 += r2
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
+        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+    
+    def test_roles_extend(self):
+        r1 = Roles()
+        r1["a"] = [Host("1.2.3.4")]
+        id_r1 = id(r1)
+        id_r1_a = id(r1["a"])
+        r2 = Roles()
+        r2["a"] = [Host("1.2.3.5")]
+
+        r1.extend(r2)
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
+        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+
+
+    def test_hostview(self):
+        hs1 = HostsView([Host("1.2.3.4")])
+        self.assertCountEqual([Host("1.2.3.4")], hs1)
+
+        hs2 = HostsView([Host("1.2.3.5")])
+        hs = hs1 + hs2
+        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], hs)
+
+        hs.remove(Host("1.2.3.4"))
+        self.assertCountEqual([Host("1.2.3.5")], hs)
+    
 
 class TestEqHosts(EnosTest):
     @staticmethod

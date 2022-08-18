@@ -2,11 +2,12 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from enoslib.objects import BaseHost
 from enoslib.html import html_from_dict, repr_html_check
 
 
-@dataclass(unsafe_hash=True)
-class Sensor(object):
+@dataclass(unsafe_hash=True, order=True)
+class Sensor(BaseHost):
     """
     Abstraction for sensors
 

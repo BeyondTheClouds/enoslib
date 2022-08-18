@@ -3,12 +3,22 @@
 Library objects
 ***************
 
-Base Objects
-------------
+Collections
+-----------
+
+These are the base data structures used in |enoslib|. They aren't meant to be
+used directly.
+
+
+.. automodule:: enoslib.collections
+    :members: ResourcesSet, RolesDict
+
+
+Resource's abstractions
+----------------------
 
 .. automodule:: enoslib.objects
-    :members: Network, DefaultNetwork, Host
-
+    :members: Network, DefaultNetwork, Host, HostsView, Roles, Networks, NetworksView
 
 Local
 -----

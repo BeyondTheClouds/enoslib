@@ -1221,7 +1221,7 @@ def sync_info(
                 return _roles
             if isinstance(roles, Host):
                 return _roles["all"][0]
-            if isinstance(roles, list):
+            if hasattr(roles, "__iter__"):
                 return _roles["all"]
 
     raise ValueError("The impossible happened ! The roles aren't Roles")

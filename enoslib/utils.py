@@ -35,7 +35,7 @@ def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
         return input
     if isinstance(input, Host):
         return Roles(all=[input])
-    if isinstance(input, list):
+    if hasattr(input, "__iter__"):
         return Roles(all=input)
     error = (
         f"{type(input)} isn't an acceptable type for RolesLike"

@@ -389,20 +389,18 @@ class Iotlab(Provider):
         for host in self.hosts:
             for role in host.roles:
                 if host.ssh_address:
-                    roles.setdefault(role, []).append(
-                        Host(host.ssh_address, user="root")
-                    )
+                    roles[role] += [Host(host.ssh_address, user="root")]
                     # shouldn't I be able to pass only host?
                     # Not because ansible inventory is based on address and
                     # our ssh_address is other for A8 nodes..
         for sensor in self.sensors:
             for role in sensor.roles:
-                roles.setdefault(role, []).append(sensor)
+                roles[role] += [sensor]
 
         networks = Networks()
         for network in self.networks:
             for role in network.roles:
-                networks.setdefault(role, []).append(network)
+                networks[role] += [network]
 
         return roles, networks
 

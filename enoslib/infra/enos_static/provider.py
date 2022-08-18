@@ -18,7 +18,7 @@ class Static(Provider):
         roles = Roles()
         for machine in machines:
             for r in machine.roles:
-                roles.setdefault(r, []).append(
+                roles[r] += [
                     Host(
                         machine.address,
                         alias=machine.alias,
@@ -26,14 +26,12 @@ class Static(Provider):
                         keyfile=machine.keyfile,
                         port=machine.port,
                         extra=machine.extra,
-                    )
-                )
+                )]
 
         networks = Networks()
         for n in self.provider_conf.networks:
             for role in n.roles:
-                networks.setdefault(role, [])
-                networks[role].append(
+                networks[role] += [
                     DefaultNetwork(
                         address=n.cidr,
                         gateway=n.gateway,
@@ -41,7 +39,7 @@ class Static(Provider):
                         ip_start=n.start,
                         ip_end=n.end,
                     )
-                )
+                ]
 
         return roles, networks
 

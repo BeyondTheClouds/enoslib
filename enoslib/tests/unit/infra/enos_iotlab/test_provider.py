@@ -181,8 +181,7 @@ class TestSubmit(EnosTest):
                 )
             ],
         )  # not ideal but the _alias depends on the test order...
-
-        self.assertTrue(len(nodes["r2"]) == 2)
+        self.assertEquals(2, len(nodes["r2"]))
         self.assertTrue(len(networks) == 1)
         self.assertIsInstance(networks[PROD][0].network, IPv4Network)
         self.assertIsInstance(networks[PROD][1].network, IPv6Network)

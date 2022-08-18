@@ -653,18 +653,28 @@ class G5k(Provider):
         """Transform from provider specific resources to framework resources."""
         # index the host by their associated roles
         hosts = Roles()
+        # used to de-duplicate host objetcts in the roles datastructure
+        _hosts = []
         for host in self.sshable_hosts:
-            for role in host.roles:
-                hosts.setdefault(role, [])
-                h = Host(host.ssh_address, user="root")
-                hosts[role].append(h)
+            h = Host(host.ssh_address, user="root")
+            if h in _hosts:
+                h = _hosts[_hosts.index(h)]
+            else:
+                _hosts.append(h)
+            hosts.add_one(h, host.roles)
+
         # doing the same on networks
         networks = Networks()
+        _networks = []
         for network in self.networks:
             roles, enos_networks = network.to_enos()
-            for role in roles:
-                networks.setdefault(role, [])
-                networks[role].extend(enos_networks)
+            for enos_network in enos_networks:
+                if enos_network in _networks:
+                    net = _networks[_networks.index(enos_network)]
+                else:
+                    net = enos_network
+                    _networks.append(net)
+                networks.add_one(net, roles)
         return hosts, networks
 
     @staticmethod

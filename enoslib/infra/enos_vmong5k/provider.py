@@ -214,8 +214,7 @@ def _distribute(machines, extra=None):
             )
 
             for role in machine.roles:
-                vmong5k_roles.setdefault(role, [])
-                vmong5k_roles[role].append(vm)
+                vmong5k_roles[role] += [vm]
     return vmong5k_roles
 
 

@@ -5,17 +5,18 @@ This modules is made of the **library-level** objects. These are provider
 agnostic objects that can be fed into most of the |enoslib| functions.
 
 Currently the main abstractions of this module are the
-:py:class:`enoslib.objects.Host` and the :py:class:`enoslib.objects.Network`.
-They abstract away the notion of compute servers (something you can access
-and run some actions on) and networks (something you can get IPs from).
+:py:class:`~enoslib.objects.Host` and the :py:class:`~enoslib.objects.Network`.
+They abstract away the notion of compute servers (something you can access and
+run some actions on) and networks (something you can get IPs from). Grouping
+resources is done using the :py:class:`~enoslib.objects.Roles` and
+:py:class:`~enoslib.objects.Networks` (plural).
 
-Most likely you'll interact with Hosts and Networks right after calling
+Most likely you'll interact with ``Roles`` and ``Networks`` right after calling
 ``provider.init()``: this is indeed a provider responsability to turn your
 abstract resource description into concrete library level objects.
 """
 import copy
 from abc import ABC, abstractmethod
-from collections import UserDict
 from dataclasses import InitVar, dataclass, field
 from ipaddress import (
     IPv4Address,
@@ -39,6 +40,8 @@ from typing import (
 
 from netaddr import EUI
 
+
+from .collections import ResourcesSet, RolesDict
 from enoslib.html import (
     dict_to_html_foldable_sections,
     html_to_foldable_section,
@@ -59,96 +62,9 @@ RolesNetworks = Tuple["Roles", "Networks"]
 # List[Host] (e.g. coming from Roles filtering)
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
-RolesLike = Union["Roles", List["Host"], "Host"]
+RolesLike = Union["Roles", Iterable["Host"], "Host"]
 
 PathLike = Union[Path, str]
-
-
-class Roles(UserDict):
-    @repr_html_check
-    def _repr_html_(self, content_only=False):
-        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
-        role_contents = []
-        for role, hosts in self.data.items():
-            repr_hosts = []
-            for h in hosts:
-                repr_hosts.append(
-                    html_to_foldable_section(h.alias, h._repr_html_(content_only=True))
-                )
-            role_contents.append(
-                html_to_foldable_section(
-                    role, repr_hosts, extra=str(len(self.data[role]))
-                )
-            )
-        return html_from_sections(repr_title, role_contents, content_only=content_only)
-
-    def all_hosts(self) -> List["Host"]:
-        all_hosts = set()
-        for hosts in self.values():
-            all_hosts = all_hosts.union(hosts)
-        return list(all_hosts)
-
-    def __add__(self, other):
-        result = Roles()
-        for role, hosts in self.items():
-            result.setdefault(role, []).extend(hosts)
-        for role, hosts in other.items():
-            result.setdefault(role, []).extend(hosts)
-            result[role] = list(set(result[role]))
-        return result
-
-    def extend(self, roles):
-        for role, hosts in roles.items():
-            self.setdefault(role, []).extend(hosts)
-            self[role] = list(set(self[role]))
-
-
-class Networks(UserDict):
-    def to_dict(self):
-        res = {}
-        for role, networks in self.data.items():
-            res.setdefault(role, {})
-            for n in networks:
-                d = n.to_dict()
-                res[role].update({n.network: d})
-        return res
-
-    @repr_html_check
-    def _repr_html_(self, content_only=False):
-        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
-        role_contents = []
-        for role, networks in self.data.items():
-            repr_networks = []
-            for network in networks:
-                repr_networks.append(
-                    html_to_foldable_section(
-                        network.network, network._repr_html_(content_only=True)
-                    )
-                )
-            role_contents.append(
-                html_to_foldable_section(role, repr_networks, str(len(self.data[role])))
-            )
-        return html_from_sections(repr_title, role_contents, content_only=content_only)
-
-    def all_networks(self) -> List["Network"]:
-        all_networks = set()
-        for networks in self.values():
-            all_networks = all_networks.union(networks)
-        return list(all_networks)
-
-    def __add__(self, other):
-        result = Networks()
-        for network, network_info in self.items():
-            result.setdefault(network, []).extend(network_info)
-        for network, network_info in other.items():
-            result.setdefault(network, []).extend(network_info)
-            result[network] = list(set(result[network]))
-        return result
-
-    def extend(self, networks):
-        for network, network_info in networks.items():
-            self.setdefault(network, []).extend(network_info)
-            self[network] = list(set(self[network]))
 
 
 def _build_devices(facts, networks):
@@ -181,11 +97,17 @@ class Network(ABC):
     def __init__(self, address: NetworkType):
         # accept cidr but coerce to IPNetwork
         self.network = ip_interface(address).network
+        self.alias = str(self.network)
 
     def __eq__(self, other) -> bool:
         if self.__class__ != other.__class__:
             return False
         return self.network == other.network
+
+    def __lt__(self, other) -> bool:
+        return self.network.version < other.network.version and self.network.__lt__(
+            other.network
+        )
 
     def __hash__(self):
         return hash(self.network)
@@ -340,6 +262,42 @@ class DefaultNetwork(Network):
 
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         return html_from_dict(name_class, d, content_only=content_only)
+
+
+class NetworksView(ResourcesSet):
+    """A specialization of :py:class:`~enoslib.collections.ResourceSet`
+
+    for :py:class:`~enoslib.objects.Networks`.
+    """
+    inner = Network
+
+
+class Networks(RolesDict):
+    """A specialization of :py:class:`~enoslib.collections.RolesDict`
+
+    for :py:class:`~enoslib.objects.NetworksView`.
+    """
+
+    inner = NetworksView
+
+    # TODO(msimonin): This is still duplicated code between Roles and Networks
+    # but should be de-deduplicated using a common ancestor for networks and roles
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        role_contents = []
+        for role, networks in self.data.items():
+            repr_networks = []
+            for network in networks:
+                repr_networks.append(
+                    html_to_foldable_section(
+                        network.network, network._repr_html_(content_only=True)
+                    )
+                )
+            role_contents.append(
+                html_to_foldable_section(role, repr_networks, str(len(self.data[role])))
+            )
+        return html_from_sections(repr_title, role_contents, content_only=content_only)
 
 
 @dataclass(unsafe_hash=True)
@@ -542,8 +500,12 @@ class Processor(object):
         return dict_to_html_foldable_sections(d)
 
 
+class BaseHost(object):
+    pass
+
+
 @dataclass(unsafe_hash=True, order=True)
-class Host(object):
+class Host(BaseHost):
     """Abstract unit of computation.
 
     A Host is anything EnosLib can access (e.g using SSH) to and run shell
@@ -772,3 +734,36 @@ class Host(object):
                 )
             )
         return html_from_sections(name_class, sections, content_only=content_only)
+
+
+class HostsView(ResourcesSet):
+    """A specialization of :py:class:`~enoslib.collections.ResourcesSet`
+
+    for :py:class:`~enoslib.objects.Host`.
+    """
+    inner = Host
+
+
+class Roles(RolesDict):
+    """A specialization of :py:class:`~enoslib.collections.RolesDict`
+
+    for :py:class:`~enoslib.objects.HostsView`.
+    """
+    inner = HostsView
+
+    @repr_html_check
+    def _repr_html_(self, content_only=False):
+        repr_title = f"{str(self.__class__)}@{hex(id(self))}"
+        role_contents = []
+        for role, hosts in self.data.items():
+            repr_hosts = []
+            for h in hosts:
+                repr_hosts.append(
+                    html_to_foldable_section(h.alias, h._repr_html_(content_only=True))
+                )
+            role_contents.append(
+                html_to_foldable_section(
+                    role, repr_hosts, extra=str(len(self.data[role]))
+                )
+            )
+        return html_from_sections(repr_title, role_contents, content_only=content_only)

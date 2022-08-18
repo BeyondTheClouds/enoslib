@@ -368,3 +368,21 @@ class TestDeploy(EnosTest):
         # check that the names is ok
         names = [n[1] for n in vlan.translate(oar_nodes_2)]
         self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
+
+class TestToEnoslib(EnosTest):
+
+    def test_non_duplicated_hosts(self):
+        provider = G5k(Configuration())
+        network = mock.Mock()
+        provider.sshable_hosts = [G5kHost("1.2.3.4", ["tag1", "tag2"], network)]
+
+        roles, _ = provider._to_enoslib()
+        self.assertEquals(id(roles["tag1"][0]), id(roles["tag2"][0]), "Host refs aren't duplicated in roles")
+
+    def test_non_duplicated_networks(self):
+        provider = G5k(Configuration())
+        network = mock.Mock()
+        provider.networks = [G5kProdNetwork(["tag1", "tag2"], "id1" , "rennes")]
+
+        _, networks = provider._to_enoslib()
+        self.assertEquals(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")

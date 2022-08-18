@@ -65,9 +65,9 @@ class Providers(Provider):
             # init will actually reload any existing reservation
             _roles, _networks = provider.init(**kwargs)
             roles.extend(_roles)
-            roles[str(provider)] = _roles.all_hosts()
+            roles[str(provider)] = _roles.all()
             networks.extend(_networks)
-            networks[str(provider)] = _networks.all_networks()
+            networks[str(provider)] = _networks.all()
 
         return roles, networks
 
