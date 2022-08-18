@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 import logging
 import pathlib
 import re
@@ -414,10 +414,10 @@ class Iotlab(Provider):
             from datetime import datetime
 
             start_param = datetime.fromtimestamp(
-                datetime.now().timestamp() + 60
+                datetime.now().timestamp() + 60, tz=timezone.utc
             ).strftime("%Y-%m-%dT%H:%M:%SZ")
             stop_param = datetime.fromtimestamp(
-                end_time + self.provider_conf.walltime_s
+                end_time + self.provider_conf.walltime_s, tz=timezone.utc
             ).strftime("%Y-%m-%dT%H:%M:%SZ")
             self.experiments_status = self.client.api.method(
                 url=f"drawgantt/experiments?start={start_param}&stop={stop_param}"
@@ -427,7 +427,10 @@ class Iotlab(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.start_time = datetime.fromtimestamp(timestamp).strftime(
+        # tz = pytz.timezone('Europe/Paris')
+        date = datetime.fromtimestamp(timestamp, timezone.utc)
+        # date = date.astimezone(tz=tz)
+        self.provider_conf.start_time = date.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 

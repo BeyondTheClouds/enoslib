@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
-import datetime as dt
+from datetime import timezone
+import datetime
+
+import pytz
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from ipaddress import IPv4Address
@@ -382,7 +385,10 @@ class VMonG5k(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.reservation = dt.datetime.fromtimestamp(timestamp).strftime(
+        tz = pytz.timezone('Europe/Paris')
+        date = datetime.fromtimestamp(timestamp, timezone.utc)
+        date = date.astimezone(tz=tz)
+        self.provider_conf.reservation = date.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
 

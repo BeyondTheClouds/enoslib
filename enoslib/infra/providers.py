@@ -1,5 +1,5 @@
 import copy
-from datetime import datetime
+from datetime import datetime, timezone
 from math import ceil
 from typing import List, Optional
 from enoslib.errors import (
@@ -78,7 +78,7 @@ class Providers(Provider):
 
         if start_time is None or start_time < 0:
             # TODO(msimonin): make it a global configuration
-            start_time = ceil(datetime.timestamp(datetime.now()) + 60)
+            start_time = ceil(datetime.timestamp(datetime.now(timezone.utc)) + 60)
 
         while True:
             # Will raise a NoSlotError exception if no slot is found

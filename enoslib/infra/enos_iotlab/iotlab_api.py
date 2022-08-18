@@ -8,6 +8,7 @@ import iotlabcli.experiment
 import iotlabcli.node
 import iotlabcli.profile
 import iotlabsshcli.open_linux
+import pytz
 
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 
@@ -460,7 +461,7 @@ def get_free_nodes(
     for experiment_status in experiments:
         experiment_start_date = datetime.strptime(
             experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ"
-        ).timestamp()
+        ).replace(tzinfo=pytz.timezone("UTC")).timestamp()
         exp_end_date = experiment_start_date + int(
             experiment_status["submitted_duration"]
         )

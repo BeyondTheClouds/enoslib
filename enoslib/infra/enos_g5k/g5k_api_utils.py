@@ -7,6 +7,7 @@ with the platform.
 """
 
 from collections import defaultdict, namedtuple
+from datetime import datetime, timezone
 
 import logging
 from grid5000.objects import Job, Node, Vlan
@@ -15,6 +16,8 @@ import time
 import threading
 from typing import Dict, Iterable, List, MutableMapping, Optional, Tuple
 from pathlib import Path
+
+import pytz
 
 from .error import (
     EnosG5kDuplicateJobsError,
@@ -638,7 +641,7 @@ def can_start_on_cluster(
 
 
 def _test_slot(
-    start: float,
+    start: int,
     walltime: str,
     machines: Dict,
     clusters_status: Dict,
@@ -655,6 +658,9 @@ def _test_slot(
             - True: the proposed start date seems to be available
                 (at the time of probing the API)
     """
+    tz = pytz.timezone('Europe/Paris')
+    date = datetime.fromtimestamp(start, timezone.utc)
+    start = int(date.astimezone(tz=tz).timestamp())
     _t = walltime.split(":")
     if len(_t) != 3:
         raise EnosG5kWalltimeFormatError()

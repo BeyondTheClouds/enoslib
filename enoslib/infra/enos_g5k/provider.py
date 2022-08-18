@@ -2,10 +2,11 @@
 from collections import defaultdict
 import copy
 from contextlib import contextmanager
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 import logging
 import operator
 import re
+import pytz
 from itertools import groupby
 from typing import (
     Any,
@@ -806,7 +807,10 @@ class G5k(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        self.provider_conf.reservation = datetime.fromtimestamp(timestamp).strftime(
+        tz = pytz.timezone('Europe/Paris')
+        date = datetime.fromtimestamp(timestamp, timezone.utc)
+        date = date.astimezone(tz=tz)
+        self.provider_conf.reservation = date.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
         self.driver.reservation_date = self.provider_conf.reservation
