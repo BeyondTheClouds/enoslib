@@ -507,6 +507,8 @@ class G5k(Provider):
         for h in self.hosts:
             h.mirror_state()
 
+        self.sshable_hosts = self.hosts
+
         if JOB_TYPE_DEPLOY in self.provider_conf.job_type:
             self.deploy()
             self.dhcp_networks()
@@ -539,18 +541,6 @@ class G5k(Provider):
                 raise InvalidReservationTooOld()
             else:
                 raise InvalidReservationCritical(format(error))
-
-        oar_nodes, oar_networks = self.driver.resources()
-        machines = _concretize_nodes(self.provider_conf.machines, oar_nodes)
-        self.networks = _concretize_networks(self.provider_conf.networks, oar_networks)
-        self.hosts = _join(machines, self.networks)
-        # trigger necessary side effects on the API for instance
-        for h in self.hosts:
-            h.mirror_state()
-
-        self.sshable_hosts = self.hosts
-
-        # wait and get the resources
 
     def async_init(self, **kwargs):
         """Reserve but don't wait.
