@@ -379,10 +379,12 @@ class TestToEnoslib(EnosTest):
         roles, _ = provider._to_enoslib()
         self.assertEquals(id(roles["tag1"][0]), id(roles["tag2"][0]), "Host refs aren't duplicated in roles")
 
-    def test_non_duplicated_networks(self):
-        provider = G5k(Configuration())
-        network = mock.Mock()
-        provider.networks = [G5kProdNetwork(["tag1", "tag2"], "id1" , "rennes")]
+    # FIXME XXX
+    # This produces some side effect on the API
+    # def test_non_duplicated_networks(self):
+    #     provider = G5k(Configuration())
+    #     network = mock.Mock()
+    #     provider.networks = [G5kProdNetwork(["tag1", "tag2"], "id1" , "rennes")]
 
-        _, networks = provider._to_enoslib()
-        self.assertEquals(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")
+    #     _, networks = provider._to_enoslib()
+    #     self.assertEquals(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")
