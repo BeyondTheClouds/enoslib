@@ -590,7 +590,7 @@ class G5k(Provider):
                 deployed, undeployed = self.driver.deploy(site, undeployed, options)
 
             if undeployed:
-                logger.warn(f"Undeployed nodes: {undeployed}")
+                logger.warning(f"Undeployed nodes: {undeployed}")
 
             # set the ssh_address atrribute of the concrete hosts
             for fqdn, t_fqdn in net.translate(fqdns):

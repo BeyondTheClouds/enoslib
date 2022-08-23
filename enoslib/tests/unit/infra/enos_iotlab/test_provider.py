@@ -181,7 +181,7 @@ class TestSubmit(EnosTest):
                 )
             ],
         )  # not ideal but the _alias depends on the test order...
-        self.assertEquals(2, len(nodes["r2"]))
+        self.assertEqual(2, len(nodes["r2"]))
         self.assertTrue(len(networks) == 1)
         self.assertIsInstance(networks[PROD][0].network, IPv4Network)
         self.assertIsInstance(networks[PROD][1].network, IPv6Network)
@@ -202,7 +202,7 @@ class TestSubmit(EnosTest):
             start_time = None,
             resources=[exp_resources(list_nodes)],
         )
-        self.assertEquals(nodes, {})  # no roles nothing to check
+        self.assertEqual(nodes, {})  # no roles nothing to check
 
     @patch("iotlabcli.experiment.stop_experiment")
     def test_destroy_not_init(self, mock_stop):
@@ -812,7 +812,7 @@ class TestProfiles(EnosTest):
         with patch.object(Configuration,'finalize',return_value=conf) as patch_finalize:
             provider = Iotlab(conf)
             provider.offset_walltime(-3600)
-            self.assertEquals(provider.provider_conf.walltime,"01:00")
+            self.assertEqual(provider.provider_conf.walltime,"01:00")
         
     def test_offset_walltime_negative_walltime(self):
         conf = Configuration()

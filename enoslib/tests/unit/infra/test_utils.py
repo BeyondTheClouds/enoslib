@@ -259,7 +259,7 @@ class TestFindSlot(EnosTest):
             find_slot([provider], -1, start_time=0)
 
         start_time = 42
-        self.assertEquals(
+        self.assertEqual(
             start_time,
             find_slot([], 10, start_time),
             "find_slot returns start time when the list of providers is empty")
@@ -386,39 +386,39 @@ class TestFindSlot(EnosTest):
 class TestOffsetFromFormat(EnosTest):
     def test_offset_from_format(self):
         actual = offset_from_format("00:00:00", 1, "%H:%M:%S")
-        self.assertEquals("00:00:01", actual)
+        self.assertEqual("00:00:01", actual)
 
         actual = offset_from_format("00:00:00", 60, "%H:%M:%S")
-        self.assertEquals("00:01:00", actual)
+        self.assertEqual("00:01:00", actual)
 
         actual = offset_from_format("00:00:00", 3600, "%H:%M:%S")
-        self.assertEquals("01:00:00", actual)
+        self.assertEqual("01:00:00", actual)
 
         with self.assertRaises(NegativeWalltime):
             _ = offset_from_format("00:00:00", -1, "%H:%M:%S")
 
         exact = 2*3600 + 42*60 + 37 
         actual = offset_from_format("02:42:37", -exact, "%H:%M:%S")
-        self.assertEquals("00:00:00", actual)
+        self.assertEqual("00:00:00", actual)
 
         with self.assertRaises(NegativeWalltime):
             _ = offset_from_format("02:42:37", -(exact + 1), "%H:%M:%S")
 
         actual = offset_from_format("00:00", 1, "%H:%M")
-        self.assertEquals("00:00", actual)
+        self.assertEqual("00:00", actual)
     
         actual = offset_from_format("00:00", 60, "%H:%M")
-        self.assertEquals("00:01", actual)
+        self.assertEqual("00:01", actual)
 
         actual = offset_from_format("00:00", 3600, "%H:%M")
-        self.assertEquals("01:00", actual)
+        self.assertEqual("01:00", actual)
 
         with self.assertRaises(NegativeWalltime):
             _ = offset_from_format("00:00", -1, "%H:%M")
 
         exact = 2*3600 + 42*60
         actual = offset_from_format("02:42", -exact, "%H:%M")
-        self.assertEquals("00:00", actual)
+        self.assertEqual("00:00", actual)
 
         with self.assertRaises(NegativeWalltime):
             _ = offset_from_format("02:42", -(exact + 1), "%H:%M")

@@ -101,7 +101,7 @@ class TestG5kEnos(EnosTest):
         conf.walltime = "02:00:00"
         provider = G5k(conf)
         provider.offset_walltime(-3600)
-        self.assertEquals(provider.provider_conf.walltime, "01:00:00")
+        self.assertEqual(provider.provider_conf.walltime, "01:00:00")
         
     def test_offset_walltime_negative_walltime(self):
         conf = Configuration()
@@ -377,7 +377,7 @@ class TestToEnoslib(EnosTest):
         provider.sshable_hosts = [G5kHost("1.2.3.4", ["tag1", "tag2"], network)]
 
         roles, _ = provider._to_enoslib()
-        self.assertEquals(id(roles["tag1"][0]), id(roles["tag2"][0]), "Host refs aren't duplicated in roles")
+        self.assertEqual(id(roles["tag1"][0]), id(roles["tag2"][0]), "Host refs aren't duplicated in roles")
 
     # FIXME XXX
     # This produces some side effect on the API
@@ -387,4 +387,4 @@ class TestToEnoslib(EnosTest):
     #     provider.networks = [G5kProdNetwork(["tag1", "tag2"], "id1" , "rennes")]
 
     #     _, networks = provider._to_enoslib()
-    #     self.assertEquals(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")
+    #     self.assertEqual(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")

@@ -27,7 +27,7 @@ class TestSSH(EnosTest):
             self.assertIsNone(wait_for(self.env, retries=10, interval=0))
 
     def test_wait_ssh_fails(self):
-        with self.assertRaisesRegexp(Exception, "Maximum retries reached"), mock.patch(
+        with self.assertRaisesRegex(Exception, "Maximum retries reached"), mock.patch(
             "enoslib.api.run_play", new_callable=mock.Mock()
         ) as m:
             # fail all the time
@@ -41,9 +41,9 @@ class TestPlayOn(EnosTest):
         p.__exit__ = mock.MagicMock()
         a = p.__enter__()
         a.test_module(name="test", state="present")
-        self.assertEquals(1, len(a._tasks))
+        self.assertEqual(1, len(a._tasks))
         task = a._tasks[0]
-        self.assertEquals({"name": "test", "state": "present"}, task["test_module"])
+        self.assertEqual({"name": "test", "state": "present"}, task["test_module"])
 
     def test_call_ansible(self):
         with mock.patch("enoslib.api.run_play") as m:

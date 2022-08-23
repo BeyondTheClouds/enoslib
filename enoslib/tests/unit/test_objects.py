@@ -12,7 +12,7 @@ class TestRoles(EnosTest):
 
         r["a"] = [Host("1.2.3.4")]
         self.assertCountEqual([Host("1.2.3.4")], r["a"])
-        self.assertEquals(initial_id, id(r), "Insertion doesn't change the id")
+        self.assertEqual(initial_id, id(r), "Insertion doesn't change the id")
 
         
         r = Roles()
@@ -20,12 +20,12 @@ class TestRoles(EnosTest):
 
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r["a"])
-        self.assertEquals(initial_id, id(r), "Extending a key doesn't change the id of the Roles")
+        self.assertEqual(initial_id, id(r), "Extending a key doesn't change the id of the Roles")
 
         view_id = id(r["a"])
         r["a"] += [Host("1.2.3.6")]
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEquals(view_id, id(r["a"]), "View's ids aren't changed when using +=")
+        self.assertEqual(view_id, id(r["a"]), "View's ids aren't changed when using +=")
 
         r = Roles()
 
@@ -33,19 +33,19 @@ class TestRoles(EnosTest):
         view_id = id(r["a"])
         r["a"].extend([Host("1.2.3.6")])
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using extend")
+        self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using extend")
 
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         view_id = id(r["a"])
         r["a"].add(Host("1.2.3.6"))
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using add")
+        self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using add")
         
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         view_id = id(r["a"])
         r["a"].append(Host("1.2.3.6"))
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEquals(view_id, id(r["a"]), "View's id aren't changed when using append")
+        self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using append")
 
     def test_roles_init_with_duplicates(self):
         r = Roles(tag1=[Host("1.2.3.4"), Host("1.2.3.5")], tag2=[Host("1.2.3.4")])
@@ -65,8 +65,8 @@ class TestRoles(EnosTest):
 
         r1 += r2
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
-        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+        self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
 
 
     def test_roles__iadd__(self):
@@ -79,8 +79,8 @@ class TestRoles(EnosTest):
 
         r1 += r2
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
-        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+        self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
     
     def test_roles_extend(self):
         r1 = Roles()
@@ -92,8 +92,8 @@ class TestRoles(EnosTest):
 
         r1.extend(r2)
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
-        self.assertEquals(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEquals(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
+        self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
+        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
 
 
     def test_hostview(self):
