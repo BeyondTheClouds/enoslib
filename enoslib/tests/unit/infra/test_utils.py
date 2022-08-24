@@ -272,7 +272,6 @@ class TestFindSlot(EnosTest):
         provider = Mock()
 
         start_provider_within_bounds(provider, 80)
-        provider.set_reservation.assert_called_with(80)
         # async_init is called with this new start_time
         provider.async_init.assert_called_with(start_time=80, time_window=0)
 
@@ -288,7 +287,6 @@ class TestFindSlot(EnosTest):
         start_provider_within_bounds(provider, 10)
         # now = 0 so we start at now + 60  = 60 to make sure to start in the
         # future
-        provider.set_reservation.assert_called_with(60)
         # the walltime is reduced accordingly 10 - 60
         provider.offset_walltime.assert_called_with(-50)
         # async_init is called with this new start_time
@@ -318,7 +316,6 @@ class TestFindSlot(EnosTest):
         provider.async_init.side_effect = [InvalidReservationTooOld,InvalidReservationTooOld,(Roles(Dummy=[host]), Networks(Dummy=[network]))]
 
         start_provider_within_bounds(provider, 60)
-        provider.set_reservation.assert_has_calls([call(60), call(300), call(660)])
         provider.offset_walltime.assert_has_calls([call(0), call(-240), call(-360)])
         provider.async_init.assert_has_calls([
             call(start_time=60, time_window=0),

@@ -11,7 +11,7 @@ from ipaddress import IPv4Address
 import itertools
 import logging
 import operator
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from netaddr import EUI, mac_unix_expanded
 
@@ -324,11 +324,13 @@ class VMonG5k(Provider):
     def g5k_provider(self):
         return self._g5k_provider
 
-    def init(self, force_deploy=False, **kwargs):
+    def init(self, start_time: Optional[int] = None, force_deploy=False, **kwargs):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
         self._g5k_provider = g5kprovider.G5k(g5k_conf)
+        if start_time:
+            self._g5k_provider.set_reservation(start_time)
         self.g5k_roles, self.g5k_networks = self._g5k_provider.init(**kwargs)
 
         # we concretize the virtualmachines
@@ -353,11 +355,14 @@ class VMonG5k(Provider):
         )
         return roles, self.g5k_networks
 
-    def async_init(self, force_deploy=False, **kwargs):
+    def async_init(self, start_time: Optional[int] = None,
+                   force_deploy=False, **kwargs):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
         self._g5k_provider = g5kprovider.G5k(g5k_conf)
+        if start_time:
+            self._g5k_provider.set_reservation(start_time)
         self._g5k_provider.async_init(**kwargs)
 
     def is_created(self):

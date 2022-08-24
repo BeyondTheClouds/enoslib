@@ -425,7 +425,8 @@ class G5k(Provider):
         priv_key = self.key_path.replace(".pub", "")
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
-    def init(self, force_deploy: bool = False, **kwargs):
+    def init(self, start_time: Optional[int] = None,
+             force_deploy: bool = False, **kwargs):
         """Take ownership over some Grid'5000 resources (compute and networks).
 
         The function does the heavy lifting of transforming your
@@ -459,6 +460,8 @@ class G5k(Provider):
 
         Args:
             force_deploy (bool): True iff the environment must be redeployed
+            start_time (int): Time at which to start the job, by default whenever
+            possible
         Raises:
             MissingNetworkError: If one network is missing in comparison to
                 what is claimed.
@@ -476,6 +479,8 @@ class G5k(Provider):
         """
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
+        if start_time:
+            self.set_reservation(start_time)
         self.networks = []
         self.hosts = []
         self.launch()
@@ -542,11 +547,14 @@ class G5k(Provider):
             else:
                 raise InvalidReservationCritical(format(error))
 
-    def async_init(self, **kwargs):
+    def async_init(self, start_time: Optional[int] = None, **kwargs):
         """Reserve but don't wait.
 
         No node/network information can't be retrieved at this moment.
+        If a start_time is provided, set the reservation date to it.
         """
+        if start_time:
+            self.set_reservation(start_time)
         self.reserve()
 
     def wait(self):

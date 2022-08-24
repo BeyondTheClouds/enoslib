@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import itertools
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 import distem as d
 import pytz
@@ -84,6 +84,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
     g5k_conf = g5kconf.Configuration.from_settings(
         job_name=distemong5k_conf.job_name,
         walltime=distemong5k_conf.walltime,
+        reservation=distemong5k_conf.reservation,
         queue=distemong5k_conf.queue,
         job_type="deploy",
         force_deploy=distemong5k_conf.force_deploy,
@@ -290,7 +291,9 @@ def distem_bootstrap(roles, path_sshkeys):
 class Distem(Provider):
     """Use Distem on G5k"""
 
-    def init(self, force_deploy=False, **kwargs):
+    def init(self, start_time: Optional[int] = None, force_deploy=False, **kwargs):
+        if start_time:
+            self.set_reservation(start_time)
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_roles, g5k_networks = g5k_provider.init()
@@ -304,7 +307,9 @@ class Distem(Provider):
         roles, networks = start_containers(g5k_roles, self.provider_conf, g5k_subnets)
         return roles, networks
 
-    def async_init(self, **kwargs):
+    def async_init(self, start_time: Optional[int] = None, **kwargs):
+        if start_time:
+            self.set_reservation(start_time)
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         g5k_provider.async_init(**kwargs)

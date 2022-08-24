@@ -100,12 +100,14 @@ class Iotlab(Provider):
         self.nodes_status = None
         self.experiments_status = None
 
-    def init(self, force_deploy: bool = False, **kwargs):
+    def init(self, start_time: Optional[int] = None,
+             force_deploy: bool = False, **kwargs):
         """
         Take ownership over FIT/IoT-LAB resources
 
         Check if job is already running in the testbed
         (based on the name given on config).
+        Set the reservation to start_time if provided
         Submit a new job if necessary and wait its initialization.
         Return inventory of resources allocated.
 
@@ -119,13 +121,17 @@ class Iotlab(Provider):
             InvalidReservationCritical: Any other error that might
             occur during the reservation
         """
+        if start_time:
+            self.set_reservation(start_time)
         self._profiles()
         self._reserve()
         self._deploy()
 
         return self._to_enoslib()
 
-    def async_init(self, **kwargs):
+    def async_init(self, start_time: Optional[int] = None, **kwargs):
+        if start_time:
+            self.set_reservation(start_time)
         self._profiles()
         self._reserve(wait=False)
 
