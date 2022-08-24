@@ -392,21 +392,26 @@ class Iotlab(Provider):
     def _to_enoslib(self):
         """Transform from provider specific resources to library-level resources"""
         roles = Roles()
+        # keep track of duplicates
+        _hosts = []
         for host in self.hosts:
-            for role in host.roles:
-                if host.ssh_address:
-                    roles[role] += [Host(host.ssh_address, user="root")]
-                    # shouldn't I be able to pass only host?
-                    # Not because ansible inventory is based on address and
-                    # our ssh_address is other for A8 nodes..
+            if host.ssh_address:
+                h = Host(host.ssh_address, user="root")
+                if h in _hosts:
+                    h = _hosts[_hosts.index(h)]
+                else:
+                    _hosts.append(h)
+                roles.add_one(host, host.roles)
+                # shouldn't I be able to pass only host?
+                # Not because ansible inventory is based on address and
+                # our ssh_address is other for A8 nodes..
         for sensor in self.sensors:
             for role in sensor.roles:
                 roles[role] += [sensor]
 
         networks = Networks()
         for network in self.networks:
-            for role in network.roles:
-                networks[role] += [network]
+            networks.add_one(network, network.roles)
 
         return roles, networks
 

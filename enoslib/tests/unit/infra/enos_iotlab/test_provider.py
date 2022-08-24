@@ -132,7 +132,7 @@ class TestSubmit(EnosTest):
     def test_01_valid_board_cfg(self, mock_get, mock_submit):
         provider_config = Configuration().add_machine_conf(
             BoardConfiguration(
-                roles=["r2"], archi="a8:at86rf231", site="grenoble", number=2
+                roles=["r1", "r2"], archi="a8:at86rf231", site="grenoble", number=2
             )
         )
         mock_get.return_value = {
@@ -182,6 +182,9 @@ class TestSubmit(EnosTest):
             ],
         )  # not ideal but the _alias depends on the test order...
         self.assertEqual(2, len(nodes["r2"]))
+        self.assertEqual(id(nodes["r1"][0]), id(nodes["r2"][0]))
+        self.assertEqual(id(nodes["r1"][1]), id(nodes["r2"][1]))
+
         self.assertTrue(len(networks) == 1)
         self.assertIsInstance(networks[PROD][0].network, IPv4Network)
         self.assertIsInstance(networks[PROD][1].network, IPv6Network)
