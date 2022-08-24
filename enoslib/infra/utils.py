@@ -118,8 +118,6 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
             # make sure the reservation is really in the future by adding an offset
             # (growing exponentially with the number of retries)
             candidate_start_time = int(max(now + 60 * (retry + 1) ** 2, start_time))
-            # set the reservation date to this computed start_time
-            provider.set_reservation(candidate_start_time)
             # also reduce accordingly the walltime to make sure we don't exceed to
             # initial right bound
             provider.offset_walltime(start_time - candidate_start_time)
