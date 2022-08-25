@@ -401,7 +401,7 @@ class Iotlab(Provider):
                     h = _hosts[_hosts.index(h)]
                 else:
                     _hosts.append(h)
-                roles.add_one(host, host.roles)
+                roles.add_one(h, host.roles)
                 # shouldn't I be able to pass only host?
                 # Not because ansible inventory is based on address and
                 # our ssh_address is other for A8 nodes..
