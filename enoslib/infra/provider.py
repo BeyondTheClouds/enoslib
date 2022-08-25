@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABCMeta, abstractmethod
+from typing import Any, Optional
 
 
 class Provider:
@@ -12,6 +13,17 @@ class Provider:
     corresponding testbed, and returns a set of hosts and networks labeled
     with their roles. In other words, providers help the experimenter deal
     with the variety of the APIs of testbeds.
+
+    Some infrastructure is based on a reservation system (OAR, blazar ...).  In
+    this case we defer to the decision to start the resource to the underlying
+    scheduler. This scheduler will try to find an available ``start_time`` for
+    our configuration in a near future if possible.
+
+    In the above situation reservation in advance is possible and can be set in
+    the corresponding configuration, using
+    :py:meth:`~enoslib.infra.provider.Provider.set_reservation` or
+    :py:meth:`~enoslib.infra.provider.Provider.init` with the ``start_time``
+    parameter set.
 
     Example:
 
@@ -55,15 +67,22 @@ class Provider:
         self.name = self.__class__.__name__ if name is None else name
 
     @abstractmethod
-    def init(self, force_deploy=False, **kwargs):
+    def init(
+        self,
+        force_deploy: bool = False,
+        start_time: Optional[int] = None,
+        **kwargs: Any
+    ):
         """Abstract. Provides resources and provisions the environment.
 
         This calls the underlying provider and provision resources (machines
         and networks).
 
         Args:
-            force_deploy (bool): Indicates that the resources must be
-                redeployed.
+            force_deploy: boolean
+                Indicates that the resources must be redeployed.
+            start_time: timestamp (int)
+                Date (UTC) when you want to have your resources ready.
 
         Returns:
             (roles, networks) tuple: roles is a dict whose key is a role and
@@ -89,12 +108,16 @@ class Provider:
     def test_slot(self, start_time: int, end_time: int) -> bool:
         """Test a slot that starts at a given point in time.
 
+        A slot is given by a start_time, a duration and an amount of resources.
+        The two latter are found in the internal configuration.
+
         Args:
-            start_time:
-                given point in time. Timestamp in seconds.
-            end_time:
-                how much time in the future we should look for possible reservation.
-                Unused on most platform.
+            start_time: timestamp (seconds)
+                Test for a possible slot that starts at start_time (UTC)
+            end_time: timestamp (seconds)
+                How much time in the future we should look for possible reservation.
+                This is used on some platform to know how much time in the
+                future we look in the planning data. Timestamp is based on UTC.
 
         Returns:
             True iff the slot is available
@@ -104,9 +127,11 @@ class Provider:
     def set_reservation(self, timestamp: int):
         """Change the internal reservation date.
 
+        Ignored on platform that aren't based on a reservation system.
+
         Args:
-            timestamp
-                The reservation date as timestamp in seconds.
+            timestamp: timestamp (seconds)
+                The reservation date (UTC) as timestamp in seconds.
         """
         pass
 
@@ -121,4 +146,10 @@ class Provider:
 
     @abstractmethod
     def offset_walltime(self, offset: int):
+        """Offset the walltime.
+
+        Increase or reduce the wanted walltime.  This does not change the
+        walltime of an already created provider but only affects the walltime
+        configured before the provider call ~init~.
+        """
         pass

@@ -459,19 +459,24 @@ class G5k(Provider):
             - At the end machine are reachable using the root account.
 
         Args:
-            force_deploy (bool): True iff the environment must be redeployed
-            start_time (int): Time at which to start the job, by default whenever
-            possible
+            force_deploy: bool
+                True iff the environment must be redeployed
+            start_time: timestamp (int in seconds)
+                Time at which to start the job, by default whenever
+                possible
+
         Raises:
-            MissingNetworkError: If one network is missing in comparison to
-                what is claimed.
-            NotEnoughNodesError: If the `min` constraints can't be met.
-            InvalidReservationTime: If the set reservation_date from provider.conf
-            isn't free
-            InvalidReservationOld: If the set reservation_date from provider.conf
-            is in the past
-            InvalidReservationCritical: Any other error that might occur during
-            the reservation
+            MissingNetworkError:
+                If one network is missing in comparison to what is claimed.
+            NotEnoughNodesError:
+                If the `min` constraints can't be met.
+            InvalidReservationTime:
+                If the set reservation_date from provider.conf isn't free
+            InvalidReservationOld:
+                If the set reservation_date from provider.conf is in the past
+            InvalidReservationCritical:
+                Any other error that might occur during the reservation is deemed
+                critical
 
         Returns:
             Two dictionnaries (roles, networks) representing the inventory of
@@ -690,8 +695,10 @@ class G5k(Provider):
         """Create a tunnel if necessary between here and there (in G5k).
 
         Args:
-            address: The remote address to reach (assuming inside g5k)
-            port: The remote port to reach
+            address: str
+                The remote address to reach (assuming inside g5k)
+            port: int
+                The remote port to reach
 
         Returns
             The context manager
@@ -712,11 +719,15 @@ class G5k(Provider):
         - Delete the firewall opening when exiting
 
         Args:
-            hosts: limit the rule to a set of hosts.
+            hosts:
+                limit the rule to a set of hosts.
                 if None, rules will be applied on all hosts of all underlying jobs.
-            port: ports to open
-            src_addr: source addresses to consider
-            proto: protocol to consider
+            port:
+                ports to open
+            src_addr:
+                source addresses to consider
+            proto:
+                protocol to consider
         """
         self.fw_create(hosts=hosts, port=port, src_addr=src_addr, proto=proto)
         try:
@@ -749,11 +760,15 @@ class G5k(Provider):
         accepted by the REST API.
 
         Args:
-            hosts: limit the rule to a set of hosts.
+            hosts:
+                limit the rule to a set of hosts.
                 if None, rules will be applied on all hosts of all underlying jobs.
-            port: ports to open
-            src_addr: source addresses to consider
-            proto: protocol to consider
+            port:
+                ports to open
+            src_addr:
+                source addresses to consider
+            proto:
+                protocol to consider
         """
 
         def to_ipv6_dests(hosts: Iterable[str]):
