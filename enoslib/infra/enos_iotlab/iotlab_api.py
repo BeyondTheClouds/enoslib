@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
+import re
 import sys
 from typing import Dict, List, Optional, Tuple, Set
+from urllib.error import HTTPError
 
 import iotlabcli
 import iotlabcli.experiment
@@ -228,7 +230,14 @@ class IotlabAPI:
         """Stop experiment if it's running"""
         if self.job_id:
             logger.info("Stopping experiment id (%d)", self.job_id)
-            iotlabcli.experiment.stop_experiment(api=self.api, exp_id=self.job_id)
+            try:
+                iotlabcli.experiment.stop_experiment(api=self.api, exp_id=self.job_id)
+            except HTTPError as error:
+                search = re.search(
+                "This job was already killed", format(error),
+                )
+                if search is None:
+                    raise error
 
     def collect_data_experiment(self, exp_dir: str):
         """

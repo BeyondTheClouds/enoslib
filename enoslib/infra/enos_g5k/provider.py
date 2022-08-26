@@ -537,8 +537,8 @@ class G5k(Provider):
             # error. This error is used for example in a multi-providers setting
             # to update the search window of the common slot.
             search = re.search(
-                r"""Reservation not valid --> KO \(This reservation could run at (\d{4}-
-                \d{2}-\d{2} \d{2}:\d{2}:\d{2})\)""",
+                r"Reservation not valid --> KO \(This reservation could run at (\d{4}-"
+                r"\d{2}-\d{2} \d{2}:\d{2}:\d{2})\)",
                 format(error),
             )
             if search is not None:
