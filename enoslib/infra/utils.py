@@ -130,9 +130,12 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
             )
             return
         except NegativeWalltime:
+            logger.info(f"Negative walltime occured with {str(provider)}")
             # we did our best but the walltime is too short
             raise NoSlotError
         except InvalidReservationTooOld:
+            logger.info(f"Invalid reservation too old occured with {str(provider)}")
+
             # cover the case where the reservation date is still in the past
             # honestly with the offset we're adding this shouldn't really happen
             continue
@@ -172,7 +175,11 @@ def find_slot_and_start(
         return
     reservation_timestamp = find_slot(_providers, time_window, start_time)
     try:
-        for provider in providers:
+        logger.debug(
+            "Now trying %s" % (datetime.fromtimestamp(
+            reservation_timestamp).strftime("%Y-%m-%d %H:%M:%S"))
+        )
+        for provider in _providers:
             start_provider_within_bounds(provider, start_time, **kwargs)
     except NoSlotError:
         # we transform to an InvalidReservationTime with a time hint

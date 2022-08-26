@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime, timezone
+import logging
 from math import ceil
 from typing import List, Optional
 from enoslib.errors import (
@@ -8,8 +9,10 @@ from enoslib.errors import (
     NoSlotError,
 )
 from enoslib.infra.provider import Provider
-from enoslib.infra.utils import find_slot_and_start
+from enoslib.infra.utils import TIME_INCREMENT, find_slot_and_start
 from enoslib.objects import Roles, Networks
+
+logger = logging.getLogger(__name__)
 
 
 class Providers(Provider):
@@ -68,18 +71,15 @@ class Providers(Provider):
             roles[str(provider)] = _roles.all()
             networks.extend(_networks)
             networks[str(provider)] = _networks.all()
-
         return roles, networks
 
     def _reserve(self, time_window: Optional[int], start_time: Optional[int], **kwargs):
         if time_window is None or time_window < 0:
             # TODO(msimonin): make it a global configuration
             time_window = 7200
-
         if start_time is None or start_time < 0:
             # TODO(msimonin): make it a global configuration
             start_time = ceil(datetime.timestamp(datetime.now(timezone.utc)) + 60)
-
         while True:
             # Will raise a NoSlotError exception if no slot is found
             # reservation_timestamp >= start_time
@@ -91,6 +91,7 @@ class Providers(Provider):
                 self.providers = providers
                 return
             except InvalidReservationTime as error:
+                logger.info("InvalidReservationTime error occured")
                 self.destroy()
                 # We hit a possible race condition
                 # One of the provider did is best to start the job at start_time as
@@ -103,8 +104,13 @@ class Providers(Provider):
                 _start_time = datetime.strptime(
                     error.time, "%Y-%m-%d %H:%M:%S"
                 ).timestamp()
+                logger.debug(
+                ('Now proposing '
+                 f'{datetime.fromtimestamp(_start_time).strftime("%Y-%m-%d %H:%M:%S")}')
+                )
                 time_window = time_window + (start_time - _start_time)
-                start_time = _start_time
+                # This is made to be sure that the start_time increases
+                start_time = max(_start_time, start_time + TIME_INCREMENT)
                 continue
             except NoSlotError:
                 self.destroy()
