@@ -321,7 +321,7 @@ class Distem(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         return g5kprovider.G5k(g5k_conf).is_created()
 
-    def destroy(self):
+    def destroy(self, wait=False):
         pass
 
     def test_slot(self, start_time: int, end_time: int) -> bool:

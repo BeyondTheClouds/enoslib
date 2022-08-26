@@ -101,7 +101,7 @@ class Provider:
         return False
 
     @abstractmethod
-    def destroy(self, **kwargs):
+    def destroy(self, wait=False, **kwargs):
         "Abstract. Destroy the resources used for the deployment."
         pass
 

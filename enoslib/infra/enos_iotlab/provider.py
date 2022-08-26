@@ -184,7 +184,7 @@ class Iotlab(Provider):
             p.fetch(src=".iot-lab/" + filename, dest=dest_dir + "/", flat=True)
             p.shell("cd .iot-lab/; rm -f %s" % filename)
 
-    def destroy(self):
+    def destroy(self, wait=False):
         """Destroys the job and monitoring profiles"""
         self.client.stop_experiment()
         self.client.del_profile()

@@ -216,7 +216,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             extra_ips=extra_ips,
         )
 
-    def destroy(self):
+    def destroy(self, wait=False):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
             logger.info(f" Using {_site}.")
             # destroy the associated lease should be enough

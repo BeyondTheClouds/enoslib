@@ -122,7 +122,7 @@ class ChameleonEdge(Provider):
             roles = container_roles[ROLES].split(ROLES_SEPARATOR)
         return roles
 
-    def destroy(self):
+    def destroy(self, wait=False):
         """Release testbed resources."""
         self.client.release_resources(
             self.provider_conf.lease_name,

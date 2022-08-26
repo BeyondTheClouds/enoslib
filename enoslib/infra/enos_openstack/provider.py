@@ -563,7 +563,7 @@ class Openstack(Provider):
             lambda s: env["id_to_flavor"][s.flavor["id"]],
         )
 
-    def destroy(self):
+    def destroy(self, wait=False):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
             logger.info(f" Using {_site}.")
             session = get_session()

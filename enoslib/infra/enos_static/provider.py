@@ -43,7 +43,7 @@ class Static(Provider):
 
         return roles, networks
 
-    def destroy(self):
+    def destroy(self, wait=False):
         pass
 
     def offset_walltime(self, difference: int):

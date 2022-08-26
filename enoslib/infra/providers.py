@@ -119,7 +119,7 @@ class Providers(Provider):
 
     def destroy(self):
         for provider in self.providers:
-            provider.destroy()
+            provider.destroy(wait=True)
 
     def test_slot(self, start_time: int, end_time: int):
         ok = True

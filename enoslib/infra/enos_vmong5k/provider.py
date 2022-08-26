@@ -376,7 +376,7 @@ class VMonG5k(Provider):
         """Gets the undercloud information (bare-metal machines)."""
         return self.g5k_roles, self.g5k_networks
 
-    def destroy(self):
+    def destroy(self, wait=False):
         """ "Destroy the underlying job."""
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k = g5kprovider.G5k(g5k_conf)

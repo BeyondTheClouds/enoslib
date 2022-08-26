@@ -131,7 +131,7 @@ class Enos_vagrant(Provider):
 
         return (roles, networks)
 
-    def destroy(self):
+    def destroy(self, wait=False):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()
