@@ -10,6 +10,7 @@ from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
 
 import logging
+import re
 from grid5000.objects import Job, Node, Vlan
 import os
 import time
@@ -42,6 +43,8 @@ from grid5000 import Grid5000
 import ring
 
 from ring.func.lru_cache import LruCache
+
+from grid5000.exceptions import Grid5000DeleteError
 
 LRU = LruCache(128)
 
@@ -253,10 +256,19 @@ def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
 
 
 def job_delete(job, wait=False):
-    job.delete()
+    # In the event that a job has already been killed when we try to kill it,
+    # we ignore the error raised by Grid5000 to warn us
+    try:
+        job.delete()
+    except Grid5000DeleteError as error:
+        search = re.search(
+            "This job was already killed", format(error),
+        )
+        if search is None:
+            raise error
     if not wait:
         return
-    while job.state == "running":
+    while job.state in ["running", "waiting", "launching"]:
         logger.debug("Waiting for the job (%s, %s) to be killed" % (job.site, job.uid))
         time.sleep(1)
         job.refresh()
