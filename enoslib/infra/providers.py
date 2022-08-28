@@ -142,3 +142,9 @@ class Providers(Provider):
     def offset_walltime(self, offset: int):
         for provider in self.providers:
             provider.offset_walltime(offset)
+
+    def is_created(self) -> bool:
+        for provider in self.providers:
+            if not provider.is_created():
+                return False
+        return True
