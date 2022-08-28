@@ -47,6 +47,10 @@ from enoslib.service.emul.htb import (
 from enoslib.service.tcpdump import TCPDump
 from enoslib.service.skydive.skydive import Skydive
 
+
+# Multi providers
+from enoslib.infra.providers import Providers
+
 # Providers
 try:
     from enoslib.infra.enos_g5k.provider import G5k, G5kTunnel
