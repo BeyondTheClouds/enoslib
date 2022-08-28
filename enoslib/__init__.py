@@ -18,7 +18,7 @@ from enoslib.api import (
     wait_for,
 )
 
-from enoslib.objects import Host, Network, Roles, Networks
+from enoslib.objects import Host, Network, Roles, Networks, DefaultNetwork
 from enoslib.docker import DockerHost, get_dockers
 from enoslib.local import LocalHost
 
