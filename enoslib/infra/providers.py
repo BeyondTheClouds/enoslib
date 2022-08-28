@@ -108,9 +108,15 @@ class Providers(Provider):
                 ('Now proposing '
                  f'{datetime.fromtimestamp(_start_time).strftime("%Y-%m-%d %H:%M:%S")}')
                 )
+                if _start_time <= start_time:
+                    # The scheduler hint is weird
+                    # some day we hit this behaviour where the scheduler hinted
+                    # again and again the same date
+                    # so we make sure to progress in this case
+                    # by correcting the proposed date
+                    _start_time = start_time + TIME_INCREMENT
                 time_window = time_window + (start_time - _start_time)
-                # This is made to be sure that the start_time increases
-                start_time = max(_start_time, start_time + TIME_INCREMENT)
+                start_time = _start_time
                 continue
             except NoSlotError:
                 self.destroy()
