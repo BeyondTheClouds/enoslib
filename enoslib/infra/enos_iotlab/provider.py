@@ -436,9 +436,12 @@ class Iotlab(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        # tz = pytz.timezone('Europe/Paris')
+        # input timestamp is utc by design
         date = datetime.fromtimestamp(timestamp, timezone.utc)
-        # date = date.astimezone(tz=tz)
+
+        import pytz
+        tz = pytz.timezone('Europe/Paris')
+        date = date.astimezone(tz=tz)
         self.provider_conf.start_time = date.strftime(
             "%Y-%m-%d %H:%M:%S"
         )
