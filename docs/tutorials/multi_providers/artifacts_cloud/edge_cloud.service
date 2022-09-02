@@ -6,8 +6,8 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-User=cc
-ExecStart=/usr/bin/env python3 /home/cc/predict_loop.py
+User=root
+ExecStart=/usr/bin/env python3 /tmp/predict_loop.py
 
 [Install]
 WantedBy=multi-user.target

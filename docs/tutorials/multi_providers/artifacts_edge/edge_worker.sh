@@ -9,16 +9,16 @@ MOSQUITTO_HOST="${3:-127.0.0.1}"
 
 # Use this function to configure your container as needed
 function setup {
-    # Sometimes the default DNS fails, so try this instead.
-    echo nameserver 8.8.8.8 > /etc/resolv.conf
-
     # Install mosquitto clients
-    apt-get update
-    apt-get install software-properties-common
-    apt-add-repository ppa:mosquitto-dev/mosquitto-ppa -y
-    apt-get update
-    apt-get install mosquitto-clients wget -y
-    
+    if command -v apt-get &> /dev/null
+    then
+        apt-get update
+        apt-get install software-properties-common
+        apt-add-repository ppa:mosquitto-dev/mosquitto-ppa -y
+        apt-get update
+        apt-get install mosquitto-clients wget -y
+    fi
+
     # Download a file listing all images (just for this example)
     wget --quiet https://uchicago.box.com/shared/static/8b1ceicgj1ttal6dgv0hpxzi4quy5p84.csv -O /images.csv
 }
@@ -40,7 +40,10 @@ function preprocess_sample {
     # needed. Output the result back into file $1.
     
     # For the example dataset, there is text on the bottom 100 pixels, and so we crop it out.
-    convert -crop 100%x100%+0-100 $1 $1
+    if command -v convert &> /dev/null
+    then
+        convert -crop 100%x100%+0-100 $1 $1
+    fi
 }
 
 # Check if this sample should be sent to the cloud (using the return code to indicate value)

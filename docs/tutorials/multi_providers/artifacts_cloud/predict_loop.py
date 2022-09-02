@@ -9,7 +9,7 @@ import io
 import functools
 import logging
 
-logging.basicConfig(filename="/home/cc/predict.log", level=logging.DEBUG)
+logging.basicConfig(filename="/tmp/predict.log", level=logging.DEBUG)
 # The MQTT topic to subscribe to
 TOPIC = "edge_data"
 
@@ -76,7 +76,7 @@ def write_results(pred_classes):
     logging.info("getting write lock")
     logging.info(f"pred_classes={pred_classes}")
     with write_lock:
-        with open("/home/cc/out.csv", "a") as f:
+        with open("/tmp/out.csv", "a") as f:
             # Your output may be stored differently, change as needed
             f.write(",".join(pred_classes)+"\n")
 
