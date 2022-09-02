@@ -180,7 +180,7 @@ class IotlabAPI:
             self.api, state=",".join(iotlabcli.helpers.ACTIVE_STATES), limit=0, offset=0
         )
 
-    def get_resources(
+    def get_or_create_resources(
         self,
         name: str,
         walltime: str,
@@ -206,6 +206,7 @@ class IotlabAPI:
         if self.job_id is None:
             self.submit_experiment(name, walltime, resources, start_time)
 
+    def get_nodes(self):
         job_info = iotlabcli.experiment.get_experiment(
             api=self.api, exp_id=self.job_id, option="nodes"
         )

@@ -277,7 +277,7 @@ class Iotlab(Provider):
     def _reserve(self, wait: bool = True):
         """Reserve resources on platform"""
         try:
-            iotlab_nodes = self.client.get_resources(
+            self.client.get_or_create_resources(
                 self.provider_conf.job_name,
                 self.provider_conf.walltime,
                 self.provider_conf.machines,
@@ -308,6 +308,9 @@ class Iotlab(Provider):
             return
 
         self.client.wait_experiment()
+
+        # once it's running we can request the exact set of nodes
+        iotlab_nodes = self.client.get_nodes()
 
         if isinstance(self.provider_conf.machines[0], PhysNodeConfiguration):
             self._populate_from_phys_nodes(iotlab_nodes)
