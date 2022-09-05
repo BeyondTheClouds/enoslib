@@ -347,6 +347,9 @@ class BaseCommandResult(object):
     def _payload_keys(self):
         ...
 
+    def ok(self):
+        return self.status == STATUS_OK
+
     def match(self, **kwargs):
         for k, v in kwargs.items():
             attr_value = getattr(self, k)
@@ -444,6 +447,9 @@ class Results(UserList):
 
     def filter(self, **kwargs):
         return Results([c for c in self.data if c.match(**kwargs)])
+
+    def ok(self, **kwargs):
+        return Results([c for c in self.data if c.ok()])
 
     def __repr__(self):
         return "\n".join([d.__repr__() for d in self.data])

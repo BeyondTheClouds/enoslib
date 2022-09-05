@@ -58,8 +58,6 @@ from enoslib.infra.enos_g5k.objects import (
     G5kSubnetNetwork,
     G5kVlanNetwork,
 )
-from enoslib.infra.enos_g5k.remote import DEFAULT_CONN_PARAMS, get_execo_remote
-from enoslib.infra.enos_g5k.utils import run_commands
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
@@ -76,6 +74,43 @@ from grid5000.exceptions import Grid5000CreateError
 
 
 logger = getLogger(__name__, ["G5k"])
+
+
+def _check_deployed_nodes(
+    net: G5kNetwork, fqdns: List[str]
+) -> Tuple[List[str], List[str]]:
+    """This is borrowed from execo."""
+    # we translate in the right vlan
+    nodes = [t[1] for t in net.translate(fqdns)]
+    # we build a one-off list of hosts to run the check command
+    hosts = [Host(n, user="root") for n in nodes]
+    deployed = []
+    undeployed = []
+    cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
+
+    deployed_results = run(
+        cmd,
+        roles=hosts,
+        raw=True,
+        gather_facts=False,
+        task_name="Check deployment",
+        # Make sure we don't wait too long
+        extra_vars=dict(ansible_timeout=10),
+        # Errors are expected
+        # e.g the first time all hosts are unreachable
+        on_error_continue=True,
+    )
+    for r in deployed_results.filter(task="Check deployment"):
+        if r.ok():
+            deployed.append(r.host)
+        else:
+            undeployed.append(r.host)
+
+    # un-translate to stay in the fqdns world
+    deployed = [t[1] for t in net.translate(deployed, reverse=True)]
+    undeployed = [t[1] for t in net.translate(undeployed, reverse=True)]
+
+    return deployed, undeployed
 
 
 def _concretize_nodes(
@@ -427,8 +462,9 @@ class G5k(Provider):
         priv_key = self.key_path.replace(".pub", "")
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
-    def init(self, start_time: Optional[int] = None,
-             force_deploy: bool = False, **kwargs):
+    def init(
+        self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
+    ):
         """Take ownership over some Grid'5000 resources (compute and networks).
 
         The function does the heavy lifting of transforming your
@@ -599,7 +635,7 @@ class G5k(Provider):
             # Yes, this is sequential
             deployed, undeployed = [], fqdns
             if not force_deploy:
-                deployed, undeployed = self._check_deployed_nodes(net, fqdns)
+                deployed, undeployed = _check_deployed_nodes(net, fqdns)
 
             if force_deploy or not deployed:
                 deployed, undeployed = self.driver.deploy(site, undeployed, options)
@@ -621,48 +657,27 @@ class G5k(Provider):
         dhcp = self.provider_conf.dhcp
         if dhcp:
             logger.debug("Configuring network interfaces on the nodes")
-            hosts_cmds = [
-                (h.ssh_address, h.dhcp_networks_command()) for h in self.sshable_hosts
+            hosts = [
+                Host(
+                    h.ssh_address,
+                    user="root",
+                    extra=dict(cmd=h.dhcp_networks_command()),
+                )
+                for h in self.sshable_hosts
             ]
-            run_commands(hosts_cmds, self.root_conn_params)
+            # cmd might be empty
+            run("echo '' ; {{ cmd }}", hosts, task_name="Run dhcp on the nodes")
 
     def grant_root_access(self):
-        user_conn_params = copy.deepcopy(self.root_conn_params)
-        user_conn_params.update(user=self.driver.get_user())
-        hosts_cmds = [
-            (h.ssh_address, h.grant_root_access_command()) for h in self.sshable_hosts
+        hosts = [
+            Host(
+                h.ssh_address,
+                user=self.driver.get_user(),
+                extra=dict(cmd=h.grant_root_access_command()),
+            )
+            for h in self.sshable_hosts
         ]
-        run_commands(hosts_cmds, user_conn_params)
-
-    def _check_deployed_nodes(
-        self, net: G5kNetwork, fqdns: List[str]
-    ) -> Tuple[List[str], List[str]]:
-        """This is borrowed from execo."""
-        nodes = [t[1] for t in net.translate(fqdns)]
-        deployed = []
-        undeployed = []
-        cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
-
-        deployed_check = get_execo_remote(cmd, nodes, DEFAULT_CONN_PARAMS)
-
-        for p in deployed_check.processes:
-            p.nolog_exit_code = True
-            p.nolog_timeout = True
-            p.nolog_error = True
-            p.timeout = 10
-        deployed_check.run()
-
-        for p in deployed_check.processes:
-            if p.ok:
-                deployed.append(p.host.address)
-            else:
-                undeployed.append(p.host.address)
-
-        # un-translate to stay in the fqdns world
-        deployed = [t[1] for t in net.translate(deployed, reverse=True)]
-        undeployed = [t[1] for t in net.translate(undeployed, reverse=True)]
-
-        return deployed, undeployed
+        run("{{ cmd }}", hosts, task_name="Granting root acces on the nodes (sudo-g5k)")
 
     def _to_enoslib(self):
         """Transform from provider specific resources to framework resources."""
@@ -832,12 +847,10 @@ class G5k(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone('Europe/Paris')
+        tz = pytz.timezone("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
         date = date.astimezone(tz=tz)
-        self.provider_conf.reservation = date.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
         self.driver.reservation_date = self.provider_conf.reservation
 
     def offset_walltime(self, offset: int):

@@ -1,9 +1,11 @@
 import ipaddress
 from typing import Dict
 import mock
+from enoslib.api import Results, CommandResult, STATUS_OK, STATUS_FAILED
 from enoslib.errors import NegativeWalltime
 
 from enoslib.infra.enos_g5k.provider import (
+    _check_deployed_nodes,
     G5k,
     G5kHost,
     G5kProdNetwork,
@@ -277,10 +279,10 @@ class TestDeploy(EnosTest):
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
         # no nodes has been deployed initially
-        p._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
-        p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
-
-        p.deploy()
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+            mock_check_deployed_nodes.return_value = (undeployed, deployed)
+            p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+            p.deploy()
 
         p.driver.deploy.assert_called_with(
             site,
@@ -297,9 +299,10 @@ class TestDeploy(EnosTest):
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
         # no nodes has been deployed initially
-        p._check_deployed_nodes = mock.Mock(return_value=(undeployed, deployed))
         p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
-        p.deploy()
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+            mock_check_deployed_nodes.return_value = (undeployed, deployed)
+            p.deploy()
 
         p.driver.deploy.assert_called_with(
             site, deployed, {"environment": DEFAULT_ENV_NAME, "key": "test_key"}
@@ -313,10 +316,11 @@ class TestDeploy(EnosTest):
         # mimic a successful deployment
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
-        # no nodes has been deployed initially
-        p._check_deployed_nodes = mock.Mock(return_value=(deployed, undeployed))
-        p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
-        actual_deployed, _ = p.deploy()
+        # all nodes are already deployed
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+            mock_check_deployed_nodes.return_value = (deployed, undeployed)
+            p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+            actual_deployed, _ = p.deploy()
 
         p.driver.deploy.assert_not_called()
         # self.assertCountEqual(p.hosts, p.deployed)
@@ -329,10 +333,10 @@ class TestDeploy(EnosTest):
         deployed = []
         undeployed = [h.fqdn for h in p.hosts]
 
-        p._check_deployed_nodes = mock.Mock(side_effect=[(deployed, undeployed)])
-        p.driver.deploy = mock.Mock(side_effect=[(deployed, undeployed)])
-
-        p.deploy()
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+            mock_check_deployed_nodes.return_value = (deployed, undeployed)
+            p.driver.deploy = mock.Mock(side_effect=[(deployed, undeployed)])
+            p.deploy()
 
         self.assertEqual(1, p.driver.deploy.call_count)
         self.assertCountEqual([], p.deployed)
@@ -343,31 +347,42 @@ class TestDeploy(EnosTest):
     def test_2_primary_network_one_vlan_ko(self):
         p, oar_nodes_1, oar_nodes_2, _ = self.build_complex_provider()
 
-        p._check_deployed_nodes = mock.Mock(
-            side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
-        )
-        p.driver.deploy = mock.Mock(
-            side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
-        )
-        p.deploy()
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as patch_check_deployed_nodes:
+            patch_check_deployed_nodes.side_effect = [(set(), oar_nodes_1), (set(), oar_nodes_2)]
+            p.driver.deploy = mock.Mock(
+                side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
+            )
+            p.deploy()
 
         self.assertEqual(2, p.driver.deploy.call_count)
 
     def test_2_primary_network_one_vlan_ok(self):
         p, oar_nodes_1, oar_nodes_2, vlan = self.build_complex_provider()
 
-        p._check_deployed_nodes = mock.Mock(
-            side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
-        )
-        p.driver.deploy = mock.Mock(
-            side_effect=[(oar_nodes_1, set()), (oar_nodes_2, set())]
-        )
-        p.deploy()
+        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as patch_check_deployed_nodes:
+            patch_check_deployed_nodes.side_effect = [(set(), oar_nodes_1), (set(), oar_nodes_2)]
+            p.driver.deploy = mock.Mock(
+                side_effect=[(oar_nodes_1, set()), (oar_nodes_2, set())]
+            )
+            p.deploy()
 
         self.assertEqual(2, p.driver.deploy.call_count)
         # check that the names is ok
         names = [n[1] for n in vlan.translate(oar_nodes_2)]
         self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
+
+class TestCheckDeployedNode(EnosTest):
+
+    @mock.patch("enoslib.infra.enos_g5k.provider.run")
+    def test_check_deployed_nodes(self, mock_run):
+        mock_run.return_value = Results([
+            CommandResult(host="plip-1.rennes.grid5000.fr", task="Check deployment", status=STATUS_OK, payload={}),
+            CommandResult(host="plip-2.rennes.grid5000.fr", task="Check deployment", status=STATUS_FAILED, payload={}),
+        ])
+        net = G5kProdNetwork(["tag1"], "id", "rennes")
+        deployed, undeployed = _check_deployed_nodes(net, ["plip-1.rennes.grid5000.fr", "plip-2.rennes.grid5000.fr"])
+        self.assertCountEqual(["plip-1.rennes.grid5000.fr"], deployed)
+        self.assertCountEqual(["plip-2.rennes.grid5000.fr"], undeployed)
 
 class TestToEnoslib(EnosTest):
 
