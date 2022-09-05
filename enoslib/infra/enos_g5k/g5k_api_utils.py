@@ -9,7 +9,6 @@ with the platform.
 from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
 
-import logging
 import re
 from grid5000.objects import Job, Node, Vlan
 import os
@@ -38,6 +37,8 @@ from .constants import (
     MAX_DEPLOY,
 )
 from enoslib.config import get_config
+from enoslib.log import getLogger
+from enoslib.infra.utils import _date2h
 
 from grid5000 import Grid5000
 import ring
@@ -48,7 +49,7 @@ from grid5000.exceptions import Grid5000DeleteError
 
 LRU = LruCache(128)
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["G5k"])
 
 
 def runtime_cache(f):
@@ -131,11 +132,6 @@ def get_api_client():
             _api_client = Client.from_yaml(conf_file)
 
         return _api_client
-
-
-def _date2h(timestamp):
-    t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
-    return t
 
 
 def grid_reload_jobs_from_ids(oargrid_jobids):

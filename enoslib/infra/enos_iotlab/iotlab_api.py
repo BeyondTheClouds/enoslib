@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 import re
 import sys
 from typing import Dict, List, Optional, Tuple, Set
@@ -26,8 +25,9 @@ from enoslib.infra.enos_iotlab.configuration import (
     RadioConfiguration,
     ConsumptionConfiguration,
 )
+from enoslib.log import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["IOTlab"])
 
 
 class IotlabAPI:

@@ -3,12 +3,12 @@ from itertools import groupby
 
 from operator import itemgetter
 from typing import Dict, List, Tuple
-import logging
+
 
 from . import remote
+from enoslib.log import getLogger
 
-
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["G5k"])
 
 
 def run_commands(hosts_cmds: List[Tuple[str, str]], conn_params: Dict):

@@ -45,7 +45,7 @@ iotlab_conf = {
                 "roles": ["client"],
                 "archi": "rpi3:at86rf233",
                 "site": "grenoble",
-                "number": 1,
+                "number": 3,
             }
         ]
     },

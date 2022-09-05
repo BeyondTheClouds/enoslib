@@ -4,7 +4,6 @@ from typing import List, Union, Tuple
 
 from grid5000.objects import Job
 from enoslib.infra.enos_g5k.configuration import Configuration
-import logging
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     build_resources,
@@ -19,8 +18,9 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     wait_for_jobs,
     OarNetwork,
 )
+from enoslib.log import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["G5k"])
 
 
 class Driver:

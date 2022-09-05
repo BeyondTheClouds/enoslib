@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import List, Optional
 import socket
-import logging
 
 import sshtunnel
 import iotlabcli.auth
@@ -10,8 +9,9 @@ from enoslib.objects import Host, DefaultNetwork
 from enoslib.api import play_on
 from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
+from enoslib.log import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["IOTlab"])
 
 
 def ssh_enabled(network_address: str) -> bool:

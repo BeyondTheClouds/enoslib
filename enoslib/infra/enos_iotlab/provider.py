@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, time, timezone
-import logging
 import pathlib
 import re
 from typing import List, Optional
@@ -30,8 +29,9 @@ from enoslib.infra.enos_iotlab.constants import PROD
 from enoslib.infra.enos_iotlab.configuration import (
     PhysNodeConfiguration,
 )
+from enoslib.log import getLogger
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["IOTlab"])
 
 
 def check():

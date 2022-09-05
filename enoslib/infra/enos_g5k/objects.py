@@ -1,6 +1,5 @@
 import ipaddress
 from abc import ABC, abstractmethod
-import logging
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
@@ -13,6 +12,8 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_vlans,
     set_nodes_vlan,
 )
+from enoslib.log import getLogger
+
 from grid5000.base import RESTObject
 from grid5000.objects import VlanNodeManager
 from netaddr.ip import IPNetwork
@@ -20,7 +21,7 @@ from netaddr.ip.sets import IPSet
 
 from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__, ["G5k"])
 
 
 class G5kNetwork(ABC):

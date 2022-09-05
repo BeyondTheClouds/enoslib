@@ -18,7 +18,8 @@ from enoslib.infra.enos_iotlab.configuration import Configuration as IOTConfig
 from enoslib.infra.enos_iotlab.configuration import PhysNodeConfiguration
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.infra.provider import Provider
-from enoslib.infra.utils import find_slot, find_slot_and_start, start_provider_within_bounds, offset_from_format
+from enoslib.infra.providers import find_slot, find_slot_and_start, start_provider_within_bounds
+from enoslib.infra.utils import offset_from_format
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 
@@ -346,27 +347,27 @@ class TestFindSlot(EnosTest):
             start_provider_within_bounds(provider1, 0)
          
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
-    @patch('enoslib.infra.utils.find_slot', return_value = 0)
+    @patch('enoslib.infra.providers.find_slot', return_value = 0)
     def test_find_slot_and_start(self,patch_find_slot):
         host1 = Host("dummy-host1")
         network1 = DefaultNetwork("10.0.0.1/24")
 
         provider1 = Mock()
         provider1.is_created.return_value = False
-        with patch('enoslib.infra.utils.start_provider_within_bounds') as patch_do_init:     
+        with patch('enoslib.infra.providers.start_provider_within_bounds') as patch_do_init:     
             find_slot_and_start([provider1], 0, 300)
             patch_do_init.assert_called_with(provider1, 0)
         
         
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=60)
-    @patch('enoslib.infra.utils.start_provider_within_bounds', return_side_effect = [0,120])
+    @patch('enoslib.infra.providers.start_provider_within_bounds', return_side_effect = [0,120])
     def test_find_slot_and_start_init_failed(self, mock_find_slot):
         host1 = Host("dummy-host1")
         network1 = DefaultNetwork("10.0.0.1/24")
         
         provider1 = Mock()
         provider1.is_created.return_value = False
-        with patch('enoslib.infra.utils.start_provider_within_bounds', side_effect=NoSlotError):
+        with patch('enoslib.infra.providers.start_provider_within_bounds', side_effect=NoSlotError):
             with self.assertRaises(InvalidReservationTime):
                 find_slot_and_start([provider1], 0, 500)
                 

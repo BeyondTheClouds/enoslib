@@ -69,11 +69,13 @@ from enoslib.errors import (
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
+from enoslib.log import getLogger
 from sshtunnel import SSHTunnelForwarder
 
 from grid5000.exceptions import Grid5000CreateError
 
-logger = logging.getLogger(__name__)
+
+logger = getLogger(__name__, ["G5k"])
 
 
 def _concretize_nodes(

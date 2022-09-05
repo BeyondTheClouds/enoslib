@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
-import logging
-
 import execo as ex
 
+from enoslib.log import getLogger
 
-logger = logging.getLogger(__name__)
+
+logger = getLogger(__name__, ["G5k"])
 
 
 BASESTRING = str
