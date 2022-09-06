@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 
 class EnosError(Exception):
@@ -6,8 +7,12 @@ class EnosError(Exception):
 
 
 class InvalidReservationTime(EnosError):
-    def __init__(self, time):
-        self.time = time
+    def __init__(self, datetime: datetime):
+        """
+        Args:
+            datetime: localized datetime
+        """
+        self.datetime = datetime
 
 
 class InvalidReservationTooOld(EnosError):

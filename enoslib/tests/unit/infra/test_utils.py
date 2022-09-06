@@ -163,7 +163,7 @@ def parse_iot_status_experiments(status: str) -> dict:
                             "start_date": datetime.fromtimestamp(start_time, tz=timezone.utc).strftime(
                                 "%Y-%m-%dT%H:%M:%SZ"
                             ),
-                            "submitted_duration": walltime,
+                            "submitted_duration": int(walltime / 60),
                             "nodes": [hostname],
                         }
                     )
@@ -178,7 +178,7 @@ def parse_iot_status_experiments(status: str) -> dict:
                     "start_date": datetime.fromtimestamp(start_time, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": walltime,
+                    "submitted_duration": int(walltime / 60),
                     "nodes": [hostname],
                 }
             )

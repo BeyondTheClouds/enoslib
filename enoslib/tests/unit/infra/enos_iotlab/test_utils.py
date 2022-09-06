@@ -42,7 +42,7 @@ class TestIotStuffs(EnosTest):
                     "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 1 * 60,
+                    "submitted_duration": 1,
                     "nodes": ["test-id.siteTest"],
                 }
             ]
@@ -53,7 +53,7 @@ class TestIotStuffs(EnosTest):
             BoardConfiguration(archi="test:xxx", site="siteTest", number=1)
         )
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0 * 60)
         self.assertTrue(ok)
 
         ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 1 * 60)
@@ -110,14 +110,14 @@ class TestIotStuffs(EnosTest):
                     "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 4 * 60,
+                    "submitted_duration": 4,
                     "nodes": ["test-id.siteTest"],
                 },
                 {
                     "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
-                    "submitted_duration": 4 * 60,
+                    "submitted_duration": 4,
                     "nodes": ["test-id2.siteTest"],
                 },
             ]
@@ -162,7 +162,7 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
@@ -171,14 +171,14 @@ class TestIotStuffs(EnosTest):
                     ],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
+                    "start_date": datetime.fromtimestamp(0 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
                     "nodes": ["test-id2.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
@@ -211,19 +211,19 @@ class TestIotStuffs(EnosTest):
             BoardConfiguration(archi="test:xxx", site="siteTest", number=2)
         )
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8 * 60)
         self.assertTrue(ok)
 
     def test_can_start_on_cluster_3_1(self):
@@ -245,14 +245,14 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4, tz=timezone.utc).strftime(
+                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
                     "nodes": ["test-id.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0, tz=timezone.utc).strftime(
+                    "start_date": datetime.fromtimestamp(0 * 60, tz=timezone.utc).strftime(
                         "%Y-%m-%dT%H:%M:%SZ"
                     ),
                     "submitted_duration": 4,
@@ -281,19 +281,19 @@ class TestIotStuffs(EnosTest):
         conf = Configuration.from_settings(walltime="00:04")
         conf.add_machine_conf(PhysNodeConfiguration(hostname=["test-id2.siteTest"]))
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 0 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 2 * 60)
         self.assertFalse(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 4 * 60)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 6 * 60)
         self.assertTrue(ok)
 
-        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8)
+        ok = iotlab_api.test_slot(conf, nodes_status, experiments_status, 8 * 60)
         self.assertTrue(ok)
 
     def test_cannot_start_no_free_machine_on_site(self):

@@ -100,8 +100,9 @@ class Iotlab(Provider):
         self.nodes_status = None
         self.experiments_status = None
 
-    def init(self, start_time: Optional[int] = None,
-             force_deploy: bool = False, **kwargs):
+    def init(
+        self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
+    ):
         """
         Take ownership over FIT/IoT-LAB resources
 
@@ -274,6 +275,12 @@ class Iotlab(Provider):
 
         self.client.wait_ssh([h.ssh_address for h in self.hosts])
 
+    @staticmethod
+    def timezone():
+        import pytz
+
+        return pytz.timezone("Europe/Paris")
+
     def _reserve(self, wait: bool = True):
         """Reserve resources on platform"""
         try:
@@ -294,7 +301,9 @@ class Iotlab(Provider):
                 format(error),
             )
             if search is not None:
-                raise InvalidReservationTime(search.group(1))
+                date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
+                date = self.timezone().localize(date)
+                raise InvalidReservationTime(date)
             search = re.search(
                 "Reservation too old",
                 format(error),
@@ -443,11 +452,10 @@ class Iotlab(Provider):
         date = datetime.fromtimestamp(timestamp, timezone.utc)
 
         import pytz
-        tz = pytz.timezone('Europe/Paris')
+
+        tz = pytz.timezone("Europe/Paris")
         date = date.astimezone(tz=tz)
-        self.provider_conf.start_time = date.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        self.provider_conf.start_time = date.strftime("%Y-%m-%d %H:%M:%S")
 
     def offset_walltime(self, offset: int):
         walltime_part = self.provider_conf.walltime.split(":")

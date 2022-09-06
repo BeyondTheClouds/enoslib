@@ -241,7 +241,8 @@ class IotlabAPI:
                 iotlabcli.experiment.stop_experiment(api=self.api, exp_id=self.job_id)
             except HTTPError as error:
                 search = re.search(
-                "This job was already killed", format(error),
+                    "This job was already killed",
+                    format(error),
                 )
                 if search is None:
                     raise error
@@ -479,16 +480,18 @@ def get_free_nodes(
         experiment_start_date = timezone.localize(
             datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
         ).timestamp()
+        # submitted duration is given in minutes !
         exp_end_date = experiment_start_date + int(
-            experiment_status["submitted_duration"]
+            experiment_status["submitted_duration"] * 60
         )
-        intersect_min = min(exp_end_date, start + walltime)
-        intersect_max = max(experiment_start_date, start)
-        intersect = intersect_min - intersect_max
-        if intersect > 0:
-            for node in experiment_status["nodes"]:
-                if node in copy_candidates:
-                    copy_candidates.pop(node)
+        if start >= exp_end_date:
+            continue
+        if start + walltime <= experiment_start_date:
+            continue
+        # intersection remove all the nodes of the xp from the candidates
+        for node in experiment_status["nodes"]:
+            if node in copy_candidates:
+                copy_candidates.pop(node)
     return copy_candidates
 
 
@@ -515,6 +518,8 @@ def test_slot(
     machines_required = {}
     candidates = get_candidates(nodes_status)
     walltime = conf.walltime_s
+    logger.debug(f"Test slot: start_time={start_time}, walltime={walltime}")
+
     free_nodes = get_free_nodes(candidates, experiments_status, start_time, walltime)
     for machines in conf.machines:
         if isinstance(machines, BoardConfiguration):
@@ -533,13 +538,12 @@ def test_slot(
                 machines.hostname
             )
     for (archi, site), number in machines_required.items():
-        available = len(
-            [
-                f
-                for f in free_nodes
-                if free_nodes[f]["archi"] == archi and free_nodes[f]["site"] == site
-            ]
-        )
+        availables = [
+            f
+            for f in free_nodes
+            if free_nodes[f]["archi"] == archi and free_nodes[f]["site"] == site
+        ]
+        available = len(availables)
         if available < number:
             return False
     return True

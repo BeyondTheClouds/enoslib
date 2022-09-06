@@ -13,7 +13,6 @@ from enoslib.errors import (
 from enoslib.infra.provider import Provider
 from enoslib.log import getLogger
 from enoslib.objects import Roles, Networks
-from .utils import _date2h
 
 logger = getLogger(__name__, ["ProviderS"])
 
@@ -59,8 +58,8 @@ def find_slot(providers: List[Provider], time_window: int, start_time: int) -> i
     if ko:
         raise NoSlotError()
     logger.info(
-        "Common reservation_date=%s [%s providers]"
-        % (_date2h(start_time), len(providers))
+        "Common reservation_date=%s (local time) [%s providers]"
+        % (datetime.fromtimestamp(start_time).isoformat(), len(providers))
     )
     return start_time
 
@@ -163,7 +162,7 @@ def find_slot_and_start(
             % (datetime.fromtimestamp(reservation).strftime("%Y-%m-%d %H:%M:%S"))
         )
         for provider in _providers:
-            start_provider_within_bounds(provider, start_time, **kwargs)
+            start_provider_within_bounds(provider, reservation, **kwargs)
     except NoSlotError:
         # we transform to an InvalidReservationTime with a time hint
         # set to the next increment.
@@ -254,7 +253,6 @@ class Providers(Provider):
                 self.providers = providers
                 return
             except InvalidReservationTime as error:
-                logger.info("InvalidReservationTime error occured")
                 self.destroy()
                 # We hit a possible race condition
                 # One of the provider did is best to start the job at start_time as
@@ -265,16 +263,12 @@ class Providers(Provider):
                 # (some providers are kind enough to provide a possible estimate
                 # for start_time)
                 _start_time = (
-                    datetime.strptime(error.time, "%Y-%m-%d %H:%M:%S").timestamp()
+                    error.datetime.timestamp()
                 )
-                _start_time_fmt = (
-                    datetime.fromtimestamp(_start_time)
-                    .strftime("%Y-%m-%d %H:%M:%S")
-                )
-                logger.debug(
+                logger.info(
                     (
                         "Local scheduler is proposing "
-                        f'{_start_time_fmt}'
+                        f'{error.datetime.isoformat()}'
                     )
                 )
                 if _start_time <= start_time:

@@ -565,6 +565,10 @@ class G5k(Provider):
             # even if they won't do much with enoslib in this case.
             self.grant_root_access()
 
+    @staticmethod
+    def timezone():
+        return pytz.timezone("Europe/Paris")
+
     def reserve(self):
         try:
             # this is async (will keep the info of the jobs)
@@ -580,7 +584,9 @@ class G5k(Provider):
                 format(error),
             )
             if search is not None:
-                raise InvalidReservationTime(search.group(1))
+                date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
+                date = self.timezone().localize(date)
+                raise InvalidReservationTime(date)
             search = re.search(
                 "Reservation too old",
                 format(error),
@@ -847,9 +853,8 @@ class G5k(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
-        date = date.astimezone(tz=tz)
+        date = date.astimezone(tz=self.timezone())
         self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
         self.driver.reservation_date = self.provider_conf.reservation
 

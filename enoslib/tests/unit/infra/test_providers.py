@@ -10,6 +10,7 @@ from enoslib.infra.providers import Providers
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 from freezegun import freeze_time
+import pytz
 
 class TestFindSlot(EnosTest):
     """Test high level synchronization logic between various providers.
@@ -63,12 +64,25 @@ class TestFindSlot(EnosTest):
         self.assertTrue(network1 in networks["Dummy"] and network2 in networks["Dummy"])
      
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
-    @patch('enoslib.infra.providers.find_slot_and_start', side_effect=[InvalidReservationTime("1970-01-01 00:01:00"),(Roles() ,Networks())])
-    def test_synchronized_reservation_raise_InvalidReservationTime(self, patch_find_slot_and_start):
+    @patch('enoslib.infra.providers.find_slot_and_start', side_effect=[
+        InvalidReservationTime(pytz.timezone("UTC").localize(datetime.fromisoformat("1970-01-01 00:01:00"))),
+        (Roles() ,Networks())
+    ])
+    def test_synchronized_reservation_raise_InvalidReservationTime_in_UTC(self, patch_find_slot_and_start):
         providers = Providers([])
         roles, networks = providers.init(time_window=300, start_time=0)
         patch_find_slot_and_start.assert_has_calls([call([],0,300), call([],60,240)])
         
+    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
+    @patch('enoslib.infra.providers.find_slot_and_start', side_effect=[
+        InvalidReservationTime(pytz.timezone("Europe/Paris").localize(datetime.fromisoformat("1970-01-01 01:01:00"))),
+        (Roles() ,Networks())
+    ])
+    def test_synchronized_reservation_raise_InvalidReservationTime_in_Paris(self, patch_find_slot_and_start):
+        providers = Providers([])
+        roles, networks = providers.init(time_window=300, start_time=0)
+        patch_find_slot_and_start.assert_has_calls([call([],0,300), call([],60,240)])
+
     @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
     @patch('enoslib.infra.providers.find_slot_and_start', side_effect=NoSlotError)
     def test_synchronized_reservation_raise_InvalidReservationTime(self, patch_find_slot_and_start):
@@ -77,10 +91,10 @@ class TestFindSlot(EnosTest):
             roles, networks = providers.init(time_window=300, start_time=0)
 
         
-    @freeze_time("1970-01-01 00:00:00",auto_tick_seconds=10)
+    @freeze_time("1970-01-01 00:00:00", auto_tick_seconds=10)
     @patch('enoslib.infra.providers.find_slot_and_start', side_effect=[
-        InvalidReservationTime("1970-01-01 00:01:00"),
-        InvalidReservationTime("1970-01-01 00:01:00"),
+        InvalidReservationTime(pytz.timezone("UTC").localize(datetime.fromisoformat("1970-01-01 00:01:00"))),
+        InvalidReservationTime(pytz.timezone("UTC").localize(datetime.fromisoformat("1970-01-01 00:01:00"))),
         (Roles() ,Networks())
     ])
     def test_synchronized_reservation_raise_InvalidReservationTime_with_same_time(self, patch_find_slot_and_start):
