@@ -132,9 +132,15 @@ class IotlabAPI:
 
         start_time_timestamp = None
         if start_time:
+            timezone = pytz.timezone("Europe/Paris")
             start_time_timestamp = str(
-                int(datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S").timestamp())
+                int(
+                    timezone.localize(
+                        datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+                    ).timestamp()
+                )
             )
+
         json_res = iotlabcli.experiment.submit_experiment(
             api=self.api,
             name=name,
@@ -469,9 +475,10 @@ def get_free_nodes(
     # and we'll remove from them the nodes with conflicting reservation
     copy_candidates = copy.deepcopy(candidates)
     for experiment_status in experiments:
-        experiment_start_date = datetime.strptime(
-            experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ"
-        ).replace(tzinfo=pytz.timezone("UTC")).timestamp()
+        timezone = pytz.timezone("UTC")
+        experiment_start_date = timezone.localize(
+            datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
+        ).timestamp()
         exp_end_date = experiment_start_date + int(
             experiment_status["submitted_duration"]
         )
