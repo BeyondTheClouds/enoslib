@@ -17,6 +17,7 @@ Providers
 - g5k: exposes the jobs through the ``provider.jobs`` property
 - g5k: Introduce ``enable_home_for_job`` and ``enable_group_storage`` to mount
 - g5k: Implement ``test_slot`` (non naïve implementation)
+- g5k: Execo-ectomy
 - iotlab: Implement ``test_slot`` (non naïve implementation)
 - vmong5k: support multisite deployment.
 - vmong5k: document how to mount group storage on the VMs
