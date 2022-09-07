@@ -93,11 +93,8 @@ sonar:
   - mv sonar-scanner-4.4.0.2170-linux sonar
   - wget --no-check-certificate https://sonarqube.inria.fr/static/digicertca.crt
   - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar/jre/lib/security/cacerts -file digicertca.crt
+  - pip install tox && tox -e py37
   - sonar/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
-  artifacts:
-    paths:
-    - ./utest.xml
-    - ./coverage.xml
 
 doc:
   image: python:3.9
