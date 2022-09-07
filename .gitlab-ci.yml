@@ -23,7 +23,6 @@ variables:
 #                             TEST STAGE
 #
 ###############################################################################
-
 python3.7:
   image: python:3.7
   stage: test
@@ -31,7 +30,6 @@ python3.7:
   script:
   - pip install tox
   - tox -e py37
-  coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
 
 python3.8:
   image: python:3.8
@@ -48,10 +46,16 @@ python3.9:
   script:
   - pip install tox
   - tox -e py39
+  coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
   artifacts:
+    when: always
     paths:
-    - htmlcov
-    expire_in: 1 week
+      - htmlcov
+    reports:
+      junit: utest.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: cov.xml
 
 pep8:
   image: python:3.7
