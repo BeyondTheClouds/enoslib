@@ -11,8 +11,8 @@
     vmong5k
     distem
     chameleon
-    static
     iotlab
+    multi_providers
     using-tasks
     sync-info
     docker

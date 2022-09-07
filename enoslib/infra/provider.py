@@ -88,12 +88,34 @@ class Provider:
             (roles, networks) tuple: roles is a dict whose key is a role and
             the value is the machines associated with this role. networks is
             the list of networks configured by the provider. see
-            :py:class:`~enoslib.infra.enos_vagrant.provider.Enos_vagrant`"""
-
+            :py:class:`~enoslib.infra.enos_vagrant.provider.Enos_vagrant`
+        """
         pass
 
     def async_init(self, **kwargs):
-        """Partial init: secure the resources to the targetted infrastructure."""
+        """Partial init: secure the resources to the targetted infrastructure.
+
+        This is primarly used internally by
+        :py:class:`~enoslib.infra.providers.Providers` to get the resources from
+        different platforms. As this method actually starts some real resources
+        somewhere, errors may occur (e.g no more available resources, ...). It's
+        up to the provider to indicate if the error is critical or not. For
+        instance an :py:class:`~enoslib.errors.InvalidReservationTime` can be
+        raised to indicate the Providers to retry later.
+
+        Args:
+            kwargs: keyword arguments.
+                Fit those from
+                :py:meth:`~enoslib.infra.provider.Provider.init`
+
+        Raises:
+            InvalidReservationTime:
+                Resources can't be reserved at the specifie time.
+            InvalidReservationTooOld:
+                The reservation time is in the past
+            _: provider specific exception
+
+        """
         self.init(**kwargs)
 
     def is_created(self) -> bool:
@@ -150,6 +172,9 @@ class Provider:
 
         Increase or reduce the wanted walltime.  This does not change the
         walltime of an already created provider but only affects the walltime
-        configured before the provider call ~init~.
+        configured before the provider calls ~init~.
+
+        Raises:
+            NegativeWalltime: the walltime is negative
         """
         pass

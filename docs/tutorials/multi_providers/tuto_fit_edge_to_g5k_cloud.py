@@ -12,11 +12,13 @@ en.init_logging(level=logging.INFO)
 prefix = os.getlogin()
 _walltime = "02:00:00"
 
+JOB_NAME = f"{prefix}-enoslib-g5kcloud-lease3"
+
 # Leasing resources on G5K
 g5k_conf = {
     "walltime": _walltime,
     "job_type": "allow_classic_ssh",
-    "job_name": f"{prefix}-enoslib-g5kcloud-lease",
+    "job_name": JOB_NAME,
     "resources": {
         "machines": [
             {
@@ -38,7 +40,7 @@ g5k = en.G5k(g5k_conf)
 # Leasing resources on FIT IoT LAB
 iotlab_conf = {
     "walltime": _walltime,
-    "job_name": f"{prefix}-enoslib-iotlab-lease",
+    "job_name": JOB_NAME,
     "resources": {
         "machines": [
             {
@@ -54,7 +56,7 @@ iotlab_conf = en.IotlabConf.from_dictionnary(iotlab_conf)
 iotlab = en.Iotlab(iotlab_conf)
 
 providers = en.Providers([g5k, iotlab])
-roles, networks = providers.init()
+roles, networks = providers.init(time_window=19600)
 
 g5k, iotlab = providers.providers
 
