@@ -239,7 +239,7 @@ test_static_run_ansible$ubuntu1804$:
 test_static_tasks$ubuntu2004$:
   <<: *ubuntu2004
 
-test_discover_networks$debian$:
+test_discover_networks$ubuntu2004$:
   <<: *ubuntu2004
 
 test_dstat$debian$:
