@@ -70,13 +70,11 @@ class ChameleonEdge(Provider):
         """Transform from provider specific resources to library-level resources"""
         roles = Roles()
         for device in self.devices:
-            for role in device.roles:
-                roles.setdefault(role, []).append(device)
+            roles.add_one(device, device.roles)
 
         networks = Networks()
         for network in self.networks:
-            for role in network.roles:
-                networks.setdefault(role, []).append(network)
+            networks.add_one(network, network.roles)
 
         return roles, networks
 
