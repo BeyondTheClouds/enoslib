@@ -157,7 +157,7 @@ def convert_list_to_html_table(list_input):
         output += "</table>"
         return output
     # list_input = basic list
-    output = "<ul class=\"list\"><li>"
+    output = '<ul class="list"><li>'
     output += "</li><li>".join([convert_to_html_table(child) for child in list_input])
     output += "</li></ul>"
     return output

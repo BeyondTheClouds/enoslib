@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import defaultdict
 from typing import List, Optional
 from enoslib.objects import Host, Network, RolesLike, Roles

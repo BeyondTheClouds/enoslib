@@ -15,7 +15,7 @@ _config = dict(
     g5k_cache_dir="cachedir",
     display="html",
     dump_results=None,
-    ansible_stdout="spinner"
+    ansible_stdout="spinner",
 )
 
 
@@ -59,7 +59,7 @@ def set_config(
     g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
     dump_results: Optional[Union[Path, str]] = None,
-    ansible_stdout: Optional[str] = None
+    ansible_stdout: Optional[str] = None,
 ):
     """Set a specific config value.
 

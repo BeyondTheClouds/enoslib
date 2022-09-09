@@ -15,12 +15,12 @@
 #
 
 ANSIBLE_METADATA = {
-    'metadata_version': '1.1',
-    'status': ['preview'],
-    'supported_by': 'community'
+    "metadata_version": "1.1",
+    "status": ["preview"],
+    "supported_by": "community",
 }
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: skydive_edge
 
@@ -71,9 +71,9 @@ options:
 
 author:
     - Sylvain Afchain (@safchain)
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
   - name: create tor
     skydive_node:
       name: 'TOR'
@@ -106,15 +106,15 @@ EXAMPLES = '''
       node1: "{{ port1_result.UUID }}"
       node2: G.V().Has('Name', 'tun0')
       relation_type: layer2
-'''
+"""
 
-RETURN = '''
+RETURN = """
 original_message:
     description: The original name param that was passed in
     type: str
 message:
     description: The output message that the sample module generates
-'''
+"""
 
 import os
 import uuid
@@ -129,7 +129,6 @@ from skydive.websocket.client import WSClient, WSClientDefaultProtocol, WSMessag
 
 
 class EdgeInjectProtocol(WSClientDefaultProtocol):
-
     def onOpen(self):
         module = self.factory.kwargs["module"]
         params = self.factory.kwargs["params"]
@@ -148,19 +147,19 @@ class EdgeInjectProtocol(WSClientDefaultProtocol):
             metadata = params["metadata"]
             metadata["RelationType"] = params["relation_type"]
 
-            uid = uuid.uuid5(uuid.NAMESPACE_OID, "%s:%s:%s" %
-                             (node1, node2, params["relation_type"]))
+            uid = uuid.uuid5(
+                uuid.NAMESPACE_OID,
+                "{}:{}:{}".format(node1, node2, params["relation_type"]),
+            )
 
-            edge = Edge(str(uid), host,
-                        node1, node2, metadata=metadata)
+            edge = Edge(str(uid), host, node1, node2, metadata=metadata)
 
             msg = WSMessage("Graph", EdgeAddedMsgType, edge)
             self.sendWSMessage(msg)
 
             result["UUID"] = str(uid)
         except Exception as e:
-            module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+            module.fail_json(msg="Error during topology update %s" % e, **result)
         finally:
             self.stop()
 
@@ -171,16 +170,20 @@ def get_node_id(module, node_selector):
         scheme = "https"
 
     if node_selector.startswith("G.") or node_selector.startswith("g."):
-        restclient = RESTClient(module.params["analyzer"], scheme=scheme,
-                                insecure=module.params["insecure"],
-                                username=module.params["username"],
-                                password=module.params["password"])
+        restclient = RESTClient(
+            module.params["analyzer"],
+            scheme=scheme,
+            insecure=module.params["insecure"],
+            username=module.params["username"],
+            password=module.params["password"],
+        )
         nodes = restclient.lookup_nodes(node_selector)
         if len(nodes) == 0:
             raise Exception("Node not found: %s" % node_selector)
         elif len(nodes) > 1:
             raise Exception(
-                "Node selection should return only one node: %s" % node_selector)
+                "Node selection should return only one node: %s" % node_selector
+            )
 
         return str(nodes[0].id)
 
@@ -189,58 +192,53 @@ def get_node_id(module, node_selector):
 
 def run_module():
     module_args = dict(
-        analyzer=dict(type='str', default="127.0.0.1:8082"),
-        ssl=dict(type='bool', default=False),
-        insecure=dict(type='bool', default=False),
-        username=dict(type='str', default=""),
-        password=dict(type='str', default="", no_log=True),
-        relation_type=dict(type='str', required=True),
-        node1=dict(type='str', required=True),
-        node2=dict(type='str', required=True),
-        host=dict(type='str', default=""),
-        metadata=dict(type='dict', default=dict())
+        analyzer=dict(type="str", default="127.0.0.1:8082"),
+        ssl=dict(type="bool", default=False),
+        insecure=dict(type="bool", default=False),
+        username=dict(type="str", default=""),
+        password=dict(type="str", default="", no_log=True),
+        relation_type=dict(type="str", required=True),
+        node1=dict(type="str", required=True),
+        node2=dict(type="str", required=True),
+        host=dict(type="str", default=""),
+        metadata=dict(type="dict", default=dict()),
     )
 
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     try:
         node1 = get_node_id(module, module.params["node1"])
         node2 = get_node_id(module, module.params["node2"])
     except Exception as e:
-        module.fail_json(
-            msg='Error during topology request %s' % e, **result)
+        module.fail_json(msg="Error during topology request %s" % e, **result)
 
     scheme = "ws"
     if module.params["ssl"]:
         scheme = "wss"
 
     try:
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
-                            "%s://%s/ws/publisher" % (scheme,
-                                                      module.params["analyzer"]),
-                            protocol=EdgeInjectProtocol, persistent=True,
-                            insecure=module.params["insecure"],
-                            username=module.params["username"],
-                            password=module.params["password"],
-                            module=module,
-                            params=module.params,
-                            node1=node1,
-                            node2=node2,
-                            result=result)
+        wsclient = WSClient(
+            "ansible-" + str(os.getpid()) + "-" + module.params["host"],
+            "{}://{}/ws/publisher".format(scheme, module.params["analyzer"]),
+            protocol=EdgeInjectProtocol,
+            persistent=True,
+            insecure=module.params["insecure"],
+            username=module.params["username"],
+            password=module.params["password"],
+            module=module,
+            params=module.params,
+            node1=node1,
+            node2=node2,
+            result=result,
+        )
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg="Connection error %s" % str(e), **result)
 
-    result['changed'] = True
+    result["changed"] = True
 
     module.exit_json(**result)
 
@@ -249,5 +247,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -12,10 +12,8 @@ class MinMixin:
     def raise_for_min(self):
         if self.config.min > len(self.oar_nodes):
             raise NotEnoughNodesError(
-                (
-                    f"Not enough servers: min {self.config.min}"
-                    f" requested but got {self.oar_nodes}"
-                )
+                f"Not enough servers: min {self.config.min}"
+                f" requested but got {self.oar_nodes}"
             )
 
 

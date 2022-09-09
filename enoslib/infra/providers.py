@@ -262,14 +262,9 @@ class Providers(Provider):
                 # information of the error
                 # (some providers are kind enough to provide a possible estimate
                 # for start_time)
-                _start_time = (
-                    error.datetime.timestamp()
-                )
+                _start_time = error.datetime.timestamp()
                 logger.info(
-                    (
-                        "Local scheduler is proposing "
-                        f'{error.datetime.isoformat()}'
-                    )
+                    "Local scheduler is proposing " f"{error.datetime.isoformat()}"
                 )
                 if _start_time <= start_time:
                     # The scheduler hint is weird

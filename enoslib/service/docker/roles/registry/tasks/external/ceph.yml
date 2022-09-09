@@ -49,4 +49,3 @@
   when:
     - item.value.pool in registry.ceph_rbd
     - item.value.name in registry.ceph_rbd
-

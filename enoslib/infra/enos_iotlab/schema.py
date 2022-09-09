@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from jsonschema import Draft7Validator, FormatChecker
 from .error import EnosIotLabPhysicalNodesError, EnosIotlabStartTimeFormatError
 from .error import EnosIotlabWalltimeFormatError

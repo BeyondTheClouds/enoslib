@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #
 # Copyright (C) 2018 Red Hat, Inc.
 #
@@ -17,12 +15,12 @@
 #
 
 ANSIBLE_METADATA = {
-    'metadata_version': '1.1',
-    'status': ['preview'],
-    'supported_by': 'community'
+    "metadata_version": "1.1",
+    "status": ["preview"],
+    "supported_by": "community",
 }
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: skydive_node_list
 
@@ -65,9 +63,9 @@ notes:
 author:
     - Sylvain Afchain (@safchain)
     - Pierre Crégut (@pierrecregut)
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
   - name: create tor
     skydive_node:
       nodes:
@@ -81,13 +79,13 @@ EXAMPLES = '''
           seed: "TOR2"
           metadata:
             Model: Juniper yyyy
-'''
+"""
 
-RETURN = '''
+RETURN = """
 UUID:
     description: The list of UUID of nodes generated
     type: list
-'''
+"""
 
 import os
 import uuid
@@ -103,7 +101,6 @@ from skydive.websocket.client import WSMessage
 
 
 class NodeInjectProtocol(WSClientDefaultProtocol):
-
     def onOpen(self):
         module = self.factory.kwargs["module"]
         params = self.factory.kwargs["params"]
@@ -118,7 +115,7 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
             nodes = params["nodes"]
             uuids = []
             for node in nodes:
-                metadata = dict()
+                metadata = {}
                 md = node.get("metadata", dict())
                 for (k, v) in md.items():
                     metadata[k] = v
@@ -126,7 +123,7 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
                 metadata["Type"] = node["type"]
                 seed = node.get("seed", "")
                 if len(seed) == 0:
-                    seed = "%s:%s" % (node["name"], node["type"])
+                    seed = "{}:{}".format(node["name"], node["type"])
                 uid = str(uuid.uuid5(uuid.NAMESPACE_OID, seed))
 
                 node = Node(str(uid), host, metadata=metadata)
@@ -135,54 +132,50 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
                 uuids.append(uid)
             result["UUID"] = uuids
         except Exception as e:
-            module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+            module.fail_json(msg="Error during topology update %s" % e, **result)
         finally:
             self.factory.client.loop.call_soon(self.stop)
 
 
 def run_module():
     module_args = dict(
-        analyzer=dict(type='str', default="127.0.0.1:8082"),
-        ssl=dict(type='bool', default=False),
-        insecure=dict(type='bool', default=False),
-        username=dict(type='str', default=""),
-        password=dict(type='str', default="", no_log=True),
-        nodes=dict(type='list', required=True),
-        host=dict(type='str', default=""),
+        analyzer=dict(type="str", default="127.0.0.1:8082"),
+        ssl=dict(type="bool", default=False),
+        insecure=dict(type="bool", default=False),
+        username=dict(type="str", default=""),
+        password=dict(type="str", default="", no_log=True),
+        nodes=dict(type="list", required=True),
+        host=dict(type="str", default=""),
     )
 
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     scheme = "ws"
     if module.params["ssl"]:
         scheme = "wss"
 
     try:
-        url = "%s://%s/ws/publisher" % (scheme, module.params["analyzer"])
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
-                            url,
-                            protocol=NodeInjectProtocol, persistent=True,
-                            insecure=module.params["insecure"],
-                            username=module.params["username"],
-                            password=module.params["password"],
-                            module=module,
-                            params=module.params,
-                            result=result)
+        url = "{}://{}/ws/publisher".format(scheme, module.params["analyzer"])
+        wsclient = WSClient(
+            "ansible-" + str(os.getpid()) + "-" + module.params["host"],
+            url,
+            protocol=NodeInjectProtocol,
+            persistent=True,
+            insecure=module.params["insecure"],
+            username=module.params["username"],
+            password=module.params["password"],
+            module=module,
+            params=module.params,
+            result=result,
+        )
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg="Connection error %s" % str(e), **result)
 
-    result['changed'] = True
+    result["changed"] = True
 
     module.exit_json(**result)
 
@@ -191,5 +184,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

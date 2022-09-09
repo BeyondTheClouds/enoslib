@@ -3,16 +3,16 @@
     name: "{{ item }}"
     state: absent
   with_items:
-     - docker
-     - docker-client
-     - docker-client-latest
-     - docker-common
-     - docker-latest
-     - docker-latest-logrotate
-     - docker-logrotate
-     - docker-selinux
-     - docker-engine-selinux
-     - docker-engine
+    - docker
+    - docker-client
+    - docker-client-latest
+    - docker-common
+    - docker-latest
+    - docker-latest-logrotate
+    - docker-logrotate
+    - docker-selinux
+    - docker-engine-selinux
+    - docker-engine
 
 - yum_repository:
     state: present
@@ -35,9 +35,9 @@
     name: "{{ item }}"
     state: present
   with_items:
-     - docker-ce
-     - docker-ce-cli
-     - containerd.io
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
 
 - service:
     name: docker

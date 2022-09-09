@@ -1,9 +1,17 @@
 from enoslib.errors import EnosUnreachableHostsError
 
-import mock
+from unittest import mock
 
 from . import EnosTest
-from enoslib.api import CommandResult, STATUS_FAILED, actions, get_hosts, wait_for, STATUS_OK, Results
+from enoslib.api import (
+    CommandResult,
+    STATUS_FAILED,
+    actions,
+    get_hosts,
+    wait_for,
+    STATUS_OK,
+    Results,
+)
 from enoslib.objects import Host, Roles
 
 
@@ -67,10 +75,7 @@ class TestGetHosts(EnosTest):
 
 class TestResultFiltering(EnosTest):
     def test_result_single(self):
-        cr = CommandResult(host="host",
-                           task="task",
-                           status=STATUS_OK,
-                           payload={})
+        cr = CommandResult(host="host", task="task", status=STATUS_OK, payload={})
 
         # exact match
         self.assertTrue(cr.match(host="host"))
@@ -89,8 +94,12 @@ class TestResultFiltering(EnosTest):
         self.assertFalse(cr.match(host="plop", task="task"))
 
     def test_result_container(self):
-        results = Results([CommandResult(host=f"host-{i}",
-                                 task=f"task-{i}",
-                                 status=STATUS_OK,
-                                 payload={}) for i in range(10)])
+        results = Results(
+            [
+                CommandResult(
+                    host=f"host-{i}", task=f"task-{i}", status=STATUS_OK, payload={}
+                )
+                for i in range(10)
+            ]
+        )
         results.filter(host="host-3")

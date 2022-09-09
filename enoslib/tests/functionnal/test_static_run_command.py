@@ -47,7 +47,9 @@ assert "[all]\ntest_machine ansible_connection='local'" in inventory_path.read_t
 assert "[control]\n test_machine ansible_connection='local'"
 
 # With an inventory
-results = en.run_command("echo tototiti", pattern_hosts="control", inventory_path=inventory)
+results = en.run_command(
+    "echo tototiti", pattern_hosts="control", inventory_path=inventory
+)
 print(results)
 # testing the results
 result = results.filter(host="test_machine", status="OK")
@@ -115,6 +117,7 @@ with TemporaryDirectory() as tmp:
     with config_context(dump_results=dump_file):
         results = en.run("echo tototiti", roles["control"])
     import json
+
     assert dump_file.exists()
     assert len(json.loads(dump_file.read_text())) == 1
 
@@ -125,6 +128,6 @@ with TemporaryDirectory() as tmp:
 
     new_dump_file = Path(f"{dump_file}.1")
     import json
+
     assert new_dump_file.exists()
     assert len(json.loads(new_dump_file.read_text())) == 1
-

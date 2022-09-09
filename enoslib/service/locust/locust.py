@@ -139,7 +139,7 @@ class Locust(Service):
         info = self.info()
         # the top level representation made of standard types (int, float,
         # str...)
-        to_repr = dict()
+        to_repr = {}
         # the nested representations of attributes (those resulting on a call to
         # _repr_html_)
         sections = []
@@ -310,7 +310,7 @@ class Locust(Service):
             )
 
     def __copy_experiment(self, expe_dir: str, locustfile: str):
-        src_dir = os.path.join(os.path.abspath(expe_dir), '')
+        src_dir = os.path.join(os.path.abspath(expe_dir), "")
         remote_dir = os.path.join(self.remote_working_dir, expe_dir)
         with actions(
             pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars

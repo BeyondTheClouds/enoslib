@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 DEFAULT_JOB_NAME = "EnOSlib"
 DEFAULT_WALLTIME = "00:01"
 DEFAULT_NUMBER_BOARDS = 1  # reserve 1 board of each type by default

@@ -1,6 +1,6 @@
 import ipaddress
 from typing import Dict
-import mock
+from unittest import mock
 from enoslib.api import Results, CommandResult, STATUS_OK, STATUS_FAILED
 from enoslib.errors import NegativeWalltime
 
@@ -97,14 +97,14 @@ class TestG5kEnos(EnosTest):
         self.assertEqual(1022, len(list(enos_subnet.free_ips)))
         self.assertTrue(enos_subnet.has_free_macs)
         self.assertEqual(1022, len(list(enos_subnet.free_macs)))
-        
+
     def test_offset_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00:00"
         provider = G5k(conf)
         provider.offset_walltime(-3600)
         self.assertEqual(provider.provider_conf.walltime, "01:00:00")
-        
+
     def test_offset_walltime_negative_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00:00"
@@ -279,7 +279,9 @@ class TestDeploy(EnosTest):
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
         # no nodes has been deployed initially
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as mock_check_deployed_nodes:
             mock_check_deployed_nodes.return_value = (undeployed, deployed)
             p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
             p.deploy()
@@ -289,7 +291,7 @@ class TestDeploy(EnosTest):
             deployed,
             {"environment": DEFAULT_ENV_NAME, "key": DEFAULT_SSH_KEYFILE},
         )
-        # self.assertCountEqual(actual_deployed, p.hosts)
+        # self.assertCountEqual(actual_deployed, p.hosts)
         self.assertCountEqual([], p.undeployed)
         self.assertCountEqual(p.sshable_hosts, p.deployed)
 
@@ -300,7 +302,9 @@ class TestDeploy(EnosTest):
         undeployed = []
         # no nodes has been deployed initially
         p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as mock_check_deployed_nodes:
             mock_check_deployed_nodes.return_value = (undeployed, deployed)
             p.deploy()
 
@@ -317,7 +321,9 @@ class TestDeploy(EnosTest):
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
         # all nodes are already deployed
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as mock_check_deployed_nodes:
             mock_check_deployed_nodes.return_value = (deployed, undeployed)
             p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
             actual_deployed, _ = p.deploy()
@@ -333,7 +339,9 @@ class TestDeploy(EnosTest):
         deployed = []
         undeployed = [h.fqdn for h in p.hosts]
 
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as mock_check_deployed_nodes:
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as mock_check_deployed_nodes:
             mock_check_deployed_nodes.return_value = (deployed, undeployed)
             p.driver.deploy = mock.Mock(side_effect=[(deployed, undeployed)])
             p.deploy()
@@ -343,12 +351,16 @@ class TestDeploy(EnosTest):
         self.assertCountEqual([], p.sshable_hosts)
         self.assertCountEqual(p.undeployed, p.hosts)
 
-
     def test_2_primary_network_one_vlan_ko(self):
         p, oar_nodes_1, oar_nodes_2, _ = self.build_complex_provider()
 
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as patch_check_deployed_nodes:
-            patch_check_deployed_nodes.side_effect = [(set(), oar_nodes_1), (set(), oar_nodes_2)]
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as patch_check_deployed_nodes:
+            patch_check_deployed_nodes.side_effect = [
+                (set(), oar_nodes_1),
+                (set(), oar_nodes_2),
+            ]
             p.driver.deploy = mock.Mock(
                 side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
             )
@@ -359,8 +371,13 @@ class TestDeploy(EnosTest):
     def test_2_primary_network_one_vlan_ok(self):
         p, oar_nodes_1, oar_nodes_2, vlan = self.build_complex_provider()
 
-        with mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes") as patch_check_deployed_nodes:
-            patch_check_deployed_nodes.side_effect = [(set(), oar_nodes_1), (set(), oar_nodes_2)]
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as patch_check_deployed_nodes:
+            patch_check_deployed_nodes.side_effect = [
+                (set(), oar_nodes_1),
+                (set(), oar_nodes_2),
+            ]
             p.driver.deploy = mock.Mock(
                 side_effect=[(oar_nodes_1, set()), (oar_nodes_2, set())]
             )
@@ -371,28 +388,46 @@ class TestDeploy(EnosTest):
         names = [n[1] for n in vlan.translate(oar_nodes_2)]
         self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
 
-class TestCheckDeployedNode(EnosTest):
 
+class TestCheckDeployedNode(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.provider.run")
     def test_check_deployed_nodes(self, mock_run):
-        mock_run.return_value = Results([
-            CommandResult(host="plip-1.rennes.grid5000.fr", task="Check deployment", status=STATUS_OK, payload={}),
-            CommandResult(host="plip-2.rennes.grid5000.fr", task="Check deployment", status=STATUS_FAILED, payload={}),
-        ])
+        mock_run.return_value = Results(
+            [
+                CommandResult(
+                    host="plip-1.rennes.grid5000.fr",
+                    task="Check deployment",
+                    status=STATUS_OK,
+                    payload={},
+                ),
+                CommandResult(
+                    host="plip-2.rennes.grid5000.fr",
+                    task="Check deployment",
+                    status=STATUS_FAILED,
+                    payload={},
+                ),
+            ]
+        )
         net = G5kProdNetwork(["tag1"], "id", "rennes")
-        deployed, undeployed = _check_deployed_nodes(net, ["plip-1.rennes.grid5000.fr", "plip-2.rennes.grid5000.fr"])
+        deployed, undeployed = _check_deployed_nodes(
+            net, ["plip-1.rennes.grid5000.fr", "plip-2.rennes.grid5000.fr"]
+        )
         self.assertCountEqual(["plip-1.rennes.grid5000.fr"], deployed)
         self.assertCountEqual(["plip-2.rennes.grid5000.fr"], undeployed)
 
-class TestToEnoslib(EnosTest):
 
+class TestToEnoslib(EnosTest):
     def test_non_duplicated_hosts(self):
         provider = G5k(Configuration())
         network = mock.Mock()
         provider.sshable_hosts = [G5kHost("1.2.3.4", ["tag1", "tag2"], network)]
 
         roles, _ = provider._to_enoslib()
-        self.assertEqual(id(roles["tag1"][0]), id(roles["tag2"][0]), "Host refs aren't duplicated in roles")
+        self.assertEqual(
+            id(roles["tag1"][0]),
+            id(roles["tag2"][0]),
+            "Host refs aren't duplicated in roles",
+        )
 
     # FIXME XXX
     # This produces some side effect on the API

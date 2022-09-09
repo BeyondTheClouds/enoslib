@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import sys
 from typing import Dict, List, Optional, Tuple, Set
@@ -259,7 +258,7 @@ class IotlabAPI:
 
         logger.info("API exp info saved in %s/%d.tar.gz file.", exp_dir, self.job_id)
         result = self.api.get_experiment_info(expid=self.job_id, option="data")
-        with open("%s/%s.tar.gz" % (exp_dir, self.job_id), "wb") as archive:
+        with open(f"{exp_dir}/{self.job_id}.tar.gz", "wb") as archive:
             archive.write(result)
 
     def flash_nodes(self, image: str, nodes: List[str]):
@@ -323,7 +322,7 @@ or choose other nodes"""
         """
         acceptable = ["start", "stop", "reset"]
         if cmd not in acceptable:
-            sys.exit("Invalid command: %s, nodes: %s" % (cmd, str(nodes)))
+            sys.exit(f"Invalid command: {cmd}, nodes: {str(nodes)}")
             return
 
         logger.info("Executing command (%s) on nodes (%s)", cmd, str(nodes))

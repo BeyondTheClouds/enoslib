@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 import unittest
 
 from enoslib.infra.enos_g5k.driver import *

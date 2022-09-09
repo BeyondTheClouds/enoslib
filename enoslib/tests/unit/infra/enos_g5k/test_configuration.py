@@ -1,5 +1,5 @@
 from jsonschema.exceptions import ValidationError
-from mock import patch
+from unittest.mock import patch
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     Configuration,
@@ -334,10 +334,12 @@ class TestConfiguration(EnosTest):
         )
         conf = (
             Configuration.from_settings()
-                .add_machine_conf(ServersConfiguration(roles=["r2"],
-                    servers=["paragrid5000.fr"],
-                    primary_network=network))
-                .add_network_conf(network)
+            .add_machine_conf(
+                ServersConfiguration(
+                    roles=["r2"], servers=["paragrid5000.fr"], primary_network=network
+                )
+            )
+            .add_network_conf(network)
         )
         with self.assertRaises(ValidationError):
             # the error is on the hostname format
@@ -345,11 +347,10 @@ class TestConfiguration(EnosTest):
             # cluster vs server conf (which is true but not accurate)
             conf.finalize()
 
-
     def test_configuration_with_reservation(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:22:00")
         conf.finalize()
-        
+
     def test_configuration_with_reservation_raise_because_incoherent_time(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:61:00")
         with self.assertRaises(ValidationError):
@@ -361,9 +362,9 @@ class TestConfiguration(EnosTest):
             conf.finalize()
 
     def test_configuration_raise_because_of_invalid_reservation_format(self):
-         conf = Configuration.from_settings(reservation="12345")
-         with self.assertRaises(ValidationError):
-             conf.finalize()
+        conf = Configuration.from_settings(reservation="12345")
+        with self.assertRaises(ValidationError):
+            conf.finalize()
 
 
 class TestNetworkConfiguration(EnosTest):

@@ -32,4 +32,3 @@ Docker
 
 .. automodule:: enoslib.docker
     :members: DockerHost, get_dockers
-

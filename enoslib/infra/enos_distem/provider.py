@@ -172,7 +172,7 @@ def _start_containers(provider_conf, g5k_subnet, distem, path_sshkeys):
 
 
 def _get_all_hosts(roles):
-    all_hosts = set([])
+    all_hosts = set()
     for _, machines in roles.items():
         for machine in machines:
             all_hosts.add(machine.address)
@@ -332,12 +332,10 @@ class Distem(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone('Europe/Paris')
+        tz = pytz.timezone("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
         date = date.astimezone(tz=tz)
-        self.provider_conf.reservation = date.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
 
     def offset_walltime(self, offset: int):
         self.provider_conf.walltime = offset_from_format(

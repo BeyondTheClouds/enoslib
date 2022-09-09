@@ -21,7 +21,7 @@ def _conda_wrapper(env_name: str):
 
 def _get_env_name(env_file: str):
     env_name = ""
-    with open(env_file, "r") as f:
+    with open(env_file) as f:
         env = yaml.safe_load(f)
         env_name = env["name"]
     return env_name
@@ -134,12 +134,10 @@ class _Conda(Service):
         with actions(roles=self._roles) as p:
             p.apt(name="wget", state="present")
             p.shell(
-                (
-                    f"which conda || ls {CONDA_PREFIX}/bin/conda || "
-                    f"(wget --quiet {INSTALLER_URL} -O ~/miniconda.sh && "
-                    f"/bin/bash ~/miniconda.sh -b -p {CONDA_PREFIX} && "
-                    "rm ~/miniconda.sh)"
-                )
+                f"which conda || ls {CONDA_PREFIX}/bin/conda || "
+                f"(wget --quiet {INSTALLER_URL} -O ~/miniconda.sh && "
+                f"/bin/bash ~/miniconda.sh -b -p {CONDA_PREFIX} && "
+                "rm ~/miniconda.sh)"
             )
 
             # Install the env if any and leave

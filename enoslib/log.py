@@ -5,7 +5,7 @@ from typing import List, Optional
 class TagsAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         prefix = ",".join(self.extra["tags"])
-        return "[%s] %s" % (prefix, msg), kwargs
+        return f"[{prefix}] {msg}", kwargs
 
 
 def getLogger(name: str, tags: Optional[List[str]] = None) -> TagsAdapter:

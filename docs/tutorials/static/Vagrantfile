@@ -11,12 +11,12 @@ Vagrant.configure(2) do |config|
   config.vm.box = "generic/debian9"
   config.vm.provision "shell", inline: $script
 
-  
+
   config.vm.define "enos-0" do |my|
     my.vm.hostname = "enos-0"
-    
+
     my.vm.network :private_network, ip: "192.168.42.245", auto_config: true
-    
+
 
     my.vm.provider :virtualbox do |vb|
       vb.cpus=1
@@ -29,12 +29,12 @@ Vagrant.configure(2) do |config|
       lv.nested = true
     end
   end
-  
+
   config.vm.define "enos-1" do |my|
     my.vm.hostname = "enos-1"
-    
+
     my.vm.network :private_network, ip: "192.168.42.244", auto_config: true
-    
+
 
     my.vm.provider :virtualbox do |vb|
       vb.cpus=1
@@ -47,5 +47,5 @@ Vagrant.configure(2) do |config|
       lv.nested = true
     end
   end
-  
+
 end

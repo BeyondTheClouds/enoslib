@@ -15,20 +15,20 @@
   set_fact:
     has_gpu: yes
     c_device_request:
-    - driver: nvidia
-      count: -1
-      capabilities:
-      - - gpu
-        - utility
-      # See https://github.com/NVIDIA/nvidia-container-runtime#supported-driver-capabilities
-      # for a list of capabilities supported by the nvidia driver
+      - driver: nvidia
+        count: -1
+        capabilities:
+          - - gpu
+            - utility
+        # See https://github.com/NVIDIA/nvidia-container-runtime#supported-driver-capabilities
+        # for a list of capabilities supported by the nvidia driver
     c_env:
-        HOST_PROC: "/rootfs/proc"
-        HOST_SYS: "/rootfs/sys"
-        NVIDIA_VISIBLE_DEVICES: "all"
+      HOST_PROC: "/rootfs/proc"
+      HOST_SYS: "/rootfs/sys"
+      NVIDIA_VISIBLE_DEVICES: "all"
   when:
-  - stdout is defined
-  - stdout.rc == 0
+    - stdout is defined
+    - stdout.rc == 0
 
 # non gpu case (default)
 - name: (non gpu) Preparing agents
@@ -36,6 +36,6 @@
     has_gpu: no
     c_device_request: []
     c_env:
-        HOST_PROC: "/rootfs/proc"
-        HOST_SYS: "/rootfs/sys"
+      HOST_PROC: "/rootfs/proc"
+      HOST_SYS: "/rootfs/sys"
   when: stdout is not defined or stdout.rc != 0

@@ -1,5 +1,4 @@
 ---
-
 - name: Installing Grafana
   docker_container:
     name: grafana

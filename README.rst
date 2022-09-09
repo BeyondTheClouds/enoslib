@@ -83,4 +83,3 @@ Links
 
 .. |SW| image:: https://archive.softwareheritage.org/badge/origin/https://gitlab.inria.fr/discovery/enoslib.git/
     :target: https://archive.softwareheritage.org/browse/origin/?origin_url=https://gitlab.inria.fr/discovery/enoslib.git
-

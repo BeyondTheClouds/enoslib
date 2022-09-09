@@ -6,13 +6,12 @@ from enoslib.objects import Host, Roles
 
 
 GUARD_DASHBOARD = (
-    "k3s kubectl get service"
-    " -n kubernetes-dashboard kubernetes-dashboard"
+    "k3s kubectl get service" " -n kubernetes-dashboard kubernetes-dashboard"
 )
 
 CREATE_DASHBOARD = (
     "k3s kubectl create"
-    " -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.1/aio/deploy/recommended.yaml" # noqa
+    " -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.1/aio/deploy/recommended.yaml"  # noqa
 )
 
 ADMIN_USER = """
@@ -117,7 +116,7 @@ class K3s(Service):
             p.shell(f"{GUARD_ADMIN_USER} || {CREATE_ADMIN_USER}")
             p.shell(f"{GUARD_ADMIN_USER_ROLE} || {CREATE_ADMIN_USER_ROLE}")
             p.shell(
-                "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'", # noqa
+                "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'",  # noqa
                 task_name="token",
             )
             p.shell(f"{GUARD_PROXY} || {CREATE_PROXY}", background=True)

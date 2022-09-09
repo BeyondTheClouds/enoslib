@@ -269,6 +269,7 @@ class NetworksView(ResourcesSet):
 
     for :py:class:`~enoslib.objects.Networks`.
     """
+
     inner = Network
 
 
@@ -301,7 +302,7 @@ class Networks(RolesDict):
 
 
 @dataclass(unsafe_hash=True)
-class IPAddress(object):
+class IPAddress:
     """Representation of an address on a node.
 
     Usually the same ip_address can't be assigned twice. So equality and hash
@@ -348,7 +349,7 @@ class IPAddress(object):
 
 
 @dataclass(unsafe_hash=True)
-class NetDevice(object):
+class NetDevice:
     """A network device.
 
     Note: two NetDevices are equal iff they have the same name and all the
@@ -479,7 +480,7 @@ class BridgeDevice(NetDevice):
 
 
 @dataclass()
-class Processor(object):
+class Processor:
     cores: int
     count: int
     threads_per_core: int
@@ -500,7 +501,7 @@ class Processor(object):
         return dict_to_html_foldable_sections(d)
 
 
-class BaseHost(object):
+class BaseHost:
     pass
 
 
@@ -741,6 +742,7 @@ class HostsView(ResourcesSet):
 
     for :py:class:`~enoslib.objects.Host`.
     """
+
     inner = Host
 
 
@@ -749,6 +751,7 @@ class Roles(RolesDict):
 
     for :py:class:`~enoslib.objects.HostsView`.
     """
+
     inner = HostsView
 
     @repr_html_check

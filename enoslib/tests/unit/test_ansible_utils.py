@@ -101,7 +101,7 @@ class TestGetHostNet(EnosTest):
         }
         expected = [
             NetDevice(
-                "eth0", set([IPAddress("1.2.3.4/24", n1), IPAddress("4.5.6.7/24", n2)])
+                "eth0", {IPAddress("1.2.3.4/24", n1), IPAddress("4.5.6.7/24", n2)}
             ),
         ]
 
@@ -128,8 +128,8 @@ class TestGetHostNet(EnosTest):
             },
         }
         expected = [
-            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
-            NetDevice("eth1", set([IPAddress("4.5.6.7/24", n2)])),
+            NetDevice("eth0", {IPAddress("1.2.3.4/24", n1)}),
+            NetDevice("eth1", {IPAddress("4.5.6.7/24", n2)}),
         ]
 
         self.assertCountEqual(expected, _build_devices(facts, networks))
@@ -152,8 +152,8 @@ class TestGetHostNet(EnosTest):
             },
         }
         expected = [
-            NetDevice("eth0", set([IPAddress("1.2.3.4/24", n1)])),
-            NetDevice("eth1", set([IPAddress("1.2.3.254/24", n1)])),
+            NetDevice("eth0", {IPAddress("1.2.3.4/24", n1)}),
+            NetDevice("eth1", {IPAddress("1.2.3.254/24", n1)}),
         ]
 
         self.assertCountEqual(expected, _build_devices(facts, networks))
@@ -178,7 +178,7 @@ class TestGetHostNet(EnosTest):
         expected = [
             NetDevice(
                 "eth0",
-                set([IPAddress("1.2.3.5/24", n1), IPAddress("1.2.3.4/24", n1)]),
+                {IPAddress("1.2.3.5/24", n1), IPAddress("1.2.3.4/24", n1)},
             ),
         ]
 
@@ -205,12 +205,10 @@ class TestGetHostNet(EnosTest):
         expected = [
             BridgeDevice(
                 "br0",
-                set(
-                    [
-                        IPAddress("1.2.3.5/24", n1),
-                        IPAddress("1.2.3.4/24", n1),
-                    ]
-                ),
+                {
+                    IPAddress("1.2.3.5/24", n1),
+                    IPAddress("1.2.3.4/24", n1),
+                },
                 ["eth0", "eth1"],
             ),
         ]
@@ -218,5 +216,3 @@ class TestGetHostNet(EnosTest):
         self.assertCountEqual(expected, _build_devices(facts, networks))
 
     # todo bridge
-
-

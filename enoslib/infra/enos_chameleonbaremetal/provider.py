@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import datetime
 from itertools import groupby
 import logging
@@ -36,7 +34,7 @@ def lease_is_terminated(lease):
 
 
 def lease_to_s(lease):
-    return "[id=%s, name=%s, start=%s, end=%s, status=%s]" % (
+    return "[id={}, name={}, start={}, end={}, status={}]".format(
         lease["id"],
         lease["name"],
         lease["start_date"],
@@ -96,7 +94,7 @@ def create_reservation(bclient, provider_config):
     reservations = []
     for flavor, machines in groupby(provider_config.machines, key=by_flavor):
         # NOTE(msimonin): We create one reservation per flavor
-        total = sum([machine.number for machine in machines])
+        total = sum(machine.number for machine in machines)
         resource_properties = '["=", "$node_type", "%s"]' % flavor
 
         reservations.append(

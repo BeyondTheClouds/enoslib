@@ -49,7 +49,7 @@ class TestConfiguration(EnosTest):
                 flavour="large",
                 number=10,
                 cluster="test-cluster",
-                macs=["gg"]
+                macs=["gg"],
             )
         )
         with self.assertRaises(jsonschema.exceptions.ValidationError) as _:

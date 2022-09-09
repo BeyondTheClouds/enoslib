@@ -619,7 +619,7 @@ class G5kHost:
         for _, (_, nic) in zip(self.secondary_networks, self._all_secondary_nics):
             ifconfig.append(f"ip link set {nic} up")
             dhcp.append(f"dhclient {nic}")
-        cmd = "%s ; %s" % (";".join(ifconfig), ";".join(dhcp))
+        cmd = "{} ; {}".format(";".join(ifconfig), ";".join(dhcp))
         return cmd
 
     def grant_root_access_command(self) -> str:
@@ -812,7 +812,7 @@ def build_ipmac(subnet):
     network = IPNetwork(subnet)
     for ip in list(network[1:-1]):
         _, x, y, z = ip.words
-        ip, mac = (str(ip), G5KMACPREFIX + ":%02X:%02X:%02X" % (x, y, z))
+        ip, mac = (str(ip), G5KMACPREFIX + f":{x:02X}:{y:02X}:{z:02X}")
         yield ip, mac
 
 

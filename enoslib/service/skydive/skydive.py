@@ -85,14 +85,12 @@ class Skydive(Service):
                 for device in devices:
                     if device is not None:
                         infos = f"cidr={network.network}"
-                        infos = "%s, roles=%s" % (infos, "-".join(network.roles))
-                        local_port = "%s-%s" % (
+                        infos = "{}, roles={}".format(infos, "-".join(network.roles))
+                        local_port = "{}-{}".format(
                             "-".join(network.roles),
                             int(len(fabric) / 2),
                         )
-                        fabric.append(
-                            "%s[%s] -> %s" % (network.network, infos, local_port)
-                        )
+                        fabric.append(f"{network.network}[{infos}] -> {local_port}")
                         fabric.append(
                             "%s -> *[Type=host, Hostname=%s]/%s"
                             % (local_port, agent.alias, device)

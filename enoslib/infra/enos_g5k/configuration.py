@@ -153,9 +153,7 @@ class GroupConfiguration:
 
         primary_network = [n for n in networks if n.id == primary_network_id]
         if len(primary_network) < 1:
-            raise ValueError(
-                "Primary network with id={id} not found".format(id=primary_network_id)
-            )
+            raise ValueError(f"Primary network with id={primary_network_id} not found")
 
         secondary_networks = [n for n in networks if n.id in secondary_networks_ids]
         if len(secondary_networks_ids) != len(secondary_networks):
@@ -201,7 +199,7 @@ class ClusterConfiguration(GroupConfiguration):
     def oar(self):
         if int(self.nodes) <= 0:
             return self.site, None
-        criterion = "{cluster='%s'}/nodes=%s" % (self.cluster, self.nodes)
+        criterion = f"{{cluster='{self.cluster}'}}/nodes={self.nodes}"
         return self.site, criterion
 
 
@@ -224,7 +222,7 @@ class ServersConfiguration(GroupConfiguration):
             c = r[0].split("-")
             return (c[0], r[1])
 
-        cluster_site = set([extract_site_cluster(s) for s in servers])
+        cluster_site = {extract_site_cluster(s) for s in servers}
         if len(cluster_site) > 1:
             raise ValueError(f"Several site/cluster for {servers}")
 

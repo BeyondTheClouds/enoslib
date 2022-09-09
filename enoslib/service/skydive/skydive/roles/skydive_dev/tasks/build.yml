@@ -2,25 +2,25 @@
     name: "{{ item }}"
     state: present
   with_items:
-     - git
-     - wget
-     - unzip
-     - gcc
-     - make
-     - docker
-     - npm
-     - libpcap-devel
-     - libxml2-devel
-     - rpm-build
-     - libvirt-devel
-     - numactl-devel
-     - kernel-devel
-     - llvm-devel
-     - clang-devel
-     - bcc-devel
-     - elfutils-libelf-devel
-     - selinux-policy-devel
-     - policycoreutils-devel
+    - git
+    - wget
+    - unzip
+    - gcc
+    - make
+    - docker
+    - npm
+    - libpcap-devel
+    - libxml2-devel
+    - rpm-build
+    - libvirt-devel
+    - numactl-devel
+    - kernel-devel
+    - llvm-devel
+    - clang-devel
+    - bcc-devel
+    - elfutils-libelf-devel
+    - selinux-policy-devel
+    - policycoreutils-devel
 
 - include_tasks: protobuf.yml
 

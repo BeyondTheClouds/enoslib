@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES

@@ -11,7 +11,9 @@ job_name = Path(__file__).name
 network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="lyon")
 
 conf = (
-    en.G5kConf.from_settings(job_type=["allow_classic_ssh", "exotic"], job_name=job_name)
+    en.G5kConf.from_settings(
+        job_type=["allow_classic_ssh", "exotic"], job_name=job_name
+    )
     .add_network_conf(network)
     .add_machine(roles=["control"], cluster="pyxis", nodes=1, primary_network=network)
     .finalize()

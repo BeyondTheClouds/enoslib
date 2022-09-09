@@ -169,4 +169,3 @@ Providers Class
     :members:
     :undoc-members:
     :show-inheritance:
-

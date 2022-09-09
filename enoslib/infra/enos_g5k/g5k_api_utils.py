@@ -176,12 +176,12 @@ def grid_reload_jobs_from_name(job_name):
     sites = get_all_sites_obj()
     jobs = []
     for site in [s for s in sites if s.uid not in gk.excluded_site]:
-        logger.debug("Reloading %s from %s" % (job_name, site.uid))
+        logger.debug(f"Reloading {job_name} from {site.uid}")
         _jobs = site.jobs.list(
             name=job_name, state="waiting,launching,running", user=get_api_username()
         )
         if len(_jobs) == 1:
-            logger.info("Reloading %s from %s" % (_jobs[0].uid, site.uid))
+            logger.info(f"Reloading {_jobs[0].uid} from {site.uid}")
             jobs.append(_jobs[0])
         elif len(_jobs) > 1:
             raise EnosG5kDuplicateJobsError(site, job_name)
@@ -247,7 +247,7 @@ def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
         # always add the Production network
         networks += [OarNetwork(site=site, nature=NATURE_PROD, descriptor=PROD_VLAN_ID)]
 
-    logger.debug("nodes=%s, networks=%s" % (nodes, networks))
+    logger.debug(f"nodes={nodes}, networks={networks}")
     return nodes, networks
 
 
@@ -258,17 +258,18 @@ def job_delete(job, wait=False):
         job.delete()
     except Grid5000DeleteError as error:
         search = re.search(
-            "This job was already killed", format(error),
+            "This job was already killed",
+            format(error),
         )
         if search is None:
             raise error
     if not wait:
         return
     while job.state in ["running", "waiting", "launching"]:
-        logger.debug("Waiting for the job (%s, %s) to be killed" % (job.site, job.uid))
+        logger.debug(f"Waiting for the job ({job.site}, {job.uid}) to be killed")
         time.sleep(1)
         job.refresh()
-    logger.info("Job killed (%s, %s)" % (job.site, job.uid))
+    logger.info(f"Job killed ({job.site}, {job.uid})")
 
 
 def grid_destroy_from_name(job_name, wait=False):
@@ -280,7 +281,7 @@ def grid_destroy_from_name(job_name, wait=False):
     """
     jobs = grid_reload_jobs_from_name(job_name)
     for job in jobs:
-        logger.info("Killing the job (%s, %s)" % (job.site, job.uid))
+        logger.info(f"Killing the job ({job.site}, {job.uid})")
         job_delete(job, wait=wait)
 
 
@@ -308,7 +309,7 @@ def submit_jobs(job_specs):
     jobs = []
     try:
         for site, job_spec in job_specs:
-            logger.info("Submitting %s on %s" % (job_spec, site))
+            logger.info(f"Submitting {job_spec} on {site}")
             jobs.append(gk.sites[site].jobs.create(job_spec))
     except Exception as e:
         logger.error("An error occured during the job submissions")
@@ -666,7 +667,7 @@ def _test_slot(
             - True: the proposed start date seems to be available
                 (at the time of probing the API)
     """
-    tz = pytz.timezone('Europe/Paris')
+    tz = pytz.timezone("Europe/Paris")
     date = datetime.fromtimestamp(start, timezone.utc)
     start = int(date.astimezone(tz=tz).timestamp())
     _t = walltime.split(":")
@@ -884,7 +885,7 @@ def _do_grid_make_reservation(
         job_type.append(f"monitor={monitor}")
     for site, criteria in criterias.items():
         resources = "+".join(criteria)
-        resources = "%s,walltime=%s" % (resources, walltime)
+        resources = f"{resources},walltime={walltime}"
         job_spec = {
             "name": job_name,
             "types": job_type,

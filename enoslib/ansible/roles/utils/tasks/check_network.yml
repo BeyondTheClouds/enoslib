@@ -10,4 +10,3 @@
   shell: ip link show {{ item }} || ip l a {{ item }} type dummy
   with_items: "{{ fake_interfaces }}"
   when: fake_interfaces is defined
-

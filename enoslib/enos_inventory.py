@@ -24,14 +24,12 @@ class EnosInventory(Inventory):
         # parse empty As a side effect this will suppress the warning about
         # empty inventory...
 
-        extra = dict()
+        extra = {}
         # don't parse empty sources (avoid Warning)
         # at this point roles isn't empty
         if not sources and ANSIBLE_VERSION >= "2.11":
             extra = dict(parse=False)
-        super(EnosInventory, self).__init__(loader,
-                                            sources=sources,
-                                            **extra)
+        super().__init__(loader, sources=sources, **extra)
 
         # We add the roles as defined in roles
         if roles is None:
@@ -79,7 +77,7 @@ class EnosInventory(Inventory):
                     common_args.append('-o ProxyCommand="%s"' % proxy_cmd)
 
                 common_args = " ".join(common_args)
-                host.set_variable("ansible_ssh_common_args", "{}".format(common_args))
+                host.set_variable("ansible_ssh_common_args", f"{common_args}")
 
                 for k, v in machine.extra.items():
                     if k not in ["gateway", "gateway_user", "forward_agent"]:
@@ -95,21 +93,21 @@ class EnosInventory(Inventory):
                 s = map(lambda x: "'%s'" % x, v)
                 s = '"[%s]"' % ",".join(s)
                 return s
-            return "'{}'".format(v)
+            return f"'{v}'"
 
         s = []
         for role, hostnames in self.get_groups_dict().items():
-            s.append("[{}]".format(role))
+            s.append(f"[{role}]")
             for hostname in hostnames:
                 h = self.get_host(hostname)
-                i = ["ansible_host={}".format(h.address)]
+                i = [f"ansible_host={h.address}"]
                 # NOTE(mimonin): The intend of generating an ini is because we
                 # want an inventory_file and and inventory dir set so removing
                 # those keys (None values).
                 for k, v in h.vars.items():
                     if k in ["inventory_file", "inventory_dir"]:
                         continue
-                    i.append("{}={}".format(k, to_inventory_string(v)))
+                    i.append(f"{k}={to_inventory_string(v)}")
                 # For determinism purpose (e.g unit tests)
                 i = sorted(i)
                 # Adding the inventory_hostname in front of the line

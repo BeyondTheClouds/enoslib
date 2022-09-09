@@ -9,24 +9,16 @@ job_name = Path(__file__).name
 
 # claim the resources
 conf = (
-    en.VMonG5kConf
-    .from_settings(job_name=job_name)
+    en.VMonG5kConf.from_settings(job_name=job_name)
     .add_machine(
         roles=["docker", "compute"],
         cluster="paravance",
         number=5,
-        flavour_desc={
-            "core": 1,
-            "mem": 1024
-        }
+        flavour_desc={"core": 1, "mem": 1024},
     )
     .add_machine(
-        roles=["docker", "control"],
-        cluster="paravance",
-        number=1,
-        flavour="large"
+        roles=["docker", "control"], cluster="paravance", number=1, flavour="large"
     )
-
     .finalize()
 )
 

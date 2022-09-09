@@ -11,7 +11,7 @@ from enoslib.infra.enos_chameleonedge.configuration import (
     DeviceConfiguration,
 )
 from enoslib.infra.enos_chameleonedge.chi_api_utils import (
-    source_credentials_from_rc_file
+    source_credentials_from_rc_file,
 )
 from .constants import (
     ROLES,
@@ -34,8 +34,11 @@ class ChameleonAPI:
         self.concrete_resources = []
 
     def get_resources(
-            self, lease_name: str, walltime: str, rc_file: str,
-            resources: List[DeviceGroupConfiguration]
+        self,
+        lease_name: str,
+        walltime: str,
+        rc_file: str,
+        resources: List[DeviceGroupConfiguration],
     ):
         """Get resources from Chameleon platform.
 
@@ -57,25 +60,27 @@ class ChameleonAPI:
                 if ChameleonAPI.lease_is_reusable(_lease):
                     logger.info(f"Reusing lease: {_lease['name']}/{_lease['id']}")
                 else:
-                    logger.warning(f"Lease is OVER, destroying lease: "
-                                   f"{_lease['name']}/{_lease['id']}")
-                    ChameleonAPI._delete_lease(_lease['name'])
-                    _lease = ChameleonAPI._create_lease(
-                        resources, lease_name, walltime)
+                    logger.warning(
+                        f"Lease is OVER, destroying lease: "
+                        f"{_lease['name']}/{_lease['id']}"
+                    )
+                    ChameleonAPI._delete_lease(_lease["name"])
+                    _lease = ChameleonAPI._create_lease(resources, lease_name, walltime)
             else:
-                _lease = ChameleonAPI._create_lease(
-                    resources, lease_name, walltime)
+                _lease = ChameleonAPI._create_lease(resources, lease_name, walltime)
             ChameleonAPI._lease_wait_for_active(_lease, _site)
         return _lease
 
     def deploy_containers(
-            self, rc_file: str,
-            resources: List[DeviceGroupConfiguration],
-            leased_resources: dict
+        self,
+        rc_file: str,
+        resources: List[DeviceGroupConfiguration],
+        leased_resources: dict,
     ) -> List[Container]:
         with source_credentials_from_rc_file(rc_file) as _site:
-            self.concrete_resources = \
-                ChameleonAPI.get_containers_by_lease_id(leased_resources['id'])
+            self.concrete_resources = ChameleonAPI.get_containers_by_lease_id(
+                leased_resources["id"]
+            )
             if self.concrete_resources:
                 logger.info(f" Getting existing containers: {self.concrete_resources}.")
             else:
@@ -86,7 +91,8 @@ class ChameleonAPI:
             for concrete_resource in self.concrete_resources:
                 if isinstance(concrete_resource, Container):
                     logger.info(
-                        container.wait_for_active(concrete_resource.uuid).status)
+                        container.wait_for_active(concrete_resource.uuid).status
+                    )
         return self.concrete_resources
 
     @staticmethod
@@ -97,9 +103,11 @@ class ChameleonAPI:
             if _container.status not in CONTAINER_STATUS:
                 continue
             # filter containers by lease id
-            if hasattr(_container, CONTAINER_LABELS) and \
-                    LEASE_ID in _container.__getattr__(CONTAINER_LABELS) and \
-                    _container.__getattr__(CONTAINER_LABELS)[LEASE_ID] == lease_id:
+            if (
+                hasattr(_container, CONTAINER_LABELS)
+                and LEASE_ID in _container.__getattr__(CONTAINER_LABELS)
+                and _container.__getattr__(CONTAINER_LABELS)[LEASE_ID] == lease_id
+            ):
                 filtered_containers.append(_container)
         return filtered_containers
 
@@ -123,23 +131,22 @@ class ChameleonAPI:
         for cfg in resources:
             if isinstance(cfg, DeviceClusterConfiguration):
                 lease.add_device_reservation(
-                    reservations,
-                    count=cfg.count,
-                    machine_name=cfg.machine_name
+                    reservations, count=cfg.count, machine_name=cfg.machine_name
                 )
             elif isinstance(cfg, DeviceConfiguration):
                 lease.add_device_reservation(
-                    reservations,
-                    count=1,
-                    device_name=cfg.device_name
+                    reservations, count=1, device_name=cfg.device_name
                 )
             else:
-                raise ValueError(f"Resource: {cfg} is not a ClusterConfiguration "
-                                 f"neither a DevicesConfiguration")
+                raise ValueError(
+                    f"Resource: {cfg} is not a ClusterConfiguration "
+                    f"neither a DevicesConfiguration"
+                )
         logger.info(
-            " Submitting Chameleon: lease name: %s, "
-            "duration: %s, resources: %s",
-            lease_name, walltime, str(reservations),
+            " Submitting Chameleon: lease name: %s, " "duration: %s, resources: %s",
+            lease_name,
+            walltime,
+            str(reservations),
         )
 
         return ChameleonAPI._try_create_lease(
@@ -158,26 +165,27 @@ class ChameleonAPI:
                     lease_name,
                     reservations=reservations,
                     start_date=start_date,
-                    end_date=end_date
+                    end_date=end_date,
                 )
             except Exception:
                 logger.info(f"Retrying to create lease every {retry_time} secs...")
                 time.sleep(retry_time)
-                start_date, end_date = \
-                    ChameleonAPI._get_lease_start_end_duration(walltime)
+                start_date, end_date = ChameleonAPI._get_lease_start_end_duration(
+                    walltime
+                )
 
     @staticmethod
     def _get_lease_start_end_duration(walltime):
         return lease.lease_duration(
-            days=0,
-            hours=ChameleonAPI._walltime_to_hours(walltime)
+            days=0, hours=ChameleonAPI._walltime_to_hours(walltime)
         )
 
     @staticmethod
     def _lease_wait_for_active(leased_resources, _site):
         lease_id = leased_resources["id"]
-        logger.info(f"[{_site}]:wait for the lease "
-                    f"[lease_id={lease_id}] to be active...")
+        logger.info(
+            f"[{_site}]:wait for the lease " f"[lease_id={lease_id}] to be active..."
+        )
         retry_time = 10
         while True:
             try:
@@ -193,27 +201,18 @@ class ChameleonAPI:
         for cfg in resources:
             if isinstance(cfg, DeviceClusterConfiguration):
                 self._create_container(
-                    leased_resources,
-                    '$machine_name',
-                    cfg.machine_name,
-                    cfg
+                    leased_resources, "$machine_name", cfg.machine_name, cfg
                 )
             elif isinstance(cfg, DeviceConfiguration):
-                self._create_container(
-                    leased_resources,
-                    '$name',
-                    cfg.device_name,
-                    cfg
-                )
+                self._create_container(leased_resources, "$name", cfg.device_name, cfg)
 
-    def _create_container(
-            self, leased_resources, _group, _name, cfg):
+    def _create_container(self, leased_resources, _group, _name, cfg):
         reservation_id = lease.get_device_reservation(
-            lease_ref=leased_resources['id'],
+            lease_ref=leased_resources["id"],
             count=cfg.count,
-            machine_name=_name if _group in ['$machine_name'] else None,
+            machine_name=_name if _group in ["$machine_name"] else None,
             device_model=cfg.device_model,
-            device_name=_name if _group in ['$name'] else None,
+            device_name=_name if _group in ["$name"] else None,
         )
         for node in range(cfg.count):
             self.concrete_resources.append(
@@ -224,7 +223,7 @@ class ChameleonAPI:
                     reservation_id=reservation_id,
                     start=cfg.container.start,
                     start_timeout=cfg.container.start_timeout,
-                    **self.get_container_kwargs(cfg, leased_resources['id'])
+                    **self.get_container_kwargs(cfg, leased_resources["id"]),
                 )
             )
 
@@ -238,7 +237,7 @@ class ChameleonAPI:
         _lease = ChameleonAPI._get_lease(lease_name)
         if _lease:
             logger.info("Deleting containers...")
-            for _container in ChameleonAPI.get_containers_by_lease_id(_lease['id']):
+            for _container in ChameleonAPI.get_containers_by_lease_id(_lease["id"]):
                 container.destroy_container(_container.uuid)
                 logger.info(f"Container {_container.uuid} deleted!")
 
@@ -251,15 +250,14 @@ class ChameleonAPI:
     @staticmethod
     def get_container_kwargs(cfg, lease_id: str):
         kwargs = zunclient.v1.containers.CREATION_ATTRIBUTES.copy()
-        for attr in ['name', 'image', 'exposed_ports', CONTAINER_LABELS]:
+        for attr in ["name", "image", "exposed_ports", CONTAINER_LABELS]:
             kwargs.remove(attr) if attr in kwargs else None
         extra_attr = {
             "interactive": True,
-            CONTAINER_LABELS:
-                {
-                    ROLES: ChameleonAPI.add_roles_in_container(cfg.roles),
-                    LEASE_ID: lease_id,
-                }
+            CONTAINER_LABELS: {
+                ROLES: ChameleonAPI.add_roles_in_container(cfg.roles),
+                LEASE_ID: lease_id,
+            },
         }
         for kwarg in kwargs:
             if kwarg in cfg.container.kwargs:
@@ -301,21 +299,21 @@ class ChameleonAPI:
         return result
 
     @staticmethod
-    def get_logs(uuid: str, rc_file: str,
-                 stdout: bool = True, stderr: bool = True):
+    def get_logs(uuid: str, rc_file: str, stdout: bool = True, stderr: bool = True):
         with source_credentials_from_rc_file(rc_file):
             result = container.get_logs(uuid, stdout, stderr)
         return result
 
     @staticmethod
-    def snapshot_container(uuid: str, rc_file: str,
-                           repository: str, tag: str = 'latest'):
+    def snapshot_container(
+        uuid: str, rc_file: str, repository: str, tag: str = "latest"
+    ):
         with source_credentials_from_rc_file(rc_file):
             result = container.snapshot_container(uuid, repository, tag)
         return result
 
     @staticmethod
     def _walltime_to_hours(walltime: str) -> int:
-        """ Convert from string format (HH:MM) to hours """
+        """Convert from string format (HH:MM) to hours"""
         _t = walltime.split(":")
         return int(_t[0]) + 1 if int(_t[1]) > 0 else int(_t[0])

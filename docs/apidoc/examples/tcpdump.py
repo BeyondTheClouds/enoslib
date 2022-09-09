@@ -14,9 +14,7 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 job_name = Path(__file__).name
 
 # claim the resources
-conf = en.G5kConf.from_settings(
-    job_type="allow_classic_ssh", job_name=job_name
-)
+conf = en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name=job_name)
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf.add_network_conf(network).add_machine(
     roles=["control", "client"], cluster=CLUSTER, nodes=1, primary_network=network
@@ -46,7 +44,7 @@ with en.TCPDump(
 
 # Examples:
 # create a dictionnary of (alias, if) -> list of decoded packets by scapy
-decoded_pcaps = dict()
+decoded_pcaps = {}
 for host in roles["control"]:
     host_dir = backup_dir / host.alias
     t = tarfile.open(host_dir / "tcpdump.tar.gz")
@@ -54,8 +52,9 @@ for host in roles["control"]:
     # get all extracted pcap for this host
     pcaps = (host_dir / "extracted").rglob("*.pcap")
     for pcap in pcaps:
-        decoded_pcaps.setdefault((host.alias, pcap.with_suffix("").name),
-                                 rdpcap(str(pcap)))
+        decoded_pcaps.setdefault(
+            (host.alias, pcap.with_suffix("").name), rdpcap(str(pcap))
+        )
 
 # Displaying some packets
 for (host, ifs), packets in decoded_pcaps.items():

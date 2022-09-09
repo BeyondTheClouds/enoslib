@@ -8,16 +8,10 @@ logging.basicConfig(level=logging.INFO)
 conf = (
     StaticConf()
     .add_machine(
-        roles=["control"],
-        address="192.168.42.245",
-        alias="static-0",
-        user="root"
+        roles=["control"], address="192.168.42.245", alias="static-0", user="root"
     )
     .add_machine(
-        roles=["compute"],
-        address="192.168.42.244",
-        alias="static-1",
-        user="root"
+        roles=["compute"], address="192.168.42.244", alias="static-1", user="root"
     )
     .add_network(
         roles=["mynetwork"],
@@ -25,7 +19,7 @@ conf = (
         start="192.168.42.100",
         end="192.168.42.200",
         gateway="192.168.42.1",
-        dns="8.8.8.8"
+        dns="8.8.8.8",
     )
     .finalize()
 )

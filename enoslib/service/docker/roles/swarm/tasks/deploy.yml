@@ -23,8 +23,7 @@
 
 - name: Join the swarm cluster
   shell: >
-      docker swarm join
-      --token {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_token }}
-      {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_address }} || true
+    docker swarm join
+    --token {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_token }}
+    {{ hostvars[groups['swarm-manager'][0]].ansible_local.swarm.swarm_address }} || true
   when: inventory_hostname in groups["swarm-node"]
-

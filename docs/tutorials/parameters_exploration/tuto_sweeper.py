@@ -22,16 +22,9 @@ def bench(parameter: Dict) -> None:
     """
     nb_vms = parameter["nb_vms"]
     conf = (
-        VMonG5kConf
-        .from_settings(force_deploy=True)
-        .add_machine(roles=["server"],
-                    cluster=CLUSTER,
-                    number=nb_vms,
-                    flavour="tiny")
-        .add_machine(roles=["client"],
-                    cluster=CLUSTER,
-                    number=nb_vms,
-                    flavour="tiny")
+        VMonG5kConf.from_settings(force_deploy=True)
+        .add_machine(roles=["server"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
+        .add_machine(roles=["client"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
         .finalize()
     )
 
@@ -49,17 +42,20 @@ def bench(parameter: Dict) -> None:
     ensure_python3(roles=roles)
 
     with play_on(roles=roles) as p:
-        p.apt_repository(repo="deb http://deb.debian.org/debian stretch main contrib non-free",
-                        state="present")
+        p.apt_repository(
+            repo="deb http://deb.debian.org/debian stretch main contrib non-free",
+            state="present",
+        )
         p.apt(
             name=[
                 "flent",
                 "netperf",
                 "python3-setuptools",
                 "python3-matplotlib",
-                "tmux"
+                "tmux",
             ],
-            state="present")
+            state="present",
+        )
 
     with play_on(pattern_hosts="server", roles=roles) as p:
         p.shell("tmux new-session -d 'exec netperf'")
@@ -77,14 +73,12 @@ def bench(parameter: Dict) -> None:
             + "-H {{ target }} "
             + f"-t '{output}' "
             + f"-o {output}.png",
-            display_name=f"Benchmarkings with {output}")
+            display_name=f"Benchmarkings with {output}",
+        )
         p.fetch(src=f"{output}.png", dest=f"result_{output}")
 
 
-parameters = dict(
-    nb_vms=[1, 2, 4, 8, 16],
-    delay=[None, "0ms", "10ms", "50ms"]
-)
+parameters = dict(nb_vms=[1, 2, 4, 8, 16], delay=[None, "0ms", "10ms", "50ms"])
 
 
 sweeps = sweep(parameters)

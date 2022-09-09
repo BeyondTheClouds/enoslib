@@ -6,16 +6,19 @@ logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
     "resources": {
-        "machines": [{
-            "roles": ["control1"],
-            "flavour": "tiny",
-            "number": 1,
-        },{
-            "roles": ["control2"],
-            "flavour": "tiny",
-            "number": 1,
-        }],
-        "networks": [{"roles": ["rn1"], "cidr": "172.16.0.1/16"}]
+        "machines": [
+            {
+                "roles": ["control1"],
+                "flavour": "tiny",
+                "number": 1,
+            },
+            {
+                "roles": ["control2"],
+                "flavour": "tiny",
+                "number": 1,
+            },
+        ],
+        "networks": [{"roles": ["rn1"], "cidr": "172.16.0.1/16"}],
     }
 }
 

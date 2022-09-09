@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from enoslib.errors import EnosError
 
 
@@ -19,14 +18,12 @@ class NotEnoughNodesError(DeployError):
 
 class EnosG5kDuplicateJobsError(EnosError):
     def __init__(self, site, job_name):
-        super(EnosG5kDuplicateJobsError, self).__init__(
-            "Duplicate jobs on %s with the same name %s" % (site, job_name)
-        )
+        super().__init__(f"Duplicate jobs on {site} with the same name {job_name}")
 
 
 class EnosG5kSynchronisationError(EnosError):
     def __init__(self, sites):
-        super(EnosG5kSynchronisationError, self).__init__(
+        super().__init__(
             (
                 "Unable synchronize the jobs on %s" % sites,
                 "Try to make an explicit reservation instead",
@@ -36,13 +33,11 @@ class EnosG5kSynchronisationError(EnosError):
 
 class EnosG5kWalltimeFormatError(EnosError):
     def __init__(self):
-        super(EnosG5kWalltimeFormatError, self).__init__(
-            "Waltime must be specified in HH:MM:SS format"
-        )
+        super().__init__("Waltime must be specified in HH:MM:SS format")
 
 
 class EnosG5kReservationDateFormatError(EnosError):
     def __init__(self):
-        super(EnosG5kReservationDateFormatError, self).__init__(
+        super().__init__(
             "Reservation date must be specified in YYYY-MM-DD hh:mm:ss format"
         )

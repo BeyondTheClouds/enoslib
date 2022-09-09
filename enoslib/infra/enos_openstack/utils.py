@@ -12,12 +12,12 @@ def source_credentials_from_rc_file(rc_file):
         lines = file.readlines()
         for line in lines:
             if "export" in line:
-                key = line.split('=')[0].split(' ')[1]
-                value = line.split('=')[1].strip().replace('"', '')
+                key = line.split("=")[0].split(" ")[1]
+                value = line.split("=")[1].strip().replace('"', "")
                 os.environ[key] = value
                 if key in ["OS_AUTH_TYPE", "OS_AUTH_URL", "OS_REGION_NAME"]:
                     logger.debug(f"{key}={os.environ[key]}")
-    site = os.environ["OS_REGION_NAME"].replace('"', '')
+    site = os.environ["OS_REGION_NAME"].replace('"', "")
     try:
         yield site
     except Exception as e:

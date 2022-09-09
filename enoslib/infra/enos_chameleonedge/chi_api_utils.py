@@ -2,6 +2,7 @@ import contextlib
 import logging
 import chi
 from enoslib.infra.enos_openstack import utils
+
 logger = logging.getLogger(__name__)
 
 

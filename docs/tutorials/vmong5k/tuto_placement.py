@@ -12,38 +12,21 @@ CLUSTER = "parasilo"
 SITE = "rennes"
 
 
-prod_network = en.G5kNetworkConf(
-    id="n1",
-    type="prod",
-    roles=["my_network"],
-    site=SITE)
+prod_network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf = (
-    en.G5kConf
-    .from_settings(
-        job_type="allow_classic_ssh",
-        job_name=job_name
-    )
+    en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name=job_name)
     .add_network_conf(prod_network)
     .add_network(
-        id="not_linked_to_any_machine",
-        type="slash_22",
-        roles=["my_subnet"],
-        site=SITE
+        id="not_linked_to_any_machine", type="slash_22", roles=["my_subnet"], site=SITE
     )
     .add_machine(
-        roles=["role1"],
-        cluster=CLUSTER,
-        nodes=1,
-        primary_network=prod_network
+        roles=["role1"], cluster=CLUSTER, nodes=1, primary_network=prod_network
     )
     .add_machine(
-        roles=["role2"],
-        cluster=CLUSTER,
-        nodes=1,
-        primary_network=prod_network
+        roles=["role2"], cluster=CLUSTER, nodes=1, primary_network=prod_network
     )
     .finalize()
- )
+)
 
 provider = en.G5k(conf)
 roles, networks = provider.init()
@@ -61,8 +44,7 @@ logging.info(subnet)
 
 n_vms = 16
 virt_conf = (
-    en.VMonG5kConf
-    .from_settings(image="/grid5000/virt-images/debian11-x64-base.qcow2")
+    en.VMonG5kConf.from_settings(image="/grid5000/virt-images/debian11-x64-base.qcow2")
     # Starts some vms on a single role
     # Here that means start the VMs on a single machine
     .add_machine(
@@ -72,8 +54,7 @@ virt_conf = (
         macs=list(islice(subnet[0].free_macs, n_vms))
         # alternative
         # macs=list(islice(en.mac_range(subnet), n_vms))
-    )
-    .finalize()
+    ).finalize()
 )
 
 # Start them

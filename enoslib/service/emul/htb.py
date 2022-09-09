@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(eq=True, frozen=True)
-class HTBConstraint(object):
+class HTBConstraint:
     """An HTB constraint.
 
     .. note ::
@@ -89,12 +89,10 @@ class HTBConstraint(object):
         """Get the command for the current slice."""
         cmds = []
         cmds.append(
-            (
-                f"tc class add dev {self.device} "
-                "parent 1: "
-                f"classid 1:{idx + 1} "
-                f"htb rate {self.rate}"
-            )
+            f"tc class add dev {self.device} "
+            "parent 1: "
+            f"classid 1:{idx + 1} "
+            f"htb rate {self.rate}"
         )
 
         # could be 0 or None
@@ -135,7 +133,7 @@ class HTBConstraint(object):
 
 
 @dataclass
-class HTBSource(object):
+class HTBSource:
     """Model a host and all the htb constraints.
 
     Args
@@ -301,7 +299,7 @@ class NetemHTB(BaseNetem):
         :py:meth:`~enoslib.service.emul.htb.NetemHTB.from_dict` class method.
         """
         # populated later
-        self.sources: Dict[Host, HTBSource] = dict()
+        self.sources: Dict[Host, HTBSource] = {}
 
     def add_constraints(
         self,
@@ -565,7 +563,7 @@ class AccurateNetemHTB(NetemHTB):
         # and we correct it in term of latency
         # naive heuristic here: we use the mean as correction factor
         observed = [(alias, dst, mean(values)) for alias, dst, values in results]
-        new_sources: Dict[Host, HTBSource] = dict()
+        new_sources: Dict[Host, HTBSource] = {}
         for alias, dst, obs in observed:
             host_candidates = [h for h in self.sources.keys() if h.alias == alias]
             if not host_candidates:

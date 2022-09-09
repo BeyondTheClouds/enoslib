@@ -126,7 +126,7 @@ def get_dockers(
         pattern_hosts=pattern_hosts,
         roles=roles,
         on_error_continue=True,
-        gather_facts=False
+        gather_facts=False,
     )
     # parsing the results
     for r in result:

@@ -50,4 +50,3 @@ the proxy ssh accordingly.
     ForwardAgent yes
 
 Remember to set the site used (e.g. grenoble).
-

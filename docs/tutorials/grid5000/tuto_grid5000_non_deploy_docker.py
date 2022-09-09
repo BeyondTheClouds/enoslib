@@ -25,7 +25,7 @@ roles, networks = provider.init()
 
 registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
 
-d = en.Docker(agent=roles["control"],
-              bind_var_docker="/tmp/docker",
-              registry_opts=registry_opts)
+d = en.Docker(
+    agent=roles["control"], bind_var_docker="/tmp/docker", registry_opts=registry_opts
+)
 d.deploy()

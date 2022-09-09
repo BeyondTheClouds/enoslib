@@ -1,5 +1,5 @@
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork, G5kSubnetNetwork
-import mock
+from unittest import mock
 
 from enoslib.objects import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
@@ -19,13 +19,13 @@ class TestBuildG5kConf(EnosTest):
     )
     @mock.patch(
         "enoslib.infra.enos_vmong5k.configuration.get_cluster_site",
-        return_value="site1"
+        return_value="site1",
     )
     def test_do_build_g5k_conf(
         self,
         mock_get_cluster_site_vmong5k,
         mock_get_cluster_site_g5k,
-        mock_find_node_number
+        mock_find_node_number,
     ):
         conf = Configuration()
         conf.add_machine(roles=["r1"], cluster="cluster1", number=10, flavour="tiny")
@@ -54,11 +54,7 @@ class TestDistribute(EnosTest):
         host = Host("paravance-1")
         mac = "00:00:00:00:00:01"
         machine = MachineConfiguration(
-            roles=["r1"],
-            flavour="tiny",
-            undercloud=[host],
-            number=1,
-            macs=[mac]
+            roles=["r1"], flavour="tiny", undercloud=[host], number=1, macs=[mac]
         )
         machines = [machine]
 
@@ -75,11 +71,7 @@ class TestDistribute(EnosTest):
             "00:00:00:00:00:02",
         ]
         machine = MachineConfiguration(
-            roles=["r1"],
-            flavour="tiny",
-            undercloud=[host],
-            number=2,
-            macs=macs
+            roles=["r1"], flavour="tiny", undercloud=[host], number=2, macs=macs
         )
         machines = [machine]
 
@@ -104,11 +96,7 @@ class TestDistribute(EnosTest):
             "00:00:00:00:00:02",
         ]
         machine = MachineConfiguration(
-            roles=["r1"],
-            flavour="tiny",
-            undercloud=[host0, host1],
-            number=2,
-            macs=macs
+            roles=["r1"], flavour="tiny", undercloud=[host0, host1], number=2, macs=macs
         )
         machines = [machine]
 

@@ -9,21 +9,22 @@ import time
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 provider_conf = {
-        "walltime": "01:00",
-        "resources": {
-            "machines": [
-                {
-                    "roles": ["sensor"],
-                    "archi": "m3:at86rf231",
-                    "site": "grenoble",
-                    "number": 2,
-                    "image": "tutorial_m3.elf",
-                    "profile": "test_profile",
-                },
-            ]
-        },
-        "monitoring": {
-            "profiles": [{
+    "walltime": "01:00",
+    "resources": {
+        "machines": [
+            {
+                "roles": ["sensor"],
+                "archi": "m3:at86rf231",
+                "site": "grenoble",
+                "number": 2,
+                "image": "tutorial_m3.elf",
+                "profile": "test_profile",
+            },
+        ]
+    },
+    "monitoring": {
+        "profiles": [
+            {
                 "name": "test_profile",
                 "archi": "m3",
                 "radio": {
@@ -32,9 +33,10 @@ provider_conf = {
                     "period": 1,
                     "channels": [11, 14],
                 },
-            }]
-        },
-    }
+            }
+        ]
+    },
+}
 
 conf = Configuration.from_dictionary(provider_conf)
 
@@ -48,10 +50,11 @@ try:
     sender = roles["sensor"][0]
 
     with IotlabSerial(sender, interactive=True) as serial_sender:
-        num_packets=5
-        num_burst=5
-        print("M3 sensor(%s): sending %d sets of %d packets" % (
-            sender.alias, num_burst, num_packets)
+        num_packets = 5
+        num_burst = 5
+        print(
+            "M3 sensor(%s): sending %d sets of %d packets"
+            % (sender.alias, num_burst, num_packets)
         )
         for i in range(0, num_burst):
             for j in range(0, num_packets):

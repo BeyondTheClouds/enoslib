@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def _chunks(_list, size):
     """Chunk a list in smaller pieces."""
     for i in range(0, len(_list), size):
-        yield _list[i: i + size]
+        yield _list[i : i + size]
 
 
 def _combine(*args, separator=";", chunk_size=100):
@@ -102,11 +102,9 @@ def _validate(
     for host in hosts:
         addresses = host.filter_addresses(networks)
         all_addresses = all_addresses.union(
-            set([str(addr.ip.ip) for addr in addresses if addr.ip])
+            {str(addr.ip.ip) for addr in addresses if addr.ip}
         )
-    results = validate_delay(
-        hosts, list(all_addresses), count=count, **kwargs
-    )
+    results = validate_delay(hosts, list(all_addresses), count=count, **kwargs)
     # save it if needed
     if output_dir is not None:
         _check_tmpdir(output_dir)
@@ -128,7 +126,7 @@ def _destroy(hosts: List[Host], **kwargs):
         loop="{{ansible_interfaces}}",
         roles=hosts,
         extra_vars=extra_vars,
-        gather_facts=True
+        gather_facts=True,
     )
 
 

@@ -114,7 +114,7 @@ def check_glance(session, image_name):
     else:
         image = [i for i in name_ids if i["name"] == image_name]
         image_id = image[0]["id"]
-        logger.info("[glance]: Using image %s:%s" % (image_name, image_id))
+        logger.info(f"[glance]: Using image {image_name}:{image_id}")
     return image_id
 
 
@@ -290,7 +290,7 @@ def wait_for_servers(session, servers):
 
 
 def _get_total_wanted_machines(machines):
-    total = sum([machine.number for machine in machines])
+    total = sum(machine.number for machine in machines)
     return total
 
 
@@ -329,7 +329,7 @@ def check_servers(
         logger.info("[nova]: Reusing existing servers : %s", servers)
         return servers
     elif len(servers) > 0 and len(servers) < wanted:
-        raise Exception("Only %s/%s servers found" % (len(servers), wanted))
+        raise Exception(f"Only {len(servers)}/{wanted} servers found")
 
     # starting the servers
     total = 0

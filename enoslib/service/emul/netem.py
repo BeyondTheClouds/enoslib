@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(eq=True, frozen=True)
-class NetemConstraint(object):
+class NetemConstraint:
     device: str
     options: str
 
@@ -88,7 +88,7 @@ class NetemInConstraint(NetemOutConstraint):
 
 
 @dataclass
-class NetemInOutSource(object):
+class NetemInOutSource:
     """Model a host and the constraints on its network devices.
 
     Args:
@@ -241,7 +241,7 @@ class Netem(BaseNetem):
               :language: python
               :linenos:
         """
-        self.sources = dict()
+        self.sources = {}
 
     def add_constraints(
         self,

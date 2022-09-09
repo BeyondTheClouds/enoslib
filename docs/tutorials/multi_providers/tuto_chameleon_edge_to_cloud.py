@@ -21,20 +21,22 @@ provider_conf = {
     "key_name": "drosendo",  # FIXME use your key_name
     "image": "CC-Ubuntu20.04",
     "resources": {
-        "machines": [{
-            "roles": ["server"],
-            "flavour": "gpu_rtx_6000",
-            "number": 1,
-        }],
-        "networks": ["network_interface"]
-    }
+        "machines": [
+            {
+                "roles": ["server"],
+                "flavour": "gpu_rtx_6000",
+                "number": 1,
+            }
+        ],
+        "networks": ["network_interface"],
+    },
 }
 conf = en.CBMConf().from_dictionnary(provider_conf)
 provider = en.CBM(conf)
 roles, networks = provider.init()
 providers.append(provider)
 roles = en.sync_info(roles, networks)
-floating_ip = roles["server"][0].extra['gateway']  # 192.5.87.127
+floating_ip = roles["server"][0].extra["gateway"]  # 192.5.87.127
 
 # Leasing resources on Chameleon Edge
 provider_conf = {
@@ -52,7 +54,7 @@ provider_conf = {
                 },
             }
         ],
-    }
+    },
 }
 conf = en.ChameleonEdgeConf.from_dictionnary(provider_conf)
 provider = en.ChameleonEdge(conf)
@@ -62,8 +64,8 @@ providers.append(provider)
 # Merging Chameleon Cloud and Edge resources
 for role, hosts in roles_edge.items():
     roles[role] = hosts
-logging.info('*' * 40 + f" roles{type(roles)} = {roles}")
-logging.info('*' * 40 + f" networks{type(networks)} = {networks}")
+logging.info("*" * 40 + f" roles{type(roles)} = {roles}")
+logging.info("*" * 40 + f" networks{type(networks)} = {networks}")
 
 # Experimentation logic starts here
 # Chameleon Cloud
@@ -73,7 +75,7 @@ with en.play_on(roles=roles["server"]) as p:
     p.shell(f"cd {dest_dir} && bash {dest_dir}/cloud_worker.sh > {dest_dir}/tests")
 # Chameleon Edge
 for device in roles["client"]:
-    cmd_upload = device.upload('./artifacts_edge/', '/')
+    cmd_upload = device.upload("./artifacts_edge/", "/")
     cmd_execute = device.execute(f"bash /edge_worker.sh edge_data 100 {floating_ip}")
 
 logging.info("Running experiment for 600 secs...")

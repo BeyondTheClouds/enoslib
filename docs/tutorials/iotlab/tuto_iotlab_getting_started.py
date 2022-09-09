@@ -9,7 +9,8 @@ import threading
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-stop_reading=False
+stop_reading = False
+
 
 def reading_thread(serial):
     """
@@ -24,25 +25,26 @@ def reading_thread(serial):
 
 # IoT-LAB provider configuration
 provider_conf = {
-        "walltime": "01:00",
-        "resources":
-        {"machines": [
+    "walltime": "01:00",
+    "resources": {
+        "machines": [
             {
                 "roles": ["sensor", "sender"],
                 "archi": "m3:at86rf231",
                 "site": "grenoble",
                 "number": 1,
-                "image": "tutorial_m3.elf"
+                "image": "tutorial_m3.elf",
             },
             {
                 "roles": ["sensor", "receiver"],
                 "archi": "m3:at86rf231",
                 "site": "grenoble",
                 "number": 1,
-                "image": "tutorial_m3.elf"
-            }]
-        }
-    }
+                "image": "tutorial_m3.elf",
+            },
+        ]
+    },
+}
 
 conf = Configuration.from_dictionary(provider_conf)
 
@@ -50,10 +52,12 @@ p = Iotlab(conf)
 try:
     roles, networks = p.init()
     print(roles)
-    
-    sender = roles['sender'][0]
-    receiver = roles['receiver'][0]
-    with IotlabSerial(sender, interactive=True) as s_sender, IotlabSerial(receiver, interactive=True) as s_receiver:
+
+    sender = roles["sender"][0]
+    receiver = roles["receiver"][0]
+    with IotlabSerial(sender, interactive=True) as s_sender, IotlabSerial(
+        receiver, interactive=True
+    ) as s_receiver:
 
         # Initializing read thread
         print("Initializing reading thread")
@@ -69,9 +73,9 @@ try:
         s_sender.write("b")
         time.sleep(1)
 
-        stop_reading=True
+        stop_reading = True
         read_thread.join()
-    
+
 except Exception as e:
     print(e)
 finally:

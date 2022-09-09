@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
 from contextlib import contextmanager
@@ -282,7 +281,7 @@ def _join(machines: List[ConcreteGroup], networks: List[G5kNetwork]) -> List[G5k
     return hosts
 
 
-class G5kTunnel(object):
+class G5kTunnel:
     """A class to initiate a tunnel to a targetted service inside Grid'5000.
 
     Can be used as a context manager (will close the tunnel automatically).
@@ -805,7 +804,7 @@ class G5k(Provider):
 
         jobs = self.driver.get_jobs()
 
-        data: Dict[str, Any] = dict()
+        data: Dict[str, Any] = {}
         data.update(proto=proto)
         if port is not None:
             # cannot give port if proto == all"

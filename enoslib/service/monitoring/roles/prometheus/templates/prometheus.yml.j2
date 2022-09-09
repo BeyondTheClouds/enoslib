@@ -8,7 +8,7 @@ scrape_configs:
     static_configs:
       - targets:
         - "{{ collector_address |ipwrap }}:{{ collector_port }}"
-  
+
   - job_name: telegraf
     static_configs:
       - targets:

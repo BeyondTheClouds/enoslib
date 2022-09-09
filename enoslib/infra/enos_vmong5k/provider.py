@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import defaultdict
 import copy
 from datetime import timezone
@@ -147,9 +146,9 @@ def _do_build_g5k_conf(vmong5k_conf):
     subnet_roles.append("__subnet__")
 
     # keep track of prod network demand (one single demand per site)
-    prod_networks = dict()
+    prod_networks = {}
     # keep track of subnets demand (one singgle demand per site)
-    subnet_networks = dict()
+    subnet_networks = {}
 
     for _, machine in enumerate(vmong5k_conf.machines):
         site = machine.site
@@ -335,7 +334,7 @@ class VMonG5k(Provider):
 
         # we concretize the virtualmachines
         # assign each group of vms to a list of possible pms and macs
-        mac_pools = dict()
+        mac_pools = {}
         for machine in self.provider_conf.machines:
             pms = self.g5k_roles[machine.cookie]
             machine.undercloud = pms
@@ -355,8 +354,9 @@ class VMonG5k(Provider):
         )
         return roles, self.g5k_networks
 
-    def async_init(self, start_time: Optional[int] = None,
-                   force_deploy=False, **kwargs):
+    def async_init(
+        self, start_time: Optional[int] = None, force_deploy=False, **kwargs
+    ):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
@@ -389,12 +389,10 @@ class VMonG5k(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone('Europe/Paris')
+        tz = pytz.timezone("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
         date = date.astimezone(tz=tz)
-        self.provider_conf.reservation = date.strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
 
     def offset_walltime(self, difference: int):
         self.provider_conf.walltime = offset_from_format(

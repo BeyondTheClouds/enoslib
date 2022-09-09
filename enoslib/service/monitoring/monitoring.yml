@@ -2,25 +2,25 @@
 - name: Gather facts
   hosts: all
   tasks:
-  - name: Gather facts on all hosts
-    setup: {}
+    - name: Gather facts on all hosts
+      setup: {}
 
 - name: Monitoring - Telegraf agents
   hosts: telegraf
   roles:
-  - telegraf
+    - telegraf
 
 - name: Monitoring - InfluxDB collector
   hosts: influxdb
   roles:
-  - influxdb
+    - influxdb
 
 - name: Monitoring - Prometheus collector
   hosts: prometheus
   roles:
-  - prometheus
+    - prometheus
 
 - name: Monitoring - Grafana UI
   hosts: grafana
   roles:
-  - grafana
+    - grafana

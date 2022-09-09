@@ -128,6 +128,7 @@ def is_valid_loss(instance):
         return False
     # str
     import re
+
     return re.match(r"\d*.?\d*%", str(instance))
 
 

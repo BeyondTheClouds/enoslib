@@ -29,8 +29,10 @@ class Configuration(BaseConfiguration):
         elif kwargs.get("machine_name") is not None:
             self.add_machine_conf(DeviceClusterConfiguration(*args, **kwargs))
         else:
-            raise ValueError("Must be a device (device_name) or "
-                             "device cluster (machine_name) configuration")
+            raise ValueError(
+                "Must be a device (device_name) or "
+                "device cluster (machine_name) configuration"
+            )
         return self
 
     @classmethod
@@ -88,14 +90,14 @@ class Container:
     """Base class for a container."""
 
     def __init__(
-            self,
-            name=None,
-            image=None,
-            exposed_ports=None,
-            start=True,
-            start_timeout=None,
-            device_profiles=None,
-            **kwargs
+        self,
+        name=None,
+        image=None,
+        exposed_ports=None,
+        start=True,
+        start_timeout=None,
+        device_profiles=None,
+        **kwargs,
     ):
         self.name = name
         self.image = image
@@ -118,13 +120,13 @@ class DeviceGroupConfiguration:
     """Base class for a group of machines."""
 
     def __init__(
-            self,
-            *,
-            roles=None,
-            device_model=None,
-            site=None,
-            count=DEFAULT_NUMBER,
-            container: Container = None,
+        self,
+        *,
+        roles=None,
+        device_model=None,
+        site=None,
+        count=DEFAULT_NUMBER,
+        container: Container = None,
     ):
         self.roles = roles
         self.device_model = device_model
@@ -159,7 +161,7 @@ class DeviceGroupConfiguration:
             start=_container.pop("start", None),
             start_timeout=_container.pop("start_timeout", None),
             device_profiles=_container.pop("device_profiles", None),
-            **_container
+            **_container,
         )
         # device-cluster (machine_name) and
         # device (device_name) are no individually optionnal
@@ -185,12 +187,13 @@ class DeviceGroupConfiguration:
                 container=container,
             )
 
-        raise ValueError("Unable to build an instance "
-                         "DeviceConfiguration or DeviceClusterConfiguration")
+        raise ValueError(
+            "Unable to build an instance "
+            "DeviceConfiguration or DeviceClusterConfiguration"
+        )
 
 
 class DeviceClusterConfiguration(DeviceGroupConfiguration):
-
     def __init__(self, *, machine_name=None, **kwargs):
         super().__init__(**kwargs)
         self.machine_name = machine_name
@@ -202,7 +205,6 @@ class DeviceClusterConfiguration(DeviceGroupConfiguration):
 
 
 class DeviceConfiguration(DeviceGroupConfiguration):
-
     def __init__(self, *, device_name=None, **kwargs):
         super().__init__(**kwargs)
         self.device_name = device_name

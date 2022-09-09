@@ -412,7 +412,7 @@ class TestConfiguration(EnosTest):
             ),
         )
         conf.finalize()
-        
+
     def test_configuration_with_start_time(self):
         conf = Configuration.from_settings(start_time="2022-06-09 16:22:00")
         conf = conf.add_machine_conf(
@@ -429,7 +429,7 @@ class TestConfiguration(EnosTest):
             )
         )
         conf.finalize()
-        
+
     def test_configuration_with_start_time_raise_because_incoherent_time(self):
         conf = Configuration.from_settings(start_time="2022-06-09 16:61:00")
         conf.add_machine(roles=["r2"], hostname=["m3-1.grenoble.iot-lab.info"])
@@ -465,7 +465,7 @@ class TestConfiguration(EnosTest):
                 number=10,
                 image="test.elf",
             )
-            ).add_machine_conf(
+        ).add_machine_conf(
             BoardConfiguration(
                 roles=["r1"], archi="m3:at86rf231", site="grenoble", number=10
             )
@@ -478,24 +478,24 @@ class TestConfiguration(EnosTest):
         conf.add_machine_conf(
             PhysNodeConfiguration(
                 roles=["r2"],
-                hostname=["m3-1.grenoble.iot-lab.info","m3-2.grenoble.iot-lab.info"],
+                hostname=["m3-1.grenoble.iot-lab.info", "m3-2.grenoble.iot-lab.info"],
                 image="test_profile",
             )
         )
         conf.finalize()
-        
+
     def test_configuration_physical_nodes_raise_because_different_archi(self):
         conf = Configuration()
         conf.add_machine_conf(
             PhysNodeConfiguration(
                 roles=["r2"],
-                hostname=["m3-1.grenoble.iot-lab.info","m2-2.grenoble.iot-lab.info"],
+                hostname=["m3-1.grenoble.iot-lab.info", "m2-2.grenoble.iot-lab.info"],
                 image="test_profile",
             )
         )
         with self.assertRaises(ValidationError):
             conf.finalize()
-            
+
     def test_configuration_physical_nodes_because_empty_list(self):
         conf = Configuration()
         conf.add_machine_conf(
@@ -505,7 +505,8 @@ class TestConfiguration(EnosTest):
             )
         )
         with self.assertRaises(ValidationError):
-            conf.finalize()       
+            conf.finalize()
+
 
 class TestNetworkConfiguration(EnosTest):
     def test_network_from_dictionary(self):
@@ -559,4 +560,3 @@ class TestNetworkConfiguration(EnosTest):
 
         with self.assertRaises(ValidationError):
             Configuration.from_dictionary(d)
-

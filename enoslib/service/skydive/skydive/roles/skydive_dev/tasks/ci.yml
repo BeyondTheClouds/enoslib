@@ -2,19 +2,19 @@
     name: "{{ item }}"
     state: present
   with_items:
-     - ffmpeg
-     - gifsicle
-     - libvirt
-     - ruby-devel
-     - virt-what
-     - ansible
-     - dnf-utils
-     - manifest-tool
-     - git-lfs
-     - qemu-system-s390x
-     - qemu-system-ppc
-     - qemu-system-aarch64
-     - qemu-user-static
+    - ffmpeg
+    - gifsicle
+    - libvirt
+    - ruby-devel
+    - virt-what
+    - ansible
+    - dnf-utils
+    - manifest-tool
+    - git-lfs
+    - qemu-system-s390x
+    - qemu-system-ppc
+    - qemu-system-aarch64
+    - qemu-user-static
 
 - service:
     name: libvirtd
@@ -24,6 +24,6 @@
 - service:
     name: systemd-binfmt
     state: started
-    enabled: yes   
+    enabled: yes
 
 - include_tasks: virtualbox.yml

@@ -290,4 +290,3 @@ Jupyter Notebooks
 
 `Grid5000 and FIT/IoT-LAB - IPv6 <iotlab/tuto_iotlab_g5k_ipv6.ipynb>`_
 ----------------------------------------------------------------------
-

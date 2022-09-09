@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime, time, timezone
 import pathlib
 import re

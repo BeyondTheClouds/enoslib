@@ -10,15 +10,16 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # IoT-LAB provider configuration
 iotlab_dict = {
     "walltime": "01:00",
-    "resources":
-    {"machines": [
-        {
-            "roles": ["a8"],
-            "archi": "a8:at86rf231",
-            "site": "grenoble",
-            "number": 2,
-        }
-    ]}
+    "resources": {
+        "machines": [
+            {
+                "roles": ["a8"],
+                "archi": "a8:at86rf231",
+                "site": "grenoble",
+                "number": 2,
+            }
+        ]
+    },
 }
 iotlab_conf = IotlabConf.from_dictionary(iotlab_dict)
 iotlab_provider = Iotlab(iotlab_conf)
@@ -60,21 +61,25 @@ try:
     g5k_roles = sync_info(g5k_roles, g5k_networks)
     iotlab_roles = sync_info(iotlab_roles, iotlab_networks)
 
-
     print("Deploy monitoring stack on Grid'5000")
     print("Install Grafana and Prometheus at: %s" % str(g5k_roles["control"]))
     print("Install Telegraf at: %s" % str(g5k_roles["compute"]))
+
     def get_nets(networks, net_type):
-        """ Aux method to filter networs from roles """
+        """Aux method to filter networs from roles"""
         return [
-            n for net_list in networks.values() for n in net_list
+            n
+            for net_list in networks.values()
+            for n in net_list
             if isinstance(n.network, net_type)
         ]
+
     m = TPGMonitoring(
-            collector=g5k_roles["control"][0],
-            agent=g5k_roles["compute"]+iotlab_roles["a8"],
-            ui=g5k_roles["control"][0],
-            networks=get_nets(g5k_networks, IPv6Network) + get_nets(iotlab_networks, IPv6Network)
+        collector=g5k_roles["control"][0],
+        agent=g5k_roles["compute"] + iotlab_roles["a8"],
+        ui=g5k_roles["control"][0],
+        networks=get_nets(g5k_networks, IPv6Network)
+        + get_nets(iotlab_networks, IPv6Network),
     )
     m.deploy()
 

@@ -10,10 +10,12 @@ class QuickstartUser(User):
     def sleep1(self):
         # faking a 1 second request
         time.sleep(1)
-        events.request.fire(request_type="noopclient",
-                            name="sleep1",
-                            response_time=1,
-                            response_length=0,
-                            response=None,
-                            context=None,
-                            exception=None)
+        events.request.fire(
+            request_type="noopclient",
+            name="sleep1",
+            response_time=1,
+            response_length=0,
+            response=None,
+            context=None,
+            exception=None,
+        )

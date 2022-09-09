@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 DEFAULT_JOB_NAME = "EnOSlib"
 DEFAULT_WALLTIME = "02:00:00"
 DEFAULT_NUMBER = 1

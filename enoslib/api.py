@@ -196,7 +196,7 @@ class HostStatus(Enum):
 
 
 @dataclass(unsafe_hash=True)
-class HostWithStatus(object):
+class HostWithStatus:
     name: str = field(compare=True, hash=True)
     status: HostStatus = field(compare=False, default=HostStatus.NEUTRAL, hash=False)
 
@@ -297,7 +297,7 @@ class _MyCallback(CallbackBase):
     CALLBACK_NAME = "mycallback"
 
     def __init__(self, storage):
-        super(_MyCallback, self).__init__()
+        super().__init__()
         self.storage = storage
         self.display_ok_hosts = True
         self.display_skipped_hosts = True
@@ -315,27 +315,27 @@ class _MyCallback(CallbackBase):
         self.storage.append(record)
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
-        super(_MyCallback, self).v2_runner_on_failed(result)
+        super().v2_runner_on_failed(result)
         if not ignore_errors:
             self._store(result, STATUS_FAILED)
         else:
             self._store(result, STATUS_OK)
 
     def v2_runner_on_ok(self, result):
-        super(_MyCallback, self).v2_runner_on_ok(result)
+        super().v2_runner_on_ok(result)
         self._store(result, STATUS_OK)
 
     def v2_runner_on_skipped(self, result):
-        super(_MyCallback, self).v2_runner_on_skipped(result)
+        super().v2_runner_on_skipped(result)
         self._store(result, STATUS_SKIPPED)
 
     def v2_runner_on_unreachable(self, result):
-        super(_MyCallback, self).v2_runner_on_unreachable(result)
+        super().v2_runner_on_unreachable(result)
         self._store(result, STATUS_UNREACHABLE)
 
 
 @dataclass
-class BaseCommandResult(object):
+class BaseCommandResult:
     # mypy https://github.com/python/mypy/issues/5374
     __metaclass__ = ABCMeta
     host: str
@@ -585,7 +585,7 @@ def run_play(
         )
 
 
-class _Phantom(object):
+class _Phantom:
     """Internal stuff to build a chain of prefixes:
 
     a = actions()
@@ -627,7 +627,7 @@ class _Phantom(object):
             self.parent.add_task(task)
 
 
-class actions(object):
+class actions:
     def __init__(
         self,
         *,
@@ -1023,7 +1023,7 @@ def gather_facts(
 
     def filter_results(results, status):
         _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
-        s = dict([[r.host, r.payload.get("ansible_facts")] for r in _r])
+        s = {r.host: r.payload.get("ansible_facts") for r in _r}
         return s
 
     play_source = {
@@ -1103,7 +1103,7 @@ def run_ansible(
     results = []
     passwords: Dict = {}
     for path in playbooks:
-        logger.debug("Running playbook %s with vars:\n%s" % (path, extra_vars))
+        logger.debug(f"Running playbook {path} with vars:\n{extra_vars}")
         _results = []
         callback = _MyCallback(_results)
         pbex = PlaybookExecutor(
@@ -1312,7 +1312,7 @@ def wait_for(
                 p.raw("hostname", task_name="Waiting for connection")
             break
         except EnosUnreachableHostsError:
-            logger.info("Retrying... %s/%s" % (i + 1, retries))
+            logger.info(f"Retrying... {i + 1}/{retries}")
             time.sleep(interval)
     else:
         raise EnosSSHNotReady("Maximum retries reached")
@@ -1335,7 +1335,7 @@ def bg_start(key: str, cmd: str) -> str:
 
     """
     # supports templating
-    return "(tmux ls | grep %s) ||tmux new-session -s %s -d '%s'" % (key, key, cmd)
+    return f"(tmux ls | grep {key}) ||tmux new-session -s {key} -d '{cmd}'"
 
 
 def bg_stop(key: str, num: int = signal.SIGINT) -> str:

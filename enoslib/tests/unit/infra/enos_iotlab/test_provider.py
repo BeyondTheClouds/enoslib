@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import mock
+from unittest import mock
 import tempfile
 from unittest.mock import patch
 from enoslib.errors import NegativeWalltime
@@ -174,7 +173,7 @@ class TestSubmit(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
-            start_time = None,
+            start_time=None,
             resources=[
                 exp_resources(
                     AliasNodes(2, site="grenoble", archi="a8:at86rf231", _alias=1)
@@ -202,7 +201,7 @@ class TestSubmit(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
-            start_time = None,
+            start_time=None,
             resources=[exp_resources(list_nodes)],
         )
         self.assertEqual(nodes, {})  # no roles nothing to check
@@ -499,7 +498,7 @@ class TestProfiles(EnosTest):
             api=mock.ANY,
             name=DEFAULT_JOB_NAME,
             duration=1,
-            start_time = None,
+            start_time=None,
             resources=[
                 exp_resources(
                     AliasNodes(2, site="grenoble", archi="m3:at86rf231", _alias=2),
@@ -808,20 +807,23 @@ class TestProfiles(EnosTest):
                 ],
                 any_order=True,
             )
-    
+
     def test_offset_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00"
-        with patch.object(Configuration,'finalize',return_value=conf) as patch_finalize:
+        with patch.object(
+            Configuration, "finalize", return_value=conf
+        ) as patch_finalize:
             provider = Iotlab(conf)
             provider.offset_walltime(-3600)
-            self.assertEqual(provider.provider_conf.walltime,"01:00")
-        
+            self.assertEqual(provider.provider_conf.walltime, "01:00")
+
     def test_offset_walltime_negative_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00"
-        with patch.object(Configuration,'finalize',return_value=conf) as patch_finalize:
+        with patch.object(
+            Configuration, "finalize", return_value=conf
+        ) as patch_finalize:
             provider = Iotlab(conf)
             with self.assertRaises(NegativeWalltime):
                 provider.offset_walltime(-7200)
-        

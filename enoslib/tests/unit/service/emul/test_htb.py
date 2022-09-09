@@ -32,63 +32,65 @@ class TestAddConstraint(EnosTest):
 
 
 class TestGeneratedCommands(EnosTest):
-
     def test_ipv4(self):
         nc = HTBConstraint("eth0", "10ms", "1.1.1.2")
         self.assertCountEqual(
-            ["tc qdisc del dev eth0 root || true"],
-            nc.remove_commands())
+            ["tc qdisc del dev eth0 root || true"], nc.remove_commands()
+        )
 
         # attach an htb queueing discipline
         self.assertCountEqual(
-            ["tc qdisc add dev eth0 root handle 1: htb"],
-            nc.add_commands())
+            ["tc qdisc add dev eth0 root handle 1: htb"], nc.add_commands()
+        )
 
         # the tc/htb boilerplate
         self.assertCountEqual(
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
                 "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms",
-                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2"
+                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",
             ],
-            nc.commands(1))
+            nc.commands(1),
+        )
 
     def test_ipv4_with_loss(self):
         nc = HTBConstraint("eth0", "10ms", "1.1.1.2", loss="0.5%")
         self.assertCountEqual(
-            ["tc qdisc del dev eth0 root || true"],
-            nc.remove_commands())
+            ["tc qdisc del dev eth0 root || true"], nc.remove_commands()
+        )
 
         # attach an htb queueing discipline
         self.assertCountEqual(
-            ["tc qdisc add dev eth0 root handle 1: htb"],
-            nc.add_commands())
+            ["tc qdisc add dev eth0 root handle 1: htb"], nc.add_commands()
+        )
 
         # the tc/htb boilerplate
         self.assertCountEqual(
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
                 "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms loss 0.5%",
-                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2"
+                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",
             ],
-            nc.commands(1))
+            nc.commands(1),
+        )
 
     def test_ipv6(self):
         nc = HTBConstraint("eth0", "10ms", "2001:660:4406:700:1::d")
         self.assertCountEqual(
-            ["tc qdisc del dev eth0 root || true"],
-            nc.remove_commands())
+            ["tc qdisc del dev eth0 root || true"], nc.remove_commands()
+        )
 
         # attach an htb queueing discipline
         self.assertCountEqual(
-            ["tc qdisc add dev eth0 root handle 1: htb"],
-            nc.add_commands())
+            ["tc qdisc add dev eth0 root handle 1: htb"], nc.add_commands()
+        )
 
         # the tc/htb boilerplate
         self.assertCountEqual(
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
                 "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms",
-                "tc filter add dev eth0 parent 1: protocol ipv6 u32 match ip6 dst 2001:660:4406:700:1::d flowid 1:2"
+                "tc filter add dev eth0 parent 1: protocol ipv6 u32 match ip6 dst 2001:660:4406:700:1::d flowid 1:2",
             ],
-            nc.commands(1))
+            nc.commands(1),
+        )

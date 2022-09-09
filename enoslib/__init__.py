@@ -149,11 +149,11 @@ except ImportError as e:
 
 try:
     from enoslib.infra.enos_chameleonedge.provider import ChameleonEdge
-    from enoslib.infra.enos_chameleonedge.configuration import Configuration as ChameleonEdgeConf
+    from enoslib.infra.enos_chameleonedge.configuration import (
+        Configuration as ChameleonEdgeConf,
+    )
 except ImportError:
     pass
-
-
 
 
 # Tasks
@@ -166,10 +166,10 @@ from .version import __chat__, __source__, __documentation__, __version__
 
 MOTD = f"""
   _____        ___  ____  _ _ _
- | ____|_ __  / _ \/ ___|| (_) |__
- |  _| | '_ \| | | \___ \| | | '_ \\
+ | ____|_ __  / _ \\/ ___|| (_) |__
+ |  _| | '_ \\| | | \\___ \\| | | '_ \\
  | |___| | | | |_| |___) | | | |_) |
- |_____|_| |_|\___/|____/|_|_|_.__/  {__version__}
+ |_____|_| |_|\\___/|____/|_|_|_.__/  {__version__}
 
 """
 INFO = f"""
@@ -184,14 +184,14 @@ def _check_deps():
 
     prefix = "enoslib.infra"
     providers = [
-        ("Chameleon", "enos_chameleonbaremetal", "pip install enoslib\[chameleon]"),
-        ("ChameleonKVM", "enos_chameleonkvm", "pip install enoslib\[chameleon]"),
-        ("ChameleonEdge", "enos_chameleonedge", "pip install enoslib\[chameleon]"),
-        ("Distem", "enos_distem", "pip install enoslib\[distem]"),
-        ("IOT-lab", "enos_iotlab", "pip install enoslib\[iot]"),
+        ("Chameleon", "enos_chameleonbaremetal", r"pip install enoslib\[chameleon]"),
+        ("ChameleonKVM", "enos_chameleonkvm", r"pip install enoslib\[chameleon]"),
+        ("ChameleonEdge", "enos_chameleonedge", r"pip install enoslib\[chameleon]"),
+        ("Distem", "enos_distem", r"pip install enoslib\[distem]"),
+        ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iot]"),
         ("Grid'5000", "enos_g5k", ""),
-        ("Openstack", "enos_openstack", "pip install enoslib\[chameleon]"),
-        ("Vagrant", "enos_vagrant", "pip install enoslib\[vagrant]"),
+        ("Openstack", "enos_openstack", r"pip install enoslib\[chameleon]"),
+        ("Vagrant", "enos_vagrant", r"pip install enoslib\[vagrant]"),
         ("VMonG5k", "enos_vmong5k", ""),
     ]
     deps = []
@@ -214,7 +214,11 @@ def _print_deps_table(deps: List[Tuple[str, bool, str]], console):
     table.add_column("Hint", no_wrap=True, width=30)
     deps = _check_deps()
     for (shortname, deps_ok, hint, _) in deps:
-        table.add_row(shortname, "[green]INSTALLED[/green]" if deps_ok else "[blue]NOT INSTALLED[/blue]", hint)
+        table.add_row(
+            shortname,
+            "[green]INSTALLED[/green]" if deps_ok else "[blue]NOT INSTALLED[/blue]",
+            hint,
+        )
 
     console.print(table)
 

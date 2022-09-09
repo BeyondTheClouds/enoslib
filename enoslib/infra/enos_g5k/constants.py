@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pathlib import Path
 
 JOB_TYPE_DEPLOY = "deploy"

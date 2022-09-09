@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 #
 # Copyright (C) 2018 Red Hat, Inc.
 #
@@ -17,12 +15,12 @@
 #
 
 ANSIBLE_METADATA = {
-    'metadata_version': '1.1',
-    'status': ['preview'],
-    'supported_by': 'community'
+    "metadata_version": "1.1",
+    "status": ["preview"],
+    "supported_by": "community",
 }
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: skydive_edge
 
@@ -68,9 +66,9 @@ notes:
 author:
     - Sylvain Afchain (@safchain)
     - Pierre Crégut (@pierrecregut)
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
   - name: create tor
     skydive_node:
       name: 'TOR'
@@ -97,13 +95,13 @@ EXAMPLES = '''
         - node1: "{{ tor_result.UUID }}"
           node2: "{{ port2_result.UUID }}"
           relation_type: ownership
-'''
+"""
 
-RETURN = '''
+RETURN = """
 UUID:
     description: The list of UUID of nodes generated
     type: list
-'''
+"""
 
 import os
 import uuid
@@ -119,7 +117,6 @@ from skydive.websocket.client import WSMessage
 
 
 class EdgeInjectProtocol(WSClientDefaultProtocol):
-
     def onOpen(self):
         module = self.factory.kwargs["module"]
         params = self.factory.kwargs["params"]
@@ -138,70 +135,67 @@ class EdgeInjectProtocol(WSClientDefaultProtocol):
                 metadata["RelationType"] = edge["relation_type"]
                 node1 = edge["node1"]
                 node2 = edge["node2"]
-                uid = uuid.uuid5(uuid.NAMESPACE_OID, "%s:%s:%s" %
-                                 (node1, node2, edge["relation_type"]))
+                uid = uuid.uuid5(
+                    uuid.NAMESPACE_OID,
+                    "{}:{}:{}".format(node1, node2, edge["relation_type"]),
+                )
                 edge = Edge(str(uid), host, node1, node2, metadata=metadata)
                 msg = WSMessage("Graph", EdgeAddedMsgType, edge)
                 self.sendWSMessage(msg)
                 uuids.append(uid)
             result["UUID"] = str(uuids)
         except Exception as e:
-            module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+            module.fail_json(msg="Error during topology update %s" % e, **result)
         finally:
             self.factory.client.loop.call_soon(self.stop)
 
 
 def run_module():
     module_args = dict(
-        analyzer=dict(type='str', default="127.0.0.1:8082"),
-        ssl=dict(type='bool', default=False),
-        insecure=dict(type='bool', default=False),
-        username=dict(type='str', default=""),
-        password=dict(type='str', default="", no_log=True),
-        edges=dict(type='list', required=True),
-        host=dict(type='str', default=""),
-        metadata=dict(type='dict', default=dict())
+        analyzer=dict(type="str", default="127.0.0.1:8082"),
+        ssl=dict(type="bool", default=False),
+        insecure=dict(type="bool", default=False),
+        username=dict(type="str", default=""),
+        password=dict(type="str", default="", no_log=True),
+        edges=dict(type="list", required=True),
+        host=dict(type="str", default=""),
+        metadata=dict(type="dict", default=dict()),
     )
 
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     try:
         edges = module.params["edges"]
     except Exception as e:
-        module.fail_json(
-            msg='Error during topology request %s' % e, **result)
+        module.fail_json(msg="Error during topology request %s" % e, **result)
 
     scheme = "ws"
     if module.params["ssl"]:
         scheme = "wss"
 
     try:
-        url = "%s://%s/ws/publisher" % (scheme, module.params["analyzer"])
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
-                            url,
-                            protocol=EdgeInjectProtocol, persistent=True,
-                            insecure=module.params["insecure"],
-                            username=module.params["username"],
-                            password=module.params["password"],
-                            module=module,
-                            params=module.params,
-                            edges=edges,
-                            result=result)
+        url = "{}://{}/ws/publisher".format(scheme, module.params["analyzer"])
+        wsclient = WSClient(
+            "ansible-" + str(os.getpid()) + "-" + module.params["host"],
+            url,
+            protocol=EdgeInjectProtocol,
+            persistent=True,
+            insecure=module.params["insecure"],
+            username=module.params["username"],
+            password=module.params["password"],
+            module=module,
+            params=module.params,
+            edges=edges,
+            result=result,
+        )
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg="Connection error %s" % str(e), **result)
 
-    result['changed'] = True
+    result["changed"] = True
 
     module.exit_json(**result)
 
@@ -210,5 +204,5 @@ def main():
     run_module()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

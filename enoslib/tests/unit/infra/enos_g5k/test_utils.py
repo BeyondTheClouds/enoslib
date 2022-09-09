@@ -14,7 +14,7 @@ from enoslib.infra.enos_g5k.configuration import (
 )
 
 from ddt import ddt, data
-import mock
+from unittest import mock
 
 from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError

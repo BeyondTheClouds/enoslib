@@ -199,4 +199,3 @@ Second, you need to mount the home inside your VMs.
 
 
 Note that you can allow any group storage using :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_group_storage`
-

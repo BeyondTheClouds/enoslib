@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import mock
+from unittest import mock
 from unittest.mock import patch
 
 from enoslib.infra.enos_iotlab.objects import (

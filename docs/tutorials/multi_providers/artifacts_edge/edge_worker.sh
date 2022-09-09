@@ -38,7 +38,7 @@ function get_sample {
 function preprocess_sample {
     # This function should take the file $1, and run it through any program
     # needed. Output the result back into file $1.
-    
+
     # For the example dataset, there is text on the bottom 100 pixels, and so we crop it out.
     if command -v convert &> /dev/null
     then
@@ -66,11 +66,11 @@ echo "Finished setup"
 for ((i=1;i<=MAX;i++)); do
   # Wait a small time between samples
   sleep 3
-  
+
   # Get the sample
   filename=$(get_sample)
   echo "Got sample $filename"
-  
+
   # Preprocess the sample, and precheck it
   preprocess_sample $filename
   if precheck_sample $filename; then

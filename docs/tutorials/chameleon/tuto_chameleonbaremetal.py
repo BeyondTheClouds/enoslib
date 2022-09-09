@@ -9,17 +9,20 @@ provider_conf = {
     "lease_name": "mylease",
     "rc_file": "./my-app-cred-edge-openrc.sh",  # FIXME use your OPENRC file
     "resources": {
-        "machines": [{
-            "roles": ["server"],
-            "flavour": "compute_skylake",
-            "number": 1,
-        },{
-            "roles": ["client"],
-            "flavour": "compute_skylake",
-            "number": 1,
-        }],
-        "networks": ["network_interface"]
-    }
+        "machines": [
+            {
+                "roles": ["server"],
+                "flavour": "compute_skylake",
+                "number": 1,
+            },
+            {
+                "roles": ["client"],
+                "flavour": "compute_skylake",
+                "number": 1,
+            },
+        ],
+        "networks": ["network_interface"],
+    },
 }
 
 tc = {
@@ -37,20 +40,25 @@ roles = sync_info(roles, networks)
 # Experimentation logic starts here
 with play_on(roles=roles) as p:
     # flent requires python3, so we default python to python3
-    p.apt_repository(repo="deb http://deb.debian.org/debian stretch main    contrib non-free",
-                     state="absent")
-    p.apt(name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
-          allow_unauthenticated=True,
-          state="present")
+    p.apt_repository(
+        repo="deb http://deb.debian.org/debian stretch main    contrib non-free",
+        state="absent",
+    )
+    p.apt(
+        name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
+        allow_unauthenticated=True,
+        state="present",
+    )
 
 with play_on(pattern_hosts="server", roles=roles) as p:
     p.shell("nohup netperf &")
 
 with play_on(pattern_hosts="client", roles=roles) as p:
-    p.shell("flent rrul -p all_scaled "
-            + "-l 60 "
-            + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
-            + "-t 'bufferbloat test' "
-            + "-o result.png")
-    p.fetch(src="result.png",
-            dest="result")
+    p.shell(
+        "flent rrul -p all_scaled "
+        + "-l 60 "
+        + "-H {{ hostvars[groups['server'][0]].ansible_default_ipv4.address }} "
+        + "-t 'bufferbloat test' "
+        + "-o result.png"
+    )
+    p.fetch(src="result.png", dest="result")

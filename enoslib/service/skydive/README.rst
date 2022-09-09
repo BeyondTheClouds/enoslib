@@ -18,4 +18,3 @@ Update
     git clone https://github.com/skydive-project/skydive
     cp -r skydive/contrib/ansible/* .
     ln -s ../skydive.yml skydive.yml
-

@@ -10,6 +10,7 @@ class ChameleonDevice:
     """
     A Chameleon edge device
     """
+
     def __init__(
         self,
         address: str,
@@ -51,7 +52,7 @@ class ChameleonDevice:
     def get_logs(self, stdout: bool = True, stderr: bool = True):
         return self.client.get_logs(self.uuid, self.rc_file, stdout, stderr)
 
-    def snapshot_container(self, repository: str, tag: str = 'latest'):
+    def snapshot_container(self, repository: str, tag: str = "latest"):
         return self.client.snapshot_container(self.uuid, self.rc_file, repository, tag)
 
 

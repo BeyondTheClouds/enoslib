@@ -13,15 +13,16 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # IoT-LAB provider configuration
 provider_conf = {
     "walltime": "01:00",
-    "resources":
-    {"machines": [
-        {
-            "roles": ["my_rpi"],
-            "archi": "rpi3:at86rf233",
-            "site": "grenoble",
-            "number": 2,
-        }
-    ]}
+    "resources": {
+        "machines": [
+            {
+                "roles": ["my_rpi"],
+                "archi": "rpi3:at86rf233",
+                "site": "grenoble",
+                "number": 2,
+            }
+        ]
+    },
 }
 
 conf = Configuration.from_dictionary(provider_conf)

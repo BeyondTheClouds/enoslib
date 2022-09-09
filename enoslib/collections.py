@@ -14,6 +14,7 @@ class ResourcesSet(MutableSet):
     you the first resource in the *alphebetical order* not the first inserted
     machine as you'd expect with a regular list.
     """
+
     def __init__(self, iterable: Iterable = None):
         self.data = set()
         if iterable:
@@ -26,8 +27,7 @@ class ResourcesSet(MutableSet):
         return key in self.data
 
     def __iter__(self):
-        for item in self.data:
-            yield item
+        yield from self.data
 
     def __len__(self):
         return len(self.data)
@@ -102,6 +102,7 @@ class RolesDict(UserDict):
     order* associated with the tag ``tag``(not the first inserted machine as
     you'd expect with a regular list).
     """
+
     inner = ResourcesSet
 
     # TODO XXX: should we deduplicate the object that we're adding on different

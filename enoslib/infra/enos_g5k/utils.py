@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from enoslib.log import getLogger
 
 logger = getLogger(__name__, ["G5k"])

@@ -107,7 +107,7 @@ Other Publications (using or citing EnOSlib)
   EnosStack: A LAMP-like stack for the experimenter. In proceedings of the IEEE
   International Conference on Computer Communications (INFOCOM WKSHPS), Honolulu (HI), USA, April 2018.
 
-- Daniele Santoro, Daniel Zozin, Daniele Pizzolli, Francesco de Pellegrini, Silvio Cretti. 
+- Daniele Santoro, Daniel Zozin, Daniele Pizzolli, Francesco de Pellegrini, Silvio Cretti.
   Foggy: A Platform for Workload Orchestration in a Fog Computing Environment.
   In proceedings of the 9th IEEE International Conference on Cloud Computing Technology and Science (CloudCom), Hong Kong, China, December 2017.
 

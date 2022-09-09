@@ -8,23 +8,26 @@ from . import EnosTest
 class TestRoles(EnosTest):
     def test_roles(self):
         r = Roles()
-        initial_id = id(r)       
+        initial_id = id(r)
 
         r["a"] = [Host("1.2.3.4")]
         self.assertCountEqual([Host("1.2.3.4")], r["a"])
         self.assertEqual(initial_id, id(r), "Insertion doesn't change the id")
 
-        
         r = Roles()
         initial_id = id(r)
 
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r["a"])
-        self.assertEqual(initial_id, id(r), "Extending a key doesn't change the id of the Roles")
+        self.assertEqual(
+            initial_id, id(r), "Extending a key doesn't change the id of the Roles"
+        )
 
         view_id = id(r["a"])
         r["a"] += [Host("1.2.3.6")]
-        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertCountEqual(
+            [Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"]
+        )
         self.assertEqual(view_id, id(r["a"]), "View's ids aren't changed when using +=")
 
         r = Roles()
@@ -32,20 +35,30 @@ class TestRoles(EnosTest):
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         view_id = id(r["a"])
         r["a"].extend([Host("1.2.3.6")])
-        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using extend")
+        self.assertCountEqual(
+            [Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"]
+        )
+        self.assertEqual(
+            view_id, id(r["a"]), "View's id aren't changed when using extend"
+        )
 
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         view_id = id(r["a"])
         r["a"].add(Host("1.2.3.6"))
-        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
+        self.assertCountEqual(
+            [Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"]
+        )
         self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using add")
-        
+
         r["a"] += [Host("1.2.3.4"), Host("1.2.3.5")]
         view_id = id(r["a"])
         r["a"].append(Host("1.2.3.6"))
-        self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"])
-        self.assertEqual(view_id, id(r["a"]), "View's id aren't changed when using append")
+        self.assertCountEqual(
+            [Host("1.2.3.4"), Host("1.2.3.5"), Host("1.2.3.6")], r["a"]
+        )
+        self.assertEqual(
+            view_id, id(r["a"]), "View's id aren't changed when using append"
+        )
 
     def test_roles_init_with_duplicates(self):
         r = Roles(tag1=[Host("1.2.3.4"), Host("1.2.3.5")], tag2=[Host("1.2.3.4")])
@@ -53,7 +66,6 @@ class TestRoles(EnosTest):
         self.assertCountEqual([Host("1.2.3.4")], r["tag1"] & r["tag2"])
         self.assertCountEqual([Host("1.2.3.5")], r["tag1"] - r["tag2"])
         self.assertCountEqual([Host("1.2.3.5")], r["tag1"] ^ r["tag2"])
-
 
     def test_roles__add__(self):
         r1 = Roles()
@@ -66,8 +78,11 @@ class TestRoles(EnosTest):
         r1 += r2
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
         self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
-
+        self.assertEqual(
+            id_r1_a,
+            id(r1["a"]),
+            "Values' id is mutated in place when using += on roles",
+        )
 
     def test_roles__iadd__(self):
         r1 = Roles()
@@ -80,8 +95,12 @@ class TestRoles(EnosTest):
         r1 += r2
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
         self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
-    
+        self.assertEqual(
+            id_r1_a,
+            id(r1["a"]),
+            "Values' id is mutated in place when using += on roles",
+        )
+
     def test_roles_extend(self):
         r1 = Roles()
         r1["a"] = [Host("1.2.3.4")]
@@ -93,8 +112,11 @@ class TestRoles(EnosTest):
         r1.extend(r2)
         self.assertCountEqual([Host("1.2.3.4"), Host("1.2.3.5")], r1["a"])
         self.assertEqual(id_r1, id(r1), "Roles' id is mutated in place when using +=")
-        self.assertEqual(id_r1_a, id(r1["a"]), "Values' id is mutated in place when using += on roles")
-
+        self.assertEqual(
+            id_r1_a,
+            id(r1["a"]),
+            "Values' id is mutated in place when using += on roles",
+        )
 
     def test_hostview(self):
         hs1 = HostsView([Host("1.2.3.4")])
@@ -106,7 +128,7 @@ class TestRoles(EnosTest):
 
         hs.remove(Host("1.2.3.4"))
         self.assertCountEqual([Host("1.2.3.5")], hs)
-    
+
 
 class TestEqHosts(EnosTest):
     @staticmethod
@@ -147,7 +169,7 @@ class TestEqHosts(EnosTest):
 
         h1 = TestEqHosts._make_host()
         h2 = TestEqHosts._make_host()
-        h2.net_devices = set([NetDevice(name="eth0")])
+        h2.net_devices = {NetDevice(name="eth0")}
         self.assertEqual(
             h1.__hash__(),
             h2.__hash__(),
@@ -188,12 +210,10 @@ class TestEqHosts(EnosTest):
 
         self.assertDictEqual(
             {"original_key": "new_value"},
-            h.set_extra(original_key="new_value").get_extra())
-
-        self.assertDictEqual(
-            extra,
-            h.reset_extra().get_extra()
+            h.set_extra(original_key="new_value").get_extra(),
         )
+
+        self.assertDictEqual(extra, h.reset_extra().get_extra())
 
     def test_dont_remove_special_host(self):
         localhost = LocalHost()
@@ -202,12 +222,13 @@ class TestEqHosts(EnosTest):
         self.assertDictEqual(extra, localhost.reset_extra().get_extra())
 
         docker = DockerHost("test", "container", Host("1.2.3.4"))
-        extra = dict(ansible_connection="docker",
-                     ansible_docker_extra_args="-H ssh://1.2.3.4",
-                     mitogen_via="1.2.3.4")
+        extra = dict(
+            ansible_connection="docker",
+            ansible_docker_extra_args="-H ssh://1.2.3.4",
+            mitogen_via="1.2.3.4",
+        )
         self.assertDictEqual(extra, docker.get_extra())
         self.assertDictEqual(extra, docker.reset_extra().get_extra())
-
 
 
 class TestFilterAddresses(EnosTest):
@@ -218,7 +239,7 @@ class TestFilterAddresses(EnosTest):
         )
 
         h1 = Host("1.2.3.4")
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set())])
+        h1.net_devices = {NetDevice(name="eth0", addresses=set())}
         self.assertCountEqual(
             [],
             h1.filter_addresses(),
@@ -227,7 +248,7 @@ class TestFilterAddresses(EnosTest):
 
         h1 = Host("1.2.3.4")
         address = IPAddress("1.2.3.4", None)
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = {NetDevice(name="eth0", addresses={address})}
         self.assertCountEqual(
             [],
             h1.filter_addresses(),
@@ -243,7 +264,7 @@ class TestFilterAddresses(EnosTest):
 
         h1 = Host("1.2.3.4")
         address = IPAddress("1.2.3.4", DefaultNetwork(address="1.2.3.0/24"))
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = {NetDevice(name="eth0", addresses={address})}
         self.assertCountEqual(
             [address],
             h1.filter_addresses(),
@@ -254,7 +275,7 @@ class TestFilterAddresses(EnosTest):
         h1 = Host("1.2.3.4")
         network = DefaultNetwork(address="1.2.3.0/24")
         address = IPAddress("1.2.3.4", network)
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = {NetDevice(name="eth0", addresses={address})}
         self.assertCountEqual(
             [address],
             h1.filter_addresses([network]),
@@ -266,7 +287,7 @@ class TestFilterAddresses(EnosTest):
         network = DefaultNetwork(address="1.2.3.0/24")
         network2 = DefaultNetwork(address="1.2.4.0/24")
         address = IPAddress("1.2.3.4", network)
-        h1.net_devices = set([NetDevice(name="eth0", addresses=set([address]))])
+        h1.net_devices = {NetDevice(name="eth0", addresses={address})}
         self.assertCountEqual(
             [],
             h1.filter_addresses([network2]),
@@ -279,9 +300,7 @@ class TestFilterAddresses(EnosTest):
         network2 = DefaultNetwork(address="1.2.4.0/24")
         address = IPAddress("1.2.3.4", network)
         address2 = IPAddress("1.2.4.4", network2)
-        h1.net_devices = set(
-            [NetDevice(name="eth0", addresses=set([address, address2]))]
-        )
+        h1.net_devices = {NetDevice(name="eth0", addresses={address, address2})}
         self.assertCountEqual(
             [address],
             h1.filter_addresses([network]),

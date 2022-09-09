@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from itertools import groupby
 from enoslib.errors import NegativeWalltime
 import logging
@@ -42,5 +40,6 @@ def offset_from_format(date_str: str, offset: int, fmt: str):
 def _date2h(timestamp):
     # TODO(msimonin) use isoformat
     import time
+
     t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
     return t

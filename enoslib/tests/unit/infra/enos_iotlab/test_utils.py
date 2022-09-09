@@ -39,9 +39,9 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        4 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 1,
                     "nodes": ["test-id.siteTest"],
                 }
@@ -107,9 +107,9 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        4 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": ["test-id.siteTest"],
                 },
@@ -162,25 +162,25 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        4 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": [
                         "test-id.siteTest",
                     ],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        0 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": ["test-id2.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        4 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": [
                         "test-id2.siteTest",
@@ -245,16 +245,16 @@ class TestIotStuffs(EnosTest):
         experiments_status = {
             "items": [
                 {
-                    "start_date": datetime.fromtimestamp(4 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        4 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": ["test-id.siteTest"],
                 },
                 {
-                    "start_date": datetime.fromtimestamp(0 * 60, tz=timezone.utc).strftime(
-                        "%Y-%m-%dT%H:%M:%SZ"
-                    ),
+                    "start_date": datetime.fromtimestamp(
+                        0 * 60, tz=timezone.utc
+                    ).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "submitted_duration": 4,
                     "nodes": ["test-id2.siteTest"],
                 },

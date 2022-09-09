@@ -3,9 +3,9 @@
   hosts: dev
   become: yes
   pre_tasks:
-  - selinux: state=disabled
-  - shell: setenforce 0
+    - selinux: state=disabled
+    - shell: setenforce 0
   roles:
-  - role: elasticsearch
-  - role: orientdb
-  - role: skydive_dev
+    - role: elasticsearch
+    - role: orientdb
+    - role: skydive_dev

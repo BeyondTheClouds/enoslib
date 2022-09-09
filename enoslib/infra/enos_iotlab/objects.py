@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from typing import List, Optional
 import socket
 
@@ -250,7 +249,7 @@ class IotlabSerial:
         with play_on(
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
         ) as p:
-            cmd = "screen -dm bash -c 'serial_aggregator -l %s,%s > %s 2>&1'" % (
+            cmd = "screen -dm bash -c 'serial_aggregator -l {},{} > {} 2>&1'".format(
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
                 self._filename,
@@ -267,7 +266,7 @@ class IotlabSerial:
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
             on_error_continue=True,
         ) as p:
-            cmd = "pkill -f 'serial_aggregator -l %s,%s > %s 2>&1'" % (
+            cmd = "pkill -f 'serial_aggregator -l {},{} > {} 2>&1'".format(
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
                 self._filename,
@@ -370,7 +369,7 @@ class IotlabSniffer:
         with play_on(
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
         ) as p:
-            cmd = "sniffer_aggregator -l %s,%s -o %s" % (
+            cmd = "sniffer_aggregator -l {},{} -o {}".format(
                 self.sensor.site,
                 self.sensor.alias.replace("-", ","),
                 self._filename,

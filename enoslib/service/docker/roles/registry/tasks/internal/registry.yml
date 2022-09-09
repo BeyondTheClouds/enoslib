@@ -1,7 +1,7 @@
 ---
 - include_tasks: ceph.yml
   when: registry.type == 'internal'
-        and registry.ceph is defined
-        and registry.ceph
+    and registry.ceph is defined
+    and registry.ceph
 
 - include_tasks: ../install_registry.yml

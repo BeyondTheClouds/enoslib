@@ -230,7 +230,7 @@ class TPGMonitoring(Service):
         ui: Host = None,
         networks: List[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
-        backup_dir: Optional[Path] = None
+        backup_dir: Optional[Path] = None,
     ):
         """Deploy a TPG stack: Telegraf, Prometheus, Grafana.
 

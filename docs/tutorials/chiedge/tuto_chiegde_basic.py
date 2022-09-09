@@ -32,9 +32,9 @@ provider_conf = {
                     "name": "cli-container",
                     "image": "ubuntu",
                 },
-            }
+            },
         ],
-    }
+    },
 }
 
 conf = en.ChameleonEdgeConf.from_dictionnary(provider_conf)
@@ -43,11 +43,11 @@ provider = en.ChameleonEdge(conf)
 try:
     # get testbed resources
     roles, networks = provider.init()
-    print('*' * 40 + f"roles{type(roles)} = {roles}")
-    print('*' * 40 + f"networks{type(networks)} = {networks}")
+    print("*" * 40 + f"roles{type(roles)} = {roles}")
+    print("*" * 40 + f"networks{type(networks)} = {networks}")
     for role, devices in roles.items():
         for device in devices:
-            print('*' * 20 + f" role[{role}] / device[{device.uuid}]")
+            print("*" * 20 + f" role[{role}] / device[{device.uuid}]")
 
     # experiment logic
     # Running commands on devices (commands, upload, and download)
@@ -55,19 +55,19 @@ try:
     result = en.run_command(command="ls -la /tmp/", roles=roles)
     # You should use: "execute", "upload", or "download"
     for device in roles["server"]:
-        print('*' * 60 + f" Running command inside a running container: ls -la /tmp/")
+        print("*" * 60 + f" Running command inside a running container: ls -la /tmp/")
         dir_content = device.execute("ls -la /tmp/")
         print(f"Directory content = {dir_content['output']}")
 
-        print('*' * 60 + f" Uploading files to a running container")
-        cmd_upload = device.upload('./files-to-upload/', '/tmp')
+        print("*" * 60 + f" Uploading files to a running container")
+        cmd_upload = device.upload("./files-to-upload/", "/tmp")
         print(f"cmd_upload={cmd_upload}")
 
-        print('*' * 60 + f" Running command inside a running container: ls -la /tmp/")
+        print("*" * 60 + f" Running command inside a running container: ls -la /tmp/")
         dir_content = device.execute("ls -la /tmp/")
         print(f"Directory content = {dir_content['output']}")
 
-        print('*' * 60 + f" Downloading files from a running container")
+        print("*" * 60 + f" Downloading files from a running container")
         print("Download files")
         device.download("/tmp", "./downloaded-files/")
 

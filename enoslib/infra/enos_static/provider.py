@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.infra.provider import Provider
 
@@ -26,7 +24,8 @@ class Static(Provider):
                         keyfile=machine.keyfile,
                         port=machine.port,
                         extra=machine.extra,
-                )]
+                    )
+                ]
 
         networks = Networks()
         for n in self.provider_conf.networks:

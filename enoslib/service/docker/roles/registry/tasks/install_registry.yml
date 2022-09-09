@@ -13,7 +13,7 @@
       REGISTRY_PROXY_REMOTEURL: https://registry-1.docker.io
       REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /mnt/registry
     volumes:
-      - '/mnt/registry:/mnt/registry'
+      - "/mnt/registry:/mnt/registry"
 
 - name: Waiting for the registry service to become available
   wait_for:
