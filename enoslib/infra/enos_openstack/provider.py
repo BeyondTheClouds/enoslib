@@ -487,7 +487,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     roles = Roles()
     for os_role, servers in os_roles.items():
         for server in servers:
-            roles.setdefault(os_role, []).append(
+            roles[os_roles] += [
                 Host(
                     server.addresses[network_name][0]["addr"],
                     # NOTE(msimonin): the alias is used by ansible and thus
@@ -496,7 +496,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
                     user=provider_conf.user,
                     extra=extra,
                 )
-            )
+            ]
 
     # build the network
     extra_ips = extra_ips or []
@@ -506,17 +506,15 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     for role in provider_conf.networks:
         # NOTE(msimonin): we need to support extra_ips in the Network Model
         # I drop this for now
-        networks.update(
-            role=[
-                OSNetwork(
-                    env["subnet"]["cidr"],
-                    env["subnet"]["gateway_ip"],
-                    "8.8.8.8",
-                    str(net[100]),
-                    str(net[-3]),
-                )
-            ]
-        )
+        networks[role] += [
+            OSNetwork(
+                env["subnet"]["cidr"],
+                env["subnet"]["gateway_ip"],
+                "8.8.8.8",
+                str(net[100]),
+                str(net[-3]),
+            )
+        ]
 
     return roles, networks
 
