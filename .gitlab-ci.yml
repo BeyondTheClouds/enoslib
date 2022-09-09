@@ -8,6 +8,7 @@ workflow:
     - when: always
 
 stages:
+  - precheck
   - test
   - functionnal
   - package
@@ -17,6 +18,20 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   TZ: Europe/Paris
   GIT_SUBMODULE_STRATEGY: normal
+
+###############################################################################
+#
+#                             PRECHECK STAGE
+#
+###############################################################################
+precheck:
+  image: python:3.9
+  stage: precheck
+  tags: [ci.inria.fr]
+  script:
+    - pip install pre-commit
+    - pre-commit run
+
 
 ###############################################################################
 #
