@@ -18,6 +18,11 @@ def source_credentials_from_rc_file(rc_file):
                 if key in ["OS_AUTH_TYPE", "OS_AUTH_URL", "OS_REGION_NAME"]:
                     logger.debug(f"{key}={os.environ[key]}")
     site = os.environ["OS_REGION_NAME"].replace('"', "")
+    # The following avoids:
+    # Unauthorized: Error authenticating with application credential:
+    # Application credentials cannot request a scope: 'OS_PROJECT_NAME'.
+    if os.environ["OS_AUTH_TYPE"] in ["v3applicationcredential"]:
+        os.environ['OS_PROJECT_NAME'] = ''
     try:
         yield site
     except Exception as e:

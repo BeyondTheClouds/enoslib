@@ -1,12 +1,16 @@
 import os
 import logging
 from typing import List, Tuple
-from .constants import ROLES, ROLES_SEPARATOR, CONTAINER_LABELS
-from enoslib.infra.enos_chameleonedge.chi_api_utils import check_connection_to_api
 from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.objects import Networks, Roles
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
 from enoslib.infra.provider import Provider
+from .chi_api_utils import (
+    get_node_address,
+    get_node_roles,
+    get_node_uuid,
+    check_connection_to_api,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -78,47 +82,20 @@ class ChameleonEdge(Provider):
 
         return roles, networks
 
-    @staticmethod
-    def from_api_resources_to_enoslib_chameleon_device(concrete_resources, rc_file):
+    def from_api_resources_to_enoslib_chameleon_device(
+            self, concrete_resources, rc_file):
         devices = []
         for node in concrete_resources:
+            node = self.client.get_container(node.uuid)
             devices.append(
                 ChameleonDevice(
-                    address=ChameleonEdge.get_node_address(node)[0],
-                    roles=ChameleonEdge.get_node_roles(node),
-                    uuid=ChameleonEdge.get_node_uuid(node),
+                    address=get_node_address(node)[0],
+                    roles=get_node_roles(node),
+                    uuid=get_node_uuid(node),
                     rc_file=rc_file,
                 )
             )
         return devices
-
-    @staticmethod
-    def get_node_address(node):
-        addrs = []
-        if hasattr(node, "addresses"):
-            addresses = getattr(node, "addresses")
-            for (
-                k,
-                v,
-            ) in addresses.items():
-                for ip in v:
-                    addrs.append(ip["addr"])
-        return addrs
-
-    @staticmethod
-    def get_node_uuid(node):
-        uuid = None
-        if hasattr(node, "uuid"):
-            uuid = getattr(node, "uuid")
-        return uuid
-
-    @staticmethod
-    def get_node_roles(node):
-        roles = None
-        if hasattr(node, CONTAINER_LABELS):
-            container_roles = getattr(node, CONTAINER_LABELS)
-            roles = container_roles[ROLES].split(ROLES_SEPARATOR)
-        return roles
 
     def destroy(self, wait=False):
         """Release testbed resources."""

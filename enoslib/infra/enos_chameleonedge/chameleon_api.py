@@ -10,8 +10,9 @@ from enoslib.infra.enos_chameleonedge.configuration import (
     DeviceClusterConfiguration,
     DeviceConfiguration,
 )
-from enoslib.infra.enos_chameleonedge.chi_api_utils import (
+from .chi_api_utils import (
     source_credentials_from_rc_file,
+    wait_for_addresses,
 )
 from .constants import (
     ROLES,
@@ -93,7 +94,12 @@ class ChameleonAPI:
                     logger.info(
                         container.wait_for_active(concrete_resource.uuid).status
                     )
+                    wait_for_addresses(concrete_resource.uuid)
         return self.concrete_resources
+
+    @staticmethod
+    def get_container(container_ref):
+        return container.get_container(container_ref)
 
     @staticmethod
     def get_containers_by_lease_id(lease_id: str):
