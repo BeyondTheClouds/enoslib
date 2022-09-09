@@ -30,7 +30,7 @@ precheck:
   tags: [ci.inria.fr]
   script:
     - pip install pre-commit
-    - pre-commit run
+    - pre-commit run --all-files
 
 
 ###############################################################################
