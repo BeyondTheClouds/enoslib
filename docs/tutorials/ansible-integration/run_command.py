@@ -1,9 +1,6 @@
-import json
-import logging
-
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging()
 
 provider_conf = {
     "backend": "libvirt",

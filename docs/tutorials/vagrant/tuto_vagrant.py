@@ -1,8 +1,7 @@
-import logging
+import enoslib as en
 
-from enoslib import *
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging()
 
 provider_conf = {
     "resources": {
@@ -23,8 +22,8 @@ provider_conf = {
 }
 
 # claim the resources
-conf = VagrantConf.from_dictionnary(provider_conf)
-provider = Vagrant(conf)
+conf = en.VagrantConf.from_dictionnary(provider_conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
 print(roles)
 print(networks)

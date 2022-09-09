@@ -21,9 +21,9 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - vpp
-    - vpp-devel
-    - vpp-api-python
+     - vpp
+     - vpp-devel
+     - vpp-api-python
 
 - service:
     name: vpp

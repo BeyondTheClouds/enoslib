@@ -1,8 +1,7 @@
 ---
 - name: "Installing the rpmfusion repo packages"
-  dnf:
-    name=['http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm']
-    state=present
+  dnf: name=['http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_version }}.noarch.rpm']
+       state=present
 
 - name: "Install copr dnf plugin"
   package:

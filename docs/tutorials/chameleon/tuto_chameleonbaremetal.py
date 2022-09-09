@@ -1,8 +1,6 @@
-import logging
+import enoslib as en
 
-from enoslib import *
-
-logging.basicConfig(level=logging.INFO)
+en.init_logging()
 
 provider_conf = {
     "key_name": "enos_matt",
@@ -30,15 +28,15 @@ tc = {
     "default_delay": "20ms",
     "default_rate": "1gbit",
 }
-conf = CBMConf.from_dictionnary(provider_conf)
-provider = CBM(conf)
+conf = en.CBMConf.from_dictionnary(provider_conf)
+provider = en.CBM(conf)
 
 roles, networks = provider.init()
 
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
 # Experimentation logic starts here
-with play_on(roles=roles) as p:
+with en.actions(roles=roles) as p:
     # flent requires python3, so we default python to python3
     p.apt_repository(
         repo="deb http://deb.debian.org/debian stretch main    contrib non-free",
@@ -50,10 +48,10 @@ with play_on(roles=roles) as p:
         state="present",
     )
 
-with play_on(pattern_hosts="server", roles=roles) as p:
+with en.actions(pattern_hosts="server", roles=roles) as p:
     p.shell("nohup netperf &")
 
-with play_on(pattern_hosts="client", roles=roles) as p:
+with en.actions(pattern_hosts="client", roles=roles) as p:
     p.shell(
         "flent rrul -p all_scaled "
         + "-l 60 "

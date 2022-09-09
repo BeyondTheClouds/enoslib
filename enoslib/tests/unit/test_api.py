@@ -5,7 +5,6 @@ from unittest import mock
 from . import EnosTest
 from enoslib.api import (
     CommandResult,
-    STATUS_FAILED,
     actions,
     get_hosts,
     wait_for,

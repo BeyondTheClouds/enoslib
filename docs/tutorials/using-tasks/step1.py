@@ -1,6 +1,6 @@
 import logging
 
-from enoslib import *
+import enoslib as en
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,14 +32,14 @@ tc = {
 
 
 # claim the resources
-conf = VagrantConf.from_dictionnary(provider_conf)
+conf = en.VagrantConf.from_dictionnary(provider_conf)
 
-provider = Vagrant(conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
 
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
-netem = NetemHTB(tc, roles=roles)
+netem = en.NetemHTB(tc, roles=roles)
 # apply network constraints
 netem.deploy()
 

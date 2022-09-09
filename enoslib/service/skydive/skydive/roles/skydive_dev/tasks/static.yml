@@ -3,13 +3,13 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - glibc-static
-    - xz-static
-    - zlib-static
-    - flex
-    - bison
-    - byacc
-    - libxml2-static
+     - glibc-static
+     - xz-static
+     - zlib-static
+     - flex
+     - bison
+     - byacc
+     - libxml2-static
 - shell: |
     cd /tmp
     rm -rf libpcap

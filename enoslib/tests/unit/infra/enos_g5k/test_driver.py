@@ -1,7 +1,13 @@
 from unittest import mock
 import unittest
 
-from enoslib.infra.enos_g5k.driver import *
+from enoslib.infra.enos_g5k.driver import (
+    OargridDynamicDriver,
+    OargridStaticDriver,
+    get_driver,
+)
+
+from enoslib.infra.enos_g5k.configuration import Configuration
 
 
 class TestGetDriver(unittest.TestCase):

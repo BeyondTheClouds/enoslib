@@ -1,4 +1,3 @@
-from enoslib.api import gather_facts
 import logging
 
 import enoslib as en

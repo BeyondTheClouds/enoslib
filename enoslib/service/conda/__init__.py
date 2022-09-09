@@ -1,3 +1,4 @@
+# flake8: noqa
 from .conda import (
     _Conda,
     Dask,

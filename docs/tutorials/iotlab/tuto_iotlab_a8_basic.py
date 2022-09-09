@@ -5,7 +5,6 @@ from enoslib.infra.enos_iotlab.configuration import Configuration
 
 import logging
 import sys
-import time
 import json
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)

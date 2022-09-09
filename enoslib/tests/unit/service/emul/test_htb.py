@@ -48,7 +48,7 @@ class TestGeneratedCommands(EnosTest):
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
                 "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms",
-                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",
+                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",  # noqa
             ],
             nc.commands(1),
         )
@@ -68,8 +68,8 @@ class TestGeneratedCommands(EnosTest):
         self.assertCountEqual(
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
-                "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms loss 0.5%",
-                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",
+                "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms loss 0.5%",  # noqa
+                "tc filter add dev eth0 parent 1: protocol ip u32 match ip dst 1.1.1.2 flowid 1:2",  # noqa
             ],
             nc.commands(1),
         )
@@ -90,7 +90,7 @@ class TestGeneratedCommands(EnosTest):
             [
                 "tc class add dev eth0 parent 1: classid 1:2 htb rate 10gbit",
                 "tc qdisc add dev eth0 parent 1:2 handle 11: netem delay 10ms",
-                "tc filter add dev eth0 parent 1: protocol ipv6 u32 match ip6 dst 2001:660:4406:700:1::d flowid 1:2",
+                "tc filter add dev eth0 parent 1: protocol ipv6 u32 match ip6 dst 2001:660:4406:700:1::d flowid 1:2",  # noqa
             ],
             nc.commands(1),
         )

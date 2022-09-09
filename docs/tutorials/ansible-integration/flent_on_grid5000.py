@@ -1,6 +1,5 @@
 import enoslib as en
 from pathlib import Path
-import logging
 
 
 logging = en.init_logging()

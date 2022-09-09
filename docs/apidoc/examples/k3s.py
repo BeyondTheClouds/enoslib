@@ -1,15 +1,12 @@
-import logging
+import enoslib as en
 
-from enoslib import *
-
-
-logging.basicConfig(level=logging.INFO)
+en.init_logging()
 
 # claim the resources
-network = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
+network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
 
 conf = (
-    G5kConf.from_settings(job_type="allow_classic_ssh", job_name="k3s")
+    en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name="k3s")
     .add_network_conf(network)
     .add_machine(
         roles=["master"], cluster="paravance", nodes=1, primary_network=network
@@ -21,10 +18,10 @@ conf = (
 )
 
 
-provider = G5k(conf)
+provider = en.G5k(conf)
 # Get actual resources
 roles, networks = provider.init()
 
 
-k3s = K3s(master=roles["master"], agent=roles["agent"])
+k3s = en.K3s(master=roles["master"], agent=roles["agent"])
 k3s.deploy()

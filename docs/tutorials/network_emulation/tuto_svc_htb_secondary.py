@@ -1,9 +1,8 @@
-import logging
 from pathlib import Path
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging()
 
 CLUSTER = "paravance"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)

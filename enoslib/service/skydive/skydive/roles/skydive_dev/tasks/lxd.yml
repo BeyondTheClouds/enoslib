@@ -15,11 +15,11 @@
 
 - lineinfile:
     path: /etc/subuid
-    line: "root:1000000:65536"
+    line: 'root:1000000:65536'
 
 - lineinfile:
     path: /etc/subgid
-    line: "root:1000000:65536"
+    line: 'root:1000000:65536'
 
 - shell: |
     grubby --args="user_namespace.enable=1" --update-kernel="$(grubby --default-kernel)"

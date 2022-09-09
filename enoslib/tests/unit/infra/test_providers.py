@@ -1,15 +1,11 @@
-import unittest
 from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch, call
+from unittest.mock import Mock, patch, call
 
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
     NoSlotError,
 )
-from enoslib.infra.enos_g5k.provider import G5k
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
@@ -38,8 +34,9 @@ class TestFindSlot(EnosTest):
     @freeze_time("1970-01-01 00:00:00", auto_tick_seconds=10)
     def test_synchronized_reservation(self):
 
-        # now() is used now so that the time ticks forward by 10 seconds when providers.init()
-        # will be called, simulating the time a request would take
+        # now() is used now so that the time ticks forward by 10 seconds when
+        # providers.init() will be called, simulating the time a request would
+        # take
         datetime.now()
 
         host1 = Host("dummy-host1")
@@ -87,6 +84,7 @@ class TestFindSlot(EnosTest):
             [call([], 0, 300), call([], 60, 240)]
         )
 
+    # in winter Europe/Paris is UTC+1
     @freeze_time("1970-01-01 00:00:00", auto_tick_seconds=10)
     @patch(
         "enoslib.infra.providers.find_slot_and_start",

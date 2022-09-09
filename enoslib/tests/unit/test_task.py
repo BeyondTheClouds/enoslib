@@ -1,11 +1,9 @@
 from contextlib import contextmanager
 from pathlib import Path
-from unittest.mock import patch, mock_open
-import unittest
+from unittest.mock import patch
 import tempfile
 import os
 import yaml
-import pytest
 
 from ddt import ddt, data
 
@@ -29,7 +27,6 @@ def into_tmp_dir():
 
 
 def create_env(env_name, symlink=True):
-    env_file = Path(env_name).joinpath(ENV_FILENAME)
     env = Environment(Path(env_name))
     if symlink:
         _symlink_to(Path(env_name))
@@ -82,7 +79,7 @@ class TestGetOrCreateEnvironment(EnosTest):
 
     @dir_with_env("xp1")
     def test_reload_default(self, dir, env):
-        p = SYMLINK_NAME.joinpath(ENV_FILENAME)
+        _ = SYMLINK_NAME.joinpath(ENV_FILENAME)
         actual_env = get_or_create_env(False, None)
         # we got two different objects here
         self.assertEqual(env.env_name, actual_env.env_name)
@@ -102,7 +99,7 @@ class TestGetOrCreateEnvironment(EnosTest):
     @dir_without_env
     def test_reload_reload_not_existing(self, dir_without_env):
         with self.assertRaises(EnosFilePathError) as _:
-            actual_env = get_or_create_env(False, None)
+            _ = get_or_create_env(False, None)
 
     @dir_without_env
     def test_reload_manage_several_env(self, dir_without_env):

@@ -1,6 +1,5 @@
 from collections import namedtuple
 from datetime import datetime, timezone
-from typing import List
 from freezegun import freeze_time
 import yaml
 
@@ -17,7 +16,6 @@ from enoslib.infra.enos_iotlab.configuration import BoardConfiguration
 from enoslib.infra.enos_iotlab.configuration import Configuration as IOTConfig
 from enoslib.infra.enos_iotlab.configuration import PhysNodeConfiguration
 from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.provider import Provider
 from enoslib.infra.providers import (
     find_slot,
     find_slot_and_start,
@@ -176,7 +174,8 @@ def parse_iot_status_experiments(status: str) -> dict:
                     walltime = 0
 
         if start_time != -1:
-            # handle the case we're at the end of the line and thus we don't have any transition "*" -> "-"
+            # handle the case we're at the end of the line and thus we don't
+            # have any transition "*" -> "-"
             experiments_status["items"].append(
                 {
                     "start_date": datetime.fromtimestamp(
@@ -271,9 +270,6 @@ class TestFindSlot(EnosTest):
 
     @freeze_time("1970-01-01 00:00:00")
     def test_start_provider_within_bounds(self):
-        host = Host("dummy-host1")
-        network = DefaultNetwork("10.0.0.1/24")
-
         provider = Mock()
 
         start_provider_within_bounds(provider, 80)
@@ -361,9 +357,6 @@ class TestFindSlot(EnosTest):
     @freeze_time("1970-01-01 00:00:00", auto_tick_seconds=60)
     @patch("enoslib.infra.providers.find_slot", return_value=0)
     def test_find_slot_and_start(self, patch_find_slot):
-        host1 = Host("dummy-host1")
-        network1 = DefaultNetwork("10.0.0.1/24")
-
         provider1 = Mock()
         provider1.is_created.return_value = False
         with patch(
@@ -378,9 +371,6 @@ class TestFindSlot(EnosTest):
         return_side_effect=[0, 120],
     )
     def test_find_slot_and_start_init_failed(self, mock_find_slot):
-        host1 = Host("dummy-host1")
-        network1 = DefaultNetwork("10.0.0.1/24")
-
         provider1 = Mock()
         provider1.is_created.return_value = False
         with patch(

@@ -1,13 +1,12 @@
-import logging
 import traceback
-from operator import itemgetter
 from pathlib import Path
 from typing import Dict
 
 from execo_engine import ParamSweeper, sweep
-from enoslib import *
 
-logging.basicConfig(level=logging.DEBUG)
+import enoslib as en
+
+en.init_logging()
 
 CLUSTER = "paranoia"
 
@@ -22,16 +21,16 @@ def bench(parameter: Dict) -> None:
     """
     nb_vms = parameter["nb_vms"]
     conf = (
-        VMonG5kConf.from_settings(force_deploy=True)
+        en.VMonG5kConf.from_settings(force_deploy=True)
         .add_machine(roles=["server"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
         .add_machine(roles=["client"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
         .finalize()
     )
 
-    provider = VMonG5k(conf)
+    provider = en.VMonG5k(conf)
 
     roles, networks = provider.init()
-    roles = sync_info(roles, networks)
+    roles = en.sync_info(roles, networks)
 
     servers = roles["server"]
     clients = roles["client"]
@@ -39,9 +38,7 @@ def bench(parameter: Dict) -> None:
     for s, c in zip(servers, clients):
         c.extra.update(target=s.address)
 
-    ensure_python3(roles=roles)
-
-    with play_on(roles=roles) as p:
+    with en.actions(roles=roles) as p:
         p.apt_repository(
             repo="deb http://deb.debian.org/debian stretch main contrib non-free",
             state="present",
@@ -57,16 +54,16 @@ def bench(parameter: Dict) -> None:
             state="present",
         )
 
-    with play_on(pattern_hosts="server", roles=roles) as p:
+    with en.action(pattern_hosts="server", roles=roles) as p:
         p.shell("tmux new-session -d 'exec netperf'")
 
     delay = parameter["delay"]
     if delay is not None:
         tc = dict(default_delay=delay, default_rate="10gbit", enabled=True)
-        netem = Netem(tc, roles=roles)
+        netem = en.Netem(tc, roles=roles)
         netem.deploy()
     output = f"tcp_upload_{nb_vms}_{delay}"
-    with play_on(pattern_hosts="client", roles=roles) as p:
+    with en.actions(pattern_hosts="client", roles=roles) as p:
         p.shell(
             "flent tcp_upload -p totals "
             + "-l 60 "
@@ -92,7 +89,7 @@ while parameter:
         print(parameter)
         bench(parameter)
         sweeper.done(parameter)
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
         sweeper.skip(parameter)
     finally:

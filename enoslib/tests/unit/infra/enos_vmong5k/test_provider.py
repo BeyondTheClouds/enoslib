@@ -1,4 +1,3 @@
-from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork, G5kSubnetNetwork
 from unittest import mock
 
 from enoslib.objects import Host

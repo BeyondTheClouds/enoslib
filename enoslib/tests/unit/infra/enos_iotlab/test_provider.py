@@ -799,7 +799,8 @@ class TestProfiles(EnosTest):
             my_m.shell.assert_has_calls(
                 [
                     mock.call(
-                        "cd .iot-lab/; tar --ignore-command-error -czf 666-{{ inventory_hostname }}.tar.gz 666/"
+                        "cd .iot-lab/; tar --ignore-command-error "
+                        "-czf 666-{{ inventory_hostname }}.tar.gz 666/"
                     ),
                     mock.call(
                         "cd .iot-lab/; rm -f 666-{{ inventory_hostname }}.tar.gz"
@@ -811,9 +812,7 @@ class TestProfiles(EnosTest):
     def test_offset_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00"
-        with patch.object(
-            Configuration, "finalize", return_value=conf
-        ) as patch_finalize:
+        with patch.object(Configuration, "finalize", return_value=conf) as _:
             provider = Iotlab(conf)
             provider.offset_walltime(-3600)
             self.assertEqual(provider.provider_conf.walltime, "01:00")
@@ -821,9 +820,7 @@ class TestProfiles(EnosTest):
     def test_offset_walltime_negative_walltime(self):
         conf = Configuration()
         conf.walltime = "02:00"
-        with patch.object(
-            Configuration, "finalize", return_value=conf
-        ) as patch_finalize:
+        with patch.object(Configuration, "finalize", return_value=conf) as _:
             provider = Iotlab(conf)
             with self.assertRaises(NegativeWalltime):
                 provider.offset_walltime(-7200)

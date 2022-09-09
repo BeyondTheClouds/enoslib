@@ -437,4 +437,6 @@ class TestToEnoslib(EnosTest):
     #     provider.networks = [G5kProdNetwork(["tag1", "tag2"], "id1" , "rennes")]
 
     #     _, networks = provider._to_enoslib()
-    #     self.assertEqual(id(networks["tag1"][0]), id(networks["tag2"][0]), "Host refs aren't duplicated in roles")
+    #     self.assertEqual(id(networks["tag1"][0]),
+    #  id(networks["tag2"][0]),
+    # "Host refs aren't duplicated in roles")

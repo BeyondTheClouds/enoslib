@@ -1,6 +1,4 @@
-from unittest import mock
 from unittest.mock import patch
-import os
 
 
 from enoslib.infra.enos_g5k.g5k_api_utils import _deploy, _do_grid_make_reservation
@@ -14,7 +12,6 @@ class TestDeploy(EnosTest):
             m.assert_not_called()
 
     def test_deploy_max_count(self):
-        deploy = mock.Mock()
         with patch("enoslib.infra.enos_g5k.g5k_api_utils.deploy") as m:
             deployed, undeployed = _deploy("rennes", [], [], 4, {})
             m.assert_not_called()
@@ -23,7 +20,7 @@ class TestDeploy(EnosTest):
         with patch(
             "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
             side_effect=[([1], [2]), ([2], [])],
-        ) as m:
+        ) as _:
             deployed, undeployed = _deploy("rennes", [], [1, 2], 0, {})
             self.assertCountEqual([1, 2], deployed)
             self.assertCountEqual([], undeployed)
@@ -32,7 +29,7 @@ class TestDeploy(EnosTest):
         with patch(
             "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
             side_effect=[([1], [2]), ([], [2]), ([], [2])],
-        ) as m:
+        ) as _:
             deployed, undeployed = _deploy("rennes", [], [1, 2], 0, {})
             self.assertCountEqual([1], deployed)
             self.assertCountEqual([2], undeployed)

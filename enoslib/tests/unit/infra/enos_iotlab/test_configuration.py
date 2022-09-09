@@ -1,10 +1,8 @@
-import pytest
 from jsonschema.exceptions import ValidationError
 from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     BoardConfiguration,
     PhysNodeConfiguration,
-    ProfileConfiguration,
     RadioConfiguration,
     ConsumptionConfiguration,
 )

@@ -1,4 +1,3 @@
-from pathlib import Path
 import time
 
 import enoslib as en

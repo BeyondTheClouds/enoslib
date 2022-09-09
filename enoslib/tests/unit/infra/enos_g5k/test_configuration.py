@@ -75,7 +75,7 @@ class TestConfiguration(EnosTest):
             }
         }
         with self.assertRaises(ValidationError):
-            conf = Configuration.from_dictionnary(d)
+            _ = Configuration.from_dictionnary(d)
 
     def test_from_dictionnary_invalid_hostname(self):
         d = {
@@ -266,7 +266,7 @@ class TestConfiguration(EnosTest):
             }
         }
 
-        with self.assertRaises(ValueError) as ctx:
+        with self.assertRaises(ValueError) as _:
             Configuration.from_dictionnary(d)
 
     def test_from_dictionnary_unbound_secondary_networks(self):
@@ -293,7 +293,7 @@ class TestConfiguration(EnosTest):
             }
         }
 
-        with self.assertRaises(ValueError) as ctx:
+        with self.assertRaises(ValueError) as _:
             Configuration.from_dictionnary(d)
 
     @patch(

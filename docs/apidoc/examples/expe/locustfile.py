@@ -1,4 +1,3 @@
-from pathlib import Path
 import time
 from locust import User, task, between, events
 

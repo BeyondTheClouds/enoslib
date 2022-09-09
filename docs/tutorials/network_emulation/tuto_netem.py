@@ -1,15 +1,16 @@
-import logging
 from pathlib import Path
 
-from enoslib import *
+import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging()
 
 job_name = Path(__file__).name
 
-prod_network = G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
+prod_network = en.G5kNetworkConf(
+    id="n1", type="prod", roles=["my_network"], site="rennes"
+)
 conf = (
-    G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
+    en.G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
     .add_network_conf(prod_network)
     .add_machine(
         roles=["city", "paris"],
@@ -31,15 +32,15 @@ conf = (
     )
     .finalize()
 )
-provider = G5k(conf)
+provider = en.G5k(conf)
 roles, networks = provider.init()
 
 sources = []
 for idx, host in enumerate(roles["city"]):
     delay = 5 * idx
     print(f"{host.alias} <-> {delay}")
-    inbound = NetemOutConstraint(device="br0", options=f"delay {delay}ms")
-    outbound = NetemInConstraint(device="br0", options=f"delay {delay}ms")
-    sources.append(NetemInOutSource(host, constraints=[inbound, outbound]))
+    inbound = en.NetemOutConstraint(device="br0", options=f"delay {delay}ms")
+    outbound = en.NetemInConstraint(device="br0", options=f"delay {delay}ms")
+    sources.append(en.NetemInOutSource(host, constraints=[inbound, outbound]))
 
-netem(sources)
+en.netem(sources)

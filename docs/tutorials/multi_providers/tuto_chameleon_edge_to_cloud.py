@@ -80,11 +80,11 @@ for device in roles["client"]:
 
 logging.info("Running experiment for 600 secs...")
 time.sleep(600)
-# How to check execution?
-# ssh to the Cloud server: ssh cc@<floating_ip>
-# cc@<floating_ip>:~# tail -f /tmp/predict.log
-# you may also check mosquitto topic (mosquitto_sub_img.py downloads images received in running dir):
-# (venv) drosendo@frennes:~$ python mosquitto_sub_img.py --topic edge_data --mqtt_broker 192.5.87.127
+# How to check execution?  ssh to the Cloud server: ssh cc@<floating_ip>
+# cc@<floating_ip>:~# tail -f /tmp/predict.log you may also check mosquitto
+# topic (mosquitto_sub_img.py downloads images received in running dir):
+
+# $) python mosquitto_sub_img.py --topic edge_data --mqtt_broker 192.5.87.127
 
 # Releasing resources from Chameleon Cloud and Edge
 logging.info("Releasing resources.")

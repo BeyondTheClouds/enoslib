@@ -87,10 +87,11 @@ with g5k.firewall(hosts=roles["server"], port=[1883], src_addr=None, proto="tcp+
             f"bash {dest_dir}/artifacts_edge/edge_worker.sh edge_data 100 {floating_ip}"
         )
 
-    # How to check execution?
-    # firewall rule: https://api.grid5000.fr/stable/sites/rennes/firewall/1909896
-    # ssh to the Cloud server: ssh root@paravance-40.rennes.grid5000.fr
-    # root@paravance-40:~# tail -f /tmp/predict.log
-    # you may also check mosquitto topic (mosquitto_sub_img.py downloads images received in running dir):
-    # (venv) drosendo@frennes:~$ python mosquitto_sub_img.py --topic edge_data --mqtt_broker 2001:660:4406:700:1::28
-    # (venv) drosendo@grenoble:~$ python mosquitto_sub_img.py --topic edge_data --mqtt_broker 2001:660:4406:700:1::28
+    # How to check execution?  firewall rule:
+    # https://api.grid5000.fr/stable/sites/rennes/firewall/1909896 ssh to the
+    # Cloud server: ssh root@paravance-40.rennes.grid5000.fr
+    # root@paravance-40:~# tail -f /tmp/predict.log you may also check mosquitto
+    # topic (mosquitto_sub_img.py downloads images received in running dir):
+
+    # $ python mosquitto_sub_img.py --topic edge_data --mqtt_broker <IPv6>
+    # $ python mosquitto_sub_img.py --topic edge_data --mqtt_broker <IPv6>

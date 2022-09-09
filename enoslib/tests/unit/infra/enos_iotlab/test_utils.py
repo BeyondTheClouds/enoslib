@@ -1,4 +1,3 @@
-from cmath import exp
 from datetime import timezone
 from enoslib.infra.enos_iotlab import iotlab_api
 from enoslib.infra.enos_iotlab.configuration import (

@@ -1,5 +1,3 @@
-from ipaddress import ip_interface, ip_network
-from enoslib.errors import *
 from enoslib.objects import (
     BridgeDevice,
     Host,
@@ -25,7 +23,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",
+            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",  # noqa
             line,
         )
 
@@ -35,7 +33,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "alias ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",
+            "alias ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",  # noqa
             line,
         )
 
@@ -45,7 +43,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='foo'",
+            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' ansible_ssh_user='foo'",  # noqa
             line,
         )
 
@@ -55,7 +53,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "1.2.3.4 ansible_host=1.2.3.4 ansible_port='2222' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",
+            "1.2.3.4 ansible_host=1.2.3.4 ansible_port='2222' ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'",  # noqa
             line,
         )
 
@@ -65,7 +63,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 4.3.2.1\"'",
+            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 4.3.2.1\"'",  # noqa
             line,
         )
 
@@ -75,7 +73,7 @@ class TestGenerateInventoryString(EnosTest):
         ini = enos_inventory.to_ini_string()
         line = _find_host_line(ini, "r1")
         self.assertEqual(
-            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l foo 4.3.2.1\"' ansible_ssh_user='foo'",
+            "1.2.3.4 ansible_host=1.2.3.4 ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -l foo 4.3.2.1\"' ansible_ssh_user='foo'",  # noqa
             line,
         )
 

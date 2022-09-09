@@ -3,6 +3,6 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - libpcap
-    - libvirt-libs
-    - libxml2
+     - libpcap
+     - libvirt-libs
+     - libxml2

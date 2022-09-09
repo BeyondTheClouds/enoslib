@@ -1,8 +1,7 @@
-import logging
+import enoslib as en
 
-from enoslib import *
+en.init_logging()
 
-logging.basicConfig(level=logging.INFO)
 
 provider_conf = {
     "backend": "libvirt",
@@ -31,28 +30,28 @@ tc = {
 }
 
 
-@enostask(new=True)
+@en.enostask(new=True)
 def up(force=True, env=None, **kwargs):
     "Starts a new experiment"
-    conf = VagrantConf.from_dictionnary(provider_conf)
-    provider = Vagrant(conf)
+    conf = en.VagrantConf.from_dictionnary(provider_conf)
+    provider = en.Vagrant(conf)
     roles, networks = provider.init()
-    roles = sync_info(roles, networks)
+    roles = en.sync_info(roles, networks)
     env["roles"] = roles
     env["networks"] = networks
 
 
-@enostask()
+@en.enostask()
 def emulate(env=None, **kwargs):
     roles = env["roles"]
-    netem = NetemHTB(tc, roles=roles)
+    netem = en.NetemHTB(tc, roles=roles)
     netem.deploy()
 
 
-@enostask()
+@en.enostask()
 def validate(env=None, **kwargs):
     roles = env["roles"]
-    netem = NetemHTB(tc, roles=roles)
+    netem = en.NetemHTB(tc, roles=roles)
     netem.validate()
 
 

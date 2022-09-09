@@ -1,12 +1,10 @@
-import logging
+import enoslib as en
 
-from enoslib import *
+en.init_logging()
 
-
-logging.basicConfig(level=logging.INFO)
 
 conf = (
-    VagrantConf()
+    en.VagrantConf()
     .add_machine(roles=["control"], flavour="tiny", number=1)
     .add_machine(roles=["compute"], flavour="tiny", number=1)
     .add_network(roles=["mynetwork"], cidr="192.168.42.0/24")
@@ -14,13 +12,13 @@ conf = (
 )
 
 # claim the resources
-provider = Vagrant(conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
 
 # generate an inventory compatible with ansible
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 
-s = Skydive(analyzers=roles["control"], agents=roles["compute"] + roles["control"])
+s = en.Skydive(analyzers=roles["control"], agents=roles["compute"] + roles["control"])
 s.deploy()
 
 ui_address = roles["control"][0].address

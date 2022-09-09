@@ -8,7 +8,7 @@
     - libmnl-devel
     - libibverbs-devel
 - git:
-    repo: "http://dpdk.org/git/dpdk"
+    repo: 'http://dpdk.org/git/dpdk'
     dest: /usr/local/src/dpdk
     version: v19.05
 - shell: |

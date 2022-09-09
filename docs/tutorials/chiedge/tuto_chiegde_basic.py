@@ -55,19 +55,19 @@ try:
     result = en.run_command(command="ls -la /tmp/", roles=roles)
     # You should use: "execute", "upload", or "download"
     for device in roles["server"]:
-        print("*" * 60 + f" Running command inside a running container: ls -la /tmp/")
+        print("*" * 60 + " Running command inside a running container: ls -la /tmp/")
         dir_content = device.execute("ls -la /tmp/")
         print(f"Directory content = {dir_content['output']}")
 
-        print("*" * 60 + f" Uploading files to a running container")
+        print("*" * 60 + " Uploading files to a running container")
         cmd_upload = device.upload("./files-to-upload/", "/tmp")
         print(f"cmd_upload={cmd_upload}")
 
-        print("*" * 60 + f" Running command inside a running container: ls -la /tmp/")
+        print("*" * 60 + " Running command inside a running container: ls -la /tmp/")
         dir_content = device.execute("ls -la /tmp/")
         print(f"Directory content = {dir_content['output']}")
 
-        print("*" * 60 + f" Downloading files from a running container")
+        print("*" * 60 + " Downloading files from a running container")
         print("Download files")
         device.download("/tmp", "./downloaded-files/")
 

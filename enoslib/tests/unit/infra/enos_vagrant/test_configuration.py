@@ -29,8 +29,8 @@ class TestConfiguration(EnosTest):
             "backend": "virtualbox",
             "resources": {"machines": [{"roles": ["role1"]}], "networks": []},
         }
-        with self.assertRaises(ValidationError) as e:
-            conf = Configuration.from_dictionnary(d)
+        with self.assertRaises(ValidationError):
+            _ = Configuration.from_dictionnary(d)
 
     def test_programmatic(self):
         conf = Configuration()

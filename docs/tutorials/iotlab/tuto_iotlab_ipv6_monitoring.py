@@ -1,11 +1,8 @@
-from enoslib import *
-
-import logging
-import sys
 import time
 from ipaddress import IPv6Network
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+import enoslib as en
+
 
 # IoT-LAB provider configuration
 iotlab_dict = {
@@ -21,8 +18,8 @@ iotlab_dict = {
         ]
     },
 }
-iotlab_conf = IotlabConf.from_dictionary(iotlab_dict)
-iotlab_provider = Iotlab(iotlab_conf)
+iotlab_conf = en.IotlabConf.from_dictionary(iotlab_dict)
+iotlab_provider = en.Iotlab(iotlab_conf)
 
 g5k_dict = {
     "job_type": "allow_classic_ssh",
@@ -47,8 +44,8 @@ g5k_dict = {
         ],
     },
 }
-g5k_conf = G5kConf.from_dictionnary(g5k_dict)
-g5k_provider = G5k(g5k_conf)
+g5k_conf = en.G5kConf.from_dictionnary(g5k_dict)
+g5k_provider = en.G5k(g5k_conf)
 
 
 try:
@@ -56,10 +53,10 @@ try:
     g5k_roles, g5k_networks = g5k_provider.init()
 
     print("Enabling IPv6 on Grid'5000 nodes")
-    run_command("dhclient -6 br0", roles=g5k_roles)
+    en.run_command("dhclient -6 br0", roles=g5k_roles)
 
-    g5k_roles = sync_info(g5k_roles, g5k_networks)
-    iotlab_roles = sync_info(iotlab_roles, iotlab_networks)
+    g5k_roles = en.sync_info(g5k_roles, g5k_networks)
+    iotlab_roles = en.sync_info(iotlab_roles, iotlab_networks)
 
     print("Deploy monitoring stack on Grid'5000")
     print("Install Grafana and Prometheus at: %s" % str(g5k_roles["control"]))
@@ -74,7 +71,7 @@ try:
             if isinstance(n.network, net_type)
         ]
 
-    m = TPGMonitoring(
+    m = en.TPGMonitoring(
         collector=g5k_roles["control"][0],
         agent=g5k_roles["compute"] + iotlab_roles["a8"],
         ui=g5k_roles["control"][0],

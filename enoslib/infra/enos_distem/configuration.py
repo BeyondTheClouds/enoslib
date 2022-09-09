@@ -11,6 +11,7 @@ from .constants import (
     DEFAULT_FORCE_DEPLOY,
     FLAVOURS,
 )
+from enoslib.object import Host
 from .schema import SCHEMA
 
 

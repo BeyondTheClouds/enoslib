@@ -3,11 +3,11 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - unzip
-    - wget
-    - automake
-    - autoconf
-    - libtool
+     - unzip
+     - wget
+     - automake
+     - autoconf
+     - libtool
 - shell: |
     mkdir -p /tmp/protoc
     cd /tmp/protoc

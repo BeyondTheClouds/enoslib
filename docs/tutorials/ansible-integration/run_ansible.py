@@ -1,8 +1,7 @@
-import logging
+import enoslib as en
 
-from enoslib import *
+en.init_logging()
 
-logging.basicConfig(level=logging.DEBUG)
 
 provider_conf = {
     "resources": {
@@ -22,9 +21,9 @@ provider_conf = {
     }
 }
 
-conf = VagrantConf.from_dictionnary(provider_conf)
-provider = Vagrant(conf)
+conf = en.VagrantConf.from_dictionnary(provider_conf)
+provider = en.Vagrant(conf)
 roles, networks = provider.init()
 
-result = run_ansible(["site.yml"], roles=roles)
+result = en.run_ansible(["site.yml"], roles=roles)
 print(result)

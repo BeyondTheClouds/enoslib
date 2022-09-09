@@ -1,7 +1,5 @@
 import copy
 from enoslib.infra.enos_g5k.provider import (
-    G5kSubnetNetwork,
-    G5kVlanNetwork,
     _concretize_networks,
     _concretize_nodes,
     _join,
@@ -14,12 +12,10 @@ from enoslib.infra.enos_g5k.configuration import (
 )
 
 from ddt import ddt, data
-from unittest import mock
 
 from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
 from enoslib.infra.enos_g5k.constants import (
-    KAVLAN,
     NATURE_PROD,
     PROD,
     PROD_VLAN_ID,
@@ -73,10 +69,6 @@ class TestConcretizeNetwork(EnosTest):
         )
 
     def test_act_subnets_not_enough(self):
-        _networks = [
-            {"site": "rennes", "network": "10.156.%s.0/22" % i, "nature": "slash_22"}
-            for i in range(33)
-        ]
         oar_networks = [
             OarNetwork(site="rennes", nature="slash_22", descriptor=f"10.156.{i}.0/22")
             for i in range(33)
@@ -290,9 +282,7 @@ class TestBuildReservationCriteria(EnosTest):
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
     def test_only_machines_one_site_one_servers(self):
-        resources = {
-            "machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"]}]
-        }
+        _ = {"machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"]}]}
         c = ServersConfiguration(roles=["role1"], servers=["foo-1.site1.grid5000.fr"])
 
         criteria = g5k_api_utils._build_reservation_criteria([c], [])
@@ -309,7 +299,8 @@ class TestBuildReservationCriteria(EnosTest):
         self.assertDictEqual(
             {
                 "site1": [
-                    "{network_address='foo-1.site1.grid5000.fr'}/nodes=1+{network_address='foo-2.site1.grid5000.fr'}/nodes=1"
+                    "{network_address='foo-1.site1.grid5000.fr'}/nodes=1"
+                    "+{network_address='foo-2.site1.grid5000.fr'}/nodes=1"
                 ]
             },
             criteria,
