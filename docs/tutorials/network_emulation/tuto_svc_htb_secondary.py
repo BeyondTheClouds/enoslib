@@ -2,7 +2,7 @@ from pathlib import Path
 
 import enoslib as en
 
-en.init_logging()
+logging = en.init_logging()
 
 CLUSTER = "paravance"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)

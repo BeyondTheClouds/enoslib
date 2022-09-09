@@ -83,7 +83,8 @@ class ChameleonEdge(Provider):
         return roles, networks
 
     def from_api_resources_to_enoslib_chameleon_device(
-            self, concrete_resources, rc_file):
+        self, concrete_resources, rc_file
+    ):
         devices = []
         for node in concrete_resources:
             node = self.client.get_container(node.uuid)

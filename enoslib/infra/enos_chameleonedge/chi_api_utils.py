@@ -35,8 +35,8 @@ def get_node_address(node):
     if hasattr(node, "addresses"):
         addresses = getattr(node, "addresses")
         for (
-                k,
-                v,
+            k,
+            v,
         ) in addresses.items():
             for ip in v:
                 addrs.append(ip["addr"])

@@ -22,7 +22,7 @@ def source_credentials_from_rc_file(rc_file):
     # Unauthorized: Error authenticating with application credential:
     # Application credentials cannot request a scope: 'OS_PROJECT_NAME'.
     if os.environ["OS_AUTH_TYPE"] in ["v3applicationcredential"]:
-        os.environ['OS_PROJECT_NAME'] = ''
+        os.environ["OS_PROJECT_NAME"] = ""
     try:
         yield site
     except Exception as e:

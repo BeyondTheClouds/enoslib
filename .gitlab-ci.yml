@@ -32,7 +32,6 @@ precheck:
     - pip install pre-commit
     - pre-commit run --all-files
 
-
 ###############################################################################
 #
 #                             TEST STAGE
