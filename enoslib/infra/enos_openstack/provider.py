@@ -487,7 +487,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     roles = Roles()
     for os_role, servers in os_roles.items():
         for server in servers:
-            roles[os_roles] += [
+            roles[os_role] += [
                 Host(
                     server.addresses[network_name][0]["addr"],
                     # NOTE(msimonin): the alias is used by ansible and thus
