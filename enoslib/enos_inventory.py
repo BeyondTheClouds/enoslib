@@ -47,8 +47,12 @@ class EnosInventory(Inventory):
                     continue
                 self.add_host(machine.alias, group=role)
                 # let's add some variabe to that host
+                # this used to work until Ansible 2.12
                 host = self.get_host(machine.alias)
+                # this is required by Ansible 2.13 to correctly connect to the
+                # host
                 host.address = machine.address
+                host.set_variable("ansible_host", machine.address)
                 if machine.user is not None:
                     host.set_variable("ansible_ssh_user", machine.user)
                 if machine.port is not None:
