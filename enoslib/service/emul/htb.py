@@ -571,28 +571,33 @@ class AccurateNetemHTB(NetemHTB):
             assert len(host_candidates) == 1
             host = host_candidates[0]
             # Found an host
-            # we now check if there a constraint with target == dst
+            # we now check if there is a constraint with target == dst
+            # note that we can have several matching constraints here if the local
+            # host have several net devices configured
             constraints = self.sources[host].constraints
             constraints_candidates = [c for c in constraints if c.target == dst]
             if not constraints_candidates:
                 continue
-            assert len(constraints_candidates) == 1
-            # Found a constraint
-            # Let's fix it (assuming symetric rtt...)
-            # copy it
-            constraint = constraints_candidates[0]
-            c = HTBConstraint(
-                device=constraint.device,
-                target=constraint.target,
-                # FIXME(msimonin): use delay(int) + delay unit(str)
-                delay=f"{(float(constraint.delay.replace('ms', '')) - obs/2)}ms",
-                rate=constraint.rate,
-                loss=constraint.loss,
-            )
-            logger.debug(f"Fixing constraint: {constraint} -> {c}")
-            new_sources.setdefault(host, HTBSource(host))
-            new_sources[host].add_constraints([c])
-        # actually correct the internal constraints
+            # Found some constraints
+            # Note that we'll have several constraints if the current node
+            # (alias) has several net devices configured corresponding to the
+            # passed network (might be None)
+            #
+            # Let's fix all the constraints (assuming symetric rtt...)
+            for constraint in constraints_candidates:
+                c = HTBConstraint(
+                    device=constraint.device,
+                    target=constraint.target,
+                    # FIXME(msimonin): use delay(int) + delay unit(str)
+                    delay=f"{(float(constraint.delay.replace('ms', '')) - obs/2)}ms",
+                    rate=constraint.rate,
+                    loss=constraint.loss,
+                )
+                logger.debug(f"Fixing constraint: {constraint} -> {c}")
+                new_sources.setdefault(host, HTBSource(host))
+                new_sources[host].add_constraints([c])
+                # actually correct the internal constraints
+
         self.sources = new_sources
 
         return super().deploy(chunk_size=chunk_size, **kwargs)
