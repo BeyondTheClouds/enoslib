@@ -1,26 +1,23 @@
-from unittest import mock
 import tempfile
+from ipaddress import IPv4Network, IPv6Network
+from unittest import mock
 from unittest.mock import patch
+
+import ddt
+
 from enoslib.errors import NegativeWalltime
-
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
-
-from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME, PROD
 from enoslib.infra.enos_iotlab.configuration import (
-    Configuration,
     BoardConfiguration,
-    PhysNodeConfiguration,
+    Configuration,
     NetworkConfiguration,
+    PhysNodeConfiguration,
 )
-from ipaddress import (
-    IPv4Network,
-    IPv6Network,
-)
+from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME, PROD
+from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
+from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.tests.unit import EnosTest
-
 from iotlabcli.experiment import AliasNodes, exp_resources
-from iotlabcli.profile import ProfileM3, ProfileA8, ProfileCustom
+from iotlabcli.profile import ProfileA8, ProfileCustom, ProfileM3
 
 
 class TestAuthProvider(EnosTest):
@@ -48,6 +45,26 @@ class TestAuthProvider(EnosTest):
         # build a provider
         Iotlab(provider_config)
         api.assert_called_once()
+
+
+def get_one_exp(job_id=237466, name="EnOSlib2", state="Running"):
+    return {
+        "items": [
+            {
+                "id": job_id,
+                "name": name,
+                "user": "donassol",
+                "state": state,
+                "submission_date": "2020-11-30T09:58:28Z",
+                "start_date": "2020-11-30T09:58:30Z",
+                "stop_date": "1970-01-01T00:00:00Z",
+                "effective_duration": 10,
+                "submitted_duration": 120,
+                "nb_nodes": 1,
+                "scheduled_date": "2020-11-30T09:58:30Z",
+            }
+        ]
+    }
 
 
 class TestSubmit(EnosTest):
@@ -205,31 +222,6 @@ class TestSubmit(EnosTest):
             resources=[exp_resources(list_nodes)],
         )
         self.assertEqual(nodes, {})  # no roles nothing to check
-
-    @patch("iotlabcli.experiment.stop_experiment")
-    def test_destroy_not_init(self, mock_stop):
-        list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = Configuration().add_machine_conf(
-            PhysNodeConfiguration(roles=[], hostname=list_nodes)
-        )
-        # build a provider
-        p = Iotlab(provider_config)
-        p.destroy()  # nothing happens
-        mock_stop.assert_not_called()
-
-    @patch("iotlabcli.experiment.submit_experiment")
-    @patch("iotlabcli.experiment.stop_experiment")
-    def test_destroy_init(self, mock_stop, mock_submit):
-        list_nodes = ["a8-1.grenoble.iot-lab.info"]
-        provider_config = Configuration().add_machine_conf(
-            PhysNodeConfiguration(roles=[], hostname=list_nodes)
-        )
-        # build a provider
-        mock_submit.return_value = {"id": 666}
-        p = Iotlab(provider_config)
-        p.init()
-        p.destroy()
-        mock_stop.assert_called_with(api=mock.ANY, exp_id=666)
 
     @patch("iotlabcli.experiment.submit_experiment")
     def test_deploy_with_network(self, mock_submit):
@@ -616,6 +608,22 @@ class TestProfiles(EnosTest):
 
     @patch("iotlabcli.rest.Api")
     def test_del_profile(self, mock_api):
+        one_profile = [
+            {
+                "nodearch": "m3",
+                "power": "dc",
+                "profilename": "test_profile",
+                "radio": {
+                    "channels": [11, 14],
+                    "mode": "rssi",
+                    "num_per_channel": 1,
+                    "period": 1,
+                },
+            }
+        ]
+
+        mock_api.return_value.get_profiles.side_effect = [[], one_profile]
+
         d = {
             "resources": {
                 "machines": [
@@ -647,6 +655,9 @@ class TestProfiles(EnosTest):
         p = Iotlab(conf)
         nodes, _ = p.init()
         p.destroy()
+        # profiles are reloaded anyway
+        get_profiles_count = mock_api.return_value.get_profiles.call_count
+        self.assertEqual(2, get_profiles_count)
         mock_api.return_value.del_profile.assert_called_with(name="test_profile")
 
     @patch("iotlabcli.rest.Api")
@@ -824,3 +835,112 @@ class TestProfiles(EnosTest):
             provider = Iotlab(conf)
             with self.assertRaises(NegativeWalltime):
                 provider.offset_walltime(-7200)
+
+
+@ddt.ddt
+class TestDestroy(EnosTest):
+    def setUp(self):
+        # initialize common mocks for tests
+        mock_api = mock.patch("iotlabcli.rest.Api").start()
+        mock_api.return_value = None
+
+        mock_auth = mock.patch("iotlabcli.auth.get_user_credentials").start()
+        mock_auth.return_value = ["test", "test"]
+
+        mock_wait = mock.patch("iotlabcli.experiment.wait_experiment").start()
+        mock_wait.return_value = None
+
+        mock_get_list = mock.patch("iotlabcli.experiment.get_experiments_list").start()
+        mock_get_list.return_value = {"items": []}
+
+        mock_wait_a8 = mock.patch("iotlabsshcli.open_linux.wait_for_boot").start()
+        mock_wait_a8.return_value = {"wait-for-boot": {"0": [], "1": []}}
+
+        mock_get = mock.patch("iotlabcli.experiment.get_experiment").start()
+        mock_get.return_value = {
+            "items": [
+                {
+                    "site": "grenoble",
+                    "archi": "a8:at86rf231",
+                    "uid": "b564",
+                    "x": "20.33",
+                    "state": "Alive",
+                    "network_address": "a8-1.grenoble.iot-lab.info",
+                    "z": "2.63",
+                    "production": "YES",
+                    "y": "25.28",
+                    "mobile": "0",
+                    "mobility_type": " ",
+                    "camera": None,
+                }
+            ]
+        }
+
+    def tearDown(self):
+        mock.patch.stopall()
+
+    @patch("iotlabcli.experiment.get_experiments_list")
+    @patch("iotlabcli.experiment.stop_experiment")
+    @patch("iotlabcli.rest.Api")
+    def test_destroy_not_init(self, mock_api, mock_stop, mock_exp_list):
+        list_nodes = ["a8-1.grenoble.iot-lab.info"]
+        provider_config = Configuration().add_machine_conf(
+            PhysNodeConfiguration(roles=[], hostname=list_nodes)
+        )
+        # build a provider
+        p = Iotlab(provider_config)
+        p.destroy()
+        # we reload the exp list
+        mock_exp_list.assert_called_once()
+        # but it returned that no job is running
+        # so stop_experiment isn't called
+        mock_stop.assert_not_called()
+        # same for del_profile
+        mock_api.return_value.del_profile.assert_not_called()
+
+    @patch("iotlabcli.experiment.get_experiments_list")
+    @patch("iotlabcli.experiment.stop_experiment")
+    @patch("iotlabcli.rest.Api")
+    def test_destroy_wait(self, mock_api, mock_stop, mock_exp_list):
+        mock_exp_list.side_effect = [
+            get_one_exp(state="AN_ACTIVE_STATE"),
+            get_one_exp(state="AN_ACTIVE_STATE"),
+            {"items": []},
+        ]
+
+        list_nodes = ["a8-1.grenoble.iot-lab.info"]
+        provider_config = Configuration.from_settings(
+            job_name="EnOSlib2"
+        ).add_machine_conf(PhysNodeConfiguration(roles=[], hostname=list_nodes))
+        # build a provider
+        p = Iotlab(provider_config)
+        p.destroy(wait=True)
+        # we reload the exp list
+        self.assertEqual(3, mock_exp_list.call_count)
+        # but it returned that no job is running
+        # so stop_experiment isn't called
+        mock_stop.assert_called_once()
+
+    @patch("iotlabcli.experiment.get_experiments_list")
+    @patch("iotlabcli.experiment.stop_experiment")
+    @patch("iotlabcli.rest.Api")
+    def test_destroy_actually_destroys_when_active_job(
+        self, mock_api, mock_stop, mock_exp_list
+    ):
+        # as long as the api return somethin the job is considered as active
+        # otherwise the api.get_experiments_list should return nothing
+        mock_exp_list.return_value = get_one_exp(state="AN_ACTIVE_STATE")
+        list_nodes = ["a8-1.grenoble.iot-lab.info"]
+        provider_config = Configuration.from_settings(
+            job_name="EnOSlib2"
+        ).add_machine_conf(PhysNodeConfiguration(roles=[], hostname=list_nodes))
+        # build a provider
+        p = Iotlab(provider_config)
+        p.destroy()
+        # we reload the exp list
+        mock_exp_list.assert_called_once()
+        # it return one job
+        # so make sure we call stop using the same job id
+        mock_stop.assert_called_with(api=mock.ANY, exp_id=237466)
+        # there's no profile
+        mock_api.return_value.del_profile.assert_not_called()

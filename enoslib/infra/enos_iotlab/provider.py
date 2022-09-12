@@ -185,9 +185,13 @@ class Iotlab(Provider):
             p.shell("cd .iot-lab/; rm -f %s" % filename)
 
     def destroy(self, wait=False):
-        """Destroys the job and monitoring profiles"""
-        self.client.stop_experiment()
-        self.client.del_profile()
+        """Destroys the job and monitoring profiles."""
+        profiles = self.provider_conf.profiles
+
+        if not profiles:
+            profiles = []
+
+        self.client.destroy(self.provider_conf.job_name, profiles, wait=wait)
 
     def reset(self):
         """Reset all sensors."""
@@ -471,7 +475,7 @@ class Iotlab(Provider):
         self.provider_conf.walltime = new_walltime.strftime("%H:%M")
 
     def is_created(self):
-        return self.client.check_job_running(self.provider_conf.job_name) != (
+        return self.client.job_is_active(self.provider_conf.job_name) != (
             None,
             None,
         )
