@@ -308,7 +308,7 @@ class NetemHTB(BaseNetem):
         delay: str,
         rate: str,
         loss: Optional[float] = None,
-        networks: Optional[List[Network]] = None,
+        networks: Optional[Iterable[Network]] = None,
         symetric: bool = False,
     ):
         """Add some constraints.
@@ -460,7 +460,7 @@ class NetemHTB(BaseNetem):
     def validate(
         self,
         *,
-        networks: Optional[List[Network]] = None,
+        networks: Optional[Iterable[Network]] = None,
         output_dir: PathLike = None,
         **kwargs,
     ) -> Results:

@@ -28,7 +28,7 @@ class Skydive(Service):
         *,
         analyzers: Iterable[Host] = None,
         agents: Iterable[Host] = None,
-        networks: List[Network] = None,
+        networks: Iterable[Network] = None,
         priors: List[actions] = [__python3__, __docker__],
         extra_vars: Dict = None,
     ):

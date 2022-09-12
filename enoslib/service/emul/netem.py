@@ -248,7 +248,7 @@ class Netem(BaseNetem):
         options: str,
         hosts: Iterable[Host],
         symetric: bool = False,
-        networks: Optional[List[Network]] = None,
+        networks: Optional[Iterable[Network]] = None,
     ):
         for src_host in hosts:
             self.sources.setdefault(src_host, NetemInOutSource(src_host))
@@ -274,7 +274,7 @@ class Netem(BaseNetem):
         pass
 
     def validate(
-        self, networks: List[Network] = None, output_dir: PathLike = None, **kwargs
+        self, networks: Iterable[Network] = None, output_dir: PathLike = None, **kwargs
     ) -> Results:
         if output_dir is None:
             output_dir = Path.cwd() / TMP_DIRNAME

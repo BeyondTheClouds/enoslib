@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, Optional
 
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Network, Roles
@@ -20,7 +20,7 @@ LOCAL_OUTPUT_DIR_TIG = Path("__enoslib_tig__")
 LOCAL_OUTPUT_DIR_TPG = Path("__enoslib_tpg__")
 
 
-def _get_address(host: Host, networks: Optional[List[Network]]) -> str:
+def _get_address(host: Host, networks: Optional[Iterable[Network]]) -> str:
     """Auxiliary function to get the IP address for the Host
 
     Args:
@@ -52,7 +52,7 @@ class TIGMonitoring(Service):
         agent: Iterable[Host],
         *,
         ui: Host = None,
-        networks: List[Network] = None,
+        networks: Iterable[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
         backup_dir: Path = None,
         collector_env: Optional[Dict] = None,
@@ -85,7 +85,7 @@ class TIGMonitoring(Service):
                         The IP address is taken from :py:class:`enoslib.Host`, depending
                         on this parameter:
                         - None: IP address = host.address
-                        - List[Network]: Get the IP address available in
+                        - Iterable[Network]: Get the IP address available in
                         host.extra_addresses which belongs to one of these networks
                         Note that this parameter depends on calling sync_network_info to
                         fill the extra_addresses structure.
@@ -228,7 +228,7 @@ class TPGMonitoring(Service):
         agent: Iterable[Host],
         *,
         ui: Host = None,
-        networks: List[Network] = None,
+        networks: Iterable[Network] = None,
         remote_working_dir: str = "/builds/monitoring",
         backup_dir: Optional[Path] = None,
     ):
@@ -254,7 +254,7 @@ class TPGMonitoring(Service):
                         The IP address is taken from :py:class:`enoslib.Host`, depending
                         on this parameter:
                         - None: IP address = host.address
-                        - List[Network]: Get the first IP address available in
+                        - Iterable[Network]: Get the first IP address available in
                         host.extra_addresses which belongs to one of these networks
                         Note that this parameter depends on calling sync_network_info to
                         fill the extra_addresses structure.

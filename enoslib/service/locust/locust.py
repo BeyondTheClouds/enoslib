@@ -30,7 +30,7 @@ class Locust(Service):
         # deployment options
         master: Optional[Host] = None,
         workers: Optional[Iterable[Host]] = None,
-        networks: Optional[List[Network]] = None,
+        networks: Optional[Iterable[Network]] = None,
         worker_density: int = 1,
         # runtime options
         local_expe_dir: str = ".",

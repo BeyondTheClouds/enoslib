@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional
+from typing import Iterable, Optional
 from enoslib.objects import Host, Network, RolesLike, Roles
 import os
 
@@ -43,7 +43,7 @@ def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
     raise ValueError(error)
 
 
-def get_address(host: Host, networks: Optional[List[Network]] = None) -> str:
+def get_address(host: Host, networks: Optional[Iterable[Network]] = None) -> str:
     """Auxiliary function to get the IP address for the Host
 
     Args:

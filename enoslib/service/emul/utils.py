@@ -93,7 +93,7 @@ def validate_delay(
 
 def _validate(
     hosts: Iterable[Host],
-    networks: Optional[List[Network]] = None,
+    networks: Optional[Iterable[Network]] = None,
     output_dir: Optional[Union[Path, str]] = None,
     count: int = 10,
     **kwargs,

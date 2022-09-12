@@ -419,7 +419,9 @@ class NetDevice:
         return [self.name]
 
     def filter_addresses(
-        self, networks: Optional[List[Network]] = None, include_unknown: bool = False
+        self,
+        networks: Optional[Iterable[Network]] = None,
+        include_unknown: bool = False,
     ) -> List[IPAddress]:
         """Filter address based on the passed network list.
 
@@ -623,7 +625,7 @@ class Host(BaseHost):
         return self
 
     def filter_addresses(
-        self, networks: Optional[List[Network]] = None, include_unknown=False
+        self, networks: Optional[Iterable[Network]] = None, include_unknown=False
     ) -> List[IPAddress]:
         """Get some of the addresses assigned to this host.
 
@@ -647,7 +649,7 @@ class Host(BaseHost):
         return addresses
 
     def filter_interfaces(
-        self, networks: Optional[List[Network]] = None, include_unknown=False
+        self, networks: Optional[Iterable[Network]] = None, include_unknown=False
     ) -> List[str]:
         """Get some of the device interfaces.
 

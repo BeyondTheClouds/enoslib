@@ -17,7 +17,7 @@ class TCPDump(Service):
         self,
         hosts: Iterable[Host],
         ifnames: Optional[List[str]] = None,
-        networks: Optional[List[Network]] = None,
+        networks: Optional[Iterable[Network]] = None,
         options: str = "",
         backup_dir: Union[Path, str] = None,
     ):

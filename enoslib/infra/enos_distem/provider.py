@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import itertools
 import logging
 import os
-from typing import List, Optional
+from typing import Iterable, Optional
 
 import distem as d
 import pytz
@@ -30,7 +30,7 @@ def check():
 
 
 def start_containers(
-    g5k_roles: Roles, provider_conf: Configuration, g5k_subnets: List[Network]
+    g5k_roles: Roles, provider_conf: Configuration, g5k_subnets: Iterable[Network]
 ):
     """Starts containers on G5K.
 
