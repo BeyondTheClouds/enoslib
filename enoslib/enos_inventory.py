@@ -104,7 +104,8 @@ class EnosInventory(Inventory):
             s.append(f"[{role}]")
             for hostname in hostnames:
                 h = self.get_host(hostname)
-                i = [f"ansible_host={h.address}"]
+                # i = [f"ansible_host='{h.address}'"]
+                i = []
                 # NOTE(mimonin): The intend of generating an ini is because we
                 # want an inventory_file and and inventory dir set so removing
                 # those keys (None values).
