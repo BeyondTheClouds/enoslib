@@ -7,7 +7,7 @@ from enoslib.html import (
 from pathlib import Path
 import os
 from time import time_ns
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, Optional
 
 from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.objects import Host
@@ -32,7 +32,7 @@ class Dstat(Service):
     def __init__(
         self,
         *,
-        nodes: List[Host],
+        nodes: Iterable[Host],
         options: str = "-aT",
         backup_dir: Optional[Path] = None,
         extra_vars: Dict = None,

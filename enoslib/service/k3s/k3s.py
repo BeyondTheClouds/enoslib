@@ -1,5 +1,5 @@
 from enoslib.api import actions, run
-from typing import List
+from typing import Iterable
 
 from ..service import Service
 from enoslib.objects import Host, Roles
@@ -50,7 +50,7 @@ GUARD_PROXY = f"ps aux | grep '{KEY}' | grep -v '{KEY}'"
 
 
 class K3s(Service):
-    def __init__(self, master: List[Host], agent: List[Host]):
+    def __init__(self, master: Iterable[Host], agent: Iterable[Host]):
         """Deploy a single K3s cluster.
 
         Note:

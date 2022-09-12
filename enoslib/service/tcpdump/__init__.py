@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 
 from enoslib.api import play_on, bg_start, bg_stop
@@ -15,7 +15,7 @@ LOCAL_OUTPUT_DIR = "__enoslib_tcpdump__"
 class TCPDump(Service):
     def __init__(
         self,
-        hosts: List[Host],
+        hosts: Iterable[Host],
         ifnames: Optional[List[str]] = None,
         networks: Optional[List[Network]] = None,
         options: str = "",

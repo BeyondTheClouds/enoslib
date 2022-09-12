@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict
+from typing import Iterable, List, Dict
 
 from enoslib.api import (
     actions,
@@ -26,8 +26,8 @@ class Skydive(Service):
     def __init__(
         self,
         *,
-        analyzers: List[Host] = None,
-        agents: List[Host] = None,
+        analyzers: Iterable[Host] = None,
+        agents: Iterable[Host] = None,
         networks: List[Network] = None,
         priors: List[actions] = [__python3__, __docker__],
         extra_vars: Dict = None,

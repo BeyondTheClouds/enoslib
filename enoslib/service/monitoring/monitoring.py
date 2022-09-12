@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Network, Roles
@@ -49,7 +49,7 @@ class TIGMonitoring(Service):
     def __init__(
         self,
         collector: Host,
-        agent: List[Host],
+        agent: Iterable[Host],
         *,
         ui: Host = None,
         networks: List[Network] = None,
@@ -225,7 +225,7 @@ class TPGMonitoring(Service):
     def __init__(
         self,
         collector: Host,
-        agent: List[Host],
+        agent: Iterable[Host],
         *,
         ui: Host = None,
         networks: List[Network] = None,

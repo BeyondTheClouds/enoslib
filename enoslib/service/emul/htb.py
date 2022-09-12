@@ -303,8 +303,8 @@ class NetemHTB(BaseNetem):
 
     def add_constraints(
         self,
-        src: List[Host],
-        dest: List[Host],
+        src: Iterable[Host],
+        dest: Iterable[Host],
         delay: str,
         rate: str,
         loss: Optional[float] = None,

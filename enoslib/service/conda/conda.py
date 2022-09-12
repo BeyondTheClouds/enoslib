@@ -1,6 +1,6 @@
 import copy
 from textwrap import dedent as _d
-from typing import List, Optional, Any
+from typing import Iterable, List, Optional, Any
 import os
 
 from enoslib.api import actions, run
@@ -96,7 +96,7 @@ class _conda_play_on(actions):
 
 
 class _Conda(Service):
-    def __init__(self, *, nodes: List[Host]):
+    def __init__(self, *, nodes: Iterable[Host]):
         """Manage Conda on your nodes.
 
         This installs miniconda on the nodes(latest version). Optionaly it
@@ -186,7 +186,7 @@ class _Dask(Service):
     def __init__(
         self,
         scheduler: Host,
-        worker: List[Host],
+        worker: Iterable[Host],
         worker_args: str = "",
         env_file: Optional[str] = None,
     ):
@@ -335,7 +335,7 @@ class Dask(Service):
         conda_env: str,
         conda_prefix: str = None,
         scheduler: Host = None,
-        workers: List[Host] = None,
+        workers: Iterable[Host] = None,
         worker_args: str = "",
         run_as: str = "root",
     ):

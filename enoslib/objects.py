@@ -59,7 +59,7 @@ RolesNetworks = Tuple["Roles", "Networks"]
 
 # Many actions (run, actions, ...) on hosts can be fed with
 # Roles (e.g. coming from provider.init)
-# List[Host] (e.g. coming from Roles filtering)
+# Iterable[Host] (e.g. coming from Roles filtering)
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
 RolesLike = Union["Roles", Iterable["Host"], "Host"]

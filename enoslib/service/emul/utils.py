@@ -1,7 +1,7 @@
 import copy
 from ipaddress import ip_interface
 from pathlib import Path
-from typing import List, Optional, Set, Tuple, Union
+from typing import Iterable, List, Optional, Set, Tuple, Union
 from enoslib.api import run_command
 from enoslib.utils import _check_tmpdir
 import logging
@@ -76,7 +76,7 @@ def _build_commands(sources):
 
 
 def validate_delay(
-    hosts: List[Host],
+    hosts: Iterable[Host],
     all_addresses: List[str],
     count: int = 10,
     **kwargs,
@@ -92,7 +92,7 @@ def validate_delay(
 
 
 def _validate(
-    hosts: List[Host],
+    hosts: Iterable[Host],
     networks: Optional[List[Network]] = None,
     output_dir: Optional[Union[Path, str]] = None,
     count: int = 10,
@@ -117,7 +117,7 @@ def _validate(
     return results
 
 
-def _destroy(hosts: List[Host], **kwargs):
+def _destroy(hosts: Iterable[Host], **kwargs):
     logger.debug("Reset the constraints")
 
     extra_vars = kwargs.pop("extra_vars", {})

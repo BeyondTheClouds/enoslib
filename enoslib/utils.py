@@ -38,7 +38,7 @@ def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
         return Roles(all=input)
     error = (
         f"{type(input)} isn't an acceptable type for RolesLike"
-        "=Union[Roles, List[Host], Host]"
+        "=Union[Roles, Iterable[Host], Host]"
     )
     raise ValueError(error)
 

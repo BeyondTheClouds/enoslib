@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 import time
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 from enoslib.api import __python3__, actions
 from enoslib.html import (
@@ -29,7 +29,7 @@ class Locust(Service):
         self,
         # deployment options
         master: Optional[Host] = None,
-        workers: Optional[List[Host]] = None,
+        workers: Optional[Iterable[Host]] = None,
         networks: Optional[List[Network]] = None,
         worker_density: int = 1,
         # runtime options

@@ -28,7 +28,7 @@ import warnings
 from collections import UserList, defaultdict, namedtuple
 from pathlib import Path
 import sys
-from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 # These two imports are 2.9
 from ansible.executor.playbook_executor import PlaybookExecutor
@@ -1264,7 +1264,7 @@ def generate_inventory(
             f.write(_generate_inventory(_roles))
 
 
-def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
+def get_hosts(roles: Roles, pattern_hosts: str = "all") -> Iterable[Host]:
     """Get all the hosts matching the pattern.
 
     Args:

@@ -246,7 +246,7 @@ class Netem(BaseNetem):
     def add_constraints(
         self,
         options: str,
-        hosts: List[Host],
+        hosts: Iterable[Host],
         symetric: bool = False,
         networks: Optional[List[Network]] = None,
     ):

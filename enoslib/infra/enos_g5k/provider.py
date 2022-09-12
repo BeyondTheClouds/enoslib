@@ -730,7 +730,7 @@ class G5k(Provider):
     @contextmanager
     def firewall(
         self,
-        hosts: List[Host] = None,
+        hosts: Iterable[Host] = None,
         port: Optional[Union[int, List[int]]] = None,
         src_addr: Optional[Union[str, List[str]]] = None,
         proto: str = "tcp+udp",
@@ -768,7 +768,7 @@ class G5k(Provider):
 
     def fw_create(
         self,
-        hosts: List[Host] = None,
+        hosts: Iterable[Host] = None,
         port: Optional[Union[int, List[int]]] = None,
         src_addr: Optional[Union[str, List[str]]] = None,
         proto: str = "tcp+udp",
