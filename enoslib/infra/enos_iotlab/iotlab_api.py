@@ -1,5 +1,6 @@
 import re
 import sys
+import time
 from typing import Dict, List, Optional, Tuple, Set
 from urllib.error import HTTPError
 
@@ -46,9 +47,13 @@ class IotlabAPI:
         self.api = iotlabcli.rest.Api(user, passwd)
         self.user = user
         self.password = passwd
+
+        # this state can be reloaded from the conf
         self.job_id = None
         self.walltime = None
         self.profiles: Set[str] = set()
+
+        # this state depend on the previous ones
         self.nodes = []
 
     @staticmethod
@@ -154,7 +159,28 @@ class IotlabAPI:
         self.walltime = self._walltime_to_minutes(walltime)
         logger.info("Job submitted: %d", self.job_id)
 
-    def check_job_running(self, name: str) -> Tuple[int, int]:
+    def reload_resources(self, name: str):
+        # reload the job
+        self.job_id, self.walltime = self.job_is_active(name)
+
+    def reload_profiles(self, profiles_conf):
+        # reload the profiles
+        self.profiles = set()
+        for profile_conf in profiles_conf:
+            if self._check_profile_exists(profile_conf.name):
+                self.profiles.add(profile_conf.name)
+
+    def destroy(self, name: str, profiles_conf, wait=False):
+        self.reload_resources(name)
+        self.stop_experiment()
+
+        self.reload_profiles(profiles_conf)
+        self.del_profiles()
+
+        while wait and self.job_is_active(name) != (None, None):
+            time.sleep(3)
+
+    def job_is_active(self, name: str) -> Tuple[int, int]:
         """
         Check if job is already running
 
@@ -207,7 +233,7 @@ class IotlabAPI:
         Returns:
             list: List with nodes name
         """
-        self.job_id, self.walltime = self.check_job_running(name)
+        self.reload_resources(name)
         if self.job_id is None:
             self.submit_experiment(name, walltime, resources, start_time)
 
@@ -233,7 +259,7 @@ class IotlabAPI:
             raise ValueError("Can't wait on an experiment that hasn't been submitted")
 
     def stop_experiment(self):
-        """Stop experiment if it's running"""
+        """Stop experiment if it's active"""
         if self.job_id:
             logger.info("Stopping experiment id (%d)", self.job_id)
             try:
@@ -363,6 +389,7 @@ or choose other nodes"""
             "m3": iotlabcli.profile.ProfileM3,
             "custom": iotlabcli.profile.ProfileCustom,
         }
+
         if self._check_profile_exists(name):
             logger.info("Profile: %s, already exists. Skipping creation.", name)
             self.profiles.add(name)
@@ -393,7 +420,7 @@ or choose other nodes"""
         self.profiles.add(name)
         return
 
-    def del_profile(self):
+    def del_profiles(self):
         """Deletes the profiles from testbed"""
         for profile in self.profiles:
             logger.info("Deleting monitoring profile: %s", profile)
