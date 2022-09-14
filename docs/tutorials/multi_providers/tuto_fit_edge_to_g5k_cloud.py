@@ -56,9 +56,7 @@ iotlab_conf = en.IotlabConf.from_dictionnary(iotlab_conf)
 iotlab = en.Iotlab(iotlab_conf)
 
 providers = en.Providers([g5k, iotlab])
-roles, networks = providers.init(time_window=19600)
-
-g5k, iotlab = providers.providers
+roles, networks = providers.init()
 
 # Firewall rules
 with g5k.firewall(hosts=roles["server"], port=[1883], src_addr=None, proto="tcp+udp"):
