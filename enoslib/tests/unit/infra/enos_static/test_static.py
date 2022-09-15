@@ -28,7 +28,7 @@ class TestBuildResources(EnosTest):
                 },
             ],
         }
-        conf = Configuration.from_dictionnary({"resources": resources})
+        conf = Configuration.from_dictionary({"resources": resources})
         s = Static(conf)
         roles, networks = s.init()
         self.assertCountEqual(["role1", "role2"], roles.keys())

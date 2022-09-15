@@ -611,7 +611,7 @@ def can_start_on_cluster(
     them on oar.
 
     Args:
-        nodes_status: a dictionnary with all the status of the nodes as
+        nodes_status: a dictionary with all the status of the nodes as
             returned by the api (cluster status endpoint)
         number: number of node in the demand
         exact_nodes: the list of the fqdn of the machines to get
@@ -657,7 +657,7 @@ def _test_slot(
 ) -> bool:
     """
     This function test if it is possible at a specified start time to
-    make a reservation using the machines specified in machines dictionnary
+    make a reservation using the machines specified in machines dictionary
     To do so it takes clusters_status as an entry, which is the result of api calls
     to get the status of the corresponding clusters
 

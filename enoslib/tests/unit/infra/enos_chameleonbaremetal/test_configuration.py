@@ -8,9 +8,9 @@ from ... import EnosTest
 
 
 class TestConfiguration(EnosTest):
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"key_name": "test-key", "resources": {"machines": [], "networks": []}}
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_IMAGE, conf.image)
         self.assertEqual(constants.DEFAULT_USER, conf.user)
         self.assertEqual(constants.DEFAULT_NAMESERVERS, conf.dns_nameservers)

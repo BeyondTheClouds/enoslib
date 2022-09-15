@@ -35,7 +35,7 @@ inventory_path = Path.cwd() / "hosts"
 
 # we still need str instead of pathlib.Path in enoslib.api functions that uses inventory
 inventory = str(inventory_path)
-conf = en.StaticConf.from_dictionnary(provider_conf)
+conf = en.StaticConf.from_dictionary(provider_conf)
 provider = en.Static(conf)
 roles, networks = provider.init()
 en.generate_inventory(roles, networks, inventory, check_networks=True)

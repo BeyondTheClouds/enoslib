@@ -30,7 +30,7 @@ provider_conf = {
 }
 
 inventory = os.path.join(os.getcwd(), "hosts")
-conf = en.StaticConf.from_dictionnary(provider_conf)
+conf = en.StaticConf.from_dictionary(provider_conf)
 provider = en.Static(conf)
 
 roles, networks = provider.init()

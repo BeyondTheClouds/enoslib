@@ -12,9 +12,9 @@ from ... import EnosTest
 
 
 class TestConfiguration(EnosTest):
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"resources": {"machines": [], "networks": []}}
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
@@ -23,49 +23,49 @@ class TestConfiguration(EnosTest):
         self.assertEqual([], conf.machines)
         self.assertEqual([], conf.networks)
 
-    def test_from_dictionnary_some_metadatas(self):
+    def test_from_dictionary_some_metadatas(self):
         d = {
             "job_name": "test",
             "queue": "production",
             "resources": {"machines": [], "networks": []},
         }
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual("test", conf.job_name)
         self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
         self.assertEqual("production", conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
 
-    def test_from_dictionnary_job_types(self):
+    def test_from_dictionary_job_types(self):
         d = {
             "job_name": "test",
             "queue": "production",
             "job_type": "allow_classic_ssh",
             "resources": {"machines": [], "networks": []},
         }
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(["allow_classic_ssh"], conf.job_type)
 
         d["job_type"] = "bla"
         with self.assertRaises(ValidationError):
-            conf = Configuration.from_dictionnary(d)
+            conf = Configuration.from_dictionary(d)
 
         d["job_type"] = ["allow_classic_ssh"]
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(["allow_classic_ssh"], conf.job_type)
 
         d["job_type"] = ["allow_classic_ssh", "bla"]
         with self.assertRaises(ValidationError):
-            conf = Configuration.from_dictionnary(d)
+            conf = Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_invalid_walltime(self):
+    def test_from_dictionary_invalid_walltime(self):
         d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}
         with self.assertRaises(ValidationError):
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_big_walltime(self):
+    def test_from_dictionary_big_walltime(self):
         d = {"walltime": "200:00:00", "resources": {"machines": [], "networks": []}}
-        self.assertTrue(Configuration.from_dictionnary(d))
+        self.assertTrue(Configuration.from_dictionary(d))
 
     def test_missing_cluster_and_servers(self):
         d = {
@@ -75,9 +75,9 @@ class TestConfiguration(EnosTest):
             }
         }
         with self.assertRaises(ValidationError):
-            _ = Configuration.from_dictionnary(d)
+            _ = Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_invalid_hostname(self):
+    def test_from_dictionary_invalid_hostname(self):
         d = {
             "resources": {
                 "machines": [
@@ -94,7 +94,7 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValidationError):
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
     def test_servers_same_cluster(self):
         d = {
@@ -111,7 +111,7 @@ class TestConfiguration(EnosTest):
                 ],
             }
         }
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual("foo", conf.machines[0].cluster)
 
     def test_servers_different_cluster(self):
@@ -131,12 +131,12 @@ class TestConfiguration(EnosTest):
             }
         }
         with self.assertRaises(ValueError):
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
-    def test_from_dictionnary_with_machines(self, mock_get_cluster_site):
+    def test_from_dictionary_with_machines(self, mock_get_cluster_site):
         d = {
             "resources": {
                 "machines": [
@@ -153,7 +153,7 @@ class TestConfiguration(EnosTest):
             }
         }
 
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertTrue(len(conf.machines) == 1)
         self.assertTrue(len(conf.networks) == 1)
 
@@ -168,7 +168,7 @@ class TestConfiguration(EnosTest):
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
-    def test_from_dictionnary_with_machines_and_secondary_networks(
+    def test_from_dictionary_with_machines_and_secondary_networks(
         self, mock_get_cluster_site
     ):
         d = {
@@ -189,7 +189,7 @@ class TestConfiguration(EnosTest):
             }
         }
 
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertTrue(len(conf.machines) == 1)
         self.assertTrue(len(conf.networks) == 2)
 
@@ -205,7 +205,7 @@ class TestConfiguration(EnosTest):
         self.assertTrue(machine_group.secondary_networks[0] in networks)
         self.assertEqual("n2", machine_group.secondary_networks[0].id)
 
-    def test_from_dictionnary_no_network(self):
+    def test_from_dictionary_no_network(self):
         d = {
             "resources": {
                 "machines": [
@@ -221,9 +221,9 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as _:
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_unbound_network(self):
+    def test_from_dictionary_unbound_network(self):
         d = {
             "resources": {
                 "machines": [
@@ -246,9 +246,9 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as _:
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_no_secondary_networks(self):
+    def test_from_dictionary_no_secondary_networks(self):
         d = {
             "resources": {
                 "machines": [
@@ -267,9 +267,9 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as _:
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
-    def test_from_dictionnary_unbound_secondary_networks(self):
+    def test_from_dictionary_unbound_secondary_networks(self):
         d = {
             "resources": {
                 "machines": [
@@ -294,7 +294,7 @@ class TestConfiguration(EnosTest):
         }
 
         with self.assertRaises(ValueError) as _:
-            Configuration.from_dictionnary(d)
+            Configuration.from_dictionary(d)
 
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
@@ -371,7 +371,7 @@ class TestNetworkConfiguration(EnosTest):
     def test_network_minimal(self):
         n = {"id": "n1", "roles": ["r1"], "site": "siteA", "type": "prod"}
 
-        network = NetworkConfiguration.from_dictionnary(n)
+        network = NetworkConfiguration.from_dictionary(n)
         self.assertEqual("siteA", network.site)
         self.assertEqual(["r1"], network.roles)
         self.assertEqual("prod", network.type)

@@ -28,7 +28,7 @@ tc = {
     "default_delay": "20ms",
     "default_rate": "1gbit",
 }
-conf = en.CBMConf.from_dictionnary(provider_conf)
+conf = en.CBMConf.from_dictionary(provider_conf)
 provider = en.CBM(conf)
 
 roles, networks = provider.init()

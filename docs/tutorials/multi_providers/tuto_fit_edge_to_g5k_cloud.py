@@ -34,7 +34,7 @@ g5k_conf = {
         ],
     },
 }
-g5k_conf = en.G5kConf.from_dictionnary(g5k_conf)
+g5k_conf = en.G5kConf.from_dictionary(g5k_conf)
 g5k = en.G5k(g5k_conf)
 
 # Leasing resources on FIT IoT LAB
@@ -52,7 +52,7 @@ iotlab_conf = {
         ]
     },
 }
-iotlab_conf = en.IotlabConf.from_dictionnary(iotlab_conf)
+iotlab_conf = en.IotlabConf.from_dictionary(iotlab_conf)
 iotlab = en.Iotlab(iotlab_conf)
 
 providers = en.Providers([g5k, iotlab])

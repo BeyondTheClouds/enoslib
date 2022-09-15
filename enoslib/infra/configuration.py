@@ -1,9 +1,11 @@
 import logging
 import json
 from typing import Dict, Optional, Any
-from enoslib.html import html_from_dict, repr_html_check
+import warnings
 
 import jsonschema
+
+from enoslib.html import html_from_dict, repr_html_check
 
 logger = logging.getLogger(__name__)
 STATIC_FILES = "html/style.css"
@@ -30,10 +32,19 @@ class BaseConfiguration:
         self._network_cls = str
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         """Alternative constructor. Build the configuration from a
-        dictionnary."""
+        dictionary."""
         pass
+
+    @classmethod
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
     def from_settings(cls, **kwargs):
@@ -44,11 +55,11 @@ class BaseConfiguration:
         return self
 
     @classmethod
-    def validate(cls, dictionnary):
+    def validate(cls, dictionary):
         if cls._VALIDATOR is None:
-            jsonschema.validate(dictionnary, cls._SCHEMA)
+            jsonschema.validate(dictionary, cls._SCHEMA)
         else:
-            cls._VALIDATOR.validate(dictionnary)
+            cls._VALIDATOR.validate(dictionary)
 
     def to_dict(self):
         return {}

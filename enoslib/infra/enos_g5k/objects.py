@@ -640,7 +640,7 @@ class G5kHost:
 
         Args:
             extra_cond: predicate over a nic to further filter the results.
-                Here a nic is a dictionnary as returned in the API.
+                Here a nic is a dictionary as returned in the API.
 
         NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
         the api description keeps the legacy name (device key) and the new

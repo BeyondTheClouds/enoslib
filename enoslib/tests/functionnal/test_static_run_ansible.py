@@ -30,7 +30,7 @@ provider_conf = {
 }
 
 inventory = os.path.join(os.getcwd(), "hosts")
-provider = en.Static(en.StaticConf.from_dictionnary(provider_conf))
+provider = en.Static(en.StaticConf.from_dictionary(provider_conf))
 roles, networks = provider.init()
 en.generate_inventory(roles, networks, inventory, check_networks=False)
 results = en.run_ansible(["site.yml"], inventory_path=inventory, on_error_continue=True)

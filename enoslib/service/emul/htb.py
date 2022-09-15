@@ -295,7 +295,7 @@ class NetemHTB(BaseNetem):
 
         The topology can be built by add constraints iteratively with
         :py:meth:`~enoslib.service.emul.htb.NetemHTB.add_constraints` or by
-        passing a description as a dictionnary using the
+        passing a description as a dictionary using the
         :py:meth:`~enoslib.service.emul.htb.NetemHTB.from_dict` class method.
         """
         # populated later
@@ -368,7 +368,7 @@ class NetemHTB(BaseNetem):
 
     @classmethod
     def from_dict(cls, network_constraints: Dict, roles: Roles, networks: Networks):
-        """Build the service from a dictionnary describing the network topology.
+        """Build the service from a dictionary describing the network topology.
 
         Args:
             network_constraints: Dictionnay of constraints. This must conform with

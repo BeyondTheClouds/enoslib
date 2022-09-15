@@ -12,15 +12,15 @@ class Configuration(BaseConfiguration):
         self._machine_cls = MachineConfiguration
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            cls.validate(dictionary)
         self = cls()
-        _resources = dictionnary["resources"]
+        _resources = dictionary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
+        self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
+        self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
 
         self.finalize()
         return self
@@ -55,16 +55,16 @@ class MachineConfiguration:
         self.extra = extra if extra is not None else {}
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
+    def from_dictionary(cls, dictionary):
 
         return cls(
-            address=dictionnary["address"],
-            roles=dictionnary["roles"],
-            alias=dictionnary.get("alias"),
-            user=dictionnary.get("user"),
-            keyfile=dictionnary.get("keyfile"),
-            port=dictionnary.get("port"),
-            extra=dictionnary.get("extra"),
+            address=dictionary["address"],
+            roles=dictionary["roles"],
+            alias=dictionary.get("alias"),
+            user=dictionary.get("user"),
+            keyfile=dictionary.get("keyfile"),
+            port=dictionary.get("port"),
+            extra=dictionary.get("extra"),
         )
 
     def to_dict(self):
@@ -96,15 +96,15 @@ class NetworkConfiguration:
         self.dns = dns
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
+    def from_dictionary(cls, dictionary):
 
         return cls(
-            roles=dictionnary["roles"],
-            start=dictionnary.get("start"),
-            end=dictionnary.get("end"),
-            cidr=dictionnary["cidr"],
-            gateway=dictionnary["gateway"],
-            dns=dictionnary["dns"],
+            roles=dictionary["roles"],
+            start=dictionary.get("start"),
+            end=dictionary.get("end"),
+            cidr=dictionary["cidr"],
+            gateway=dictionary["gateway"],
+            dns=dictionary["dns"],
         )
 
     def to_dict(self):

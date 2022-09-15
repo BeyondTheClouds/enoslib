@@ -22,7 +22,7 @@ provider_conf = {
 }
 
 # claim the resources
-conf = en.VagrantConf.from_dictionnary(provider_conf)
+conf = en.VagrantConf.from_dictionary(provider_conf)
 provider = en.Vagrant(conf)
 roles, networks = provider.init()
 print(roles)

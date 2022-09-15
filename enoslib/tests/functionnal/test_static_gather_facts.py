@@ -25,7 +25,7 @@ provider_conf = {
     }
 }
 
-conf = en.StaticConf().from_dictionnary(provider_conf)
+conf = en.StaticConf().from_dictionary(provider_conf)
 provider = en.Static(conf)
 roles, networks = provider.init()
 result = en.gather_facts(roles=roles)

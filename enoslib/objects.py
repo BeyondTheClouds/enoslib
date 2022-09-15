@@ -342,7 +342,7 @@ class IPAddress:
         elif keys_2.issubset(d.keys()):
             return cls(f"{d['address']}/{d['prefix']}", network)
         else:
-            raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionnary")
+            raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionary")
 
     def to_dict(self):
         return dict(ip=str(self.ip))
@@ -531,7 +531,7 @@ class Host(BaseHost):
         user: user to connect with (e.g using SSH)
         keyfile: keyfile to use to authenticate (e.g when using SSH)
         port: port to connect to (e.g using SSH)
-        extra: dictionnary of options. Will be passed to Ansible as host_vars.
+        extra: dictionary of options. Will be passed to Ansible as host_vars.
             Mutation of this attribute is possible and must be performed using the
             :py:meth:`~enoslib.objects.Host.set_extra` or
             :py:meth:`~enoslib.objects.Host.reset_extra`
@@ -715,7 +715,7 @@ class Host(BaseHost):
     def _repr_html_(self, content_only=False) -> str:
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         d = self.to_dict()
-        # trick to not nest dictionnary
+        # trick to not nest dictionary
         d.pop("net_devices")
         d.pop("processor")
         sections = [dict_to_html_foldable_sections(d)]

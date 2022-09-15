@@ -34,21 +34,21 @@ class Configuration(BaseConfiguration):
         self.networks = DEFAULT_NETWORKS
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            cls.validate(dictionary)
 
         self = cls()
         for k in self.__dict__.keys():
-            v = dictionnary.get(k)
+            v = dictionary.get(k)
             if v is not None:
                 setattr(self, k, v)
 
-        _resources = dictionnary["resources"]
+        _resources = dictionary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
         self.networks = _networks
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
+        self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
 
         self.finalize()
         return self
@@ -112,28 +112,28 @@ class MachineConfiguration:
         self.undercloud = undercloud if undercloud else []
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
+    def from_dictionary(cls, dictionary):
         kwargs = {}
-        roles = dictionnary["roles"]
+        roles = dictionary["roles"]
         kwargs.update(roles=roles)
 
-        flavour = dictionnary.get("flavour")
+        flavour = dictionary.get("flavour")
         if flavour is not None:
             kwargs.update(flavour=flavour)
-        flavour_desc = dictionnary.get("flavour_desc")
+        flavour_desc = dictionary.get("flavour_desc")
         if flavour_desc is not None:
             kwargs.update(flavour_desc=flavour_desc)
 
-        number = dictionnary.get("number")
-        number = dictionnary.get("number")
+        number = dictionary.get("number")
+        number = dictionary.get("number")
         if number is not None:
             kwargs.update(number=number)
 
-        cluster = dictionnary["cluster"]
+        cluster = dictionary["cluster"]
         if cluster is not None:
             kwargs.update(cluster=cluster)
 
-        undercloud = dictionnary.get("undercloud")
+        undercloud = dictionary.get("undercloud")
         if undercloud is not None:
             undercloud = [Host.from_dict(h) for h in undercloud]
             kwargs.update(undercloud=undercloud)

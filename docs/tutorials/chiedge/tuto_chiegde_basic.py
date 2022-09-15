@@ -37,7 +37,7 @@ provider_conf = {
     },
 }
 
-conf = en.ChameleonEdgeConf.from_dictionnary(provider_conf)
+conf = en.ChameleonEdgeConf.from_dictionary(provider_conf)
 provider = en.ChameleonEdge(conf)
 
 try:

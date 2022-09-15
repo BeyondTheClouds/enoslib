@@ -41,7 +41,7 @@ def cli():
 @en.enostask(new=True)
 def up(force, env=None, **kwargs):
     """Starts a new experiment using vagrant"""
-    conf = en.VagrantConf.from_dictionnary(provider_conf)
+    conf = en.VagrantConf.from_dictionary(provider_conf)
     provider = en.Vagrant(conf)
     roles, networks = provider.init(force_deploy=force)
     roles = en.sync_info(roles, networks)

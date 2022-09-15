@@ -24,7 +24,7 @@ provider_conf = {
 
 tc = {"enable": True, "default_delay": "20ms", "default_rate": "1gbit"}
 inventory = os.path.join(os.getcwd(), "hosts")
-conf = Configuration.from_dictionnary(provider_conf)
+conf = Configuration.from_dictionary(provider_conf)
 provider = Openstack(conf)
 roles, networks = provider.init()
 roles = sync_info(roles, networks)

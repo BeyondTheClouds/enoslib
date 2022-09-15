@@ -466,7 +466,7 @@ or choose other nodes"""
 
 def get_candidates(nodes_status: Dict) -> Dict:
     """
-    Takes a dictionnary with the status of all the nodes as returned by the api and
+    Takes a dictionary with the status of all the nodes as returned by the api and
     returns the functionning ones (Alive or Busy) indexed by their network_address(fqn)
     """
     candidates = {}
@@ -481,12 +481,12 @@ def get_free_nodes(
     candidates: Dict, experiments_status: Dict, start: int, walltime: int
 ) -> Dict:
     """
-    Takes a dictionnary with all functionning nodes, all experiments status,
+    Takes a dictionary with all functionning nodes, all experiments status,
     a start timestamp and a walltime and return all free nodes on that period of time
 
     Args:
-        candidates: All functionning nodes in a dictionnary
-        experiments_status: All experiments and their status in a dictionnary
+        candidates: All functionning nodes in a dictionary
+        experiments_status: All experiments and their status in a dictionary
         start: start timestamp
         walltime: length required
 
@@ -532,9 +532,9 @@ def test_slot(
 
     Args:
         conf: an iotlab configuration object
-        nodes_status: a dictionnary with all the status of the nodes as
+        nodes_status: a dictionary with all the status of the nodes as
             returned by the api
-        experiment_status: a dictionnary with all the status of the experiments
+        experiment_status: a dictionary with all the status of the experiments
             as returned by the api
         start_time: start time of the job to test
 
