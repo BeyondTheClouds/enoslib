@@ -1,9 +1,10 @@
+import re
 from typing import Dict
 
 from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import (
-    JOB_TYPES,
+    JOB_TYPES_REGEXP,
     QUEUE_TYPES,
     NETWORK_TYPES,
     DEFAULT_JOB_NAME,
@@ -11,7 +12,11 @@ from .constants import (
     DEFAULT_WALLTIME,
     DEFAULT_NUMBER,
 )
-from .error import EnosG5kReservationDateFormatError, EnosG5kWalltimeFormatError
+from .error import (
+    EnosG5kInvalidJobTypesError,
+    EnosG5kReservationDateFormatError,
+    EnosG5kWalltimeFormatError,
+)
 from ..utils import merge_dict
 
 SCHEMA_USER = {
@@ -39,9 +44,10 @@ SCHEMA_USER = {
         "job_type": {
             "description": "OAR job type (default: []).",
             "anyOf": [
-                {"type": "string", "enum": JOB_TYPES},
-                {"type": "array", "items": {"type": "string", "enum": JOB_TYPES}},
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
             ],
+            "format": "job_type",
         },
         "key": {
             # Note: We don't use the constants.DEFAULT_SSH_KEYFILE
@@ -263,10 +269,25 @@ def is_valid_hostname(instance):
     if not isinstance(instance, str):
         return False
     # cluster-n.site.grid5000.fr
-    import re
-
     pattern = r"\w+-\d+.\w+.grid5000.fr"
     return re.match(pattern, instance) is not None
+
+
+@G5kFormatChecker.checks("job_type", raises=EnosG5kInvalidJobTypesError)
+def is_valid_job_type(instance):
+    if isinstance(instance, str):
+        instance = [instance]
+
+    invalid = []
+    for job_type in instance:
+        validation = [re.match(r, job_type) for r in JOB_TYPES_REGEXP]
+        if not any(validation):
+            invalid.append(job_type)
+
+    if invalid:
+        raise EnosG5kInvalidJobTypesError(invalid)
+
+    return True
 
 
 @G5kFormatChecker.checks("walltime", raises=EnosG5kWalltimeFormatError)

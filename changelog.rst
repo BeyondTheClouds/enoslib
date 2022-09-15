@@ -44,6 +44,7 @@ New providers features
 - **g5k:** :py:meth:`provider.destroy() <enoslib.infra.enos_g5k.provider.G5kBase.destroy>` can now wait for a state change (use ``wait=True``)
 - **g5k:** expose the jobs through the :py:attr:`provider.jobs <enoslib.infra.enos_g5k.provider.G5kBase.jobs>` property
 - **g5k:** Introduce :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_home_for_job` and :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_group_storage` to allow to mount NFS storage provided by Grid'5000 (either user home or a group storage)
+- **g5k:** Add support for ``container`` OAR job types.
 - **g5k:** Add support for ``besteffort`` OAR queue.
 - **vmong5k:** support multisite deployment.
 

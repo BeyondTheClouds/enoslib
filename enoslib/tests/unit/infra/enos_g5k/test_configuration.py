@@ -49,16 +49,38 @@ class TestConfiguration(EnosTest):
         self.assertEqual(["exotic"], conf.job_type)
 
         d["job_type"] = "bla"
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(ValidationError) as cm:
             conf = Configuration.from_dictionary(d)
+        self.assertIn("job_type", cm.exception.message)
+        self.assertIn("bla", cm.exception.cause.args[0])
 
-        d["job_type"] = ["exotic"]
+        d["job_type"] = ["bla", "exotic", "blou"]
+        with self.assertRaises(ValidationError) as cm:
+            conf = Configuration.from_dictionary(d)
+        self.assertIn("job_type", cm.exception.message)
+        self.assertIn("bla", cm.exception.cause.args[0])
+        self.assertNotIn("exotic", cm.exception.cause.args[0])
+        self.assertIn("blou", cm.exception.cause.args[0])
+
+        d["job_type"] = ["exotic", "container", "noop"]
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["exotic"], conf.job_type)
+        self.assertEqual(["exotic", "container", "noop"], conf.job_type)
 
-        d["job_type"] = ["exotic", "bla"]
-        with self.assertRaises(ValidationError):
+        d["job_type"] = ["exotic", "inner=1234"]
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual(["exotic", "inner=1234"], conf.job_type)
+
+        d["job_type"] = ["inner="]
+        with self.assertRaises(ValidationError) as cm:
             conf = Configuration.from_dictionary(d)
+        self.assertIn("job_type", cm.exception.message)
+        self.assertIn("inner=", cm.exception.cause.args[0])
+
+        d["job_type"] = ["inner=bla"]
+        with self.assertRaises(ValidationError) as cm:
+            conf = Configuration.from_dictionary(d)
+        self.assertIn("job_type", cm.exception.message)
+        self.assertIn("inner=bla", cm.exception.cause.args[0])
 
     def test_from_dictionary_deploy_job(self):
         d = {
