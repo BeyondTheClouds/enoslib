@@ -205,7 +205,66 @@ class TestConfiguration(EnosTest):
         self.assertTrue(machine_group.secondary_networks[0] in networks)
         self.assertEqual("n2", machine_group.secondary_networks[0].id)
 
-    def test_from_dictionary_no_network(self):
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_from_dictionary_default_network(self, mock_get_cluster_site):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                    }
+                ],
+                "networks": [],
+            }
+        }
+
+        conf = Configuration.from_dictionary(d)
+        self.assertTrue(len(conf.machines) == 1)
+        self.assertTrue(len(conf.networks) == 1)
+
+        machine_group = conf.machines[0]
+        network = conf.networks[0]
+
+        # check the network ref
+        self.assertTrue(machine_group.primary_network in conf.networks)
+        self.assertEqual(network.id, machine_group.primary_network.id)
+        # check site
+        self.assertEqual(network.site, "siteA")
+
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_from_dictionary_no_network(self, mock_get_cluster_site):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                    }
+                ],
+            }
+        }
+
+        conf = Configuration.from_dictionary(d)
+        self.assertTrue(len(conf.machines) == 1)
+        self.assertTrue(len(conf.networks) == 1)
+
+        machine_group = conf.machines[0]
+        network = conf.networks[0]
+
+        # check the network ref
+        self.assertTrue(machine_group.primary_network in conf.networks)
+        self.assertEqual(network.id, machine_group.primary_network.id)
+        # check site
+        self.assertEqual(network.site, "siteA")
+
+    def test_from_dictionary_unknown_network(self):
         d = {
             "resources": {
                 "machines": [

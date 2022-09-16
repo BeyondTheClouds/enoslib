@@ -11,6 +11,7 @@ from .constants import (
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
     DEFAULT_SSH_KEYFILE,
+    NETWORK_ROLE_PROD,
     KAVLAN_TYPE,
     SUBNET_TYPES,
 )
@@ -45,14 +46,43 @@ class Configuration(BaseConfiguration):
         self._machine_cls = GroupConfiguration
         self._network_cls = NetworkConfiguration
 
+    def _set_default_primary_network(self, machine):
+        """Auto-setup default (prod) network on a machine if missing."""
+        if machine.primary_network is not None:
+            return
+        # Find existing network
+        prod_nets = [
+            net
+            for net in self.networks
+            if net.site == machine.site and net.type == "prod"
+        ]
+        if len(prod_nets) > 0:
+            machine.primary_network = prod_nets[0]
+        else:
+            # Or create a new one
+            net = NetworkConfiguration(
+                id=f"prod-{machine.site}",
+                type="prod",
+                site=machine.site,
+                roles=[NETWORK_ROLE_PROD],
+            )
+            self.add_network_conf(net)
+            machine.primary_network = net
+
+    def add_machine_conf(self, machine):
+        # Add missing primary network if needed
+        self._set_default_primary_network(machine)
+        return super().add_machine_conf(machine)
+
     def add_machine(self, *args, **kwargs):
         # we need to discriminate between Cluster/Server
         if kwargs.get("servers") is not None:
-            self.add_machine_conf(ServersConfiguration(*args, **kwargs))
+            machine = ServersConfiguration(*args, **kwargs)
         elif kwargs.get("cluster") is not None:
-            self.add_machine_conf(ClusterConfiguration(*args, **kwargs))
+            machine = ClusterConfiguration(*args, **kwargs)
         else:
             ValueError("Must be a cluster or server configuration")
+        self.add_machine_conf(machine)
         return self
 
     @classmethod
@@ -71,7 +101,7 @@ class Configuration(BaseConfiguration):
 
         _resources = dictionary["resources"]
         _machines = _resources["machines"]
-        _networks = _resources["networks"]
+        _networks = _resources.get("networks", [])
         self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
         self.machines = [
             GroupConfiguration.from_dictionary(m, self.networks) for m in _machines
@@ -79,6 +109,12 @@ class Configuration(BaseConfiguration):
 
         self.finalize()
         return self
+
+    def finalize(self):
+        # Fill in missing primary networks
+        for machine in self.machines:
+            self._set_default_primary_network(machine)
+        return super().finalize()
 
     def to_dict(self):
         d = {}
@@ -131,9 +167,12 @@ class GroupConfiguration:
 
     def to_dict(self):
         d = {}
+        primary_network_id = (
+            self.primary_network.id if self.primary_network is not None else None
+        )
         d.update(
             roles=self.roles,
-            primary_network=self.primary_network.id,
+            primary_network=primary_network_id,
             secondary_networks=[n.id for n in self.secondary_networks],
         )
         return d
@@ -149,22 +188,24 @@ class GroupConfiguration:
 
     @classmethod
     def from_dictionary(cls, dictionary, networks=None):
-        if networks is None or networks == []:
-            raise ValueError("At least one network must be set")
-
         roles = dictionary["roles"]
         # cluster and servers are no individually optionnal
         # nevertheless the schema validates that at least one is set
         cluster = dictionary.get("cluster")
         servers = dictionary.get("servers")
         # check here if there's only one site and cluster in servers
-        primary_network_id = dictionary["primary_network"]
+        primary_network_id = dictionary.get("primary_network")
 
         secondary_networks_ids = dictionary.get("secondary_networks", [])
 
-        primary_network = [n for n in networks if n.id == primary_network_id]
-        if len(primary_network) < 1:
-            raise ValueError(f"Primary network with id={primary_network_id} not found")
+        primary_network = None
+        if primary_network_id is not None:
+            primary_networks = [n for n in networks if n.id == primary_network_id]
+            if len(primary_networks) < 1:
+                raise ValueError(
+                    f"Primary network with id={primary_network_id} not found"
+                )
+            primary_network = primary_networks[0]
 
         secondary_networks = [n for n in networks if n.id in secondary_networks_ids]
         if len(secondary_networks_ids) != len(secondary_networks):
@@ -174,7 +215,7 @@ class GroupConfiguration:
             return ServersConfiguration(
                 roles=roles,
                 servers=servers,
-                primary_network=primary_network[0],
+                primary_network=primary_network,
                 secondary_networks=secondary_networks,
             )
 
@@ -186,7 +227,7 @@ class GroupConfiguration:
             return ClusterConfiguration(
                 roles=roles,
                 cluster=cluster,
-                primary_network=primary_network[0],
+                primary_network=primary_network,
                 secondary_networks=secondary_networks,
                 **kwargs,
             )

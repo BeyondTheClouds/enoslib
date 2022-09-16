@@ -16,6 +16,9 @@ SYNCHRONISATION_OFFSET = 60
 SYNCHRONISATION_INTERVAL = 300
 G5KMACPREFIX = "00:16:3E"
 
+# Exposed to the user when auto-creating a prod network
+NETWORK_ROLE_PROD = "prod"
+
 # schema stuffs
 KAVLAN = "kavlan"
 KAVLAN_LOCAL = "kavlan-local"
