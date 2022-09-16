@@ -6,20 +6,20 @@ from ... import EnosTest
 
 
 class TestConfiguration(EnosTest):
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"resources": {"machines": [], "networks": []}}
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual([], conf.machines)
         self.assertEqual([], conf.machines)
 
-    def test_from_dictionnary_custom_backend(self):
+    def test_from_dictionary_custom_backend(self):
         d = {
             "job_name": "test-job",
             "walltime": "12:34:56",
             "resources": {"machines": [], "networks": []},
         }
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual("test-job", conf.job_name)
         self.assertEqual("12:34:56", conf.walltime)
 
@@ -57,25 +57,25 @@ class TestConfiguration(EnosTest):
 
 
 class TestMachineConfiguration(EnosTest):
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"roles": ["r1"], "cluster": "test-cluster"}
-        conf = MachineConfiguration.from_dictionnary(d)
+        conf = MachineConfiguration.from_dictionary(d)
         flavour, flavour_desc = constants.DEFAULT_FLAVOUR
         self.assertEqual(flavour, conf.flavour)
         self.assertEqual(flavour_desc, conf.flavour_desc)
 
-    def test_from_dictionnary(self):
+    def test_from_dictionary(self):
         d = {
             "roles": ["r1"],
             "flavour": "large",
             "number": 2,
             "cluster": "test-cluster",
         }
-        conf = MachineConfiguration.from_dictionnary(d)
+        conf = MachineConfiguration.from_dictionary(d)
         self.assertEqual(constants.FLAVOURS["large"], conf.flavour_desc)
         self.assertEqual(2, conf.number)
 
-    def test_from_dictionnary_flavour_desc(self):
+    def test_from_dictionary_flavour_desc(self):
         flavour_desc = {"core": 42, "mem": 42}
         d = {
             "roles": ["r1"],
@@ -83,6 +83,6 @@ class TestMachineConfiguration(EnosTest):
             "number": 2,
             "cluster": "test-cluster",
         }
-        conf = MachineConfiguration.from_dictionnary(d)
+        conf = MachineConfiguration.from_dictionary(d)
         self.assertEqual(flavour_desc, conf.flavour_desc)
         self.assertEqual(2, conf.number)

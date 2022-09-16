@@ -44,7 +44,7 @@ g5k_dict = {
         ],
     },
 }
-g5k_conf = en.G5kConf.from_dictionnary(g5k_dict)
+g5k_conf = en.G5kConf.from_dictionary(g5k_dict)
 g5k_provider = en.G5k(g5k_conf)
 
 

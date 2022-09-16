@@ -87,7 +87,7 @@ class Docker(Service):
                 agent will be installed
             registry (list): list of :py:class:`enoslib.Host` where the docker
                 registry will be installed.
-            registry_opts (dict): registry options. The dictionnary must comply
+            registry_opts (dict): registry options. The dictionary must comply
                 with the schema.
             bind_var_docker (str): If set the default docker state directory
                 (/var/lib/docker/) will be bind mounted in this

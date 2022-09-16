@@ -1,3 +1,5 @@
+import warnings
+
 from uuid import uuid4
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from ..configuration import BaseConfiguration
@@ -54,25 +56,25 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            cls.validate(dictionary)
 
         self = cls()
         # populating the attributes
         for k in self.__dict__.keys():
-            v = dictionnary.get(k)
+            v = dictionary.get(k)
             if v is not None:
                 setattr(self, k, v)
         if isinstance(self.job_type, str):
             self.job_type = [self.job_type]
 
-        _resources = dictionnary["resources"]
+        _resources = dictionary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
+        self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
         self.machines = [
-            GroupConfiguration.from_dictionnary(m, self.networks) for m in _machines
+            GroupConfiguration.from_dictionary(m, self.networks) for m in _machines
         ]
 
         self.finalize()
@@ -137,19 +139,28 @@ class GroupConfiguration:
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, networks=None):
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
+
+    @classmethod
+    def from_dictionary(cls, dictionary, networks=None):
         if networks is None or networks == []:
             raise ValueError("At least one network must be set")
 
-        roles = dictionnary["roles"]
+        roles = dictionary["roles"]
         # cluster and servers are no individually optionnal
         # nevertheless the schema validates that at least one is set
-        cluster = dictionnary.get("cluster")
-        servers = dictionnary.get("servers")
+        cluster = dictionary.get("cluster")
+        servers = dictionary.get("servers")
         # check here if there's only one site and cluster in servers
-        primary_network_id = dictionnary["primary_network"]
+        primary_network_id = dictionary["primary_network"]
 
-        secondary_networks_ids = dictionnary.get("secondary_networks", [])
+        secondary_networks_ids = dictionary.get("secondary_networks", [])
 
         primary_network = [n for n in networks if n.id == primary_network_id]
         if len(primary_network) < 1:
@@ -169,7 +180,7 @@ class GroupConfiguration:
 
         if cluster is not None:
             kwargs = {}
-            nodes = dictionnary.get("nodes")
+            nodes = dictionary.get("nodes")
             if nodes is not None:
                 kwargs.update(nodes=nodes)
             return ClusterConfiguration(
@@ -260,11 +271,20 @@ class NetworkConfiguration:
             self.id = str(uuid4())
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        id = dictionnary["id"]
-        type = dictionnary["type"]
-        roles = dictionnary["roles"]
-        site = dictionnary["site"]
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
+
+    @classmethod
+    def from_dictionary(cls, dictionary):
+        id = dictionary["id"]
+        type = dictionary["type"]
+        roles = dictionary["roles"]
+        site = dictionary["site"]
 
         return cls(id=id, roles=roles, type=type, site=site)
 

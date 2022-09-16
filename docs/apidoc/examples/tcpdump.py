@@ -43,7 +43,7 @@ with en.TCPDump(
 
 
 # Examples:
-# create a dictionnary of (alias, if) -> list of decoded packets by scapy
+# create a dictionary of (alias, if) -> list of decoded packets by scapy
 decoded_pcaps = {}
 for host in roles["control"]:
     host_dir = backup_dir / host.alias

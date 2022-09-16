@@ -9,9 +9,9 @@ from ... import EnosTest
 
 
 class TestConfiguration(EnosTest):
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"resources": {"machines": [], "networks": []}}
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual([], conf.machines)
         self.assertEqual([], conf.networks)
 

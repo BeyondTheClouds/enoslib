@@ -87,7 +87,7 @@ class RolesDict(UserDict):
     """RolesDict is a way to group resources of the same type together using tags.
 
     From the user perspective, a RolesDict's instance ``roles`` is a
-    dictionnary.  To retrieve all the corresponding machine with the tag ``tag``
+    dictionary.  To retrieve all the corresponding machine with the tag ``tag``
     one can use `̀`roles[tag]``.
 
     The value associated with a tag behaves like a set (it's a

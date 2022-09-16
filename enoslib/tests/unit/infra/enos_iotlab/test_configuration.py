@@ -12,16 +12,16 @@ from enoslib.tests.unit import EnosTest
 
 
 class TestConfiguration(EnosTest):
-    def test_from_dictionary_minimal(self):
+    def test_from_dictionnary_minimal(self):
         d = {"resources": {"machines": [{"roles": [], "hostname": ["m3"]}]}}
-        conf = Configuration.from_dictionary(d)
+        conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertTrue(len(conf.machines) == 1)
 
-    def test_from_dictionnary_minimal(self):
+    def test_from_dictionary_minimal(self):
         d = {"resources": {"machines": [{"roles": [], "hostname": ["m3"]}]}}
-        conf = Configuration.from_dictionnary(d)
+        conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertTrue(len(conf.machines) == 1)

@@ -1,3 +1,5 @@
+import warnings
+
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_JOB_NAME,
@@ -34,10 +36,6 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
-        return Configuration.from_dictionary(dictionnary, validate)
-
-    @classmethod
     def from_dictionary(cls, dictionary, validate=True):
         if validate:
             IotlabValidator.validate(dictionary)
@@ -55,9 +53,7 @@ class Configuration(BaseConfiguration):
 
         if "networks" in _resources:
             _networks = _resources["networks"]
-            self.networks = [
-                NetworkConfiguration.from_dictionnary(n) for n in _networks
-            ]
+            self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
 
         if "monitoring" in dictionary:
             _monit = dictionary["monitoring"]
@@ -130,8 +126,13 @@ class GroupConfiguration:
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        GroupConfiguration.from_dictionary(dictionnary)
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
     def from_dictionary(cls, dictionary):
@@ -245,8 +246,13 @@ class ProfileConfiguration:
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        return ProfileConfiguration.from_dictionary(dictionnary)
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
     def from_dictionary(cls, dictionary):
@@ -289,8 +295,13 @@ class RadioConfiguration:
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        return RadioConfiguration.from_dictionary(dictionnary)
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
     def from_dictionary(cls, dictionary):
@@ -331,8 +342,13 @@ class ConsumptionConfiguration:
         return d
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        return ConsumptionConfiguration.from_dictionary(dictionnary)
+    def from_dictionnary(cls, *args, **kwargs):
+        """Compatibility method (old method name that may still be used)"""
+        warnings.warn(
+            "from_dictionnary is deprecated in favor of from_dictionary",
+            DeprecationWarning,
+        )
+        return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
     def from_dictionary(cls, dictionary):
@@ -357,11 +373,11 @@ class NetworkConfiguration:
         self.site = site
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        my_id = dictionnary["id"]
-        my_type = dictionnary["type"]
-        roles = dictionnary["roles"]
-        site = dictionnary["site"]
+    def from_dictionary(cls, dictionary):
+        my_id = dictionary["id"]
+        my_type = dictionary["type"]
+        roles = dictionary["roles"]
+        site = dictionary["site"]
 
         return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 

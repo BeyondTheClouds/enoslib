@@ -31,7 +31,7 @@ provider_conf = {
         "networks": ["network_interface"],
     },
 }
-conf = en.CBMConf().from_dictionnary(provider_conf)
+conf = en.CBMConf().from_dictionary(provider_conf)
 provider = en.CBM(conf)
 roles, networks = provider.init()
 providers.append(provider)
@@ -56,7 +56,7 @@ provider_conf = {
         ],
     },
 }
-conf = en.ChameleonEdgeConf.from_dictionnary(provider_conf)
+conf = en.ChameleonEdgeConf.from_dictionary(provider_conf)
 provider = en.ChameleonEdge(conf)
 roles_edge, networks_edge = provider.init()
 providers.append(provider)

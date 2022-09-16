@@ -36,7 +36,7 @@ provider_conf = {
 
 @enostask(new=True)
 def up(env=None, **kwargs):
-    conf = Configuration.from_dictionnary(provider_conf)
+    conf = Configuration.from_dictionary(provider_conf)
     provider = Static(conf)
     roles, networks = provider.init()
     env["roles"] = roles

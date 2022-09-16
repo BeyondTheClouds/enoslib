@@ -40,7 +40,7 @@ provider_conf = {
     },
 }
 
-conf = en.G5kConf.from_dictionnary(provider_conf)
+conf = en.G5kConf.from_dictionary(provider_conf)
 provider = en.G5k(conf)
 
 try:

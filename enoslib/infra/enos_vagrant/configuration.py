@@ -28,18 +28,18 @@ class Configuration(BaseConfiguration):
         self._network_cls = NetworkConfiguration
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            cls.validate(dictionary)
 
         self = cls()
-        _resources = dictionnary["resources"]
+        _resources = dictionary["resources"]
         _machines = _resources["machines"]
         _networks = _resources["networks"]
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
-        self.networks = [NetworkConfiguration.from_dictionnary(n) for n in _networks]
+        self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
+        self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
         for key in ["backend", "user", "box", "name_prefix", "config_extra"]:
-            value = dictionnary.get(key)
+            value = dictionary.get(key)
             if value is not None:
                 setattr(self, key, value)
 
@@ -85,20 +85,20 @@ class MachineConfiguration:
         self.number = number
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
+    def from_dictionary(cls, dictionary):
         kwargs = {}
-        roles = dictionnary["roles"]
+        roles = dictionary["roles"]
         kwargs.update(roles=roles)
 
-        flavour = dictionnary.get("flavour")
+        flavour = dictionary.get("flavour")
         if flavour is not None:
             kwargs.update(flavour=flavour)
-        flavour_desc = dictionnary.get("flavour_desc")
+        flavour_desc = dictionary.get("flavour_desc")
         if flavour_desc is not None:
             kwargs.update(flavour_desc=flavour_desc)
-        number = dictionnary.get("number", 1)
+        number = dictionary.get("number", 1)
         kwargs.update(number=number)
-        name_prefix = dictionnary.get("name_prefix", "")
+        name_prefix = dictionary.get("name_prefix", "")
         kwargs.update(name_prefix=name_prefix)
 
         return cls(**kwargs)
@@ -120,10 +120,10 @@ class NetworkConfiguration:
         self.cidr = cidr
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
+    def from_dictionary(cls, dictionary):
         kwargs = {}
-        roles = dictionnary["roles"]
-        cidr = dictionnary["cidr"]
+        roles = dictionary["roles"]
+        cidr = dictionary["cidr"]
         kwargs.update(roles=roles, cidr=cidr)
 
         return cls(**kwargs)

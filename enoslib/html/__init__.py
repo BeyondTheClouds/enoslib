@@ -81,7 +81,7 @@ def inline_value(key: str, value: str):
 
 
 def dict_to_html_foldable_sections(d: dict) -> str:
-    """Transform a dictionnary a set of foldable sections.
+    """Transform a dictionary a set of foldable sections.
 
     Inner lists are transformed as table.
     """

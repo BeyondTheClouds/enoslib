@@ -36,18 +36,18 @@ class Configuration(BaseConfiguration):
         self._network_cls = str
 
     @classmethod
-    def from_dictionnary(cls, dictionnary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionnary)
+            cls.validate(dictionary)
 
         self = cls()
         for k in self.__dict__.keys():
-            v = dictionnary.get(k)
+            v = dictionary.get(k)
             if v is not None:
                 setattr(self, k, v)
-        _machines = dictionnary["resources"]["machines"]
-        _networks = dictionnary["resources"]["networks"]
-        self.machines = [MachineConfiguration.from_dictionnary(m) for m in _machines]
+        _machines = dictionary["resources"]["machines"]
+        _networks = dictionary["resources"]["networks"]
+        self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
         self.networks = _networks
 
         self.finalize()
@@ -75,10 +75,10 @@ class MachineConfiguration:
         self.number = number
 
     @classmethod
-    def from_dictionnary(cls, dictionnary):
-        roles = dictionnary["roles"]
-        flavour = dictionnary["flavour"]
-        number = dictionnary["number"]
+    def from_dictionary(cls, dictionary):
+        roles = dictionary["roles"]
+        flavour = dictionary["flavour"]
+        number = dictionary["number"]
         return cls(roles=roles, flavour=flavour, number=number)
 
     def to_dict(self):
