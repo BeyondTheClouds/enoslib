@@ -33,7 +33,7 @@ PROD_VLAN_ID = "DEFAULT"
 
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPES
 JOB_TYPES = ["deploy", "allow_classic_ssh", "exotic"]
-QUEUE_TYPES = ["default", "production", "testing"]
+QUEUE_TYPES = ["default", "production", "testing", "besteffort"]
 
 
 MAX_DEPLOY = 3
