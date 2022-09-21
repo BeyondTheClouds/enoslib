@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 # extensions = []
-extensions = ["sphinx.ext.autodoc", "autodocsumm", "nbsphinx"]
+extensions = ["sphinx.ext.autodoc", "autodocsumm", "nbsphinx", "sphinx_design"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -88,6 +88,7 @@ todo_include_todos = False
 #
 # html_theme = 'alabaster'
 html_theme = "pydata_sphinx_theme"
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

@@ -30,41 +30,6 @@ In this context, EnOSlib smoothes the experimental code and can
 - integrate your code with interactive development environment like Jupyter.
 
 
-The software
-------------
-
-EnOSlib has been initially developed in the context of the `Discovery
-<https://beyondtheclouds.github.io/>`_ initiative and is released under the
-GPLv3 licence. It's a library written in Python: you are free to import it in
-your code and cherry-pick any of its functions.
-
-
-.. hint::
-
-   You can install EnOSlib with pip:
-
-   .. code-block ::
-
-      pip install enoslib
-      # If you are a Jupyter User
-      pip install enoslib[jupyter]
-
-   For developping EnOSlib or get the *in development* version:
-
-   .. code-block ::
-
-      git clone https://gitlab.inria.fr/discovery/enoslib.git
-      cd enoslib && pip install -U -e .
-
-
-Links
------
-
-- Documentation: https://discovery.gitlabpages.inria.fr/enoslib/
-- Source: https://gitlab.inria.fr/discovery/enoslib
-- Chat: https://framateam.org/enoslib
-
-
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines
 
