@@ -106,7 +106,7 @@ class Enos_vagrant(Provider):
                 keyfile = v.keyfile(vm_name=machine["name"])
                 port = v.port(vm_name=machine["name"])
                 address = v.hostname(vm_name=machine["name"])
-                roles.setdefault(role, []).append(
+                roles[role] += [
                     Host(
                         address,
                         alias=machine["name"],
@@ -114,17 +114,16 @@ class Enos_vagrant(Provider):
                         port=port,
                         keyfile=keyfile,
                     )
-                )
+                ]
         networks = Networks()
         for network in _networks:
             for role in network["roles"]:
-                networks.setdefault(role, [])
                 vagrant_net = VagrantNetwork(
                     address=str(ip_interface(network["cidr"]).network),
                     gateway=str(network["gateway"]),
                     dns="8.8.8.8",
                 )
-                networks[role].append(vagrant_net)
+                networks[role] += [vagrant_net]
 
         logger.debug(roles)
         logger.debug(networks)
