@@ -36,7 +36,7 @@
       ``pip install enoslib``
 
 
-   .. grid-item-card:: :octicon:`person;2em;sd-text-info`
+   .. grid-item-card:: :octicon:`people;2em;sd-text-info`
       :link: https://gitlab.inria.fr/discovery/enoslib
 
       |enoslib| is licensed under GPLv3
