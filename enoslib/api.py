@@ -628,6 +628,60 @@ class _Phantom:
 
 
 class actions:
+    """Context manager to run a set of remote actions on nodes
+
+
+    Args:
+        pattern_hosts: pattern to describe ansible hosts to target.
+            see https://docs.ansible.com/ansible/latest/intro_patterns.html
+        inventory_path: inventory to use
+        roles: roles as returned by :py:meth:`enoslib.infra.provider.Provider.init`
+        extra_vars: extra_vars to use
+        on_error_continue: don't throw any exception in case a host
+            is unreachable or the playbooks run with errors
+        gather_facts: controls how the facts will be gathered.
+            - True    -> Gathers facts of :py:attr:`pattern_hosts` hosts.
+            - False   -> Does not gather facts.
+            - pattern -> Gathers facts of `pattern` hosts.
+        priors: tasks in each prior will be prepended in the playbook
+        run_as: A shortcut that injects become and become_user to each task.
+                become* at the task level has the precedence over this parameter
+        background: A shortcut that injects async=1year, poll=0 to run the
+            commands in detached mode. Can be overriden at the task level.
+        strategy: ansible execution strategy
+        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
+
+
+    Examples:
+
+        - Minimal snippet:
+
+            .. code-block:: python
+
+                with actions(roles=roles) as t:
+                    t.apt(name=["curl", "git"], state="present")
+                    t.shell("which docker || (curl get.docker.com | sh)")
+                    t.docker_container(name="nginx", state="started")
+
+        - Complete example with fact_gathering
+
+            .. literalinclude:: examples/run_actions.py
+                :language: python
+                :linenos:
+
+    .. hint::
+
+        - Module can be run asynchronously using the corresponding Ansible options
+            Note that not all the modules support asynchronous execution.
+
+        - Note that the actual result isn't available in the result file but will
+            be available through a file specified in the result object.
+
+        - Any ansible module can be called using the above way. You'll need to
+            refer to the module reference documentation to find the corresponding
+            kwargs to use.
+    """
+
     def __init__(
         self,
         *,
@@ -641,57 +695,7 @@ class actions:
         strategy: str = "linear",
         **kwargs,
     ):
-        """
-        Args:
-            pattern_hosts: pattern to describe ansible hosts to target.
-                see https://docs.ansible.com/ansible/latest/intro_patterns.html
-            inventory_path: inventory to use
-            roles: roles as returned by :py:meth:`enoslib.infra.provider.Provider.init`
-            extra_vars: extra_vars to use
-            on_error_continue: don't throw any exception in case a host
-                is unreachable or the playbooks run with errors
-            gather_facts: controls how the facts will be gathered.
-                - True    -> Gathers facts of :py:attr:`pattern_hosts` hosts.
-                - False   -> Does not gather facts.
-                - pattern -> Gathers facts of `pattern` hosts.
-            priors: tasks in each prior will be prepended in the playbook
-            run_as: A shortcut that injects become and become_user to each task.
-                    become* at the task level has the precedence over this parameter
-            background: A shortcut that injects async=1year, poll=0 to run the
-                commands in detached mode. Can be overriden at the task level.
-            strategy: ansible execution strategy
-            kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
 
-
-        Examples:
-
-            - Minimal snippet:
-
-                .. code-block:: python
-
-                    with play_on(roles=roles) as t:
-                        t.apt(name=["curl", "git"], state="present")
-                        t.shell("which docker || (curl get.docker.com | sh)")
-                        t.docker_container(name="nginx", state="started")
-
-            - Complete example with fact_gathering
-
-                .. literalinclude:: examples/run_play_on.py
-                    :language: python
-                    :linenos:
-
-        .. hint::
-
-            - Module can be run asynchronously using the corresponding Ansible options
-              Note that not all the modules support asynchronous execution.
-
-            - Note that the actual result isn't available in the result file but will
-              be available through a file specified in the result object.
-
-            - Any ansible module can be called using the above way. You'll need to
-              refer to the module reference documentation to find the corresponding
-              kwargs to use.
-        """
         self.pattern_hosts = pattern_hosts
         self.inventory_path = inventory_path
         self.roles = roles
