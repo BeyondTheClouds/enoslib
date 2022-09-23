@@ -86,4 +86,4 @@ If you want to control you experiment from the outside of Grid'5000 (e.g from yo
 
       # Now all traffic that goes on localhost:3000 is forwarded to paravance-42.rennes.grid5000.fr:3000
 
-- Solution 3' : The same but programmatically with :py:class:`enoslib.infra.enos_g5k.provider.G5kTunnel` (See also :ref:`g5k_tunnel`)
+- Solution 3' : The same but programmatically with :py:class:`~enoslib.infra.enos_g5k.provider.G5kTunnel` (See also :ref:`g5k_tunnel`)
