@@ -60,7 +60,7 @@ VMonG5k Provider Class
 ----------------------
 
 .. automodule:: enoslib.infra.enos_vmong5k.provider
-    :members: VirtualMachine, start_virtualmachines, mac_range
+    :members: VMonG5k, VirtualMachine, start_virtualmachines, mac_range
 
 .. _vmong5k-schema:
 

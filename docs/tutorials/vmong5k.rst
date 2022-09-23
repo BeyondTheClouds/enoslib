@@ -7,7 +7,7 @@ Provider::VMonG5K
 .. contents::
    :depth: 2
 
-This tutorial leverages the ``VmonG5k`` provider: a provider that provisions
+This tutorial leverages the :py:class:`~enoslib.infra.enos_vmong5k.provider.VMonG5k` provider: a provider that provisions
 virtual machines for you on Grid'5000.
 
 
@@ -25,7 +25,7 @@ Basic example
 =============
 
 We'll imagine a system that requires 5 compute machines and 1 controller machine.
-We express this using the ~VmonG5K~ provider:
+We express this using the :py:class:`~enoslib.infra.enos_vmong5k.provider.VMonG5k` provider:
 
 .. literalinclude:: vmong5k/tuto_vmong5k.py
    :language: python
@@ -44,9 +44,10 @@ We express this using the ~VmonG5K~ provider:
 Notes
 -----
 
-* The ``VmonG5K`` provider internally uses the ``G5k`` provider. In particular
-  it sets the ``job_type`` to ``allow_classic_ssh`` and claim an extra
-  ``slash_22`` subnet.
+* The :py:class:`~enoslib.infra.enos_vmong5k.provider.VMonG5k` provider
+  internally uses the :py:class:`~enoslib.infra.enos_g5k.provider.G5k` provider.
+  In particular it sets the ``job_type`` to ``allow_classic_ssh`` and claim an
+  extra ``slash_22`` subnet.
 
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
   So these files must be present in your home directory.
@@ -55,13 +56,18 @@ Notes
   images disks will be stored. The default is to store everything in the temp
   folder of the physical nodes.
 
-* You might be interested in adding ``wait_ssh(roles)`` (from ``enoslib.api``) just after ``init()``
-  to make sure SSH is up and running on all VMs. Otherwise you might get an *unreachable* error from
-  SSH.
+* You might be interested in adding :py:func:`~enoslib.api.wait_for` just
+  after :py:meth:`~enoslib.infra.enos_vmong5k.provider.VMonG5k.init`
+  to make sure SSH is up and running on all VMs. Otherwise you might get an
+  *unreachable* error from SSH.
+
+* The provider will try to use as few physical hosts per group of machines as
+  possible. Note that you'll anyway get at least as many physical machines as group.
 
 .. warning::
 
-   The ``working_dir`` and all its content is deleted by the provider when calling `destroy`.
+   The ``working_dir`` and all its content is deleted by the provider when
+   calling :py:meth:`~enoslib.infra.enos_vmong5k.provider.VMonG5k.destroy`.
 
 
 Changing resource size of virtual machines
