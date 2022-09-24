@@ -5,44 +5,62 @@
 .. grid:: 2 2 2 3
    :gutter: 2
 
-   .. grid-item-card:: :octicon:`globe;2em;sd-text-info` Multi Testbeds
+   .. grid-item-card::
       :link: tutorials/index.html
+
+      :octicon:`globe;2em;sd-text-info` Multi Testbeds
+      ^^^
 
       Make your experiment span one or more testbeds like Grid'5000, IOTlab,
       Chameleon
 
 
-   .. grid-item-card:: :octicon:`beaker;2em;sd-text-info` Jupyter Ready
+   .. grid-item-card::
       :link: jupyter/index.html
+
+      :octicon:`beaker;2em;sd-text-info` Jupyter Ready
+      ^^^
 
       Control your experiments from Jupyter. Ideal for lab class.
 
 
-   .. grid-item-card:: :octicon:`gear;2em;sd-text-info` Ansible Integration
+   .. grid-item-card::
       :link: tutorials/ansible-integration.html
+
+      :octicon:`gear;2em;sd-text-info` Ansible Integration
+      ^^^
 
       Conveniently write Ansible code in Python.
 
 
-   .. grid-item-card:: :octicon:`telescope;2em;sd-text-info` Services
+   .. grid-item-card::
       :link: apidoc/netem.html
+
+      :octicon:`telescope;2em;sd-text-info` Services
+      ^^^
 
       |enoslib| is shipped with various facilities for your experiments
 
 
-   .. grid-item-card:: :octicon:`package;2em;sd-text-info` Get Started
+   .. grid-item-card::
       :link: https://pypi.org/project/enoslib/
+
+      :octicon:`package;2em;sd-text-info` Get Started
+      ^^^
 
       ``pip install enoslib``
 
 
-   .. grid-item-card:: :octicon:`people;2em;sd-text-info`
+   .. grid-item-card::
       :link: https://gitlab.inria.fr/discovery/enoslib
 
-      |enoslib| is licensed under GPLv3
+      :octicon:`people;2em;sd-text-info` Community
+      ^^^
+
 
       Come say *Hi* in our `chat room <https://framateam.org/enoslib>`_ :)
 
+      |enoslib| is licensed under GPLv3
 
 
 At a glance
