@@ -8,6 +8,7 @@ with the platform.
 
 from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
+from functools import lru_cache
 
 import re
 from grid5000.objects import Job, Node, Vlan
@@ -36,44 +37,15 @@ from .constants import (
     NATURE_PROD,
     MAX_DEPLOY,
 )
-from enoslib.config import get_config
 from enoslib.log import getLogger
 from enoslib.infra.utils import _date2h
 
 from grid5000 import Grid5000
-import ring
-
-from ring.func.lru_cache import LruCache
 
 from grid5000.exceptions import Grid5000DeleteError
 
-LRU = LruCache(128)
 
 logger = getLogger(__name__, ["G5k"])
-
-
-def runtime_cache(f):
-    """Lazily reload a cache before calling the function.
-
-    see https://gitlab.inria.fr/discovery/enoslib/-/issues/116
-    The current implementation is slow but the main intent is to reduce the number of
-    HTTP calls while being able to control at runtime the caching policy.
-    """
-
-    def wrapper(*args, **kwargs):
-        config = get_config()
-        if config["g5k_cache"] == "disk":
-            import diskcache
-
-            logger.debug(f"Reloading {f.__name__} from {config['g5k_cache_dir']}")
-            with diskcache.Cache(config["g5k_cache_dir"]) as storage:
-                return ring.disk(storage)(f)(*args, **kwargs)
-        elif config["g5k_cache"] == "lru":
-            return ring.lru(lru=LRU)(f)(*args, **kwargs)
-        else:
-            return f(*args, **kwargs)
-
-    return wrapper
 
 
 _api_lock = threading.Lock()
@@ -467,7 +439,7 @@ def clusters_sites_obj(clusters):
     return result
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_all_clusters_sites():
     """Get all the cluster of all the sites.
 
@@ -760,31 +732,31 @@ def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float
     raise EnosG5kSynchronisationError()
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_dns(site):
     site_info = get_site_obj(site)
     return site_info.servers["dns"].network_adapters["default"]["ip"]
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_subnet_gateway(site):
     site_info = get_site_obj(site)
     return site_info.g5ksubnet["gateway"]
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_vlans(site):
     site_info = get_site_obj(site)
     return site_info.kavlans
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_ipv6(site):
     site_info = get_site_obj(site)
     return site_info.ipv6
 
 
-@runtime_cache
+@lru_cache(maxsize=32)
 def get_vlan(site, vlan_id) -> Vlan:
     site_info = get_site_obj(site)
     return site_info.vlans[vlan_id]

@@ -11,8 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 _config = dict(
-    g5k_cache="disk",
-    g5k_cache_dir="cachedir",
+    g5k_cache="lru",
     display="html",
     dump_results=None,
     ansible_stdout="spinner",
@@ -56,7 +55,6 @@ def _set_dump_results(dump_results: Optional[Union[Path, str]]):
 
 def set_config(
     g5k_cache: Optional[str] = None,
-    g5k_cache_dir: Optional[str] = None,
     display: Optional[str] = None,
     dump_results: Optional[Union[Path, str]] = None,
     ansible_stdout: Optional[str] = None,
@@ -70,7 +68,6 @@ def set_config(
         g5k_cache_dir: location of the g5k cache directory
     """
     _set("g5k_cache", g5k_cache)
-    _set("g5k_cache_dir", g5k_cache_dir)
     _set("display", display)
     _set("ansible_stdout", ansible_stdout)
     _set_dump_results(dump_results)
