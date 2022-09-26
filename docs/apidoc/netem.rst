@@ -1,5 +1,5 @@
-Network Emulation API
-=====================
+Network Emulation Service
+=========================
 
 Introduction
 ------------

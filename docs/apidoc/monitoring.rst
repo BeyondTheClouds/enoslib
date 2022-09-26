@@ -1,5 +1,5 @@
-Monitoring API
-==============
+Monitoring Service
+==================
 
 Introduction
 ------------

@@ -14,6 +14,11 @@ Main Publication
 Other Publications (using or citing EnOSlib)
 ============================================
 
+- Viet Hoang Tran, Bernard Lenssens, Ayham Kassab, Alexis Laks, Etienne Rivière,
+  Guillaume Rosinosky, Ramin Sadre. Machine-as-a-Service: Blockchain-based
+  management and maintenance of industrial appliances.
+  https://doi.org/10.1002/eng2.12567
+
 - Quentin Guilloteau, Jonathan Bleuzen, Millian Poquet, Olivier Richard.
   Painless Transposition of Reproducible Distributed Environments with NixOS
   Compose. CLUSTER 2022 - IEEE International Conference on Cluster Computing, Sep

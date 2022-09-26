@@ -13,9 +13,13 @@
 
    objects.rst
    global_api.rst
+   infra.rst
+   docker.rst
    netem.rst
    monitoring.rst
-   infra.rst
+   tcpdump.rst
+   skydive.rst
+   locust.rst
+   k3s.rst
+   conda_dask.rst
    task.rst
-   service.rst
-   config.rst
