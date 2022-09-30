@@ -151,6 +151,8 @@ class GroupConfiguration:
         secondary_networks=None,
     ):
         self.roles = roles
+        if self.roles is None:
+            self.roles = []
         self.cluster = cluster
         self.site = site
         # allow testing (pass a site name)
@@ -304,7 +306,8 @@ class NetworkConfiguration:
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
         self.roles = roles
-        self.roles = roles
+        if self.roles is None:
+            self.roles = []
         self.type = type
         self.site = site
         self.id = id
