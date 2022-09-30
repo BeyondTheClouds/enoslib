@@ -437,6 +437,7 @@ class G5k(Provider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.provider_conf = self.provider_conf.finalize()
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
         self.hosts = []
