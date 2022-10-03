@@ -101,4 +101,5 @@ def is_valid_walltime(instance):
         raise EnosChameleonWalltimeFormatError()
 
 
-ChameleonValidator = Draft7Validator(SCHEMA, format_checker=ChameleonFormatChecker)
+def ChameleonValidator(schema):
+    return Draft7Validator(schema, format_checker=ChameleonFormatChecker)

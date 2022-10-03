@@ -13,7 +13,7 @@ class Configuration(BaseConfiguration):
     """Global class for parsing IoT-LAB configuration"""
 
     _SCHEMA = SCHEMA
-    _VALIDATOR = IotlabValidator
+    _VALIDATOR_FUNC = IotlabValidator
 
     def __init__(self):
         super().__init__()
@@ -38,7 +38,7 @@ class Configuration(BaseConfiguration):
     @classmethod
     def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            IotlabValidator.validate(dictionary)
+            cls.validate(dictionary)
 
         self = cls()
 

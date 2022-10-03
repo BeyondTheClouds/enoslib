@@ -142,4 +142,5 @@ def is_valid_mac(instance):
         return False
 
 
-VMonG5kValidator = Draft7Validator(SCHEMA, format_checker=VMonG5kFormatChecker)
+def VMonG5kValidator(schema):
+    return Draft7Validator(schema, format_checker=VMonG5kFormatChecker)

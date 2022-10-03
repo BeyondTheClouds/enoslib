@@ -21,7 +21,7 @@ from enoslib.infra.providers import (
     find_slot_and_start,
     start_provider_within_bounds,
 )
-from enoslib.infra.utils import offset_from_format
+from enoslib.infra.utils import offset_from_format, merge_dict
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 
@@ -430,3 +430,26 @@ class TestOffsetFromFormat(EnosTest):
 
         with self.assertRaises(NegativeWalltime):
             _ = offset_from_format("02:42", -(exact + 1), "%H:%M")
+
+
+class TestMergeDict(EnosTest):
+    def test_merge_all_in_one(self):
+        original = {"a": 1}
+
+        original = merge_dict(original, {"b": 2})
+        self.assertDictEqual({"a": 1, "b": 2}, original)
+
+        original = merge_dict(original, {"a": 42})
+        self.assertDictEqual({"a": 42, "b": 2}, original)
+
+        original = merge_dict(original, {"c": {"d": 1}})
+        self.assertDictEqual({"a": 42, "b": 2, "c": {"d": 1}}, original)
+
+        original = merge_dict(original, {"c": {"d": [1, 2, 3]}})
+        self.assertDictEqual({"a": 42, "b": 2, "c": {"d": [1, 2, 3]}}, original)
+
+        with self.assertRaises(ValueError):
+            merge_dict(original, {"c": {"d": {}}})
+
+        with self.assertRaises(ValueError):
+            merge_dict(original, {"c": {"d": {}}})

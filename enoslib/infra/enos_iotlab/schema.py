@@ -190,4 +190,5 @@ def is_valid_physical_nodes(instance):
     return True
 
 
-IotlabValidator = Draft7Validator(SCHEMA, format_checker=IotlabFormatChecker)
+def IotlabValidator(schema):
+    return Draft7Validator(schema, format_checker=IotlabFormatChecker)

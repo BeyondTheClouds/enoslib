@@ -199,13 +199,17 @@ class TestDeploy(EnosTest):
         ]
 
         # conf
-        network_config = NetworkConfiguration(id="network1", type=PROD, site=site)
+        network_config = NetworkConfiguration(
+            id="network1", type=PROD, site=site, roles=["roles1"]
+        )
         # concrete
         g5k_networks = [G5kProdNetwork(["roles1"], "id1", site)]
 
         # conf
         cluster_config = ClusterConfiguration(
-            site="rennes", primary_network=network_config
+            cluster="foocluster",
+            site="rennes",
+            primary_network=network_config,
         )
 
         provider_config = (
@@ -243,10 +247,10 @@ class TestDeploy(EnosTest):
         network_2 = NetworkConfiguration(id="network_2", type=KAVLAN, site=site)
 
         cluster_config_1 = ClusterConfiguration(
-            site="rennes", primary_network=network_1
+            cluster="foocluster", site="rennes", primary_network=network_1
         )
         cluster_config_2 = ClusterConfiguration(
-            site="rennes", primary_network=network_2
+            cluster="barcluster", site="rennes", primary_network=network_2
         )
 
         oar_network_1 = G5kProdNetwork(["roles1"], "id1", "rennes")
