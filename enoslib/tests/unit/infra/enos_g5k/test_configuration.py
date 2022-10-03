@@ -42,21 +42,21 @@ class TestConfiguration(EnosTest):
         d = {
             "job_name": "test",
             "queue": "production",
-            "job_type": "allow_classic_ssh",
+            "job_type": "exotic",
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["allow_classic_ssh"], conf.job_type)
+        self.assertEqual(["exotic"], conf.job_type)
 
         d["job_type"] = "bla"
         with self.assertRaises(ValidationError):
             conf = Configuration.from_dictionary(d)
 
-        d["job_type"] = ["allow_classic_ssh"]
+        d["job_type"] = ["exotic"]
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["allow_classic_ssh"], conf.job_type)
+        self.assertEqual(["exotic"], conf.job_type)
 
-        d["job_type"] = ["allow_classic_ssh", "bla"]
+        d["job_type"] = ["exotic", "bla"]
         with self.assertRaises(ValidationError):
             conf = Configuration.from_dictionary(d)
 

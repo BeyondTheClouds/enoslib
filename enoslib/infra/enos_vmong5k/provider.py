@@ -137,7 +137,6 @@ def _do_build_g5k_conf(vmong5k_conf):
         job_name=vmong5k_conf.job_name,
         walltime=vmong5k_conf.walltime,
         queue=vmong5k_conf.queue,
-        job_type="allow_classic_ssh",
         reservation=vmong5k_conf.reservation,
     )
     # role names to assign to the vm network
