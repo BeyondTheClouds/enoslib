@@ -1,5 +1,9 @@
+import warnings
+
 from jsonschema.exceptions import ValidationError
+import pytest
 from unittest.mock import patch
+
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     Configuration,
@@ -15,9 +19,8 @@ class TestConfiguration(EnosTest):
     def test_from_dictionary_minimal(self):
         d = {"resources": {"machines": [], "networks": []}}
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
-        self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
+        self.assertEqual([], conf.job_type)
         self.assertEqual(constants.DEFAULT_QUEUE, conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertEqual([], conf.machines)
@@ -30,9 +33,8 @@ class TestConfiguration(EnosTest):
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(constants.DEFAULT_ENV_NAME, conf.env_name)
         self.assertEqual("test", conf.job_name)
-        self.assertEqual([constants.DEFAULT_JOB_TYPE], conf.job_type)
+        self.assertEqual([], conf.job_type)
         self.assertEqual("production", conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
 
@@ -57,6 +59,33 @@ class TestConfiguration(EnosTest):
         d["job_type"] = ["allow_classic_ssh", "bla"]
         with self.assertRaises(ValidationError):
             conf = Configuration.from_dictionary(d)
+
+    def test_from_dictionary_deploy_job(self):
+        d = {
+            "job_name": "test",
+            "queue": "production",
+            "job_type": ["deploy"],
+            "env_name": "debian11-nfs",
+            "resources": {"machines": [], "networks": []},
+        }
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual(["deploy"], conf.job_type)
+        self.assertEqual("debian11-nfs", conf.env_name)
+
+        d["job_type"] = []
+        # Needs deploy job type, but still accepted for compatibility
+        with pytest.deprecated_call():
+            conf = Configuration.from_dictionary(d)
+
+        d["job_type"] = ["deploy"]
+        del d["env_name"]
+        # Needs env_name
+        with self.assertRaises(ValueError):
+            conf = Configuration.from_dictionary(d)
+
+        d["job_type"] = []
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual([], conf.job_type)
 
     def test_from_dictionary_invalid_walltime(self):
         d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}
@@ -172,6 +201,8 @@ class TestConfiguration(EnosTest):
         self, mock_get_cluster_site
     ):
         d = {
+            "job_type": ["deploy"],
+            "env_name": "debian11-min",
             "resources": {
                 "machines": [
                     {
@@ -186,7 +217,7 @@ class TestConfiguration(EnosTest):
                     {"id": "n1", "roles": ["rn1"], "site": "siteA", "type": "prod"},
                     {"id": "n2", "roles": ["rn2"], "site": "siteA", "type": "kavlan"},
                 ],
-            }
+            },
         }
 
         conf = Configuration.from_dictionary(d)
@@ -204,6 +235,50 @@ class TestConfiguration(EnosTest):
         self.assertEqual(1, len(machine_group.secondary_networks))
         self.assertTrue(machine_group.secondary_networks[0] in networks)
         self.assertEqual("n2", machine_group.secondary_networks[0].id)
+
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_from_dictionary_with_warnings_kavlan(self, mock_get_cluster_site):
+        d = {
+            "resources": {
+                "machines": [
+                    {
+                        "roles": ["r1"],
+                        "nodes": 2,
+                        "cluster": "cluste1",
+                        "primary_network": "n1",
+                        "secondary_networks": ["n2"],
+                    }
+                ],
+                "networks": [
+                    {"id": "n1", "roles": ["rn1"], "site": "siteA", "type": "prod"},
+                    {"id": "n2", "roles": ["rn2"], "site": "siteA", "type": "kavlan"},
+                ],
+            }
+        }
+
+        # Missing env_name and deploy job type
+        with pytest.deprecated_call():
+            _ = Configuration.from_dictionary(d)
+
+        d["job_type"] = ["deploy"]
+        # Missing env_name
+        with pytest.deprecated_call():
+            _ = Configuration.from_dictionary(d)
+
+        del d["job_type"]
+        d["env_name"] = "debian11-min"
+        # Missing deploy job_type
+        with pytest.deprecated_call():
+            _ = Configuration.from_dictionary(d)
+
+        d["job_type"] = ["deploy"]
+        d["env_name"] = "debian11-min"
+        # Should not emit any deprecation warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            _ = Configuration.from_dictionary(d)
 
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
@@ -405,6 +480,27 @@ class TestConfiguration(EnosTest):
             # but for some reason this triggers a validation error on the
             # cluster vs server conf (which is true but not accurate)
             conf.finalize()
+
+    @patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
+    )
+    def test_programmatic_job_type(self, mock_get_cluster_site):
+        conf = Configuration.from_settings(job_type=["deploy"], env_name="debian11-nfs")
+        conf.finalize()
+
+        conf = Configuration.from_settings(job_type=["deploy"])
+        # Needs env_name
+        with self.assertRaises(ValueError):
+            conf.finalize()
+
+        conf = Configuration.from_settings(env_name="debian11-nfs")
+        # Needs deploy job type, but still accepted for compatibility
+        with pytest.deprecated_call():
+            conf.finalize()
+
+        conf = Configuration.from_settings()
+        conf.finalize()
+        self.assertEqual([], conf.job_type)
 
     def test_configuration_with_reservation(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:22:00")
