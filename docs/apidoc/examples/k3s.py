@@ -6,7 +6,7 @@ en.init_logging()
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
 
 conf = (
-    en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name="k3s")
+    en.G5kConf.from_settings(job_type=[], job_name="k3s")
     .add_network_conf(network)
     .add_machine(
         roles=["master"], cluster="paravance", nodes=1, primary_network=network
