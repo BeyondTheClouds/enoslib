@@ -13,7 +13,7 @@ class Configuration(BaseConfiguration):
     """Global class for parsing Chameleon configuration"""
 
     _SCHEMA = SCHEMA
-    _VALIDATOR = ChameleonValidator
+    _VALIDATOR_FUNC = ChameleonValidator
 
     def __init__(self):
         super().__init__()
@@ -40,7 +40,7 @@ class Configuration(BaseConfiguration):
     @classmethod
     def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            ChameleonValidator.validate(dictionary)
+            cls.validate(dictionary)
 
         self = cls()
 

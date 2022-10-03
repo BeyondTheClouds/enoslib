@@ -14,13 +14,13 @@ from .constants import (
     KAVLAN_TYPE,
     SUBNET_TYPES,
 )
-from .schema import SCHEMA, G5kValidator
+from .schema import SCHEMA_USER, SCHEMA_INTERNAL, G5kValidator
 
 
 class Configuration(BaseConfiguration):
 
-    _SCHEMA = SCHEMA
-    _VALIDATOR = G5kValidator
+    _SCHEMA = SCHEMA_INTERNAL
+    _VALIDATOR_FUNC = G5kValidator
 
     def __init__(self):
         super().__init__()
@@ -58,7 +58,7 @@ class Configuration(BaseConfiguration):
     @classmethod
     def from_dictionary(cls, dictionary, validate=True):
         if validate:
-            cls.validate(dictionary)
+            cls.validate(dictionary, SCHEMA_USER)
 
         self = cls()
         # populating the attributes

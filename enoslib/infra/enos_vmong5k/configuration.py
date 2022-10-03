@@ -24,7 +24,7 @@ from .schema import SCHEMA, VMonG5kValidator
 class Configuration(BaseConfiguration):
 
     _SCHEMA = SCHEMA
-    _VALIDATOR = VMonG5kValidator
+    _VALIDATOR_FUNC = VMonG5kValidator
 
     def __init__(self):
         super().__init__()

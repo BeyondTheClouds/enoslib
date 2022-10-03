@@ -1,9 +1,12 @@
+from typing import Dict
+
 from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES
 from .error import EnosG5kReservationDateFormatError, EnosG5kWalltimeFormatError
+from ..utils import merge_dict
 
-SCHEMA = {
+SCHEMA_USER = {
     "type": "object",
     "title": "Grid5000 configuration",
     "properties": {
@@ -54,7 +57,7 @@ SCHEMA = {
             },
         },
         "additionalProperties": False,
-        "required": ["machines", "networks"],
+        "required": ["machines"],
     },
     "jobids": {"title": "JobIds", "type": "array", "items": {"type": "string"}},
     "cluster": {
@@ -72,7 +75,7 @@ SCHEMA = {
                 "uniqueItems": True,
             },
         },
-        "required": ["roles", "cluster", "primary_network"],
+        "required": ["roles", "cluster"],
     },
     "servers": {
         "title": "ComputeServers",
@@ -92,7 +95,7 @@ SCHEMA = {
                 "uniqueItems": True,
             },
         },
-        "required": ["roles", "servers", "primary_network"],
+        "required": ["roles", "servers"],
     },
     "network": {
         "type": "object",
@@ -105,6 +108,22 @@ SCHEMA = {
         "required": ["id", "type", "roles", "site"],
     },
 }
+
+
+SCHEMA_USER_DIFF = {
+    "resources": {
+        "required": ["machines", "networks"],
+    },
+    "cluster": {
+        "required": ["roles", "cluster", "primary_network"],
+    },
+    "servers": {
+        "required": ["roles", "servers", "primary_network"],
+    },
+}
+
+
+SCHEMA_INTERNAL = merge_dict(SCHEMA_USER, SCHEMA_USER_DIFF)
 
 """
 Additionnal notes
@@ -177,4 +196,5 @@ def is_valid_reservation_date(instance):
         raise EnosG5kReservationDateFormatError()
 
 
-G5kValidator = Draft7Validator(SCHEMA, format_checker=G5kFormatChecker)
+def G5kValidator(schema: Dict):
+    return Draft7Validator(schema, format_checker=G5kFormatChecker)

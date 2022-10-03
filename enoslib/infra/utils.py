@@ -43,3 +43,33 @@ def _date2h(timestamp):
 
     t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
     return t
+
+
+def merge_dict(original: dict, diff: dict) -> dict:
+    """Merge original dict with a diff dict."""
+
+    def _merge_dict(original, diff):
+        """Merge inplace diff dict into original dict."""
+        for k, v in diff.items():
+            if k not in original:
+                original[k] = v
+                continue
+            # The key exists on both side
+            if isinstance(v, dict):
+                if not isinstance(original[k], dict):
+                    raise ValueError(
+                        f"Mismatch type original={type(original[k])} vs diff=dict"
+                    )
+                # We  got a dict on both side, let's recurse
+                _merge_dict(original[k], v)
+            else:
+                if isinstance(original[k], dict):
+                    raise ValueError(f"Mismatch type original=dict vs diff={type(v)}")
+                original[k] = v
+        return original
+
+    import copy
+
+    result = copy.deepcopy(original)
+    _merge_dict(result, diff)
+    return result

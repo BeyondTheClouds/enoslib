@@ -1,6 +1,6 @@
 import logging
 import json
-from typing import Dict, Optional, Any
+from typing import Callable, Dict, Optional, Any
 import warnings
 
 import jsonschema
@@ -19,7 +19,7 @@ class BaseConfiguration:
 
     # Setting this is defered to the inherited classes
     _SCHEMA: Optional[Dict[Any, Any]] = None
-    _VALIDATOR: Optional[Any] = None
+    _VALIDATOR_FUNC: Optional[Callable[[Dict], Any]] = None
 
     def __init__(self):
         # A configuration has a least these two
@@ -55,11 +55,13 @@ class BaseConfiguration:
         return self
 
     @classmethod
-    def validate(cls, dictionary):
-        if cls._VALIDATOR is None:
-            jsonschema.validate(dictionary, cls._SCHEMA)
+    def validate(cls, dictionary, schema=None):
+        if schema is None:
+            schema = cls._SCHEMA
+        if cls._VALIDATOR_FUNC is None:
+            jsonschema.validate(dictionary, schema)
         else:
-            cls._VALIDATOR.validate(dictionary)
+            cls._VALIDATOR_FUNC(schema).validate(dictionary)
 
     def to_dict(self):
         return {}
