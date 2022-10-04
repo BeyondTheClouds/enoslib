@@ -281,13 +281,34 @@ class TestBuildReservationCriteria(EnosTest):
         criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual({"site1": ["{cluster='foocluster'}/nodes=1"]}, criteria)
 
+    def test_only_machines_one_site_cluster_disks(self):
+        c = ClusterConfiguration(
+            roles=["role1"],
+            nodes=1,
+            site="site1",
+            cluster="foocluster",
+            reservable_disks=True,
+        )
+
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
+        self.assertDictEqual(
+            {
+                "site1": [
+                    "{(type='default' or type='disk') AND "
+                    "cluster='foocluster'}/nodes=1"
+                ]
+            },
+            criteria,
+        )
+
     def test_only_machines_one_site_one_servers(self):
         _ = {"machines": [{"role": "role1", "servers": ["foo-1.site1.grid5000.fr"]}]}
         c = ServersConfiguration(roles=["role1"], servers=["foo-1.site1.grid5000.fr"])
 
         criteria = g5k_api_utils._build_reservation_criteria([c], [])
         self.assertDictEqual(
-            {"site1": ["{network_address='foo-1.site1.grid5000.fr'}/nodes=1"]}, criteria
+            {"site1": ["{network_address in ('foo-1.site1.grid5000.fr')}/nodes=1"]},
+            criteria,
         )
 
     def test_only_machines_one_site_two_servers(self):
@@ -299,8 +320,26 @@ class TestBuildReservationCriteria(EnosTest):
         self.assertDictEqual(
             {
                 "site1": [
-                    "{network_address='foo-1.site1.grid5000.fr'}/nodes=1"
-                    "+{network_address='foo-2.site1.grid5000.fr'}/nodes=1"
+                    "{network_address in ('foo-1.site1.grid5000.fr', "
+                    "'foo-2.site1.grid5000.fr')}/nodes=2"
+                ]
+            },
+            criteria,
+        )
+
+    def test_only_machines_one_site_two_servers_disks(self):
+        c = ServersConfiguration(
+            roles=["role1"],
+            servers=["foo-1.site1.grid5000.fr", "foo-2.site1.grid5000.fr"],
+            reservable_disks=True,
+        )
+        criteria = g5k_api_utils._build_reservation_criteria([c], [])
+        self.assertDictEqual(
+            {
+                "site1": [
+                    "{(type='default' or type='disk') AND "
+                    "network_address in ('foo-1.site1.grid5000.fr', "
+                    "'foo-2.site1.grid5000.fr')}/nodes=2"
                 ]
             },
             criteria,

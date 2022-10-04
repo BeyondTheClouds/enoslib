@@ -68,6 +68,10 @@ SCHEMA_USER = {
             "cluster": {"type": "string"},
             "nodes": {"type": "number"},
             "min": {"type": "number"},
+            "reservable_disks": {
+                "type": "boolean",
+                "description": "Request access to reservable disks on nodes",
+            },
             "primary_network": {"type": "string"},
             "secondary_networks": {
                 "type": "array",
@@ -88,6 +92,10 @@ SCHEMA_USER = {
                 "minItems": 1,
             },
             "min": {"type": "number"},
+            "reservable_disks": {
+                "type": "boolean",
+                "description": "Request access to reservable disks on nodes",
+            },
             "primary_network": {"type": "string"},
             "secondary_networks": {
                 "type": "array",
