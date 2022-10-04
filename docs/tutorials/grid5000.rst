@@ -84,6 +84,36 @@ Using the secondary interfaces
    :language: python
    :linenos:
 
+
+Using reservable disks on nodes
+===============================
+
+Grid'5000 has a `disk reservation
+<https://www.grid5000.fr/w/Disk_reservation>`_ feature: on several
+clusters, reserving secondary disks is mandatory if you want to use them
+in your experiments.
+
+The following tutorial shows how to reserve the disks using Enoslib, and
+then how they can be used a raw devices.  Here the goal is to build a
+software RAID array with ``mdadm`` and then benchmark it using ``fio``:
+
+.. literalinclude:: grid5000/tuto_grid5000_reservable_disks.py
+   :language: python
+   :linenos:
+
+::
+
+    Finished 1 tasks (Granting root acces on the nodes (sudo-g5k))
+    ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+    Finished 13 tasks (Check availability of disk1,Check availability of disk2,Check availability of
+    disk3,Check availability of disk4,Create partition on disk1,Create partition on disk2,Create partition on
+    disk3,Create partition on disk4,Create RAID array,Install fio,Run fio,Stop RAID array,Wipe RAID
+    signatures)
+    ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+    fio-3.25 running on grimoire-8.nancy.grid5000.fr: average /dev/md0 read performance = 550.67 IOPS
+    fio-3.25 running on grimoire-6.nancy.grid5000.fr: average /dev/md0 read performance = 519.71 IOPS
+
+
 Using a custom environment
 ==========================
 
