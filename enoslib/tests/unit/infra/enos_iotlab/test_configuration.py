@@ -1,4 +1,6 @@
 from jsonschema.exceptions import ValidationError
+import pytest
+
 from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     BoardConfiguration,
@@ -14,7 +16,8 @@ from enoslib.tests.unit import EnosTest
 class TestConfiguration(EnosTest):
     def test_from_dictionnary_minimal(self):
         d = {"resources": {"machines": [{"roles": [], "hostname": ["m3"]}]}}
-        conf = Configuration.from_dictionnary(d)
+        with pytest.deprecated_call():
+            conf = Configuration.from_dictionnary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertTrue(len(conf.machines) == 1)
