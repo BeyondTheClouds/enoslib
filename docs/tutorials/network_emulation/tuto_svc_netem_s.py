@@ -14,7 +14,12 @@ prod = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 private = en.G5kNetworkConf(id="n2", type="kavlan-global", roles=["private"], site=SITE)
 
 conf = (
-    en.G5kConf.from_settings(job_name=__file__, walltime="00:30:00")
+    en.G5kConf.from_settings(
+        job_name=__file__,
+        walltime="00:30:00",
+        job_type=["deploy"],
+        env_name="debian11-nfs",
+    )
     .add_network_conf(prod)
     .add_network_conf(private)
     .add_machine(

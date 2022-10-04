@@ -153,6 +153,7 @@ Then in the configuration of the Grid'5000 provider you can specidy the followin
 
     job_name: test_myimage
     ...
+    job_type: [deploy]
     env_name: https://api.grid5000.fr/sid/sites/rennes/public/{{ login }}/myimage.desc
     ...
     resources:
