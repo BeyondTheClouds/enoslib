@@ -36,5 +36,12 @@ conf2.reservation = start
 g5k1 = en.G5k(conf1)
 g5k1.reserve_async()
 g5k2 = en.G5k(conf2)
-roles2, networks2 = g5k2.init()
-roles1, networks1 = g5k1.init()
+try:
+    roles2, networks2 = g5k2.init()
+    roles1, networks1 = g5k1.init()
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    g5k1.destroy()
+    g5k2.destroy()

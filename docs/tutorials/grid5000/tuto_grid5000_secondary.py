@@ -3,7 +3,7 @@ from pathlib import Path
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
@@ -14,7 +14,7 @@ network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SIT
 private = en.G5kNetworkConf(id="n2", type="kavlan", roles=["private"], site=SITE)
 
 conf = (
-    en.G5kConf.from_settings(job_name=__file__)
+    en.G5kConf.from_settings(job_name=job_name)
     .add_network_conf(network)
     .add_network_conf(private)
     .add_machine(
