@@ -1,7 +1,7 @@
 from typing import List, Optional
+from uuid import uuid4
 import warnings
 
-from uuid import uuid4
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -174,6 +174,21 @@ class Configuration(BaseConfiguration):
             }
         )
         return d
+
+    @property
+    def sites(self) -> List[str]:
+        """Get the exact sites in the configuration."""
+        sites = [m.site for m in self.machines]
+        sites += [m.site for m in self.networks]
+        return list(set(sites))
+
+    def restrict_to(self, site: str) -> "Configuration":
+        import copy
+
+        conf = copy.deepcopy(self)
+        conf.machines = [m for m in self.machines if m.site == site]
+        conf.networks = [n for n in self.networks if n.site == site]
+        return conf
 
 
 class GroupConfiguration:
