@@ -1,6 +1,6 @@
-**********************************
-Provider::Chameleon/ChameleonEdge
-**********************************
+*********************************
+Chameleon/ChameleonEdge tutorials
+*********************************
 
 .. contents::
    :depth: 2

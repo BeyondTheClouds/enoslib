@@ -1,7 +1,7 @@
 .. _vmong5k:
 
 *****************
-Provider::VMonG5K
+VMonG5K tutorials
 *****************
 
 .. contents::

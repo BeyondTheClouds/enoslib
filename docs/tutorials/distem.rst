@@ -1,7 +1,7 @@
 .. _distem:
 
 ****************
-Provider::Distem
+Distem tutorials
 ****************
 
 .. contents::

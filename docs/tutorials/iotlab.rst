@@ -1,5 +1,5 @@
 *********************
-Provider::FIT/IoT-LAB
+FIT/IoT-LAB tutorials
 *********************
 
 .. contents::

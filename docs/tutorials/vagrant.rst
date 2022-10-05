@@ -1,6 +1,6 @@
-******************
-Provider::Vagrant
-******************
+*****************
+Vagrant tutorials
+*****************
 
 .. contents::
    :depth: 2
