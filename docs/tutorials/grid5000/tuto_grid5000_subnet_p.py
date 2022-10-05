@@ -27,4 +27,10 @@ conf = (
 provider = en.G5k(conf)
 
 # Get actual resources
-roles, networks = provider.init()
+try:
+    roles, networks = provider.init()
+except Exception as e:
+    print(e)
+finally:
+    # Clean everything
+    provider.destroy()
