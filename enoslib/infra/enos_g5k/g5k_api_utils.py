@@ -123,7 +123,7 @@ def grid_reload_jobs_from_ids(oargrid_jobids):
     return jobs
 
 
-def grid_reload_jobs_from_name(job_name):
+def grid_reload_jobs_from_name(job_name, restrict_to: Optional[List[str]] = None):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
     By default, all the sites will be searched for jobs with the name
@@ -135,7 +135,9 @@ def grid_reload_jobs_from_name(job_name):
 
     Args:
         job_name (str): the job name
-
+        restrict_to: restrict the action to these sites only.
+            If None is passed, no restriction applies and the action will be
+            taken on all possible sites
 
     Returns:
         The list of the python-grid5000 jobs retrieved.
@@ -146,8 +148,12 @@ def grid_reload_jobs_from_name(job_name):
     """
     gk = get_api_client()
     sites = get_all_sites_obj()
+    if restrict_to is None:
+        restrict_to = [s.uid for s in sites]
     jobs = []
-    for site in [s for s in sites if s.uid not in gk.excluded_site]:
+    for site in [
+        s for s in sites if s.uid not in gk.excluded_site and s.uid in restrict_to
+    ]:
         logger.debug(f"Reloading {job_name} from {site.uid}")
         _jobs = site.jobs.list(
             name=job_name, state="waiting,launching,running", user=get_api_username()
@@ -244,14 +250,19 @@ def job_delete(job, wait=False):
     logger.info(f"Job killed ({job.site}, {job.uid})")
 
 
-def grid_destroy_from_name(job_name, wait=False):
+def grid_destroy_from_name(
+    job_name, wait=False, restrict_to: Optional[List[str]] = None
+):
     """Destroy all the jobs with a given name.
 
     Args:
-       job_name (str): the job name
-       wait: True whether we should wait for a status change
+        job_name (str): the job name
+        wait: True whether we should wait for a status change
+        restrict_to: restrict the action to these sites only.
+            If None is passed, no restriction applies and the action will be
+            taken on all possible sites
     """
-    jobs = grid_reload_jobs_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     for job in jobs:
         logger.info(f"Killing the job ({job.site}, {job.uid})")
         job_delete(job, wait=wait)
@@ -803,8 +814,9 @@ def grid_get_or_create_job(
     machines,
     networks,
     wait=True,
+    restrict_to: Optional[List[str]] = None,
 ):
-    jobs = grid_reload_jobs_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     if len(jobs) == 0:
         jobs = grid_make_reservation(
             job_name,
