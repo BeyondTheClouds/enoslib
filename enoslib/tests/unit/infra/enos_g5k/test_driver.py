@@ -48,4 +48,5 @@ class TestDriverPassConf(unittest.TestCase):
                 "project_test",
                 [],
                 [],
+                restrict_to=[],
             )

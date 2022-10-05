@@ -26,7 +26,7 @@ from enoslib.infra.enos_g5k.concrete import (
     ConcreteGroup,
     ConcreteServersConf,
 )
-from enoslib.infra.enos_g5k.configuration import (
+from .configuration import (
     ClusterConfiguration,
     GroupConfiguration,
     NetworkConfiguration,
@@ -44,7 +44,6 @@ from enoslib.infra.enos_g5k.driver import get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
-    _do_synchronise_jobs,
     get_api_client,
     get_api_username,
     get_clusters_status,
@@ -64,6 +63,8 @@ from enoslib.errors import (
     NegativeWalltime,
 )
 from enoslib.infra.provider import Provider
+from enoslib.infra.providers import Providers
+
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
 from enoslib.log import getLogger
@@ -336,18 +337,6 @@ class G5kTunnel:
         self.close()
 
 
-def synchronise(*confs):
-    """Find a suitable reservation date for all the confs passed."""
-
-    machines = []
-    walltime = "00:00:00"
-    for conf in confs:
-        machines.extend(conf.machines)
-        walltime = max(walltime, conf.walltime)
-
-    return _do_synchronise_jobs(walltime, machines, force=True)
-
-
 def check() -> List[Tuple[str, bool, str]]:
     # first check ssh to access.grid5000.fr
     statuses = []
@@ -423,12 +412,13 @@ def check() -> List[Tuple[str, bool, str]]:
     return statuses
 
 
-class G5k(Provider):
-    """The provider to use when deploying on Grid'5000."""
+class G5kBase(Provider):
+    """(internal)Provider dedicated to single site interaction."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.provider_conf = self.provider_conf.finalize()
+        # make sure we are dealing with a single site
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
         self.hosts = []
@@ -534,7 +524,6 @@ class G5k(Provider):
 
     def launch(self):
         self.reserve()
-
         self.wait()
 
         oar_nodes, oar_networks = self.driver.resources()
@@ -871,6 +860,34 @@ class G5k(Provider):
 
     def is_created(self):
         return not (not self.driver.get_jobs())
+
+
+class G5k(G5kBase):
+    """The provider to use when interacting with Grid'5000.
+
+    Most of the methods are inherited
+    from :py:class:`~enoslib.infra.enos_g5k.provider.G5kBase`.
+    """
+
+    def reserve(self):
+        """Reserve the resources described in the configuration
+
+        This support multisite configuration.
+        """
+        sites = self.provider_conf.sites
+
+        if len(sites) == 1:
+            # follow the super behaviour
+            # which is scoped to one single site anyway.
+            super().reserve()
+        else:
+            # Use a temporary Providers instance to secure the resources.  Self
+            # being scoped to several sites the set of reserved resources will
+            # be reloaded by the current class in the subsequent steps event if
+            # they have been reserved by the temporary Providers instance.
+            confs_per_site = [self.provider_conf.restrict_to(site) for site in sites]
+            providers = Providers([G5kBase(conf) for conf in confs_per_site])
+            providers.async_init()
 
 
 def _lookup_networks(network_id: str, networks: List[G5kNetwork]):

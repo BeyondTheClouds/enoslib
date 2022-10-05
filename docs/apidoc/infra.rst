@@ -35,7 +35,7 @@ G5k Provider Class
 ------------------
 
 .. automodule:: enoslib.infra.enos_g5k.provider
-    :members: G5k, G5kHost, G5kNetwork, G5kVlanNetwork, G5kProdNetwork, G5kSubnetNetwork, G5kTunnel
+    :members: G5k, G5kBase, G5kHost, G5kNetwork, G5kVlanNetwork, G5kProdNetwork, G5kSubnetNetwork, G5kTunnel
 
 .. _grid5000-schema:
 

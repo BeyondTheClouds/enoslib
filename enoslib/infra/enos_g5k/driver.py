@@ -36,7 +36,14 @@ class Driver:
 
     def __init__(self):
         # underlying jobs
-        self.jobs = []
+        self._jobs = []
+
+    @property
+    def jobs(self):
+        # make sure jobs is reloaded (if any) and return them
+        if not self._jobs:
+            self._jobs = self.get_jobs()
+        return self._jobs
 
     @abstractmethod
     def reserve(self, wait=True):
@@ -81,7 +88,7 @@ class OargridStaticDriver(Driver):
         self.oargrid_jobids = oargrid_jobids
 
     def reserve(self):
-        self.jobs = grid_reload_from_ids(self.oargrid_jobids)
+        self._jobs = grid_reload_from_ids(self.oargrid_jobids)
 
     def destroy(self, wait=False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
@@ -90,10 +97,7 @@ class OargridStaticDriver(Driver):
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
-        if self.jobs:
-            return self.jobs
-        else:
-            grid_reload_jobs_from_ids(self.oargrid_jobids)
+        grid_reload_jobs_from_ids(self.oargrid_jobids)
 
 
 class OargridDynamicDriver(Driver):
@@ -105,32 +109,27 @@ class OargridDynamicDriver(Driver):
     deployment. This is done using the job name.
     """
 
-    def __init__(
-        self,
-        job_name,
-        walltime,
-        job_type,
-        monitor,
-        project,
-        reservation_date,
-        queue,
-        machines,
-        networks,
-    ):
+    def __init__(self, configuration):
 
         super().__init__()
-        self.job_name = job_name
-        self.walltime = walltime
-        self.job_type = job_type
-        self.monitor = monitor
-        self.project = project
-        self.reservation_date = reservation_date
-        self.queue = queue
-        self.machines = machines
-        self.networks = networks
+        self.job_name = configuration.job_name
+        self.walltime = configuration.walltime
+        self.job_type = configuration.job_type
+        self.monitor = configuration.monitor
+        self.reservation_date = configuration.reservation
+        self.project = configuration.project
+        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
+        # the queues and it was quiet convenient
+        # see https://github.com/BeyondTheClouds/enos/pull/62
+        self.queue = configuration.queue
+        self.machines = configuration.machines
+        self.networks = configuration.networks
+
+        # Used to restrict the driver when we scan the jobs
+        self.sites = configuration.sites
 
     def reserve(self):
-        self.jobs = grid_get_or_create_job(
+        self._jobs = grid_get_or_create_job(
             self.job_name,
             self.walltime,
             self.reservation_date,
@@ -140,53 +139,27 @@ class OargridDynamicDriver(Driver):
             self.project,
             self.machines,
             self.networks,
+            restrict_to=self.sites,
         )
 
     def destroy(self, wait=False):
-        grid_destroy_from_name(self.job_name, wait=wait)
+        grid_destroy_from_name(self.job_name, wait=wait, restrict_to=self.sites)
 
     def deploy(self, site, nodes, options):
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
-        if self.jobs:
-            return self.jobs
-        else:
-            return grid_reload_jobs_from_name(self.job_name)
+        return grid_reload_jobs_from_name(self.job_name, restrict_to=self.sites)
 
 
 def get_driver(
     configuration: Configuration,
 ) -> Union[OargridDynamicDriver, OargridStaticDriver]:
     """Build an instance of the driver to interact with G5K"""
-    machines = configuration.machines
-    networks = configuration.networks
     oargrid_jobids = configuration.oargrid_jobids
-    project = configuration.project
 
     if oargrid_jobids:
         logger.debug("Loading the OargridStaticDriver")
         return OargridStaticDriver(oargrid_jobids)
     else:
-        job_name = configuration.job_name
-        walltime = configuration.walltime
-        job_type = configuration.job_type
-        monitor = configuration.monitor
-        reservation_date = configuration.reservation
-        # NOTE(msimonin): some time ago asimonet proposes to auto-detect
-        # the queues and it was quite convenient
-        # see https://github.com/BeyondTheClouds/enos/pull/62
-        queue = configuration.queue
-        logger.debug("Loading the OargridDynamicDriver")
-
-        return OargridDynamicDriver(
-            job_name,
-            walltime,
-            job_type,
-            monitor,
-            project,
-            reservation_date,
-            queue,
-            machines,
-            networks,
-        )
+        return OargridDynamicDriver(configuration)
