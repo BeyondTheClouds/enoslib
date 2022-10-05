@@ -147,6 +147,7 @@ class GroupConfiguration:
         cluster=None,
         site=None,
         min=0,
+        reservable_disks=False,
         primary_network=None,
         secondary_networks=None,
     ):
@@ -159,6 +160,7 @@ class GroupConfiguration:
         if cluster is not None and site is None:
             self.site = self.site_of(self.cluster)
         self.min = min
+        self.reservable_disks = reservable_disks
         self.primary_network = primary_network
         self.secondary_networks = []
         if secondary_networks is not None:
@@ -253,7 +255,8 @@ class ClusterConfiguration(GroupConfiguration):
     def oar(self):
         if int(self.nodes) <= 0:
             return self.site, None
-        criterion = f"{{cluster='{self.cluster}'}}/nodes={self.nodes}"
+        disks = "(type='default' or type='disk') AND " if self.reservable_disks else ""
+        criterion = f"{{{disks}cluster='{self.cluster}'}}/nodes={self.nodes}"
         return self.site, criterion
 
 
@@ -297,8 +300,11 @@ class ServersConfiguration(GroupConfiguration):
         # servers belong to the same cluster...
         if self.servers == []:
             return self.site, None
-        criterion = ["{network_address='%s'}/nodes=1" % s for s in self.servers]
-        return self.site, "+".join(criterion)
+        disks = "(type='default' or type='disk') AND " if self.reservable_disks else ""
+        server_list = ", ".join([f"'{s}'" for s in self.servers])
+        nb_servers = len(self.servers)
+        criterion = f"{{{disks}network_address in ({server_list})}}/nodes={nb_servers}"
+        return self.site, criterion
 
 
 class NetworkConfiguration:
