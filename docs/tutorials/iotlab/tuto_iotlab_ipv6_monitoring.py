@@ -22,7 +22,7 @@ iotlab_conf = en.IotlabConf.from_dictionary(iotlab_dict)
 iotlab_provider = en.Iotlab(iotlab_conf)
 
 g5k_dict = {
-    "job_type": "allow_classic_ssh",
+    "job_type": [],
     "walltime": "01:00:00",
     "resources": {
         "machines": [

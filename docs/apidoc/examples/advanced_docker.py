@@ -20,7 +20,7 @@ prod_network = en.G5kNetworkConf(
     id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
+    en.G5kConf.from_settings(job_name=job_name, job_type=[])
     .add_network_conf(prod_network)
     .add_machine(
         roles=["control"], cluster="paravance", nodes=5, primary_network=prod_network

@@ -10,7 +10,7 @@ job_name = Path(__file__).name
 
 prod_network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type="allow_classic_ssh")
+    en.G5kConf.from_settings(job_name=job_name, job_type=[])
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",

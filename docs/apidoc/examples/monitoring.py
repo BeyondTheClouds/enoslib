@@ -10,9 +10,7 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 
 # claim the resources
-conf = en.G5kConf.from_settings(
-    job_type="allow_classic_ssh", job_name="test-non-deploy"
-)
+conf = en.G5kConf.from_settings(job_type=[], job_name="test-non-deploy")
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf.add_network_conf(network).add_machine(
     roles=["control"], cluster=CLUSTER, nodes=1, primary_network=network

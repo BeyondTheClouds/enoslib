@@ -12,7 +12,7 @@ rennes_network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="renn
 lille_network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="lille")
 
 conf = (
-    en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name=job_name)
+    en.G5kConf.from_settings(job_type=[], job_name=job_name)
     .add_network_conf(rennes_network)
     .add_network_conf(lille_network)
     .add_machine(

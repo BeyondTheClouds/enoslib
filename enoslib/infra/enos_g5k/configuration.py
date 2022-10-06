@@ -1,16 +1,17 @@
+from typing import List, Optional
 import warnings
 
 from uuid import uuid4
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from ..configuration import BaseConfiguration
 from .constants import (
-    DEFAULT_ENV_NAME,
+    DEFAULT_ENV_NAME_COMPAT,
     DEFAULT_JOB_NAME,
-    DEFAULT_JOB_TYPE,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
     DEFAULT_SSH_KEYFILE,
+    JOB_TYPE_DEPLOY,
     NETWORK_ROLE_PROD,
     KAVLAN_TYPE,
     SUBNET_TYPES,
@@ -27,14 +28,12 @@ class Configuration(BaseConfiguration):
         super().__init__()
         self.dhcp = True
         self.force_deploy = False
-        self.env_name = DEFAULT_ENV_NAME
+        self.env_name: Optional[str] = None
         self.job_name = DEFAULT_JOB_NAME
         # since https://gitlab.inria.fr/discovery/enoslib/-/issues/103
-        # we need to be able to pass ["allow_classic_ssh", "exotic"]
-        # so we wrap this in an array. This is also a chance to align this with
-        # the G5k api which requires an array.
+        # this is an array.
         # At some point we'll need to rename this to job_type*s*
-        self.job_type = [DEFAULT_JOB_TYPE]
+        self.job_type: List[str] = []
         self.key = DEFAULT_SSH_KEYFILE
         self.monitor = None
         self.oargrid_jobids = None
@@ -114,6 +113,46 @@ class Configuration(BaseConfiguration):
         # Fill in missing primary networks
         for machine in self.machines:
             self._set_default_primary_network(machine)
+        # Deprecated parameters
+        if "allow_classic_ssh" in self.job_type:
+            warnings.warn(
+                "'allow_classic_ssh' job type is deprecated, "
+                "you can omit it to obtain the same behaviour.",
+                DeprecationWarning,
+            )
+        # Kavlan needs deploy
+        has_kavlan = False
+        for net in self.networks:
+            if net.type in KAVLAN_TYPE:
+                has_kavlan = True
+        if has_kavlan and JOB_TYPE_DEPLOY not in self.job_type:
+            warnings.warn(
+                "Kavlan networks require the use of 'deploy' job type, "
+                "please update your code "
+                "(automatically adding 'deploy' job type for compatibility).",
+                DeprecationWarning,
+            )
+            self.job_type.append(JOB_TYPE_DEPLOY)
+        if has_kavlan and not self.env_name:
+            self.env_name = DEFAULT_ENV_NAME_COMPAT
+            warnings.warn(
+                "Kavlan networks require choosing an 'env_name' to deploy with, "
+                "please update your code "
+                f"(automatically selecting '{self.env_name}' for compatibility).",
+                DeprecationWarning,
+            )
+        # Check parameters consistency
+        if JOB_TYPE_DEPLOY in self.job_type and not self.env_name:
+            raise ValueError("Parameter 'env_name' is required for 'deploy' job type")
+        if self.env_name and JOB_TYPE_DEPLOY not in self.job_type:
+            warnings.warn(
+                "Parameter 'env_name' requires the use of 'deploy' job type, "
+                "please update your code "
+                "(automatically adding 'deploy' job type for compatibility).",
+                DeprecationWarning,
+            )
+            self.job_type.append(JOB_TYPE_DEPLOY)
+        # Call parent method that validates against the schema
         return super().finalize()
 
     def to_dict(self):

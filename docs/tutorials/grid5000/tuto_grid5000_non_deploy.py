@@ -9,7 +9,7 @@ en.init_logging(level=logging.DEBUG)
 job_name = Path(__file__).name
 
 provider_conf = {
-    "job_type": "allow_classic_ssh",
+    "job_type": [],
     "job_name": job_name,
     "resources": {
         "machines": [

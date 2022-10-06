@@ -22,7 +22,6 @@ from enoslib.infra.enos_g5k.objects import (
 )
 
 from enoslib.infra.enos_g5k.constants import (
-    DEFAULT_ENV_NAME,
     DEFAULT_SSH_KEYFILE,
     KAVLAN,
     PROD,
@@ -232,7 +231,7 @@ class TestDeploy(EnosTest):
     def build_complex_provider(self, conf: Dict = None):
 
         if conf is None:
-            conf = {}
+            conf = {"job_type": ["deploy"], "env_name": "debian11-min"}
         site = "rennes"
         oar_nodes_1 = [
             "foocluster-1.rennes.grid5000.fr",
@@ -278,7 +277,8 @@ class TestDeploy(EnosTest):
         return p, oar_nodes_1, oar_nodes_2, oar_network_2
 
     def test_prod(self):
-        p, site, oar_nodes = self.build_provider()
+        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
+        p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
@@ -293,14 +293,15 @@ class TestDeploy(EnosTest):
         p.driver.deploy.assert_called_with(
             site,
             deployed,
-            {"environment": DEFAULT_ENV_NAME, "key": DEFAULT_SSH_KEYFILE},
+            {"environment": "debian11-nfs", "key": DEFAULT_SSH_KEYFILE},
         )
         # self.assertCountEqual(actual_deployed, p.hosts)
         self.assertCountEqual([], p.undeployed)
         self.assertCountEqual(p.sshable_hosts, p.deployed)
 
     def test_prod_alt_key(self):
-        p, site, oar_nodes = self.build_provider(dict(key="test_key"))
+        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"], "key": "test_key"}
+        p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
         deployed = [h.fqdn for h in p.hosts]
         undeployed = []
@@ -313,7 +314,7 @@ class TestDeploy(EnosTest):
             p.deploy()
 
         p.driver.deploy.assert_called_with(
-            site, deployed, {"environment": DEFAULT_ENV_NAME, "key": "test_key"}
+            site, deployed, {"environment": "debian11-nfs", "key": "test_key"}
         )
         # self.assertCountEqual(p.hosts, p.deployed)
         self.assertCountEqual([], p.undeployed)

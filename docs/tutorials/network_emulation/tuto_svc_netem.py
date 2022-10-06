@@ -9,7 +9,7 @@ prod_network = en.G5kNetworkConf(
     id="n1", type="prod", roles=["my_network"], site="rennes"
 )
 conf = (
-    en.G5kConf.from_settings(job_type="allow_classic_ssh", walltime="01:00:00")
+    en.G5kConf.from_settings(job_type=[], walltime="01:00:00")
     .add_network_conf(prod_network)
     .add_machine(
         roles=["city", "paris"],

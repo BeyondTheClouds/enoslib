@@ -1,13 +1,15 @@
 from pathlib import Path
 
 JOB_TYPE_DEPLOY = "deploy"
-DEFAULT_ENV_NAME = "debian11-x64-nfs"
 DEFAULT_JOB_NAME = "EnOSlib"
-DEFAULT_JOB_TYPE = JOB_TYPE_DEPLOY
 DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"
 DEFAULT_NUMBER = 1
 DEFAULT_SSH_KEYFILE = str(Path.home() / ".ssh" / "id_rsa.pub")
+
+# Unused except for backwards compatibility (kavlan),
+# users now need to always specify the env_name themselves.
+DEFAULT_ENV_NAME_COMPAT = "debian11-nfs"
 
 NAMESERVER = "dns.grid5000.fr"
 

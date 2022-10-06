@@ -17,7 +17,12 @@ kavlan_global = en.G5kNetworkConf(
 
 conf = (
     en.G5kConf()
-    .from_settings(job_name=__file__, walltime="00:33:00")
+    .from_settings(
+        job_type=["deploy"],
+        env_name="debian11-nfs",
+        job_name=job_name,
+        walltime="00:33:00",
+    )
     .add_network_conf(prod_rennes)
     .add_network_conf(prod_lille)
     .add_network_conf(kavlan_global)

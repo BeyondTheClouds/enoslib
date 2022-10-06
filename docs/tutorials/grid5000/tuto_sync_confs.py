@@ -11,9 +11,7 @@ job_name = Path(__file__).name
 network1 = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="lyon")
 
 conf1 = (
-    en.G5kConf.from_settings(
-        job_type=["allow_classic_ssh", "exotic"], job_name=f"{job_name}-1"
-    )
+    en.G5kConf.from_settings(job_type=["exotic"], job_name=f"{job_name}-1")
     .add_network_conf(network1)
     .add_machine(roles=["control"], cluster="pyxis", nodes=1, primary_network=network1)
     .finalize()
@@ -22,7 +20,7 @@ conf1 = (
 network2 = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
 
 conf2 = (
-    en.G5kConf.from_settings(job_type=["allow_classic_ssh"], job_name=f"{job_name}-2")
+    en.G5kConf.from_settings(job_type=[], job_name=f"{job_name}-2")
     .add_network_conf(network2)
     .add_machine(
         roles=["control"], cluster="paravance", nodes=1, primary_network=network2

@@ -448,8 +448,8 @@ class G5k(Provider):
         self.undeployed = []
 
         # will hold the hosts reachable through ssh
-        # - if allow_classic_ssh is used this will self.hosts
-        # - if a deployment has been performed this will be self.deployed
+        # - if no deployment has been performed, this will be self.hosts
+        # - if a deployment has been performed, this will be self.deployed
         self.sshable_hosts = []
 
         # will hold the status of the cluster

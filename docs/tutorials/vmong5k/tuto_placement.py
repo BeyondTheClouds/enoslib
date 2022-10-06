@@ -14,7 +14,7 @@ SITE = "rennes"
 
 prod_network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf = (
-    en.G5kConf.from_settings(job_type="allow_classic_ssh", job_name=job_name)
+    en.G5kConf.from_settings(job_type=[], job_name=job_name)
     .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine", type="slash_22", roles=["my_subnet"], site=SITE

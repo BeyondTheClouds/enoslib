@@ -45,9 +45,10 @@ Notes
 -----
 
 * The :py:class:`~enoslib.infra.enos_vmong5k.provider.VMonG5k` provider
-  internally uses the :py:class:`~enoslib.infra.enos_g5k.provider.G5k` provider.
-  In particular it sets the ``job_type`` to ``allow_classic_ssh`` and claim an
-  extra ``slash_22`` subnet.
+  internally uses the :py:class:`~enoslib.infra.enos_g5k.provider.G5k`
+  provider.  In particular it uses the default job type to obtain physical
+  nodes with a standard Grid'5000 environment, and it also claims an extra
+  ``slash_22`` subnet.
 
 * SSH access will be granted to the VMs using the ``~/.ssh/id_rsa | ~/.ssh/id_rsa.pub`` keypair.
   So these files must be present in your home directory.

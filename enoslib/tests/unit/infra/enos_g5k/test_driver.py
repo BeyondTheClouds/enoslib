@@ -27,7 +27,8 @@ class TestDriverPassConf(unittest.TestCase):
             job_name="TEST",
             walltime="12:34:56",
             reservation="2022-04-01 23:00:00",
-            job_type="allow_classic_ssh",
+            job_type=["deploy", "exotic"],
+            env_name="dummy",
             monitor="test.*",
             project="project_test",
         )
@@ -42,7 +43,7 @@ class TestDriverPassConf(unittest.TestCase):
                 "12:34:56",
                 "2022-04-01 23:00:00",
                 "default",
-                "allow_classic_ssh",
+                ["deploy", "exotic"],
                 "test.*",
                 "project_test",
                 [],

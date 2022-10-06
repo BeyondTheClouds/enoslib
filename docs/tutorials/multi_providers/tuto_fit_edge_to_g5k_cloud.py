@@ -17,7 +17,7 @@ JOB_NAME = f"{prefix}-enoslib-g5kcloud-lease3"
 # Leasing resources on G5K
 g5k_conf = {
     "walltime": _walltime,
-    "job_type": "allow_classic_ssh",
+    "job_type": [],
     "job_name": JOB_NAME,
     "resources": {
         "machines": [
