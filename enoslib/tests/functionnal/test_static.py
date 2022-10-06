@@ -24,7 +24,7 @@ provider_conf = {
 
 tc = {"enable": True, "default_delay": "20ms", "default_rate": "1gbit"}
 inventory = os.path.join(os.getcwd(), "hosts")
-print("Starting ressources with the provider vagrant")
+print("Starting resources with the provider vagrant")
 provider = Enos_vagrant(VagrantConf.from_dictionary(provider_conf))
 roles, networks = provider.init()
 print("Building the machine list")

@@ -33,7 +33,7 @@ class ConcreteClusterConf(ConcreteGroup, MinMixin):
 
 
 class ConcreteServersConf(ConcreteGroup, MinMixin):
-    """Concretization of a servers configuration."""
+    """Concretization of a servers' configuration."""
 
     def __init__(self, oar_nodes: List[str], config: ServersConfiguration):
         super().__init__(oar_nodes, config)

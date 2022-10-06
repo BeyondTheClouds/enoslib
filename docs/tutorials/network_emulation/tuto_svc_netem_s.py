@@ -53,13 +53,13 @@ roles = en.sync_info(roles, networks)
 netem = en.Netem()
 (
     netem.add_constraints(
-        "delay 10ms", roles["paris"], networks=networks["private"], symetric=True
+        "delay 10ms", roles["paris"], networks=networks["private"], symmetric=True
     )
     .add_constraints(
-        "delay 20ms", roles["londres"], networks=networks["private"], symetric=True
+        "delay 20ms", roles["londres"], networks=networks["private"], symmetric=True
     )
     .add_constraints(
-        "delay 30ms", roles["berlin"], networks=networks["private"], symetric=True
+        "delay 30ms", roles["berlin"], networks=networks["private"], symmetric=True
     )
 )
 

@@ -149,7 +149,6 @@ class MachineConfiguration:
             kwargs.update(flavour_desc=flavour_desc)
 
         number = dictionary.get("number")
-        number = dictionary.get("number")
         if number is not None:
             kwargs.update(number=number)
 

@@ -419,7 +419,7 @@ class Iotlab(Provider):
                 roles.add_one(h, host.roles)
                 # shouldn't I be able to pass only host?
                 # Not because ansible inventory is based on address and
-                # our ssh_address is other for A8 nodes..
+                # our ssh_address is other for A8 nodes.
         for sensor in self.sensors:
             for role in sensor.roles:
                 roles[role] += [sensor]

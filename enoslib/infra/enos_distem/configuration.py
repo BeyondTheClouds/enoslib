@@ -11,7 +11,7 @@ from .constants import (
     DEFAULT_FORCE_DEPLOY,
     FLAVOURS,
 )
-from enoslib.object import Host
+from enoslib.objects import Host
 from .schema import SCHEMA
 
 
@@ -124,7 +124,6 @@ class MachineConfiguration:
         if flavour_desc is not None:
             kwargs.update(flavour_desc=flavour_desc)
 
-        number = dictionary.get("number")
         number = dictionary.get("number")
         if number is not None:
             kwargs.update(number=number)

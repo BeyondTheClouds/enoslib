@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def mk_pools(things, keyfnc=lambda x: x):
-    "Indexes a thing by the keyfnc to construct pools of things."
+    """Indexes a thing by the keyfnc to construct pools of things."""
     pools = {}
     sthings = sorted(things, key=keyfnc)
     for key, thingz in groupby(sthings, key=keyfnc):
@@ -16,7 +16,7 @@ def mk_pools(things, keyfnc=lambda x: x):
 
 
 def pick_things(pools, key, n):
-    "Picks a maximum of n things in a dict of indexed pool of things."
+    """Picks a maximum of n things in a dict of indexed pool of things."""
     pool = pools.get(key)
     if not pool:
         return []

@@ -10,5 +10,5 @@ class Chameleonkvm(openstack.Openstack):
 
     def offset_walltime(self, offset: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )

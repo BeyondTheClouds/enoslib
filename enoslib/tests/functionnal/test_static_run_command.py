@@ -111,7 +111,7 @@ assert result[0].stdout == "tototiti"
 assert result[0].stderr == ""
 
 # dump results
-# test it in temporarty directory
+# test it in temporary directory
 with TemporaryDirectory() as tmp:
     dump_file = Path(tmp) / "run_command.out"
     with config_context(dump_results=dump_file):

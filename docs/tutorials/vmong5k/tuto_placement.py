@@ -38,7 +38,7 @@ logging.info(subnet)
 
 # We describe the VMs types and placement in the following
 # We build a VMonG5KConf with some extra fields:
-# - undercloud: where the VMs should be placed (round robin)
+# - undercloud: where the VMs should be placed (round-robin)
 # - macs: list of macs to take: on G5k the dhcp is configured to assign specific
 #   ip based on the configured mac
 

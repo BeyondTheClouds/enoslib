@@ -54,7 +54,7 @@ for h_idx, (h1, h2) in enumerate(product(roles["control"], roles["control"])):
     for ip_idx, ip2 in enumerate(ips2):
         # this is the delay between one machine h1 and any of the virtual ip of h2
         # since h1 and h2 will be swapped in another iteration, we'll also set
-        # the "symetrical" at some point.
+        # the "symmetrical" at some point.
         delay = 5 * ip_idx
         humans.append(f"({h1.alias}) -->{delay}--> {ip2}({h2.alias}) ")
         if h1 == h2:

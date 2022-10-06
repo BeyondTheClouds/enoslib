@@ -73,7 +73,7 @@ class Client(Grid5000):
             self.excluded_site = []
 
 
-# Lighweight reprentation of a network returned by OAR
+# Lightweight representation of a network returned by OAR
 # descriptor is the cidr for a subnet or an id for vlan (prod=="DEFAULT")
 OarNetwork = namedtuple("OarNetwork", ["site", "nature", "descriptor"])
 
@@ -126,7 +126,7 @@ def grid_reload_jobs_from_ids(oargrid_jobids):
 def grid_reload_jobs_from_name(job_name):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
-    By default all the sites will be searched for jobs with the name
+    By default, all the sites will be searched for jobs with the name
     ``job_name``. Using EnOSlib there can be only one job per site with name
     ``job_name``.
 
@@ -192,7 +192,7 @@ def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
     nodes: List[str] = []
     networks: List[OarNetwork] = []
     for job in jobs:
-        # can have several subnet like this (e.g when requesting a /16)
+        # can have several subnet like this (e.g. when requesting a /16)
         # [...]
         # "subnets": [
         #     "10.158.0.0/22",
@@ -275,7 +275,7 @@ def submit_jobs(job_specs):
     """Submit a job
 
     Args:
-        job_spec (dict): The job specifiation (see Grid'5000 API reference)
+        job_specs (dict): The job specification (see Grid'5000 API reference)
     """
     gk = get_api_client()
     jobs = []
@@ -284,7 +284,7 @@ def submit_jobs(job_specs):
             logger.info(f"Submitting {job_spec} on {site}")
             jobs.append(gk.sites[site].jobs.create(job_spec))
     except Exception as e:
-        logger.error("An error occured during the job submissions")
+        logger.error("An error occurred during the job submissions")
         logger.error("Cleaning the jobs created")
         for job in jobs:
             job.delete()
@@ -342,7 +342,7 @@ def grid_deploy(site: str, nodes: List[str], config: Dict):
     Args:
         site(str): the site
         nodes(list): list of nodes (str) to depoy
-        options(dict): option of the deployment (refer to the Grid'5000 API
+        config(dict): option of the deployment (refer to the Grid'5000 API
             Specifications)
 
     Returns:
@@ -550,7 +550,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
     Args:
         clusters (str): list of the clusters
         extra_cond (lambda): extra predicate to filter network card retrieved
-    from the API. E.g lambda nic: not nic['mounted'] will retrieve all the
+    from the API. E.g. lambda nic: not nic['mounted'] will retrieve all the
     usable network cards that are not mounted by default.
 
     Returns:
@@ -579,7 +579,7 @@ def can_start_on_cluster(
     """Check if #nodes can be started on a given cluster.
 
     This is intended to give a good enough approximation.
-    This can be use to prefiltered possible reservation dates before submitting
+    This can be used to prefiltered possible reservation dates before submitting
     them on oar.
 
     Args:
@@ -681,7 +681,7 @@ def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float
     This reservation date is really only a hint and will be supplied to each
     oar server. Without this *common* reservation_date, one oar server can
     decide to postpone the start of the job while the other are already
-    running. But this doens't prevent the start of a job on one site to drift
+    running. But this doesn't prevent the start of a job on one site to drift
     (e.g because the machines need to be restarted.) But this shouldn't exceed
     few minutes.
 
@@ -937,7 +937,7 @@ def enable_home_for_job(job: Job, ips: List[str]):
 
     Args:
         job: A (running) job.
-            home site and access duration will be infered from
+            home site and access duration will be inferred from
             this job
         ips: list of IPs
             Every machine connecting from one of this IPs will be granted an

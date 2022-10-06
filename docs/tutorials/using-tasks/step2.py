@@ -32,7 +32,7 @@ tc = {
 
 @en.enostask(new=True)
 def up(force=True, env=None, **kwargs):
-    "Starts a new experiment"
+    """Starts a new experiment"""
     conf = en.VagrantConf.from_dictionary(provider_conf)
     provider = en.Vagrant(conf)
     roles, networks = provider.init()

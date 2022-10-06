@@ -140,7 +140,7 @@ class GroupConfiguration:
         roles = dictionary["roles"]
         image = dictionary.get("image")
         profile = dictionary.get("profile")
-        # boards/archi and physical_nodes/hostname are no individually optionnal
+        # boards/archi and physical_nodes/hostname are no individually optional
         # nevertheless the schema validates that at least one is set
         archi = dictionary.get("archi")
         nodes = dictionary.get("hostname")

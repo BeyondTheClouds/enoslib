@@ -14,7 +14,7 @@ CLUSTER = "paranoia"
 def bench(parameter: Dict) -> None:
     """Launch a benchmark.
 
-    1. Start the required ressources.
+    1. Start the required resources.
     2. Prepare the virtual machines
     3. Benchmark the network
     4. Backup

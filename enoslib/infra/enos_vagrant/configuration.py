@@ -16,7 +16,7 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
-        # top level atttributes
+        # top level attributes
         self.resources = None
         self.backend = DEFAULT_BACKEND
         self.user = DEFAULT_USER

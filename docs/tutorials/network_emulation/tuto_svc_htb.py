@@ -43,7 +43,7 @@ emulation_conf = {
     "default_rate": "1gbit",
     "except": [],
     "constraints": [
-        {"src": "paris", "dst": "londres", "symetric": True, "delay": "10ms"}
+        {"src": "paris", "dst": "londres", "symmetric": True, "delay": "10ms"}
     ],
 }
 

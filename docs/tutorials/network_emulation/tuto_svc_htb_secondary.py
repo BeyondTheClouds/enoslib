@@ -53,7 +53,7 @@ emulation_conf = {
     "except": [],
     "default_network": "private",
     "constraints": [
-        {"src": "paris", "dst": "londres", "symetric": True, "delay": "10ms"}
+        {"src": "paris", "dst": "londres", "symmetric": True, "delay": "10ms"}
     ],
 }
 

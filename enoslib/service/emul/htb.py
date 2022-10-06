@@ -34,7 +34,6 @@ DEFAULT_RATE = "10gbit"
 
 DEFAULT_LOSS = None
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,7 +77,7 @@ class HTBConstraint:
         )
 
     def add_commands(self) -> List[str]:
-        """Add the classful qdisc at the root of the device."""
+        """Add the class-full qdisc at the root of the device."""
         return [f"tc qdisc add dev {self.device} root handle 1: htb"]
 
     def remove_commands(self) -> List[str]:
@@ -87,13 +86,12 @@ class HTBConstraint:
 
     def commands(self, idx: int):
         """Get the command for the current slice."""
-        cmds = []
-        cmds.append(
+        cmds = [
             f"tc class add dev {self.device} "
             "parent 1: "
             f"classid 1:{idx + 1} "
             f"htb rate {self.rate}"
-        )
+        ]
 
         # could be 0 or None
         if not self.loss:
@@ -138,7 +136,7 @@ class HTBSource:
 
     Args
         host: Host where the constraint will be applied
-        constaints: list of :py:class:`enoslib.service.netem.netem.HTBConstraint`
+        constraints: list of :py:class:`enoslib.service.netem.netem.HTBConstraint`
 
     .. note ::
 
@@ -239,8 +237,8 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
     This function is used internally by the
     :py:class:`enoslib.service.netem.netem.Netem` service. Here, you must
     ensure that the various :py:class:`enoslib.service.netem.netem.HTBSource`
-    are consistent (e.g device names.) with the host.
-    Symetric limitations can be achieved by adding both end of the
+    are consistent (e.g. device names.) with the host.
+    Symmetric limitations can be achieved by adding both end of the
     communication to the list.
     The same host can appear multiple times in the list, all the constraints
     will be merged according to
@@ -309,19 +307,21 @@ class NetemHTB(BaseNetem):
         rate: str,
         loss: Optional[float] = None,
         networks: Optional[Iterable[Network]] = None,
-        symetric: bool = False,
+        symmetric: bool = False,
+        *,
+        symetric: bool = None,
     ):
         """Add some constraints.
 
         Args:
             src: list of hosts on which the constraint will be applied
             dest: list of hosts to which traffic will be limited
-            delay: the delay to apply as a string (e.g 10ms)
-            rate: the rate to apply as a string (e.g 1gbit)
+            delay: the delay to apply as a string (e.g. 10ms)
+            rate: the rate to apply as a string (e.g. 1gbit)
             loss: the percentage of loss (between 0 and 1)
             networks: only consider these networks when applying the
                 resources (default to all networks)
-            symetric: True iff the symetric rules should be also added.
+            symmetric: True iff the symmetric rules should be also added.
 
         Examples:
 
@@ -337,8 +337,15 @@ class NetemHTB(BaseNetem):
 
         Returns:
             The current service with updated constraints.
-            (This allow to chain the addition of constraints)
+            (This allows to chain the addition of constraints)
         """
+        if symetric is not None:  # Remove when deprecation phase will be ended
+            symmetric = symetric
+            import warnings
+
+            warnings.warn(
+                "symetric is deprecated; use symmetric", DeprecationWarning, 2
+            )
         for src_host in src:
             self.sources.setdefault(src_host, HTBSource(src_host))
             source = self.sources[src_host]
@@ -360,9 +367,9 @@ class NetemHTB(BaseNetem):
                             loss=loss,
                         )
                         source.add_constraint(**kwargs)
-        if symetric:
+        if symmetric:
             self.add_constraints(
-                dest, src, delay, rate, loss=loss, networks=networks, symetric=False
+                dest, src, delay, rate, loss=loss, networks=networks, symmetric=False
             )
         return self
 
@@ -371,7 +378,7 @@ class NetemHTB(BaseNetem):
         """Build the service from a dictionary describing the network topology.
 
         Args:
-            network_constraints: Dictionnay of constraints. This must conform with
+            network_constraints: Dictionary of constraints. This must conform with
                 :py:const:`~enoslib.service.emul.schema.SCHEMA`.
 
 
@@ -420,7 +427,7 @@ class NetemHTB(BaseNetem):
             rate = constraint.get("rate", default_rate)
             loss = constraint.get("loss", default_loss)
             network_name = constraint.get("network", default_network_name)
-            symetric = constraint.get("symetric", False)
+            symmetric = constraint.get("symmetric", False)
             if network_name is not None:
                 networks_list = networks[network_name]
             else:
@@ -431,7 +438,7 @@ class NetemHTB(BaseNetem):
                 delay,
                 rate,
                 loss,
-                symetric=symetric,
+                symmetric=symmetric,
                 networks=networks_list,
             )
         return self
@@ -453,7 +460,7 @@ class NetemHTB(BaseNetem):
 
         Remove any filter that have been applied to shape the traffic ever.
 
-        Careful: This remove every rules, including those not managed by this service.
+        Careful: This remove every rule, including those not managed by this service.
         """
         _destroy(list(self.sources.keys()), **kwargs)
 
@@ -505,15 +512,15 @@ class AccurateNetemHTB(NetemHTB):
     of:
 
     - the latency for a packet to go out of the first machine
-    (e.g IP stack latency + network card latency).
+    (e.g. IP stack latency + network card latency).
 
     - the latency for the packet to flight to the second machine
-    (e.g network, middle-boxes latency)
+    (e.g. network, middle-boxes latency)
 
-    - the latency for a packet to be transfered to the application on the second
+    - the latency for a packet to be transferred to the application on the second
     machine.
 
-    This service tries the compensate the extra latency added to outgoing
+    This service tries the compensated the extra latency added to outgoing
     packets by TC so that the End-to-End latency stick to the one specified by
     the user.
 
@@ -525,13 +532,13 @@ class AccurateNetemHTB(NetemHTB):
     aggregate their RTT time. The current estimation is based on the mean RTT.
 
     The AccurateNetemHTB is useful when the delays introduced by the
-    infrastructure aren't neglictable in comparison to the wanted ones (e.g few
+    infrastructure aren't negligible in comparison to the wanted ones (e.g few
     ms in a LAN environment).  Since correction is applied on each pair (source,
     destination), the service can cope with the heterogeneity of delays in the
-    infrastracture.
+    infrastructure.
 
     Of course this service can't do any miracle like trying to set delays less
-    than the one existing on the infratructure. Always double check, the
+    than the one existing on the infrastructure. Always double check, the
     observed network condition before drawing any conclusion.
     """
 
@@ -560,7 +567,7 @@ class AccurateNetemHTB(NetemHTB):
             results.extend([(fping.host, dst, s) for (dst, s) in stats])
 
         # foreach observed latency we look for a matching constraint
-        # and we correct it in term of latency
+        # and we correct it in terms of latency
         # naive heuristic here: we use the mean as correction factor
         observed = [(alias, dst, mean(values)) for alias, dst, values in results]
         new_sources: Dict[Host, HTBSource] = {}
@@ -570,7 +577,7 @@ class AccurateNetemHTB(NetemHTB):
                 continue
             assert len(host_candidates) == 1
             host = host_candidates[0]
-            # Found an host
+            # Found a host
             # we now check if there is a constraint with target == dst
             # note that we can have several matching constraints here if the local
             # host have several net devices configured
@@ -583,13 +590,13 @@ class AccurateNetemHTB(NetemHTB):
             # (alias) has several net devices configured corresponding to the
             # passed network (might be None)
             #
-            # Let's fix all the constraints (assuming symetric rtt...)
+            # Let's fix all the constraints (assuming symmetric rtt...)
             for constraint in constraints_candidates:
                 c = HTBConstraint(
                     device=constraint.device,
                     target=constraint.target,
                     # FIXME(msimonin): use delay(int) + delay unit(str)
-                    delay=f"{(float(constraint.delay.replace('ms', '')) - obs/2)}ms",
+                    delay=f"{(float(constraint.delay.replace('ms', '')) - obs / 2)}ms",
                     rate=constraint.rate,
                     loss=constraint.loss,
                 )

@@ -37,9 +37,9 @@ roles = en.sync_info(roles, networks)
 
 netem = en.Netem()
 (
-    netem.add_constraints("delay 10ms", roles["paris"], symetric=True)
-    .add_constraints("delay 20ms", roles["londres"], symetric=True)
-    .add_constraints("delay 30ms", roles["berlin"], symetric=True)
+    netem.add_constraints("delay 10ms", roles["paris"], symmetric=True)
+    .add_constraints("delay 20ms", roles["londres"], symmetric=True)
+    .add_constraints("delay 30ms", roles["berlin"], symmetric=True)
 )
 
 netem.deploy()

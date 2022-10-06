@@ -55,7 +55,7 @@ class K3s(Service):
 
         Note:
 
-        In order to deploy multiple (independant) nodes, please do so by
+        In order to deploy multiple (independent) nodes, please do so by
         creating multiple instances of this service.
 
         Reference:

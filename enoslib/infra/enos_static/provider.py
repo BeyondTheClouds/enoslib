@@ -6,7 +6,7 @@ class Static(Provider):
     """The Static provider class.
 
     This class is used when one has already machines and network configured.
-    This is usefull when there si no provider class corresponding the user
+    This is useful when there is no provider class corresponding the user
     testbed. To use it the user must build a configuration object that reflects
     the exact settings of his machines and networks.
     """
@@ -47,5 +47,5 @@ class Static(Provider):
 
     def offset_walltime(self, difference: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )

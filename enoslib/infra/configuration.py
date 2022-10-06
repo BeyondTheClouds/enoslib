@@ -17,17 +17,17 @@ class BaseConfiguration:
     This should be used as it is.
     """
 
-    # Setting this is defered to the inherited classes
+    # Setting this is deferred to the inherited classes
     _SCHEMA: Optional[Dict[Any, Any]] = None
     _VALIDATOR_FUNC: Optional[Callable[[Dict], Any]] = None
 
     def __init__(self):
-        # A configuration has a least these two
+        # A configuration has the least these two
         self.machines = []
         self.networks = []
 
         # Filling up with the right machine and network
-        # constructor is deferred to the sub classes.
+        # constructor is deferred to the sub-classes.
         self._machine_cls = str
         self._network_cls = str
 
@@ -48,7 +48,7 @@ class BaseConfiguration:
 
     @classmethod
     def from_settings(cls, **kwargs):
-        """Alternative constructor. Build the configuration from a
+        """Alternative constructor. Build the configuration from
         the kwargs."""
         self = cls()
         self.set(**kwargs)

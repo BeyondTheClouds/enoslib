@@ -339,15 +339,6 @@ class G5kTunnel:
 def synchronise(*confs):
     """Find a suitable reservation date for all the confs passed."""
 
-    def max_walltime(w1, w2):
-        """lexicographic order on string XX:YY:ZZ
-
-        string must be well-formed."""
-        if w1 < w2:
-            return w2
-        else:
-            return w1
-
     machines = []
     walltime = "00:00:00"
     for conf in confs:
@@ -358,7 +349,7 @@ def synchronise(*confs):
 
 
 def check() -> List[Tuple[str, bool, str]]:
-    # firt check ssh to access.grid5000.fr
+    # first check ssh to access.grid5000.fr
     statuses = []
     user = None
 
@@ -476,7 +467,7 @@ class G5k(Provider):
           OAR resource selection string (one single reservation per provider
           instance).
         - It requests the API to get the corresponding resources (job and
-          optionaly deploys a environment)
+          optionally deploys a environment)
         - Those resources are then mapped back to every single item on the
           configuration.
         - Finally it applies some more operations (set nodes on vlans,
@@ -488,7 +479,7 @@ class G5k(Provider):
 
             - Existing job(s) (based on the name) will be reloaded - The
               mapping between concrete resources and their corresponding roles
-              is fixed accros runs. This includes:
+              is fixed across runs. This includes:
                 - the mapping between machines and roles
                 - the mapping between networks and roles
                 - the mapping between network cards and networks
@@ -517,7 +508,7 @@ class G5k(Provider):
                 critical
 
         Returns:
-            Two dictionnaries (roles, networks) representing the inventory of
+            Two dictionaries (roles, networks) representing the inventory of
             resources.
         """
         _force_deploy = self.provider_conf.force_deploy
@@ -649,7 +640,7 @@ class G5k(Provider):
             if undeployed:
                 logger.warning(f"Undeployed nodes: {undeployed}")
 
-            # set the ssh_address atrribute of the concrete hosts
+            # set the ssh_address attribute of the concrete hosts
             for fqdn, t_fqdn in net.translate(fqdns):
                 # get the corresponding host
                 h = [host for host in hosts if host.fqdn == fqdn][0]
@@ -683,13 +674,15 @@ class G5k(Provider):
             )
             for h in self.sshable_hosts
         ]
-        run("{{ cmd }}", hosts, task_name="Granting root acces on the nodes (sudo-g5k)")
+        run(
+            "{{ cmd }}", hosts, task_name="Granting root access on the nodes (sudo-g5k)"
+        )
 
     def _to_enoslib(self):
         """Transform from provider specific resources to framework resources."""
         # index the host by their associated roles
         hosts = Roles()
-        # used to de-duplicate host objetcts in the roles datastructure
+        # used to de-duplicate host objects in the roles datastructure
         _hosts = []
         for host in self.sshable_hosts:
             h = Host(host.ssh_address, user="root")
@@ -736,7 +729,7 @@ class G5k(Provider):
         src_addr: Optional[Union[str, List[str]]] = None,
         proto: str = "tcp+udp",
     ):
-        """Context manager to manage firewal rules
+        """Context manager to manage firewall rules
 
         - Create a firewall opening when entering
         - Delete the firewall opening when exiting
@@ -795,7 +788,7 @@ class G5k(Provider):
         """
 
         def to_ipv6_dests(hosts: Iterable[str]):
-            """util fonction to build the ipv6node string."""
+            """util function to build the ipv6node string."""
             dests = []
             for dest in hosts:
                 _dest = dest.split(".")

@@ -205,16 +205,16 @@ EXAMPLES = '''
 
 
 class YeditException(Exception):
-    ''' Exception class for Yedit '''
+    """ Exception class for Yedit """
     pass
 
 
 # pylint: disable=too-many-public-methods
 class Yedit(object):
-    ''' Class to modify yaml files '''
+    """ Class to modify yaml files """
     re_valid_key = r"(((\[-?\d+\])|([0-9a-zA-Z%s/_-]+)).?)+$"
     re_key = r"(?:\[(-?\d+)\])|([0-9a-zA-Z{}/_-]+)"
-    com_sep = set(['.', '#', '|', ':'])
+    com_sep = {'.', '#', '|', ':'}
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -235,34 +235,34 @@ class Yedit(object):
 
     @property
     def separator(self):
-        ''' getter method for separator '''
+        """ getter method for separator """
         return self._separator
 
     @separator.setter
     def separator(self, inc_sep):
-        ''' setter method for separator '''
+        """ setter method for separator """
         self._separator = inc_sep
 
     @property
     def yaml_dict(self):
-        ''' getter method for yaml_dict '''
+        """ getter method for yaml_dict """
         return self.__yaml_dict
 
     @yaml_dict.setter
     def yaml_dict(self, value):
-        ''' setter method for yaml_dict '''
+        """ setter method for yaml_dict """
         self.__yaml_dict = value
 
     @staticmethod
     def parse_key(key, sep='.'):
-        '''parse the key allowing the appropriate separator'''
-        common_separators = list(Yedit.com_sep - set([sep]))
+        """parse the key allowing the appropriate separator"""
+        common_separators = list(Yedit.com_sep - {sep})
         return re.findall(Yedit.re_key.format(''.join(common_separators)), key)
 
     @staticmethod
     def valid_key(key, sep='.'):
-        '''validate the incoming key'''
-        common_separators = list(Yedit.com_sep - set([sep]))
+        """validate the incoming key"""
+        common_separators = list(Yedit.com_sep - {sep})
         if not re.match(Yedit.re_valid_key.format(''.join(common_separators)), key):
             return False
 
@@ -270,7 +270,7 @@ class Yedit(object):
 
     @staticmethod
     def remove_entry(data, key, sep='.'):
-        ''' remove data at location key '''
+        """ remove data at location key """
         if key == '' and isinstance(data, dict):
             data.clear()
             return True
@@ -307,11 +307,11 @@ class Yedit(object):
 
     @staticmethod
     def add_entry(data, key, item=None, sep='.'):
-        ''' Get an item from a dictionary with key notation a.b.c
+        """ Get an item from a dictionary with key notation a.b.c
             d = {'a': {'b': 'c'}}}
             key = a#b
             return c
-        '''
+        """
         if key == '':
             pass
         elif (not (key and Yedit.valid_key(key, sep)) and
@@ -360,11 +360,11 @@ class Yedit(object):
 
     @staticmethod
     def get_entry(data, key, sep='.'):
-        ''' Get an item from a dictionary with key notation a.b.c
+        """ Get an item from a dictionary with key notation a.b.c
             d = {'a': {'b': 'c'}}}
             key = a.b
             return c
-        '''
+        """
         if key == '':
             pass
         elif (not (key and Yedit.valid_key(key, sep)) and
@@ -385,7 +385,7 @@ class Yedit(object):
 
     @staticmethod
     def _write(filename, contents):
-        ''' Actually write the file contents to disk. This helps with mocking. '''
+        """ Actually write the file contents to disk. This helps with mocking. """
 
         tmp_filename = filename + '.yedit'
 
@@ -395,7 +395,7 @@ class Yedit(object):
         os.rename(tmp_filename, filename)
 
     def write(self):
-        ''' write to file '''
+        """ write to file """
         if not self.filename:
             raise YeditException('Please specify a filename.')
 
@@ -417,7 +417,7 @@ class Yedit(object):
         return (True, self.yaml_dict)
 
     def read(self):
-        ''' read from file '''
+        """ read from file """
         # check if it exists
         if self.filename is None or not self.file_exists():
             return None
@@ -429,14 +429,14 @@ class Yedit(object):
         return contents
 
     def file_exists(self):
-        ''' return whether file exists '''
+        """ return whether file exists """
         if os.path.exists(self.filename):
             return True
 
         return False
 
     def load(self, content_type='yaml'):
-        ''' return yaml file '''
+        """ return yaml file """
         contents = self.read()
 
         if not contents and not self.content:
@@ -479,7 +479,7 @@ class Yedit(object):
         return self.yaml_dict
 
     def get(self, key):
-        ''' get a specified key'''
+        """ get a specified key"""
         try:
             entry = Yedit.get_entry(self.yaml_dict, key, self.separator)
         except KeyError:
@@ -488,7 +488,7 @@ class Yedit(object):
         return entry
 
     def pop(self, path, key_or_item):
-        ''' remove a key, value pair from a dict or an item for a list'''
+        """ remove a key, value pair from a dict or an item for a list"""
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -520,7 +520,7 @@ class Yedit(object):
         return (False, self.yaml_dict)
 
     def delete(self, path):
-        ''' remove path from a dict'''
+        """ remove path from a dict"""
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -536,7 +536,7 @@ class Yedit(object):
         return (True, self.yaml_dict)
 
     def exists(self, path, value):
-        ''' check if value exists at path'''
+        """ check if value exists at path"""
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -563,7 +563,7 @@ class Yedit(object):
         return entry == value
 
     def append(self, path, value):
-        '''append value to a list'''
+        """append value to a list"""
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -583,7 +583,7 @@ class Yedit(object):
 
     # pylint: disable=too-many-arguments
     def update(self, path, value, index=None, curr_value=None):
-        ''' put path, value into a dict '''
+        """ put path, value into a dict """
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -630,7 +630,7 @@ class Yedit(object):
         return (False, self.yaml_dict)
 
     def put(self, path, value):
-        ''' put path, value into a dict '''
+        """ put path, value into a dict """
         try:
             entry = Yedit.get_entry(self.yaml_dict, path, self.separator)
         except KeyError:
@@ -673,7 +673,7 @@ class Yedit(object):
         return (True, self.yaml_dict)
 
     def create(self, path, value):
-        ''' create a yaml file '''
+        """ create a yaml file """
         if not self.file_exists():
             # deepcopy didn't work
             # Try to use ruamel.yaml and fallback to pyyaml
@@ -699,7 +699,7 @@ class Yedit(object):
 
     @staticmethod
     def get_curr_value(invalue, val_type):
-        '''return the current value'''
+        """return the current value"""
         if invalue is None:
             return None
 
@@ -713,7 +713,7 @@ class Yedit(object):
 
     @staticmethod
     def parse_value(inc_value, vtype=''):
-        '''determine value type passed'''
+        """determine value type passed"""
         true_bools = ['y', 'Y', 'yes', 'Yes', 'YES', 'true', 'True', 'TRUE',
                       'on', 'On', 'ON', ]
         false_bools = ['n', 'N', 'no', 'No', 'NO', 'false', 'False', 'FALSE',
@@ -742,7 +742,7 @@ class Yedit(object):
 
     @staticmethod
     def process_edits(edits, yamlfile):
-        '''run through a list of edits and process them one-by-one'''
+        """run through a list of edits and process them one-by-one"""
         results = []
         for edit in edits:
             value = Yedit.parse_value(edit['value'], edit.get('value_type', ''))
@@ -771,7 +771,7 @@ class Yedit(object):
     # pylint: disable=too-many-return-statements,too-many-branches
     @staticmethod
     def run_ansible(params):
-        '''perform the idempotent crud operations'''
+        """perform the idempotent crud operations"""
         yamlfile = Yedit(filename=params['src'],
                          backup=params['backup'],
                          separator=params['separator'])
@@ -875,7 +875,7 @@ class Yedit(object):
 
 # pylint: disable=too-many-branches
 def main():
-    ''' ansible oc module for secrets '''
+    """ ansible oc module for secrets """
 
     module = AnsibleModule(
         argument_spec=dict(
@@ -903,7 +903,7 @@ def main():
         required_one_of=[["content", "src"]],
     )
 
-    # Verify we recieved either a valid key or edits with valid keys when receiving a src file.
+    # Verify we received either a valid key or edits with valid keys when receiving a src file.
     # A valid key being not None or not ''.
     if module.params['src'] is not None:
         key_error = False

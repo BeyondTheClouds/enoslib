@@ -203,7 +203,7 @@ def check_network(
             "network_id": network["id"],
             # NOTE(msimonin): using the dns of chameleon
             # for a generic openstack provider we should think to
-            # parameteried this or use public available dns
+            # parameterize this or use public available dns
             "cidr": subnet["cidr"],
             "ip_version": 4,
         }
@@ -424,11 +424,11 @@ def allow_address_pairs(session, network, subnet):
             # seems to have enabled_sec_groups = False which
             # prevent them to be updated, just throw a warning
             # a skip them
-            logger.warn("Can't update port %s" % port)
+            logger.warning("Can't update port %s" % port)
 
 
 def check_environment(provider_conf):
-    """Check all ressources needed by Enos."""
+    """Check all resources needed by Enos."""
     session = get_session()
     image_id = check_glance(session, provider_conf.image)
     flavor_to_id, id_to_flavor = check_flavors(session)
@@ -576,5 +576,5 @@ class Openstack(Provider):
 
     def offset_walltime(self, difference: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )

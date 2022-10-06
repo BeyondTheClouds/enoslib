@@ -22,7 +22,7 @@ class Configuration(OSConfiguration.Configuration):
         self.walltime = "02:00:00"
         self.extra_ips = 0
 
-        # overrident keys
+        # overridden keys
         self.image = DEFAULT_IMAGE
         self.user = DEFAULT_USER
         self.configure_network = DEFAULT_CONFIGURE_NETWORK

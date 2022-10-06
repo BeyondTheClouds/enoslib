@@ -99,7 +99,7 @@ class TIGMonitoring(Service):
                                   process environment
             agent_conf: path to an alternative configuration file
             agent_env: environment variables to pass in the agent process
-                              envionment
+                              environment
             agent_image: docker image to use for the agent (telegraf)
             ui_env: environment variables to pass in the ui process
                            environment

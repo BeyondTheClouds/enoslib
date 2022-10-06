@@ -5,13 +5,13 @@ from collections.abc import MutableSet
 
 
 class ResourcesSet(MutableSet):
-    """Wrapper around a Set exposing also some of the lists' operations.
+    """Wrapper around a Set exposing also some lists' operations.
 
     Items of the Set must be comparable and hashable.
 
     It's possible for instance to call ``append``, ``extend``, etc.  Indexing
     comes for instance with some caveats however: ``resource_set[0]`` will give
-    you the first resource in the *alphebetical order* not the first inserted
+    you the first resource in the *alphabetical order* not the first inserted
     machine as you'd expect with a regular list.
     """
 
@@ -48,7 +48,7 @@ class ResourcesSet(MutableSet):
         self.data -= set(other)
         return self
 
-    # compatibility with some of the list method
+    # compatibility with some list method
     def __iadd__(self, other):
         if isinstance(other, ResourcesSet):
             other = other.data
@@ -75,7 +75,7 @@ class ResourcesSet(MutableSet):
         return self + other
 
     def __getitem__(self, i):
-        # sorting to ensure deterministism
+        # sorting to ensure determinism
         sorted_data = sorted(list(self.data))
         if isinstance(i, slice):
             return ResourcesSet(elem for elem in sorted_data[i])
@@ -95,10 +95,10 @@ class RolesDict(UserDict):
     are possible, for instance ``roles[tag1] & roles[tag2]`` will give you back
     the set of resources that are both tagged with ``tag1`` and ``tag2``.
 
-    This set also accepts some of the list operations (as it seems that users
+    This set also accepts some list operations (as it seems that users
     are more familiar with them). So it's possible to call ``append``,
     ``extend``, etc. Indexing comes with some caveats however:
-    ``roles["tag"][0]`` will give you the first resource in the *alphebetical
+    ``roles["tag"][0]`` will give you the first resource in the *alphabetical
     order* associated with the tag ``tag``(not the first inserted machine as
     you'd expect with a regular list).
     """

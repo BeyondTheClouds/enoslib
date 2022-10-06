@@ -103,7 +103,7 @@ def dict_to_html_foldable_sections(d: dict) -> str:
 
 
 def convert_to_html_table(input):
-    """Convert something to an html table.
+    """Convert something to a html table.
 
     Accepted input type: list, dict or regular str
     """

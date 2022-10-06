@@ -134,12 +134,11 @@ class Dstat(Service):
             ]
             return sections
 
-        sections = []
-        sections.append(
+        sections = [
             html_to_foldable_section(
                 "nodes", hosts_as_foldable_section(self.nodes), len(self.nodes)
             )
-        )
+        ]
         d = dict(self.__dict__)
         d.pop("nodes")
         sections.append(dict_to_html_foldable_sections(d))

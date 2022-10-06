@@ -18,7 +18,7 @@ conf = (
 
 provider = en.Vagrant(conf)
 
-# The code below is intended to be provider agnostic
+# The code below is intended to be provider-agnostic
 
 # Start the resources
 roles, networks = provider.init()

@@ -3,7 +3,7 @@ from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
 from enoslib.task import enostask
 
-# Dummy functionnal test running inside a docker container
+# Dummy functional test running inside a docker container
 
 import logging
 

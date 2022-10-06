@@ -51,10 +51,10 @@ class Docker(Service):
         bind_var_docker=None,
         swarm=False
     ):
-        """Deploy docker agents on the nodes and registry cache(optionnal)
+        """Deploy docker agents on the nodes and registry cache(optional)
 
         This assumes a debian/ubuntu base environment and aims at producing a
-        quick way to deploy docker and optionnaly a registry on your nodes.
+        quick way to deploy docker and optionally a registry on your nodes.
 
         If an NVidia GPU is detected on a node, the `nvidia-container-toolkit` will be
         also installed automatically.
@@ -127,7 +127,7 @@ class Docker(Service):
         )
 
     def deploy(self):
-        """Deploy docker and optionnaly a docker registry cache."""
+        """Deploy docker and optionally a docker registry cache."""
         _playbook = os.path.join(SERVICE_PATH, "docker.yml")
         extra_vars = {
             "registry": self.registry_opts,
