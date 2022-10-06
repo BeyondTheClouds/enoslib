@@ -20,7 +20,7 @@ conf = (
     .from_settings(
         job_type=["deploy"],
         env_name="debian11-nfs",
-        job_name=__file__,
+        job_name=job_name,
         walltime="00:33:00",
     )
     .add_network_conf(prod_rennes)
