@@ -4,7 +4,7 @@ designed to allow experimenters to repeat their executions until a desired
 state is reached. By using tasks an experimenter can leave the python runtime
 and come back later (e.g. after fixing the code). Tasks act as checkpoint of
 the experimental workflow. The states of the experiment is stored in the
-*Environment* and it's the artifact's responsability to determine the relevant
+*Environment* and it's the artifact's responsibility to determine the relevant
 states to store.
 
 Tasks definition comes as a function decorator. Once decorated a function
@@ -38,7 +38,7 @@ def _symlink_to(env_dir: Path):
         SYMLINK_NAME.symlink_to(env_dir.resolve())
         logger.info(f"Symlink {env_dir} to {SYMLINK_NAME}")
     except OSError:
-        # An harmless error can occur due to a race condition when
+        # A harmless error can occur due to a race condition when
         # multiple regions are simultaneously deployed
         logger.info(f"Symlink {env_dir} to {SYMLINK_NAME} failed")
 
@@ -141,7 +141,7 @@ def get_or_create_env(
         env_name: an environment specifier. May be a pathlib.Path object to
             an existing environment, a string (representing a path to an
             environment) or an already crafted Environment.
-        symlink: if a environment is created (new=True), a symlink can be
+        symlink: if an environment is created (new=True), a symlink can be
             created in the current directory to point to this environment if
             symlink=True.
     """

@@ -37,9 +37,9 @@ def start_containers(
     Args:
         g5k_roles: physical machines to start the containers on.
         provider_conf(Configuration):
-            :py:class:`enoslib.infra.enos_distem.configuraton.Configuration`
+            :py:class:`enoslib.infra.enos_distem.configuration.Configuration`
             This is the abstract description of your overcloud (containers). Each
-            configuration has a its undercloud attributes filled with the
+            configuration has its undercloud attributes filled with the
             undercloud machines to use. Round Robin strategy to distribute the
             containers to the PMs will be used for each configuration. Mac addresses
             will be generated according to the g5k_subnet parameter.
@@ -245,7 +245,7 @@ def distem_bootstrap(roles, path_sshkeys):
         repo = (
             "deb [allow_insecure=yes] http://packages.grid5000.fr/deb/distem/buster/ ./"
         )
-        # instal Distem from the debian package
+        # install Distem from the debian package
         p.apt_repository(repo=repo, update_cache="no", state="present")
         p.shell("apt-get update")
         p.apt(
@@ -264,11 +264,12 @@ def distem_bootstrap(roles, path_sshkeys):
 
     with play_on(roles=roles) as p:
         # kill distem process for each node
-        kill_cmd = []
-        kill_cmd.append('kill -9 `ps aux|grep "distemd"')
-        kill_cmd.append("grep -v grep")
-        kill_cmd.append('sed "s/ \\{1,\\}/ /g"')
-        kill_cmd.append('cut -f 2 -d" "`')
+        kill_cmd = [
+            'kill -9 `ps aux|grep "distemd"',
+            "grep -v grep",
+            'sed "s/ \\{1,\\}/ /g"',
+            'cut -f 2 -d" "`',
+        ]
         p.shell("|".join(kill_cmd) + "|| true")
         p.wait_for(state="stopped", port=4567)
         p.wait_for(state="stopped", port=4568)

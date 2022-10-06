@@ -68,7 +68,7 @@ options:
         default: <name>:<type>
 
 notes:
-  - The default value of seed may be unsufficient to disambiguate nodes.
+  - The default value of seed may be insufficient to disambiguate nodes.
 
 author:
     - Sylvain Afchain (@safchain)

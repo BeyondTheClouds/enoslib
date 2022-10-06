@@ -9,10 +9,10 @@ ANSIBLE_VERSION = ansible.__version__
 
 class EnosInventory(Inventory):
     def __init__(self, loader=None, sources=None, roles=None):
-        """Inventory can be buid from a role list or regular inventory files.
+        """Inventory can be built from a role list or regular inventory files.
 
         Roles or Sources must be given. If both are set, roles have precedence
-        and sources wont be taken into account (alternatively we could append
+        and sources won't be taken into account (alternatively we could append
         hosts from both sources, but I haven't seen this use case yet).
         """
         if sources is None and roles is None:
@@ -46,7 +46,7 @@ class EnosInventory(Inventory):
                 if not isinstance(machine, Host):
                     continue
                 self.add_host(machine.alias, group=role)
-                # let's add some variabe to that host
+                # let's add some variable to that host
                 # this used to work until Ansible 2.12
                 host = self.get_host(machine.alias)
                 # this is required by Ansible 2.13 to correctly connect to the
@@ -59,19 +59,22 @@ class EnosInventory(Inventory):
                     host.set_variable("ansible_port", machine.port)
                 if machine.keyfile is not None:
                     host.set_variable("ansible_ssh_private_key_file", machine.keyfile)
-                common_args = []
-                common_args.append("-o StrictHostKeyChecking=no")
-                common_args.append("-o UserKnownHostsFile=/dev/null")
+                common_args = [
+                    "-o StrictHostKeyChecking=no",
+                    "-o UserKnownHostsFile=/dev/null",
+                ]
                 forward_agent = machine.extra.get("forward_agent", False)
                 if forward_agent:
                     common_args.append("-o ForwardAgent=yes")
 
                 gateway = machine.extra.get("gateway", None)
                 if gateway is not None:
-                    proxy_cmd = ["ssh -W %h:%p"]
+                    proxy_cmd = [
+                        "ssh -W %h:%p",
+                        "-o StrictHostKeyChecking=no",
+                        "-o UserKnownHostsFile=/dev/null",
+                    ]
                     # Disabling also hostkey checking for the gateway
-                    proxy_cmd.append("-o StrictHostKeyChecking=no")
-                    proxy_cmd.append("-o UserKnownHostsFile=/dev/null")
                     gateway_user = machine.extra.get("gateway_user", machine.user)
                     if gateway_user is not None:
                         proxy_cmd.append("-l %s" % gateway_user)
@@ -107,7 +110,7 @@ class EnosInventory(Inventory):
                 # i = [f"ansible_host='{h.address}'"]
                 i = []
                 # NOTE(mimonin): The intend of generating an ini is because we
-                # want an inventory_file and and inventory dir set so removing
+                # want an inventory_file and inventory dir set so removing
                 # those keys (None values).
                 for k, v in h.vars.items():
                     if k in ["inventory_file", "inventory_dir"]:

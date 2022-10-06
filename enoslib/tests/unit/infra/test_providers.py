@@ -20,7 +20,7 @@ class TestFindSlot(EnosTest):
         a common slot is found, we check that the roles are merged correctly
 
     - test_synchronized_reservation_init_raise_exception:
-        a common slot is found, but the reservation can't be made (e.g
+        a common slot is found, but the reservation can't be made (e.g.
         out-of-date planning at the time of the submission)
         we check that we jump to the hint wrapped in the exception
 

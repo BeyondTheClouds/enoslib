@@ -25,7 +25,7 @@ logger = getLogger(__name__, ["G5k"])
 class Driver:
     """Base class for all g5k drivers.
 
-    A driver is reponsible for interacting with Grid5000 to get resources and
+    A driver is responsible for interacting with Grid5000 to get resources and
     destroy them. These action can be done using oar (single site), oargrid
     (multisite) or the REST API.
 
@@ -69,7 +69,7 @@ class OargridStaticDriver(Driver):
     Use this driver when a list of oar job ids and sites are given
 
     Since enoslib 3 we deprecated the use of oargridsub.
-    Thus one must pass a list of jobs here (one for each site).
+    Thus, one must pass a list of jobs here (one for each site).
     Note that they can be created using oargrid manually.
 
     - reserve will create or reload the job resources from all the (site, id)s
@@ -174,7 +174,7 @@ def get_driver(
         monitor = configuration.monitor
         reservation_date = configuration.reservation
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect
-        # the queues and it was quiet convenient
+        # the queues and it was quite convenient
         # see https://github.com/BeyondTheClouds/enos/pull/62
         queue = configuration.queue
         logger.debug("Loading the OargridDynamicDriver")

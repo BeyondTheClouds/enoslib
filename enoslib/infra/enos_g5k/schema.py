@@ -134,7 +134,7 @@ SCHEMA_USER_DIFF = {
 SCHEMA_INTERNAL = merge_dict(SCHEMA_USER, SCHEMA_USER_DIFF)
 
 """
-Additionnal notes
+Additional notes
 
 Supported network types are
 

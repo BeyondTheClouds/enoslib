@@ -33,7 +33,7 @@ class EnosG5kSynchronisationError(EnosError):
 
 class EnosG5kWalltimeFormatError(EnosError):
     def __init__(self):
-        super().__init__("Waltime must be specified in HH:MM:SS format")
+        super().__init__("Walltime must be specified in HH:MM:SS format")
 
 
 class EnosG5kReservationDateFormatError(EnosError):

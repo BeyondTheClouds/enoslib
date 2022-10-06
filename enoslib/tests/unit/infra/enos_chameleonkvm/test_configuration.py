@@ -13,13 +13,13 @@ class TestConfiguration(EnosTest):
         conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_IMAGE, conf.image)
         self.assertEqual(constants.DEFAULT_USER, conf.user)
-        self.assertEqual(constants.DEFAUT_NAMESERVERS, conf.dns_nameservers)
+        self.assertEqual(constants.DEFAULT_NAMESERVERS, conf.dns_nameservers)
 
     def test_from_settings(self):
         conf = Configuration.from_settings(key_name="test-key", image="image")
         self.assertEqual("image", conf.image)
         self.assertEqual(constants.DEFAULT_USER, conf.user)
-        self.assertEqual(constants.DEFAUT_NAMESERVERS, conf.dns_nameservers)
+        self.assertEqual(constants.DEFAULT_NAMESERVERS, conf.dns_nameservers)
 
     def test_programmatic_con(self):
         conf = Configuration.from_settings(key_name="test-key")

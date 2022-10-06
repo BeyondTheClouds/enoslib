@@ -3,7 +3,7 @@ SCHEMA = {
     "properties": {
         "resources": {"$ref": "#/resources"},
         "key_name": {"type": "string"},
-        # everything is optionnal
+        # everything is optional
         "image": {"type": "string"},
         "user": {"type": "string"},
         "allocation_pool": {"$ref": "#/os_allocation_pool"},

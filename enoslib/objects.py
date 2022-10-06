@@ -1,10 +1,10 @@
 """
 .. _objects:
 
-This modules is made of the **library-level** objects. These are provider
+These modules are made of the **library-level** objects. These are provider
 agnostic objects that can be fed into most of the |enoslib| functions.
 
-Currently the main abstractions of this module are the
+Currently, the main abstractions of this module are the
 :py:class:`~enoslib.objects.Host` and the :py:class:`~enoslib.objects.Network`.
 They abstract away the notion of compute servers (something you can access and
 run some actions on) and networks (something you can get IPs from). Grouping
@@ -12,7 +12,7 @@ resources is done using the :py:class:`~enoslib.objects.Roles` and
 :py:class:`~enoslib.objects.Networks` (plural).
 
 Most likely you'll interact with ``Roles`` and ``Networks`` right after calling
-``provider.init()``: this is indeed a provider responsability to turn your
+``provider.init()``: this is indeed a provider responsibility to turn your
 abstract resource description into concrete library level objects.
 """
 import copy
@@ -83,7 +83,7 @@ class Network(ABC):
 
     When one calls init on a provider, one takes ownership on nodes and
     networks. This class reflect one network owned by the user for the
-    experiment lifetime. IPv4 and IPv6 networks can be reprensented by such
+    experiment lifetime. IPv4 and IPv6 networks can be represented by such
     object.
 
     Providers *must* inherit from this class or the
@@ -153,7 +153,7 @@ class DefaultNetwork(Network):
 
     Args:
         address  : network address (as in ipaddress.ip_interface)
-        gateway  : (optionnal) the gateway for this network
+        gateway  : (optional) the gateway for this network
                    (as in ipaddress.ip_address)
         dns      : (optional) the dns address
                    (as in ipaddress.ip_address)
@@ -306,7 +306,7 @@ class IPAddress:
     """Representation of an address on a node.
 
     Usually the same ip_address can't be assigned twice. So equality and hash
-    are based on the ip field. Moreover in the case where two providers
+    are based on the ip field. Moreover, in the case where two providers
     network span the same ip range equality is also based on the network
     provenance.
     """
@@ -511,7 +511,7 @@ class BaseHost:
 class Host(BaseHost):
     """Abstract unit of computation.
 
-    A Host is anything EnosLib can access (e.g using SSH) to and run shell
+    A Host is anything EnosLib can access (e.g. using SSH) to and run shell
     commands on. It is an abstraction notion of unit of computation that can
     be bound to bare-metal machines, virtual machines, or containers.
 
@@ -519,7 +519,7 @@ class Host(BaseHost):
     Note:
 
         Internally EnOSlib is using Ansible to connect to the remote hosts.
-        By default SSH is used but it isn't the only connection method
+        By default, SSH is used but it isn't the only connection method
         supported. You can change the connection method to fit your needs by
         setting the `ansible_connection` key in the extra field (and other
         options if needed).
@@ -527,10 +527,10 @@ class Host(BaseHost):
 
     Args:
         address: host will be reached at this address (using SSH by default).
-        alias: a human readable alias
-        user: user to connect with (e.g using SSH)
-        keyfile: keyfile to use to authenticate (e.g when using SSH)
-        port: port to connect to (e.g using SSH)
+        alias: a human-readable alias
+        user: user to connect with (e.g. using SSH)
+        keyfile: keyfile to use to authenticate (e.g. when using SSH)
+        port: port to connect to (e.g. using SSH)
         extra: dictionary of options. Will be passed to Ansible as host_vars.
             Mutation of this attribute is possible and must be performed using the
             :py:meth:`~enoslib.objects.Host.set_extra` or
@@ -555,7 +555,7 @@ class Host(BaseHost):
     # Hold a list of known ip addresses
     # - discover_network can set this for you
     # - also there's a plan to make the provider fill that for you when
-    #   possible (e.g in G5K we can use the REST API)
+    #   possible (e.g. in G5K we can use the REST API)
     net_devices: Set[NetDevice] = field(default_factory=set, hash=False)
     __original_extra: Dict = field(default_factory=dict, init=False, hash=False)
 
@@ -627,7 +627,7 @@ class Host(BaseHost):
     def filter_addresses(
         self, networks: Optional[Iterable[Network]] = None, include_unknown=False
     ) -> List[IPAddress]:
-        """Get some of the addresses assigned to this host.
+        """Get some addresses assigned to this host.
 
         Args:
             networks: a list of networks to further filter the request
@@ -651,7 +651,7 @@ class Host(BaseHost):
     def filter_interfaces(
         self, networks: Optional[Iterable[Network]] = None, include_unknown=False
     ) -> List[str]:
-        """Get some of the device interfaces.
+        """Get some device interfaces.
 
         Args:
             networks: a list of networks to further filter the request

@@ -4,7 +4,7 @@ from enoslib.api import CommandResult, AsyncCommandResult
 from pathlib import Path
 
 
-# Dummy functionnal test running inside a docker container
+# Dummy functional test running inside a docker container
 
 logging = en.init_logging()
 

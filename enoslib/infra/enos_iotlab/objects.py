@@ -21,7 +21,7 @@ class IotlabHost(Host):
     """
     A IoT-LAB host
 
-    IoT-LAB has several boards with different characteristcs.
+    IoT-LAB has several boards with different characteristics.
     However, only A8 nodes are able to receive ssh connections
     and run linux commands.
     """
@@ -180,7 +180,7 @@ class IotlabSerial:
         """
         Opens serial connection to serial node.
 
-        This methods creates a SSH tunnel to frontend and a socket
+        This method creates a SSH tunnel to frontend and a socket
         to the local port created by the SSH tunnel.
 
         The sshtunnel library will create a thread to do process the forwarded packets.

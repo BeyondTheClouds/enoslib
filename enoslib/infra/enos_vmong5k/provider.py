@@ -45,10 +45,10 @@ def start_virtualmachines(
             generated according to the g5k_subnet parameter.
         g5k_subnets: The subnets to use. Each element is a serialization
             of
-            :py:class:`enoslib.infra.enos_vmong5k.configuraton.NetworkConfiguration`
+            :py:class:`enoslib.infra.enos_vmong5k.configuration.NetworkConfiguration`
         skip: number of addresses to skip when distributing them to the virtual
               machines. This can be useful when starting incrementally the
-              virtual machines to avoid overlaping ip assignements between iterations.
+              virtual machines to avoid overlaping ip assignments between iterations.
         force_deploy (boolean): controls whether the virtual machines should be
             restarted from scratch.
 
@@ -146,7 +146,7 @@ def _do_build_g5k_conf(vmong5k_conf):
 
     # keep track of prod network demand (one single demand per site)
     prod_networks = {}
-    # keep track of subnets demand (one singgle demand per site)
+    # keep track of subnets demand (one single demand per site)
     subnet_networks = {}
 
     for _, machine in enumerate(vmong5k_conf.machines):
@@ -229,7 +229,7 @@ def _index_by_host(roles):
     vms_by_host = defaultdict(list)
     for host, vms in virtual_machines_by_host.items():
         for virtual_machine in vms:
-            # beware the intend here is to get something that is json-serializable
+            # beware the intent here is to get something that is json-serializable
             # passing a set to ansible will basically fail so we take care of this here
             vm_dict = virtual_machine.to_dict()
             vms_by_host[host].append(vm_dict)
@@ -376,13 +376,13 @@ class VMonG5k(Provider):
         return self.g5k_roles, self.g5k_networks
 
     def destroy(self, wait=False):
-        """ "Destroy the underlying job."""
+        """Destroy the underlying job."""
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k = g5kprovider.G5k(g5k_conf)
         g5k.destroy()
 
     def test_slot(self, start_time: int, end_time: int) -> bool:
-        """Test if it is possible to reserve ressources at start_time"""
+        """Test if it is possible to reserve resources at start_time"""
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k_provider = g5kprovider.G5k(g5k_conf)
         return g5k_provider.test_slot(start_time, end_time)

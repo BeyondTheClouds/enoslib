@@ -25,7 +25,7 @@ logger = getLogger(__name__, ["G5k"])
 
 
 class G5kNetwork(ABC):
-    """Representation of an reservable network in G5k.
+    """Representation of a reservable network in G5k.
 
     A G5kNetwork wraps the corresponding network resource of the G5k REST
     API.
@@ -71,7 +71,7 @@ class G5kNetwork(ABC):
     def dns6(self) -> Optional[str]:
         """Gets the DNS address for this network. IPv6
 
-        We fallback to IPv4 for now
+        We fall back to IPv4 for now
         """
         if self._dns is None:
             self._dns = get_dns(self.site)
@@ -142,7 +142,7 @@ class G5kNetwork(ABC):
 
     @abstractmethod
     def translate(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
-        """Gets the DNS names of the passed fqdns in this networks and vice versa.
+        """Gets the DNS names of the passed fqdns in these networks and vice versa.
 
         Args:
             fqdns: list of hostnames (host uid in the API) to translate.
@@ -155,7 +155,7 @@ class G5kNetwork(ABC):
 
     @abstractmethod
     def translate6(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
-        """Gets the DNS names (resolved as ipv6) of the passed fqdns in this networks.
+        """Gets the DNS names (resolved as ipv6) of the passed fqdns in these networks.
 
         Args:
             fqdns: list of hostnames (host uid in the API) to translate.
@@ -178,7 +178,7 @@ class G5kNetwork(ABC):
 
     @abstractmethod
     def to_enos(self) -> List[Dict]:
-        """Transform into an provider agnostic data structure.
+        """Transform into a provider-agnostic data structure.
 
         For legacy reason we're still using dicts here...
 
@@ -190,7 +190,7 @@ class G5kNetwork(ABC):
     def add_host(self, host: "G5kHost"):
         """Add a host :py:class:`enoslib.infra.enos_g5k.objects.G5kHost`.
 
-        Currently this doesn't attach the node.
+        Currently, this doesn't attach the node.
 
         Args:
             host: The host to attach
@@ -200,7 +200,7 @@ class G5kNetwork(ABC):
     def add_hosts(self, hosts: List["G5kHost"]):
         """Add some hosts :py:class:`enoslib.infra.enos_g5k.objects.G5kHost`.
 
-        Currently this doesn't attach the node.
+        Currently, this doesn't attach the node.
 
         Args:
             hosts: The list host to attach
@@ -432,7 +432,7 @@ class G5kSubnetNetwork(G5kNetwork):
 
     @property
     def cidr(self):
-        """Not well defined.
+        """Not well-defined.
 
         Since subnets might be an aggregation of several smaller ones
         it's difficult to know what to return here.
@@ -444,7 +444,7 @@ class G5kSubnetNetwork(G5kNetwork):
 
     @property
     def cidr6(self):
-        """Not well defined (and no support for IPv6 now).
+        """Not well-defined (and no support for IPv6 now).
 
         Since subnets might be an aggregation of several smaller ones
         it's difficult to know what to return here.
@@ -517,7 +517,7 @@ class G5kHost:
         self._apinode: Optional[RESTObject] = None
 
         # Trigger any state change on the Grid'5000 side to reflect this object
-        # - eg put the node in the vlan
+        # - e.g. put the node in the vlan
         # .self.mirror_state()
 
     @property
@@ -624,8 +624,10 @@ class G5kHost:
 
     def grant_root_access_command(self) -> str:
         """Get the command to get root access on the node."""
-        cmd = ["cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys"]
-        cmd.append("sudo-g5k tee -a /root/.ssh/authorized_keys")
+        cmd = [
+            "cat ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys",
+            "sudo-g5k tee -a /root/.ssh/authorized_keys",
+        ]
         return "|".join(cmd)
 
     def get_nics(
@@ -635,7 +637,7 @@ class G5kHost:
 
         .. note::
 
-            - Only the mountable and Ehernet interfaces are returned.
+            - Only the mountable and Ethernet interfaces are returned.
             - Nic are sorted so that the result is fixed accros run.
 
         Args:
@@ -677,7 +679,7 @@ class G5kHost:
         For instance this will set some of the NIC of the nodes in a vlan (POST
         request on the API).
         For now the only strategy to map NIC to secondary network is to map
-        them in the same order : nic_i <-> seconday_networks[i].
+        them in the same order : nic_i <-> secondary_networks[i].
         (where nic_i is not the primary one)
 
         Note that this doesn't configure the NIC on the node itself (e.g dhcp).

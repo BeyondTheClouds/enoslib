@@ -44,7 +44,7 @@ def lease_to_s(lease):
 
 
 def create_blazar_client(config, session):
-    """Check the reservation, creates a new one if nescessary."""
+    """Check the reservation, creates a new one if necessary."""
     return blazar_client.Client(
         session=session,
         service_type="reservation",
@@ -201,7 +201,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
             gateway_ip, _ = openstack.check_gateway(env, conf.gateway, deployed)
 
         # NOTE(msimonin) build the roles and networks This is a bit tricky here
-        # since flavor (e.g compute_haswell) doesn"t correspond to a flavor
+        # since flavor (e.g compute_haswell) doesn't correspond to a flavor
         # attribute of the nova server object. We have to encode the flavor
         # name (e.g compute_haswell) in the server name. Decoding the flavor
         # name from the server name helps then to form the roles.
@@ -229,10 +229,10 @@ class Chameleonbaremetal(cc.Chameleonkvm):
 
     def set_reservation(self, timestamp: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )
 
     def offset_walltime(self, offset: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )

@@ -91,9 +91,9 @@ class Provider:
         pass
 
     def async_init(self, **kwargs):
-        """Partial init: secure the resources to the targetted infrastructure.
+        """Partial init: secure the resources to the targeted infrastructure.
 
-        This is primarly used internally by
+        This is primarily used internally by
         :py:class:`~enoslib.infra.providers.Providers` to get the resources from
         different platforms. As this method actually starts some real resources
         somewhere, errors may occur (e.g no more available resources, ...). It's
@@ -108,7 +108,7 @@ class Provider:
 
         Raises:
             InvalidReservationTime:
-                Resources can't be reserved at the specifie time.
+                Resources can't be reserved at the specific time.
             InvalidReservationTooOld:
                 The reservation time is in the past
             _: provider specific exception
@@ -122,7 +122,7 @@ class Provider:
 
     @abstractmethod
     def destroy(self, wait=False, **kwargs):
-        "Abstract. Destroy the resources used for the deployment."
+        """Abstract. Destroy the resources used for the deployment."""
         pass
 
     def test_slot(self, start_time: int, end_time: int) -> bool:

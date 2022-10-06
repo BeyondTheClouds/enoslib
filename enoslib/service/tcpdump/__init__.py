@@ -23,10 +23,10 @@ class TCPDump(Service):
     ):
         """Monitor network traffic using tcpdump.
 
-        This connects to every hosts to launch as many tcpdump processes as
+        This connects to every host to launch as many tcpdump processes as
         network interfaces to monitor.  The pcap files can be retrieved and
         analysed by your favorite tool (wireshark, scappy ...).  Each tcpdump
-        process is launched in the background using a dedicted tmux session.
+        process is launched in the background using a dedicated tmux session.
 
         Can be used as a Context Manager. In this case, the pcap files are
         retrieved automatically when exiting and all the remaining tcpdump

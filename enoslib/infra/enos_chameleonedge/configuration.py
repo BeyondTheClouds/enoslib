@@ -165,7 +165,7 @@ class DeviceGroupConfiguration:
             **_container,
         )
         # device-cluster (machine_name) and
-        # device (device_name) are no individually optionnal
+        # device (device_name) are no individually optional
         # nevertheless the schema validates that at least one is set
         device_name = dictionary.get("device_name")
         machine_name = dictionary.get("machine_name")

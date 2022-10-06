@@ -143,8 +143,7 @@ def parse_g5k_clusters_status(status: str) -> dict:
 
 
 def parse_iot_status_experiments(status: str) -> dict:
-    experiments_status = {}
-    experiments_status["items"] = []
+    experiments_status = {"items": []}
     for line in status.split("\n"):
         if not line:
             continue
@@ -189,8 +188,7 @@ def parse_iot_status_experiments(status: str) -> dict:
 
 
 def parse_iot_status(status: str) -> dict:
-    nodes_status = {}
-    nodes_status["items"] = []
+    nodes_status = {"items": []}
     for line in status.split("\n"):
         if not line:
             break

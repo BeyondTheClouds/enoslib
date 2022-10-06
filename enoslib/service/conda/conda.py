@@ -42,7 +42,7 @@ def _shell_in_conda(p: actions, cmd: str, **kwargs: Any):
 def _create_wrapper_script(p: actions, env_name: str):
     """Create a wrapper script for Ansible.
 
-    This can be used as an python interpreter and
+    This can be used as a python interpreter and
     let the execution be contained, somehow, in a conda env.
     """
     p.file(state="directory", dest=os.path.dirname(_conda_wrapper(env_name)))
@@ -99,7 +99,7 @@ class _Conda(Service):
     def __init__(self, *, nodes: Iterable[Host]):
         """Manage Conda on your nodes.
 
-        This installs miniconda on the nodes(latest version). Optionaly it
+        This installs miniconda on the nodes(the latest version). Optionally it
         can also prepare an environment.
 
         Args:
@@ -195,7 +195,7 @@ class _Dask(Service):
         This installs a dask cluster from scratch by installing the
         dependency from the conda env_file. As a consequence bootstraping the
         dask cluster is easy but not fast (conda might be slow to do his
-        job). Also everything run as root which might not be ideal. Instead
+        job). Also, everything run as root which might not be ideal. Instead,
         you can have a look to the Dask Service
         (:py:class:`enoslib.service.conda.conda.Dask`) that will be faster at
         bootstraping Dask and run as a regular user.

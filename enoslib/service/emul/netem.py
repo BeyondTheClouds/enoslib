@@ -30,7 +30,7 @@ class NetemOutConstraint(NetemConstraint):
 
     Args:
         device: the device name where the qdisc will be added
-        options: the options string the pass down to netem (e.g delay 10ms)
+        options: the options string the pass down to netem (e.g. delay 10ms)
     """
 
     def __post_init__(self):
@@ -60,7 +60,7 @@ class NetemInConstraint(NetemOutConstraint):
 
     Args:
         ifb: the ifb name (e.g. ifb0) that will be used. That means that the
-             various ifbs must be provisionned out of band.
+             various ifbs must be provisioned out of band.
     """
 
     def add_commands(self, ifb: str) -> List[str]:
@@ -221,13 +221,13 @@ class Netem(BaseNetem):
     ):
         """Set homogeneous network constraints on some hosts
 
-        Geometricaly speaking: nodes are put on a star topology.
+        Geometrically speaking: nodes are put on a star topology.
         Limitation are set from a node to/from the center of the Network.
 
         This calls :py:func:`~enoslib.service.emul.netem.netem` function
-        internally. As a consequence when symetric is True, it will apply 4
-        times the constraints for bidirectionnal communication (out_a, in_b,
-        out_b, in_a) and 2 times if symetric is False.
+        internally. As a consequence when symmetric is True, it will apply 4
+        times the constraints for bidirectional communication (out_a, in_b,
+        out_b, in_a) and 2 times if symmetric is False.
 
         Example:
 
@@ -247,19 +247,25 @@ class Netem(BaseNetem):
         self,
         options: str,
         hosts: Iterable[Host],
-        symetric: bool = False,
+        symmetric: bool = False,
         networks: Optional[Iterable[Network]] = None,
+        *,
+        symetric: bool = None,
     ):
+        if symetric is not None:  # Remove when deprecation phase will be ended
+            symmetric = symetric
+            import warnings
+
+            warnings.warn(
+                "symetric is deprecated; use symmetric", DeprecationWarning, 2
+            )
         for src_host in hosts:
             self.sources.setdefault(src_host, NetemInOutSource(src_host))
             source = self.sources[src_host]
             interfaces = src_host.filter_interfaces(networks)
             for interface in interfaces:
-                constraints = []
-                constraints.append(
-                    NetemOutConstraint(device=interface, options=options)
-                )
-                if symetric:
+                constraints = [NetemOutConstraint(device=interface, options=options)]
+                if symmetric:
                     constraints.append(
                         NetemInConstraint(device=interface, options=options)
                     )

@@ -45,7 +45,7 @@ class ChameleonEdge(Provider):
 
     def set_reservation(self, timestamp: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )
 
     def _reserve(self):
@@ -107,7 +107,7 @@ class ChameleonEdge(Provider):
 
     def offset_walltime(self, offset: int):
         raise NotImplementedError(
-            "Please Implement me to enjoy the power of multi plaforms experiments."
+            "Please Implement me to enjoy the power of multi platforms experiments."
         )
 
 

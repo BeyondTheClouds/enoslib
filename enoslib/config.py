@@ -32,7 +32,7 @@ def _set_dump_results(dump_results: Optional[Union[Path, str]]):
     """Prechecks and set the dump_results key
 
     If the dump_results file exists, don't override it.
-    Instead add a suffix (.1 or .2 ...).
+    Instead, add a suffix (.1 or .2 ...).
 
     Args:
         dump_results:  Path or str-path where the file results

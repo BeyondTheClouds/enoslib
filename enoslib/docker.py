@@ -17,13 +17,13 @@ protocols [#docker1]_.
 - Using ssh: requires ssh access to remote host but
     can go through a bastion host if .ssh/config is configured correctly.
     Note that the docker client must be available.
-- Using raw tcp: requires to reach the remote docker daemon (e.g be inside
+- Using raw tcp: requires to reach the remote docker daemon (e.g. be inside
     g5k). Note that in this case the remote socket must be exposed.
 
-Additionaly the structure is compatible with mitogen and its delegation model
+Additionally, the structure is compatible with mitogen and its delegation model
 [#docker2]_ which can improve the performance. Note that the facts from the
 host machines (where the docker daemon runs) needs to be gathered. One way to
-ensure this is to explictly gather the facts from such hosts.
+ensure this is to explicitly gather the facts from such hosts.
 
 .. topic:: Links
 
@@ -49,7 +49,7 @@ class DockerHost(Host):
     """A kind of host reachable using docker protocol.
 
     Args:
-        alias: **unique** name accross the deployment
+        alias: **unique** name across the deployment
         name : name of the docker container on the remote hosts
         host : the host where the container can be found
         proto: how to connect to the remote host
@@ -81,7 +81,7 @@ class DockerHost(Host):
         else:
             self.remote = f"{host.address}"
 
-        # Optionaly keep the internal state (return by docker inspect)
+        # Optionally keep the internal state (return by docker inspect)
         # Note that currently we don't provide, any consistency guarantee.
         self._state = {} if state is None else state
         super().__init__(
@@ -115,7 +115,7 @@ def get_dockers(
         pattern_hosts: pattern to describe ansible hosts to target.
             see https://docs.ansible.com/ansible/latest/intro_patterns.html
         container_name: name of the containers to look for. Regexp are
-            supported as in filter option of docker inpect.
+            supported as in filter option of docker inspect.
 
     Returns:
         List of DockerHost matching the passed container_name

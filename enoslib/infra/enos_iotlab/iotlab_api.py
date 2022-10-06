@@ -41,7 +41,7 @@ class IotlabAPI:
                     """Error initializing iotlab client,
             no username/password available. EnOSlib depends on the cli-tools.
             Please create the IoT-LAB password file (~/.iotlabrc) using
-            the command 'iotlab-auth -u <username> -p <passord>'"""
+            the command 'iotlab-auth -u <username> -p <password>'"""
                 )
             )
         self.api = iotlabcli.rest.Api(user, passwd)
@@ -349,7 +349,6 @@ or choose other nodes"""
         acceptable = ["start", "stop", "reset"]
         if cmd not in acceptable:
             sys.exit(f"Invalid command: {cmd}, nodes: {str(nodes)}")
-            return
 
         logger.info("Executing command (%s) on nodes (%s)", cmd, str(nodes))
         iotlabcli.node.node_command(
@@ -467,7 +466,7 @@ or choose other nodes"""
 def get_candidates(nodes_status: Dict) -> Dict:
     """
     Takes a dictionary with the status of all the nodes as returned by the api and
-    returns the functionning ones (Alive or Busy) indexed by their network_address(fqn)
+    returns the functioning ones (Alive or Busy) indexed by their network_address(fqn)
     """
     candidates = {}
     nodes = nodes_status.get("items")
@@ -481,11 +480,11 @@ def get_free_nodes(
     candidates: Dict, experiments_status: Dict, start: int, walltime: int
 ) -> Dict:
     """
-    Takes a dictionary with all functionning nodes, all experiments status,
+    Takes a dictionary with all functioning nodes, all experiments status,
     a start timestamp and a walltime and return all free nodes on that period of time
 
     Args:
-        candidates: All functionning nodes in a dictionary
+        candidates: All functioning nodes in a dictionary
         experiments_status: All experiments and their status in a dictionary
         start: start timestamp
         walltime: length required
@@ -527,14 +526,14 @@ def test_slot(
     """
     Check if it is possible to start nodes requested by conf at time start_time
     This is intended to give a good enough approximation.
-    This can be use to prefilter possible reservation dates before submitting
+    This can be used to prefilter possible reservation dates before submitting
     them on oar.
 
     Args:
         conf: an iotlab configuration object
         nodes_status: a dictionary with all the status of the nodes as
             returned by the api
-        experiment_status: a dictionary with all the status of the experiments
+        experiments_status: a dictionary with all the status of the experiments
             as returned by the api
         start_time: start time of the job to test
 

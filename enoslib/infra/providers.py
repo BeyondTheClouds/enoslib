@@ -84,13 +84,13 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
     cases NoSlotError is raised.
     Otherwise the same errors as
     :py:meth:`~enoslib.infra.provider.Provider.init` can be raised (except
-    InvalidReservationTooOld which can be catched internally)
+    InvalidReservationTooOld which can be caught internally)
 
     Raises:
         InvalidReservationTime: If a provider object cannot be initialized anymore,
         due to an update to it's related platform status since we first
         fetched it
-        NoSlotError: If a Providers object cannot be initalized at its
+        NoSlotError: If a Providers object cannot be initialized at its
         given start_time or if a provider fails to be initialized after too many
         retries.
     """
@@ -112,11 +112,11 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
             )
             return
         except NegativeWalltime:
-            logger.info(f"Negative walltime occured with {str(provider)}")
+            logger.info(f"Negative walltime occurred with {str(provider)}")
             # we did our best but the walltime is too short
             raise NoSlotError
         except InvalidReservationTooOld:
-            logger.info(f"Invalid reservation too old occured with {str(provider)}")
+            logger.info(f"Invalid reservation too old occurred with {str(provider)}")
 
             # cover the case where the reservation date is still in the past
             # honestly with the offset we're adding this shouldn't really happen
@@ -179,7 +179,7 @@ def find_slot_and_start(
 
 class Providers(Provider):
     def __init__(self, providers: List[Provider]):
-        """A provider that syncs ressources of different infrastructures.
+        """A provider that syncs resources of different infrastructures.
 
         Args:
             providers: List of Provider instances that you wish to use
@@ -202,7 +202,7 @@ class Providers(Provider):
 
 
         Idempotency: ideally calling this function twice should reload existing
-        reservations on each platform. However the current behaviour might
+        reservations on each platform. However, the current behaviour might
         differ from this specification but we'll be happy to get your feedback
         on this.
 

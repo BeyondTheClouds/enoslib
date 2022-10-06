@@ -567,7 +567,7 @@ def run_play(
     # create a temporary file for holding the playbook beware that the file
     # might be re-opened during the context manager block and that lead to
     # unknown behavior on non-unix system In case of trouble, we might want to
-    # have an home made tempfile generation.
+    # have a homemade tempfile generation.
     #
     # This is super important to generate the file in the current directory avs
     # users often copy/sync file to remote machines using relative path on the
@@ -647,7 +647,7 @@ class actions:
         run_as: A shortcut that injects become and become_user to each task.
                 become* at the task level has the precedence over this parameter
         background: A shortcut that injects async=1year, poll=0 to run the
-            commands in detached mode. Can be overriden at the task level.
+            commands in detached mode. Can be overridden at the task level.
         strategy: ansible execution strategy
         kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
 
@@ -830,7 +830,7 @@ def run_command(
             unreachable or the playbooks run with errors
         run_as(str): run the command as this user.
             This is equivalent to passing become=yes and become_user=user but
-            become_method can be passed to modify the priviledge escalation
+            become_method can be passed to modify the privileged escalation
             method. (default to sudo).
         background: run the remote command in the background (detached mode)
             This is equivalent to passing async=one_year, poll=0
@@ -848,7 +848,7 @@ def run_command(
 
     Returns:
         Dict combining the stdout and stderr of ok and failed hosts and every
-        results of tasks executed (this may include the fact gathering tasks)
+        result of tasks executed (this may include the fact gathering tasks)
 
     Example:
 
@@ -947,7 +947,7 @@ def run(cmd: str, roles: RolesLike, **kwargs) -> Results:
 
     Returns:
         Dict combining the stdout and stderr of ok and failed hosts and every
-        results of tasks executed (this may include the fact gathering tasks)
+        result of tasks executed (this may include the fact gathering tasks)
 
     """
     return run_command(cmd, roles=roles, **kwargs)
@@ -991,7 +991,7 @@ def gather_facts(
 
     Returns:
         Dict combining the ansible facts of ok and failed hosts and every
-        results of tasks executed.
+        result of tasks executed.
 
     Example:
 
@@ -1079,14 +1079,14 @@ def run_ansible(
     Args:
         playbooks (list): list of paths to the playbooks to run
         inventory_path (str): path to the hosts file (inventory)
-        extra_var (dict): extra vars to pass
+        extra_vars (dict): extra vars to pass
         tags (list): list of tags to run
         on_error_continue(bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
         basedir: Ansible basedir
-        ansible_retries: a generic retry mecanism. Set this to a positive
+        ansible_retries: a generic retry mechanism. Set this to a positive
                          value if the connection plugin doesn't have this retry
-                         mecanism (ssh does have one)
+                         mechanism (ssh does have one)
 
     Raises:
         :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
@@ -1175,7 +1175,7 @@ def sync_info(
 ) -> RolesLike:
     """Sync each host network information with their actual configuration
 
-    If the command is successful some of the host attributes will be
+    If the command is successful some host attributes will be
     populated. This allows to resync the enoslib Host representation with the
     remote configuration.
 
@@ -1187,16 +1187,16 @@ def sync_info(
             :py:meth:`enoslib.infra.provider.Provider.init`
         networks (list): network list as returned by
             :py:meth:`enoslib.infra.provider.Provider.init`
-        inplace: bool, defaut False
+        inplace: bool, default False
             If False, return a copy of roles. Otherwise, do operation inplace.
         kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
 
     Returns:
-        RolesLike of the same type as passed. With updated informations.
+        RolesLike of the same type as passed. With updated information.
 
     """
     if not roles:
-        logger.warn("The Roles are empty at this point !")
+        logger.warning("The Roles are empty at this point !")
         return roles
     wait_for(roles, **kwargs)
 
@@ -1311,7 +1311,7 @@ def wait_for(
             with actions(
                 roles=roles, gather_facts=False, on_error_continue=False, **kwargs
             ) as p:
-                # We use the raw module because we can't assumed at this point that
+                # We use the raw module because we can't assume at this point that
                 # python is installed
                 p.raw("hostname", task_name="Waiting for connection")
             break
@@ -1323,7 +1323,7 @@ def wait_for(
 
 
 def bg_start(key: str, cmd: str) -> str:
-    """Put a command in the backgound.
+    """Put a command in the background.
 
     Generate the command that will put cmd in background.
     This uses tmux to detach cmd from the current shell session.
@@ -1370,7 +1370,7 @@ def bg_stop(key: str, num: int = signal.SIGINT) -> str:
 def _generate_inventory(roles):
     """Generates an inventory files from roles
 
-    :param roles: dict of roles (roles -> list of Host)
+    roles: dict of roles (roles -> list of Host)
     """
     inventory = EnosInventory(roles=roles)
     return inventory.to_ini_string()

@@ -1,7 +1,7 @@
 from enoslib.api import sync_info
 from enoslib.infra.enos_openstack.provider import Openstack
 from enoslib.infra.enos_openstack.configuration import Configuration
-from enoslib.service import Netem
+from enoslib.service.emul.netem import Netem
 
 import logging
 import os

@@ -55,7 +55,7 @@ netem = en.NetemHTB()
         dest=roles["londres"],
         delay="10ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
         networks=networks["private"],
     )
     .add_constraints(
@@ -63,7 +63,7 @@ netem = en.NetemHTB()
         dest=roles["berlin"],
         delay="20ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
         networks=networks["private"],
     )
     .add_constraints(
@@ -71,7 +71,7 @@ netem = en.NetemHTB()
         dest=roles["berlin"],
         delay="20ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
         networks=networks["private"],
     )
 )

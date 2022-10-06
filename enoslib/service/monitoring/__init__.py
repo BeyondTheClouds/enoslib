@@ -6,7 +6,7 @@ may need [#m1]_.
 
 - Telegraf [#m2]_ /InfluxDB [#m3]_ /Grafana [#m4]_ (TIG) stack. This stack
   follows a push model where Telegraf agents are continuously a pushing metrics
-  the the InfluxDB collector. Grafana is used as a dashboard for visualizing
+  the InfluxDB collector. Grafana is used as a dashboard for visualizing
   the metrics.
 
 - Telegraf/Promotheus [#m5]_ /Grafana (TPG) stack. This stack follows a pull model

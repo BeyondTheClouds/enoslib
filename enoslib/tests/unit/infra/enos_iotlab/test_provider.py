@@ -927,7 +927,7 @@ class TestDestroy(EnosTest):
     def test_destroy_actually_destroys_when_active_job(
         self, mock_api, mock_stop, mock_exp_list
     ):
-        # as long as the api return somethin the job is considered as active
+        # as long as the api return something the job is considered as active
         # otherwise the api.get_experiments_list should return nothing
         mock_exp_list.return_value = get_one_exp(state="AN_ACTIVE_STATE")
         list_nodes = ["a8-1.grenoble.iot-lab.info"]

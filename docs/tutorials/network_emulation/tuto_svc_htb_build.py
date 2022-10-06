@@ -36,21 +36,21 @@ netem = en.NetemHTB()
         dest=roles["londres"],
         delay="10ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
     )
     .add_constraints(
         src=roles["paris"],
         dest=roles["berlin"],
         delay="20ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
     )
     .add_constraints(
         src=roles["londres"],
         dest=roles["berlin"],
         delay="20ms",
         rate="1gbit",
-        symetric=True,
+        symmetric=True,
     )
 )
 netem.deploy()

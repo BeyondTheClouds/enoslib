@@ -232,7 +232,7 @@ class GroupConfiguration:
     @classmethod
     def from_dictionary(cls, dictionary, networks=None):
         roles = dictionary["roles"]
-        # cluster and servers are no individually optionnal
+        # cluster and servers are no individually optional
         # nevertheless the schema validates that at least one is set
         cluster = dictionary.get("cluster")
         servers = dictionary.get("servers")
@@ -309,7 +309,7 @@ class ServersConfiguration(GroupConfiguration):
         # The intent of the below lines is to set the cluster attribute even if
         # only servers are set. Since network configuration are only
         # homogeneous at the cluster level, we can't have servers from
-        # different cluster in a machine group description. Indeed there would
+        # different cluster in a machine group description. Indeed, there would
         # be a risk to fail at network configuration time (think about
         # secondary interfaces)
 
