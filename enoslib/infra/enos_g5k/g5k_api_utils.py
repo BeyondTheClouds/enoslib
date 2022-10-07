@@ -22,7 +22,6 @@ import pytz
 
 from .error import (
     EnosG5kDuplicateJobsError,
-    EnosG5kSynchronisationError,
     EnosG5kWalltimeFormatError,
 )
 from .constants import (
@@ -32,8 +31,6 @@ from .constants import (
     KAVLAN,
     KAVLAN_LOCAL_IDS,
     PROD_VLAN_ID,
-    SYNCHRONISATION_INTERVAL,
-    SYNCHRONISATION_OFFSET,
     NATURE_PROD,
     MAX_DEPLOY,
 )
@@ -123,7 +120,7 @@ def grid_reload_jobs_from_ids(oargrid_jobids):
     return jobs
 
 
-def grid_reload_jobs_from_name(job_name):
+def grid_reload_jobs_from_name(job_name, restrict_to: Optional[List[str]] = None):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
     By default, all the sites will be searched for jobs with the name
@@ -135,7 +132,9 @@ def grid_reload_jobs_from_name(job_name):
 
     Args:
         job_name (str): the job name
-
+        restrict_to: restrict the action to these sites only.
+            If None is passed, no restriction applies and the action will be
+            taken on all possible sites
 
     Returns:
         The list of the python-grid5000 jobs retrieved.
@@ -146,8 +145,12 @@ def grid_reload_jobs_from_name(job_name):
     """
     gk = get_api_client()
     sites = get_all_sites_obj()
+    if restrict_to is None:
+        restrict_to = [s.uid for s in sites]
     jobs = []
-    for site in [s for s in sites if s.uid not in gk.excluded_site]:
+    for site in [
+        s for s in sites if s.uid not in gk.excluded_site and s.uid in restrict_to
+    ]:
         logger.debug(f"Reloading {job_name} from {site.uid}")
         _jobs = site.jobs.list(
             name=job_name, state="waiting,launching,running", user=get_api_username()
@@ -244,14 +247,19 @@ def job_delete(job, wait=False):
     logger.info(f"Job killed ({job.site}, {job.uid})")
 
 
-def grid_destroy_from_name(job_name, wait=False):
+def grid_destroy_from_name(
+    job_name, wait=False, restrict_to: Optional[List[str]] = None
+):
     """Destroy all the jobs with a given name.
 
     Args:
-       job_name (str): the job name
-       wait: True whether we should wait for a status change
+        job_name (str): the job name
+        wait: True whether we should wait for a status change
+        restrict_to: restrict the action to these sites only.
+            If None is passed, no restriction applies and the action will be
+            taken on all possible sites
     """
-    jobs = grid_reload_jobs_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     for job in jobs:
         logger.info(f"Killing the job ({job.site}, {job.uid})")
         job_delete(job, wait=wait)
@@ -675,63 +683,6 @@ def _test_slot(
     return False
 
 
-def _do_synchronise_jobs(walltime: str, machines, force=False) -> Optional[float]:
-    """This returns a common reservation date for all the jobs.
-
-    This reservation date is really only a hint and will be supplied to each
-    oar server. Without this *common* reservation_date, one oar server can
-    decide to postpone the start of the job while the other are already
-    running. But this doesn't prevent the start of a job on one site to drift
-    (e.g because the machines need to be restarted.) But this shouldn't exceed
-    few minutes.
-
-    Returns:
-        None: if no reservation is needed
-        int: start date for a candidate reservation
-
-    Raises:
-        EnosG5kSynchronisationError if no slot can't be found.
-    """
-    demands: MutableMapping[str, int] = defaultdict(int)
-    for machine in machines:
-        cluster = machine.cluster
-        number, exact = machine.get_demands()
-        demands[cluster] += number
-
-    # Early leave if only one cluster is there (and not force set)
-    if not force and len(list(demands.keys())) <= 1:
-        logger.debug("Only one cluster detected: no synchronisation needed")
-        return None
-    clusters = clusters_sites_obj(list(demands.keys()))
-
-    # Early leave if only one site is concerned (and not force set
-    sites = set(list(clusters.values()))
-    if not force and len(sites) <= 1:
-        logger.debug("Only one site detected: no synchronisation needed")
-        return None
-
-    # get the status for all the involved cluster
-    clusters_status = get_clusters_status(demands.keys())
-
-    offset = SYNCHRONISATION_OFFSET
-    delay = SYNCHRONISATION_INTERVAL
-    start = time.time() + offset
-    test_slot = _test_slot(start, walltime, machines, clusters_status)
-    # the returned value of test slot is the following
-    # - None: no reservation is needed
-    # - True: the tested slot is ok
-    # - False: the tested slot is ko (need to test another one)
-    while test_slot is not None and not test_slot:
-        start = start + delay
-        test_slot = _test_slot(start, walltime, machines, clusters_status)
-    if test_slot is None:
-        # no synchronisation needed
-        return None
-    if _test_slot:
-        return start
-    raise EnosG5kSynchronisationError()
-
-
 @lru_cache(maxsize=32)
 def get_dns(site):
     site_info = get_site_obj(site)
@@ -803,8 +754,9 @@ def grid_get_or_create_job(
     machines,
     networks,
     wait=True,
+    restrict_to: Optional[List[str]] = None,
 ):
-    jobs = grid_reload_jobs_from_name(job_name)
+    jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     if len(jobs) == 0:
         jobs = grid_make_reservation(
             job_name,
@@ -886,15 +838,6 @@ def grid_make_reservation(
     machines,
     networks,
 ):
-    if not reservation_date:
-        # First check if synchronisation is required
-        candidate_date = _do_synchronise_jobs(walltime, machines)
-        if candidate_date is not None:
-            # convert it to something understandable by the API
-            # TODO: check if G5K can accept UTC timestamps or make sure this is
-            # converted to the right timezone
-            reservation_date = _date2h(candidate_date)
-
     # Build the OAR criteria
     criteria = _build_reservation_criteria(machines, networks)
 
