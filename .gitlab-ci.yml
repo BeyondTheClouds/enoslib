@@ -87,6 +87,14 @@ pep8:
     - pip install tox
     - tox -e pep8
 
+pylint:
+  image: python:3.10
+  stage: test
+  tags: [ci.inria.fr]
+  script:
+    - pip install tox
+    - tox -e pylint
+
 typecheck:
   image: python:3.10
   stage: test
