@@ -61,7 +61,7 @@ class Provider:
     __metaclass__ = ABCMeta
 
     def __init__(self, provider_conf, name: str = None):
-        self.provider_conf = provider_conf
+        self.provider_conf = provider_conf.finalize()
         self.name = self.__class__.__name__ if name is None else name
 
     @abstractmethod

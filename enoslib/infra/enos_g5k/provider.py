@@ -417,7 +417,6 @@ class G5kBase(Provider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.provider_conf = self.provider_conf.finalize()
         # make sure we are dealing with a single site
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
