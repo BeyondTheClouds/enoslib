@@ -23,7 +23,6 @@ conf = (
         nodes=1,
         primary_network=network,
     )
-    .finalize()
 )
 
 provider = en.G5k(conf)

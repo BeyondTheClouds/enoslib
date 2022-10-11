@@ -7,23 +7,10 @@ en.init_logging(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
-# claim the resources
-rennes_network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
-lille_network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="lille")
-
 conf = (
     en.G5kConf.from_settings(job_type=[], job_name=job_name)
-    .add_network_conf(rennes_network)
-    .add_network_conf(lille_network)
-    .add_machine(
-        roles=["control"], cluster="paravance", nodes=1, primary_network=rennes_network
-    )
-    .add_machine(
-        roles=["control"],
-        cluster="chiclet",
-        primary_network=lille_network,
-    )
-    .finalize()
+    .add_machine(roles=["control"], cluster="paravance", nodes=1)
+    .add_machine(roles=["control"], cluster="chiclet", nodes=1)
 )
 
 
