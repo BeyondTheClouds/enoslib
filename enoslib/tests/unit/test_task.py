@@ -67,7 +67,7 @@ def dir_without_env(f):
 
 class TestGetOrCreateEnvironment(EnosTest):
     @dir_with_env("xp1")
-    def test_reload_existing(self, dir, env):
+    def test_reload_existing(self, directory, env):
         actual_env = get_or_create_env(False, env)
         self.assertEqual(actual_env, env)
 
@@ -78,7 +78,7 @@ class TestGetOrCreateEnvironment(EnosTest):
         mock_load_from_file.assert_called_once_with(p.joinpath(ENV_FILENAME))
 
     @dir_with_env("xp1")
-    def test_reload_default(self, dir, env):
+    def test_reload_default(self, directory, env):
         _ = SYMLINK_NAME.joinpath(ENV_FILENAME)
         actual_env = get_or_create_env(False, None)
         # we got two different objects here
@@ -118,12 +118,12 @@ class TestGetOrCreateEnvironment(EnosTest):
 
 class TestConfig(EnosTest):
     @dir_with_env("xp1")
-    def test_reload_no_config(self, dir, env):
+    def test_reload_no_config(self, directory, env):
         env.reload_config()
         self.assertEqual(None, env["config_file"])
 
     @dir_with_env("xp1")
-    def test_reload_config(self, dir, env):
+    def test_reload_config(self, directory, env):
         conf = {"foo": "bar"}
         with Path("myconf.yaml").open("w") as f:
             f.write(yaml.dump(conf))

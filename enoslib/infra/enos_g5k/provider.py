@@ -444,7 +444,7 @@ class G5kBase(Provider):
         self.root_conn_params = {"user": "root", "keyfile": priv_key}
 
     def init(
-        self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
     ):
         """Take ownership over some Grid'5000 resources (compute and networks).
 
@@ -619,7 +619,8 @@ class G5kBase(Provider):
                 options.update(vlan=net.vlan_id)
 
             # Yes, this is sequential
-            deployed, undeployed = [], fqdns
+            deployed: List[str] = []
+            undeployed: List[str] = fqdns
             if not force_deploy:
                 deployed, undeployed = _check_deployed_nodes(net, fqdns)
 

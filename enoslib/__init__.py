@@ -179,7 +179,7 @@ INFO = f"""
 """
 
 
-def _check_deps():
+def _check_deps() -> List[Tuple[str, Optional[bool], str, str]]:
     import importlib
 
     prefix = "enoslib.infra"
@@ -194,7 +194,7 @@ def _check_deps():
         ("Vagrant", "enos_vagrant", r"pip install enoslib\[vagrant]"),
         ("VMonG5k", "enos_vmong5k", ""),
     ]
-    deps = []
+    deps: List[Tuple[str, Optional[bool], str, str]] = []
     for shortname, provider, hint in providers:
         try:
             mod = f"{prefix}.{provider}.provider"
@@ -205,14 +205,13 @@ def _check_deps():
     return deps
 
 
-def _print_deps_table(deps: List[Tuple[str, bool, str]], console):
+def _print_deps_table(deps: List[Tuple[str, Optional[bool], str, str]], console):
     from rich.table import Table
 
     table = Table(title="Dependency check")
     table.add_column("Provider")
     table.add_column("Status", justify="center")
     table.add_column("Hint", no_wrap=True, width=30)
-    deps = _check_deps()
     for (shortname, deps_ok, hint, _) in deps:
         table.add_row(
             shortname,
@@ -223,18 +222,28 @@ def _print_deps_table(deps: List[Tuple[str, bool, str]], console):
     console.print(table)
 
 
-def _print_conn_table(deps: List[Tuple[str, bool, str]], console):
+def _print_conn_table(deps: List[Tuple[str, Optional[bool], str, str]], console):
     import importlib
 
-    filtered = [(shortname, mod) for (shortname, deps_ok, _, mod) in deps if deps_ok]
-    statuses = []
+    filtered: List[Tuple[str, str]] = [
+        (shortname, mod) for (shortname, deps_ok, _, mod) in deps if deps_ok
+    ]
+    statuses: List[Tuple[str, str, Optional[bool], str]] = []
     for shortname, mod in filtered:
         m = importlib.import_module(mod)
         check_fnc = getattr(m, "check", None)
         if check_fnc is not None:
             # inject shortname again
             try:
-                statuses.extend((shortname, *status) for status in check_fnc())
+                returned_status: List[Tuple[str, bool, str]] = check_fnc()
+                for status in returned_status:
+                    current_status: Tuple[str, str, bool, str] = (
+                        shortname,
+                        status[0],
+                        status[1],
+                        status[2],
+                    )
+                    statuses.append(current_status)
             except Exception as e:
                 statuses.append((shortname, "❔", False, str(e)))
         else:

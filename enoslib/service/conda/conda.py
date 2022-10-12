@@ -1,6 +1,7 @@
 import copy
 from textwrap import dedent as _d
 from typing import Iterable, List, Optional, Any
+from itertools import chain
 import os
 
 from enoslib.api import actions, run
@@ -168,10 +169,10 @@ class _Conda(Service):
             if env_name is None and len(packages) > 0:
                 _shell_in_conda(
                     p,
-                    f"conda create --yes {' '.join(packages)}",
+                    f"conda create --yes -n enoslib {' '.join(packages)}",
                     executable="/bin/bash",
                 )
-                _create_wrapper_script(p, env_name)
+                _create_wrapper_script(p, "enoslib")  # <!> hardcode
 
     def destroy(self):
         """Not implemented."""
@@ -214,7 +215,7 @@ class _Dask(Service):
         self.worker_args = worker_args
         self.env_file = env_file
         self.env_name = _get_env_name(env_file) if env_file is not None else "__dask__"
-        self.conda = _Conda(nodes=worker + [scheduler])
+        self.conda = _Conda(nodes=chain(worker, [scheduler]))
         self.roles = Roles(scheduler=[self.scheduler], worker=self.worker)
 
     def deploy(self):

@@ -48,6 +48,11 @@ class ResourcesSet(MutableSet):
         self.data -= set(other)
         return self
 
+    def __sub__(self, other):
+        if isinstance(other, ResourcesSet):
+            return ResourcesSet(self.data.difference(other.data))
+        return ResourcesSet(self.data.difference(other))
+
     # compatibility with some list method
     def __iadd__(self, other):
         if isinstance(other, ResourcesSet):

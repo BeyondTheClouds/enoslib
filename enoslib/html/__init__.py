@@ -102,18 +102,18 @@ def dict_to_html_foldable_sections(d: dict) -> str:
     return html
 
 
-def convert_to_html_table(input):
+def convert_to_html_table(input_data):
     """Convert something to a html table.
 
     Accepted input type: list, dict or regular str
     """
-    if isinstance(input, str):
-        return _html_escape(str(input))
-    if isinstance(input, dict):
-        return convert_dict_to_html_table(input)
-    if hasattr(input, "__iter__") and hasattr(input, "__getitem__"):
-        return convert_list_to_html_table(input)
-    return _html_escape(str(input))
+    if isinstance(input_data, str):
+        return _html_escape(str(input_data))
+    if isinstance(input_data, dict):
+        return convert_dict_to_html_table(input_data)
+    if hasattr(input_data, "__iter__") and hasattr(input_data, "__getitem__"):
+        return convert_list_to_html_table(input_data)
+    return _html_escape(str(input_data))
 
 
 def html_table_header(input):

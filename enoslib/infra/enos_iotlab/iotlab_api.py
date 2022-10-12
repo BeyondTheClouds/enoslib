@@ -180,7 +180,7 @@ class IotlabAPI:
         while wait and self.job_is_active(name) != (None, None):
             time.sleep(3)
 
-    def job_is_active(self, name: str) -> Tuple[int, int]:
+    def job_is_active(self, name: str) -> Tuple[Optional[int], Optional[int]]:
         """
         Check if job is already running
 
@@ -217,7 +217,7 @@ class IotlabAPI:
         walltime: str,
         resources: List[GroupConfiguration],
         start_time: str,
-    ) -> List[str]:
+    ):
         """
         Get resources from FIT/IoT-LAB platform
 

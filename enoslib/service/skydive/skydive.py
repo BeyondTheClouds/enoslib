@@ -1,5 +1,6 @@
 import os
 from typing import Iterable, List, Dict
+from itertools import chain
 
 from enoslib.api import (
     actions,
@@ -62,7 +63,7 @@ class Skydive(Service):
         assert self.analyzers is not None
         self.agents = list(set(agents)) if agents is not None else []
         assert self.agents is not None
-        self.skydive = self.analyzers + self.agents
+        self.skydive = chain(self.analyzers, self.agents)
         self.networks = networks
         self.priors = priors
         self.roles = Roles(analyzers=analyzers, agents=agents, skydive=self.skydive)

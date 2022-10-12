@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import itertools
 import logging
 import os
-from typing import Iterable, Optional
+from typing import Sequence, Optional
 
 import distem as d
 import pytz
@@ -30,7 +30,7 @@ def check():
 
 
 def start_containers(
-    g5k_roles: Roles, provider_conf: Configuration, g5k_subnets: Iterable[Network]
+    g5k_roles: Roles, provider_conf: Configuration, g5k_subnets: Sequence[Network]
 ):
     """Starts containers on G5K.
 
@@ -292,7 +292,9 @@ def distem_bootstrap(roles, path_sshkeys):
 class Distem(Provider):
     """Use Distem on G5k"""
 
-    def init(self, start_time: Optional[int] = None, force_deploy=False, **kwargs):
+    def init(
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
+    ):
         if start_time:
             self.set_reservation(start_time)
         g5k_conf = _build_g5k_conf(self.provider_conf)

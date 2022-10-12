@@ -1,7 +1,6 @@
 from collections import defaultdict
 import copy
-from datetime import timezone
-import datetime
+from datetime import timezone, datetime
 
 import pytz
 from enoslib.infra.enos_g5k.utils import inside_g5k
@@ -322,7 +321,9 @@ class VMonG5k(Provider):
     def g5k_provider(self):
         return self._g5k_provider
 
-    def init(self, start_time: Optional[int] = None, force_deploy=False, **kwargs):
+    def init(
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
+    ):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
@@ -333,7 +334,7 @@ class VMonG5k(Provider):
 
         # we concretize the virtualmachines
         # assign each group of vms to a list of possible pms and macs
-        mac_pools = {}
+        mac_pools: Dict = {}
         for machine in self.provider_conf.machines:
             pms = self.g5k_roles[machine.cookie]
             machine.undercloud = pms
