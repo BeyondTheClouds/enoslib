@@ -101,23 +101,6 @@ Distem Schema
     :auto_target:
 
 
-Static
-======
-
-Static Provider Class
----------------------
-
-.. automodule:: enoslib.infra.enos_static.provider
-    :members: Static
-
-.. _static-schema:
-
-Static Schema
--------------
-
-.. literalinclude:: ../../enoslib/infra/enos_static/schema.py
-
-
 Openstack
 =========
 
