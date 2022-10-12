@@ -101,6 +101,25 @@ Distem Schema
     :auto_target:
 
 
+FIT/IoT-LAB
+==============
+
+.. _iotlab-schema:
+
+FIT/IoT-LAB Schema
+----------
+
+.. jsonschema:: enoslib.infra.enos_iotlab.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
+Sensor
+------
+
+.. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
+
+
 Openstack
 =========
 
@@ -142,21 +161,6 @@ Chameleon(bare metal) schema
 ----------------------------
 
 .. literalinclude:: ../../enoslib/infra/enos_chameleonkvm/schema.py
-
-FIT/IoT-LAB
-==============
-
-.. _iotlab-schema:
-
-FIT/IoT-LAB Schema
-----------
-
-.. literalinclude:: ../../enoslib/infra/enos_iotlab/schema.py
-
-Sensor
-------
-
-.. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
 
 
 Providers Class
