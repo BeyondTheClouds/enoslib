@@ -61,6 +61,7 @@ class BaseConfiguration:
         if cls._VALIDATOR_FUNC is None:
             jsonschema.validate(dictionary, schema)
         else:
+            # pylint: disable-next=not-callable
             cls._VALIDATOR_FUNC(schema).validate(dictionary)
 
     def to_dict(self):

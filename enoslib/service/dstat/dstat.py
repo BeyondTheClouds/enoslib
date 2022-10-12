@@ -168,7 +168,7 @@ class Dstat(Service):
         Returns:
             A pandas dataframe with all the metrics
         """
-        import pandas as pd
+        import pandas as pd  # pylint: disable=import-error
 
         result = pd.DataFrame()
         csvs = backup_dir.rglob("*.csv")

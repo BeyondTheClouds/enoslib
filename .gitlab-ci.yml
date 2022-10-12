@@ -25,7 +25,7 @@ variables:
 #
 ###############################################################################
 precheck:
-  image: python:3.9
+  image: python:3.10
   stage: precheck
   tags: [ci.inria.fr]
   script:
@@ -80,24 +80,31 @@ python3.10:
         path: cov.xml
 
 pep8:
-  image: python:3.7
+  image: python:3.10
   stage: test
   tags: [ci.inria.fr]
   script:
     - pip install tox
     - tox -e pep8
 
-typecheck:
-  image: python:3.7
+pylint:
+  image: python:3.10
   stage: test
-  allow_failure: true
+  tags: [ci.inria.fr]
+  script:
+    - pip install tox
+    - tox -e pylint
+
+typecheck:
+  image: python:3.10
+  stage: test
   tags: [ci.inria.fr]
   script:
     - pip install tox
     - tox -e typecheck
 
 sonar:
-  image: python:3.7-buster
+  image: python:3.10-buster
   stage: test
   allow_failure: true
   only:
@@ -119,7 +126,7 @@ sonar:
     - sonar/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
 
 doc:
-  image: python:3.9
+  image: python:3.10
   stage: test
   tags: [ci.inria.fr]
   script:

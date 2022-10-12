@@ -25,7 +25,7 @@ import signal
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 import time
 import warnings
-from collections import UserList, defaultdict, namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
 import sys
 from typing import Any, Dict, Sequence, List, Mapping, Optional, Set, Tuple
@@ -426,7 +426,7 @@ class CustomCommandResult(BaseCommandResult):
         return []
 
 
-class Results(UserList):
+class Results(list):
     """Container for CommandResult**s**
 
     Running one (or more) command(s) on several hosts leads to multiple results
@@ -447,19 +447,16 @@ class Results(UserList):
     """
 
     def filter(self, **kwargs):
-        return Results([c for c in self.data if c.match(**kwargs)])
+        return Results([c for c in self if c.match(**kwargs)])
 
     def ok(self, **kwargs):
-        return Results([c for c in self.data if c.ok()])
-
-    def __repr__(self):
-        return "\n".join([d.__repr__() for d in self.data])
+        return Results([c for c in self if c.ok()])
 
     @repr_html_check
     def _repr_html_(self, content_only=False):
         return html_from_sections(
             str(self.__class__),
-            convert_to_html_table([d._summarize() for d in self.data]),
+            convert_to_html_table([d._summarize() for d in self]),
             content_only=content_only,
         )
 
