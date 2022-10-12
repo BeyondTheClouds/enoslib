@@ -25,7 +25,11 @@ Vagrant Provider Class
 Vagrant Schema
 --------------
 
-.. literalinclude:: ../../enoslib/infra/enos_vagrant/schema.py
+.. jsonschema:: enoslib.infra.enos_vagrant.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
 
 
 Grid5000 (G5k)
