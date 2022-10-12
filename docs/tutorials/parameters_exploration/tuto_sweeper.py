@@ -24,7 +24,6 @@ def bench(parameter: Dict) -> None:
         en.VMonG5kConf.from_settings(force_deploy=True)
         .add_machine(roles=["server"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
         .add_machine(roles=["client"], cluster=CLUSTER, number=nb_vms, flavour="tiny")
-        .finalize()
     )
 
     provider = en.VMonG5k(conf)
