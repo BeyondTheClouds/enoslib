@@ -75,7 +75,12 @@ VMonG5k Provider Class
 VMonG5k Schema
 --------------
 
-.. literalinclude:: ../../enoslib/infra/enos_vmong5k/schema.py
+.. jsonschema:: enoslib.infra.enos_vmong5k.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
+
 
 
 Containers on Grid5000 (Distem)
