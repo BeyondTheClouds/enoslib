@@ -18,12 +18,19 @@ Installation
 
 .. code-block:: bash
 
-    $ pip install enoslib
+    $ pip install enoslib[vagrant]
 
 .. note::
 
   It's a good practice to use a virtualenv or a python version manager like
   `pyenv`_.
+
+.. note::
+
+   The default backend used is libvirt, so you'll also need to have the
+   appropriate vagrant-libvirt plugin.  Nowadays, it is shipped within a
+   container image (alongside the vagrant program). See
+   https://vagrant-libvirt.github.io/vagrant-libvirt/installation.html#docker--podman
 
 Using the API
 -------------
