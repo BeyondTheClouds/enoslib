@@ -8,15 +8,11 @@ _ = en.init_logging()
 job_name = Path(__file__).name
 
 # claim the resources
-conf = (
-    en.VMonG5kConf.from_settings(job_name=job_name)
-    .add_machine(
-        roles=["vms"],
-        cluster="paravance",
-        number=5,
-        flavour_desc={"core": 1, "mem": 1024},
-    )
-    .finalize()
+conf = en.VMonG5kConf.from_settings(job_name=job_name).add_machine(
+    roles=["vms"],
+    cluster="paravance",
+    number=5,
+    flavour_desc={"core": 1, "mem": 1024},
 )
 
 provider = en.VMonG5k(conf)
