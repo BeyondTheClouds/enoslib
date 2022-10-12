@@ -9,17 +9,10 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 job_name = Path(__file__).name
 
-prod_network = en.G5kNetworkConf(id="id", roles=["mynetwork"], type="prod", site=SITE)
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_network_conf(prod_network)
-    .add_machine(
-        roles=["server"], cluster=CLUSTER, nodes=1, primary_network=prod_network
-    )
-    .add_machine(
-        roles=["client"], cluster=CLUSTER, nodes=1, primary_network=prod_network
-    )
-    .finalize()
+    en.G5kConf.from_settings(job_name=job_name)
+    .add_machine(roles=["server"], cluster=CLUSTER, nodes=1)
+    .add_machine(roles=["client"], cluster=CLUSTER, nodes=1)
 )
 
 provider = en.G5k(conf)
