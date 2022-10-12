@@ -428,7 +428,7 @@ def get_site_obj(site):
     return gk.sites[site]
 
 
-def clusters_sites_obj(clusters):
+def clusters_sites_obj(clusters: Iterable) -> Dict:
     """Get all the corresponding sites of the passed clusters.
 
     Args:
@@ -618,7 +618,9 @@ def can_start_on_cluster(
             r_start = int(r_start)
             r_end = r_start + int(reservation["walltime"])
             # compute segment intersection
-            _intersect = min(r_end, start + walltime) - max(r_start, start)
+            _intersect = min(float(r_end), start + walltime) - max(
+                float(r_start), start
+            )
             if _intersect > 0:
                 overlapping_reservations.append(reservation)
         if len(overlapping_reservations) == 0:
@@ -716,10 +718,12 @@ def get_vlan(site, vlan_id) -> Vlan:
 def get_clusters_status(clusters: Iterable[str]):
     """Get the status of the clusters (current and future reservations)."""
     # mapping cluster -> site
-    clusters = clusters_sites_obj(clusters)
+    clusters_sites: Dict = clusters_sites_obj(clusters)
     clusters_status = {}
-    for cluster in clusters:
-        clusters_status[cluster] = clusters[cluster].clusters[cluster].status.list()
+    for cluster in clusters_sites:
+        clusters_status[cluster] = (
+            clusters_sites[cluster].clusters_sites[cluster].status.list()
+        )
     return clusters_status
 
 

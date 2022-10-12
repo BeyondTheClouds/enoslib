@@ -1,7 +1,7 @@
 import copy
 from datetime import datetime, timezone
 from math import ceil
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
@@ -128,7 +128,7 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
 
 def find_slot_and_start(
     providers: List[Provider], start_time: int, time_window: int, **kwargs
-) -> Tuple[Roles, Networks]:
+) -> None:
     """Try to find a common time slot for all the Provider in providers to start and
     then start them
 
@@ -163,6 +163,7 @@ def find_slot_and_start(
         )
         for provider in _providers:
             start_provider_within_bounds(provider, reservation, **kwargs)
+        return
     except NoSlotError:
         # we transform to an InvalidReservationTime with a time hint
         # set to the next increment.
@@ -171,9 +172,7 @@ def find_slot_and_start(
         )
         logger.debug(f"Found slot {slot_found} turned out to be invalid")
         raise InvalidReservationTime(
-            datetime.fromtimestamp(
-                start_time + TIME_INCREMENT, tz=timezone.utc
-            ).strftime("%Y-%m-%d %H:%M:%S")
+            datetime.fromtimestamp(start_time + TIME_INCREMENT, tz=timezone.utc)
         )
 
 
@@ -184,13 +183,15 @@ class Providers(Provider):
         Args:
             providers: List of Provider instances that you wish to use
         """
+        super().__init__(None)
         self.providers = providers
         self.name = "-".join([str(p) for p in self.providers])
 
     def init(
         self,
-        time_window: Optional[int] = None,
+        force_deploy: bool = False,
         start_time: Optional[int] = None,
+        time_window: Optional[int] = None,
         **kwargs,
     ):
         """The provider to use when you want to sync multiple providers.
@@ -262,7 +263,7 @@ class Providers(Provider):
                 # information of the error
                 # (some providers are kind enough to provide a possible estimate
                 # for start_time)
-                _start_time = error.datetime.timestamp()
+                _start_time = ceil(error.datetime.timestamp())
                 logger.info(
                     "Local scheduler is proposing " f"{error.datetime.isoformat()}"
                 )
@@ -283,7 +284,11 @@ class Providers(Provider):
                 )
 
     def async_init(
-        self, time_window: Optional[int] = None, start_time: Optional[int] = None
+        self,
+        force_deploy: bool = False,
+        start_time: Optional[int] = None,
+        time_window: Optional[int] = None,
+        **kwargs,
     ):
         self._reserve(time_window=time_window, start_time=start_time)
 

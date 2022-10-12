@@ -97,7 +97,7 @@ class OargridStaticDriver(Driver):
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
-        grid_reload_jobs_from_ids(self.oargrid_jobids)
+        return grid_reload_jobs_from_ids(self.oargrid_jobids)
 
 
 class OargridDynamicDriver(Driver):

@@ -1,7 +1,11 @@
-from collections import namedtuple
 from datetime import datetime, timezone
-from freezegun import freeze_time
+from typing import Dict
+from unittest.mock import patch, Mock, call
+from collections import namedtuple
+
+import ddt
 import yaml
+from freezegun import freeze_time
 
 from enoslib.errors import InvalidReservationTime, InvalidReservationTooOld
 from enoslib.errors import NegativeWalltime, NoSlotError
@@ -24,10 +28,6 @@ from enoslib.infra.providers import (
 from enoslib.infra.utils import offset_from_format, merge_dict
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
-
-import ddt
-from unittest.mock import patch, Mock, call
-
 
 # mimicking a grid5000.Status object (we only need to access the node attribute)
 Status = namedtuple("Status", ["nodes"])
@@ -91,7 +91,7 @@ def parse_iot_request(iot_request: str) -> Iotlab:
 
 
 def parse_g5k_clusters_status(status: str) -> dict:
-    clusters_status = {}
+    clusters_status: Dict = {}
     for line in status.split("\n"):
         if not line:
             continue
@@ -143,7 +143,7 @@ def parse_g5k_clusters_status(status: str) -> dict:
 
 
 def parse_iot_status_experiments(status: str) -> dict:
-    experiments_status = {"items": []}
+    experiments_status: Dict = {"items": []}
     for line in status.split("\n"):
         if not line:
             continue
@@ -188,7 +188,7 @@ def parse_iot_status_experiments(status: str) -> dict:
 
 
 def parse_iot_status(status: str) -> dict:
-    nodes_status = {"items": []}
+    nodes_status: Dict = {"items": []}
     for line in status.split("\n"):
         if not line:
             break

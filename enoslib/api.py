@@ -28,7 +28,7 @@ import warnings
 from collections import UserList, defaultdict, namedtuple
 from pathlib import Path
 import sys
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple
+from typing import Any, Dict, Sequence, List, Mapping, Optional, Set, Tuple
 
 # These two imports are 2.9
 from ansible.executor.playbook_executor import PlaybookExecutor
@@ -226,6 +226,7 @@ class SpinnerCallback(CallbackBase):
     CALLBACK_TYPE = "stdout"
 
     def __init__(self):
+        super().__init__()
         self.running_tasks = defaultdict(dict)
         self.console = Console()
         self.status = None
@@ -542,7 +543,7 @@ def run_play(
     *,
     inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
-    extra_vars: Optional[Dict] = None,
+    extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
 ) -> Results:
     """Run a play.
@@ -959,7 +960,7 @@ def gather_facts(
     gather_subset="all",
     inventory_path=None,
     roles: Optional[RolesLike] = None,
-    extra_vars=None,
+    extra_vars: Optional[Mapping] = None,
     on_error_continue=False,
 ):
     """Gather facts about hosts.
@@ -1073,7 +1074,7 @@ def run_ansible(
     on_error_continue: bool = False,
     basedir: Optional[str] = ".",
     extra_vars: Optional[Mapping] = None,
-):
+) -> Results:
     """Run Ansible.
 
     Args:
@@ -1104,11 +1105,11 @@ def run_ansible(
         tags=tags,
         basedir=basedir,
     )
-    results = []
+    results: List[_AnsibleExecutionRecord] = []
     passwords: Dict = {}
     for path in playbooks:
         logger.debug(f"Running playbook {path} with vars:\n{extra_vars}")
-        _results = []
+        _results: List[_AnsibleExecutionRecord] = []
         callback = _MyCallback(_results)
         pbex = PlaybookExecutor(
             playbooks=[path],
@@ -1149,10 +1150,10 @@ def run_ansible(
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
-    results = Results.from_ansible(results)
+    final_results: Results = Results.from_ansible(results)
     # dump if needed
-    _dump_obj(results.to_dict(include_payload=True))
-    return results
+    _dump_obj(final_results.to_dict(include_payload=True))
+    return final_results
 
 
 def _sync_from_facts(roles: Roles, networks: Networks, facts: Dict) -> Roles:
@@ -1221,19 +1222,21 @@ def sync_info(
         # preserve the host from being mutated wildly
         with facts_file.open("r") as f:
             facts = json.load(f)
-            _roles = _hostslike_to_roles(roles)
+            _roles: Optional[Roles] = _hostslike_to_roles(roles)
+            if _roles is None:
+                raise ValueError("Roles is None")
             if not inplace:
-                _roles = copy.deepcopy(_roles)
-            _roles = _sync_from_facts(_roles, networks, facts)
-
+                _roles_copied: Roles = copy.deepcopy(_roles)
+            else:
+                _roles_copied = _roles
+            _roles_copied = _sync_from_facts(_roles_copied, networks, facts)
             # return the right type
             if isinstance(roles, Roles):
-                return _roles
+                return _roles_copied
             if isinstance(roles, Host):
-                return _roles["all"][0]
+                return _roles_copied["all"][0]
             if hasattr(roles, "__iter__"):
-                return _roles["all"]
-
+                return _roles_copied["all"]
     raise ValueError("The impossible happened ! The roles aren't Roles")
 
 
@@ -1268,7 +1271,7 @@ def generate_inventory(
             f.write(_generate_inventory(_roles))
 
 
-def get_hosts(roles: Roles, pattern_hosts: str = "all") -> Iterable[Host]:
+def get_hosts(roles: Roles, pattern_hosts: str = "all") -> Sequence[Host]:
     """Get all the hosts matching the pattern.
 
     Args:
@@ -1349,7 +1352,7 @@ def bg_stop(key: str, num: int = signal.SIGINT) -> str:
     background with :py:func:`~enoslib.api.background_start`
 
     Args:
-        key: session identifer for tmux.
+        key: session identifier for tmux.
 
     Returns:
         command that will stop a tmux session

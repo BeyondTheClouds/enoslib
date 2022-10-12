@@ -27,17 +27,17 @@ def remove_hosts(roles, hosts_to_keep):
     return updated_roles
 
 
-def _hostslike_to_roles(input: Optional[RolesLike]) -> Optional[Roles]:
-    if input is None:
+def _hostslike_to_roles(input_data: Optional[RolesLike]) -> Optional[Roles]:
+    if input_data is None:
         return None
-    if isinstance(input, Roles):
-        return input
-    if isinstance(input, Host):
-        return Roles(all=[input])
-    if hasattr(input, "__iter__"):
-        return Roles(all=input)
+    if isinstance(input_data, Roles):
+        return input_data
+    if isinstance(input_data, Host):
+        return Roles(all=[input_data])
+    if hasattr(input_data, "__iter__"):
+        return Roles(all=input_data)
     error = (
-        f"{type(input)} isn't an acceptable type for RolesLike"
+        f"{type(input_data)} isn't an acceptable type for RolesLike"
         "=Union[Roles, Iterable[Host], Host]"
     )
     raise ValueError(error)

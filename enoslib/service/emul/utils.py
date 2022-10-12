@@ -130,17 +130,17 @@ def _destroy(hosts: Iterable[Host], **kwargs):
     )
 
 
-def _fping_stats(lines: List[str]) -> List[Tuple[str, str, List[float]]]:
-    results = []
+def _fping_stats(lines: List[str]) -> List[Tuple[str, List[float]]]:
+    results: List[Tuple[str, List[float]]] = []
     for line in lines:
         try:
             # may fail if this isn't the head of the file
-            # beware that ipv6 may contains : too!
+            # beware that ipv6 may contain : too!
             dst, values = line.split(" : ")
             # may fail if addr isn't an address
             _ = ip_interface(dst.strip())
             pings = [float(v) for v in values.strip().split(" ")]
             results.append((dst.strip(), pings))
-        except Exception:
+        except ValueError:
             continue
     return results

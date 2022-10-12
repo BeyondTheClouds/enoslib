@@ -69,7 +69,7 @@ class HTBConstraint:
     delay: str
     target: str
     rate: str = DEFAULT_RATE
-    loss: str = DEFAULT_LOSS
+    loss: Optional[str] = DEFAULT_LOSS
 
     def __post_init__(self):
         HTBConcreteConstraintValidator.validate(

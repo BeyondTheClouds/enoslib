@@ -6,12 +6,12 @@ class EnosError(Exception):
 
 
 class InvalidReservationTime(EnosError):
-    def __init__(self, datetime: datetime):
+    def __init__(self, date_time: datetime):
         """
         Args:
-            datetime: localized datetime
+            date_time: localized datetime
         """
-        self.datetime = datetime
+        self.datetime = date_time
 
 
 class InvalidReservationTooOld(EnosError):
@@ -62,4 +62,4 @@ class EnosProviderMissingConfigurationKeys(EnosError):
             "Keys %s have to be overridden in the provider "
             "section of the reservation file." % missing_overridden
         )
-        self.missing_ovorridden = missing_overridden
+        self.missing_overridden = missing_overridden

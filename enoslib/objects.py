@@ -50,8 +50,8 @@ from enoslib.html import (
     repr_html_check,
 )
 
-NetworkType = Union[bytes, int, Tuple, str]
-AddressType = Union[bytes, int, Tuple, str]
+NetworkType = Union[bytes, int, str]
+AddressType = Union[bytes, int, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 
 Role = str
@@ -211,7 +211,7 @@ class DefaultNetwork(Network):
         return (
             self.pool_start is not None
             and self.pool_end is not None
-            and self.pool_start < self.pool_end
+            and self.pool_start.packed < self.pool_end.packed  # Workaround type check
         )
 
     @property
