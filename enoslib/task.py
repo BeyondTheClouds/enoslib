@@ -74,7 +74,7 @@ class Environment(UserDict):
         """
         env_name.mkdir(parents=True, exist_ok=True)
         self.env_name = env_name.resolve()
-        super(self.__class__, self).__init__(
+        super().__init__(
             {
                 # this resultdir was used to store the env_name
                 # in the previous version

@@ -295,7 +295,7 @@ class TestFindSlot(EnosTest):
         provider.offset_walltime.side_effect = [NegativeWalltime]
 
         with self.assertRaises(NoSlotError):
-            roles, networks = start_provider_within_bounds(provider, 80)
+            start_provider_within_bounds(provider, 80)
 
     @freeze_time("1970-01-01 00:00:00")
     def test_start_provider_within_bounds_invalidReservationTime_error(self):

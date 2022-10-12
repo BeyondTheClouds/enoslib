@@ -289,6 +289,9 @@ class ChameleonAPI:
     @staticmethod
     def download(uuid: str, rc_file: str, source: str, dest: str):
         with source_credentials_from_rc_file(rc_file):
+            # This chi API currently returns None, but it could change in
+            # the future.
+            # pylint: disable-next=assignment-from-no-return
             result = container.download(uuid, source, dest)
         return result
 
