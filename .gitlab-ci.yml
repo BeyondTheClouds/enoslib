@@ -98,7 +98,6 @@ pylint:
 typecheck:
   image: python:3.10
   stage: test
-  allow_failure: true
   tags: [ci.inria.fr]
   script:
     - pip install tox
