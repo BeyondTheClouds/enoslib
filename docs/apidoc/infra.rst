@@ -42,7 +42,11 @@ G5k Provider Class
 G5k Schema
 ----------
 
-.. literalinclude:: ../../enoslib/infra/enos_g5k/schema.py
+.. jsonschema:: enoslib.infra.enos_g5k.schema.SCHEMA_USER
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
 
 
 G5k API utils

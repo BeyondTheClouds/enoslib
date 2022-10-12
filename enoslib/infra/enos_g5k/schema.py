@@ -2,118 +2,211 @@ from typing import Dict
 
 from jsonschema import Draft7Validator, FormatChecker
 
-from .constants import JOB_TYPES, QUEUE_TYPES, NETWORK_TYPES
+from .constants import (
+    JOB_TYPES,
+    QUEUE_TYPES,
+    NETWORK_TYPES,
+    DEFAULT_JOB_NAME,
+    DEFAULT_QUEUE,
+    DEFAULT_WALLTIME,
+    DEFAULT_NUMBER,
+)
 from .error import EnosG5kReservationDateFormatError, EnosG5kWalltimeFormatError
 from ..utils import merge_dict
 
 SCHEMA_USER = {
     "type": "object",
-    "title": "Grid5000 configuration",
+    "title": "Grid5000 Configuration Schema",
     "properties": {
-        "dhcp": {"type": "boolean"},
-        "force_deploy": {"type": "boolean"},
-        "env_name": {"type": "string"},
-        "job_name": {"type": "string"},
+        "dhcp": {
+            "description": "(kavlan only) Run dhcp client automatically.",
+            "type": "boolean",
+        },
+        "force_deploy": {
+            "description": "True iff nodes must be redeployed (deploy only)",
+            "type": "boolean",
+        },
+        "env_name": {
+            "description": "The kadeploy3 environment to use (deploy only)",
+            "type": "string",
+        },
+        "job_name": {
+            "description": f"Name of the job (default: {DEFAULT_JOB_NAME})",
+            "type": "string",
+        },
         "job_type": {
+            "description": "OAR job type (default: []).",
             "anyOf": [
                 {"type": "string", "enum": JOB_TYPES},
                 {"type": "array", "items": {"type": "string", "enum": JOB_TYPES}},
-            ]
+            ],
         },
-        "key": {"type": "string"},
-        "monitor": {
+        "key": {
+            # Note: We don't use the constants.DEFAULT_SSH_KEYFILE
+            # Because at build time on the CI this will be set to /root/.ssh
+            # which doesn't correspond to what the user will have most likely
+            "description": "SSH public key to use (default: ~/.ssh/.id_rsa.pub)",
             "type": "string",
-            "description": "Activate on demand metrics (e.g 'prom_.*')",
         },
-        "oargrid_jobids": {"type": "array", "items": {"$ref": "#/jobids"}},
-        "project": {"type": "string"},
-        "queue": {"type": "string", "enum": QUEUE_TYPES},
+        "monitor": {
+            "description": "Activate on demand metrics (e.g 'prom_.*')",
+            "type": "string",
+        },
+        "oargrid_jobids": {
+            "description": "Reload from existing job ids",
+            "type": "array",
+            "items": {"$ref": "#/definitions/jobids"},
+        },
+        "project": {
+            "description": "Project / team to use",
+            "type": "string",
+        },
+        "queue": {
+            "description": f"OAR queue to use (default: {DEFAULT_QUEUE})",
+            "type": "string",
+            "enum": QUEUE_TYPES,
+        },
         "reservation": {
+            "description": "reservation date in YYYY-mm-dd HH:MM:SS format",
             "type": "string",
             "format": "reservation",
-            "description": "reservation date in YYYY-mm-dd HH:MM:SS format",
         },
         "walltime": {
+            "description": f"Job duration (default: {DEFAULT_WALLTIME})",
             "type": "string",
             "format": "walltime",
-            "description": "walltime in HH:MM:SS format",
         },
-        "resources": {"$ref": "#/resources"},
-    },
+        "resources": {
+            "title": "Grid'5000 Resources",
+            "type": "object",
+            "properties": {
+                "machines": {
+                    "description": "Description of the servers to reserve",
+                    "type": "array",
+                    "items": {
+                        "oneOf": [
+                            {"$ref": "#/definitions/cluster"},
+                            {"$ref": "#/definitions/servers"},
+                        ]
+                    },
+                },
+                "networks": {
+                    "description": "Description of the networks to reserve",
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/network"},
+                    "uniqueItems": True,
+                },
+            },
+            "additionalProperties": False,
+            "required": ["machines"],
+        },  # resources
+    },  # properties
     "additionalProperties": False,
     "required": ["resources"],
-    "resources": {
-        "title": "Resource",
-        "type": "object",
-        "properties": {
-            "machines": {
-                "type": "array",
-                "items": {"oneOf": [{"$ref": "#cluster"}, {"$ref": "#servers"}]},
-            },
-            "networks": {
-                "type": "array",
-                "items": {"$ref": "#/network"},
-                "uniqueItems": True,
-            },
+    "definitions": {
+        "jobids": {
+            "description": "List of tuple (site, jobid) used to reload the jobs from",
+            "title": "Grid5000 JobIds",
+            "type": "array",
+            "items": {"type": "string"},
         },
-        "additionalProperties": False,
-        "required": ["machines"],
-    },
-    "jobids": {"title": "JobIds", "type": "array", "items": {"type": "string"}},
-    "cluster": {
-        "title": "ComputeCluster",
-        "type": "object",
-        "properties": {
-            "roles": {"type": "array", "items": {"type": "string"}},
-            "cluster": {"type": "string"},
-            "nodes": {"type": "number"},
-            "min": {"type": "number"},
-            "reservable_disks": {
-                "type": "boolean",
-                "description": "Request access to reservable disks on nodes",
+        "cluster": {
+            "description": "Describe a group of machine based on a cluster name",
+            "title": "Grid5000 ComputeCluster",
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "description": "The concrete resources will be assigned this role",
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+                "cluster": {"description": "Which cluster to use", "type": "string"},
+                "nodes": {
+                    "description": f"Number of nodes (default: {DEFAULT_NUMBER})",
+                    "type": "number",
+                },
+                "min": {
+                    "description": "Minimal number of nodes to get (default to nodes)",
+                    "type": "number",
+                },
+                "reservable_disks": {
+                    "description": "Request access to reservable disks on nodes",
+                    "type": "boolean",
+                },
+                "primary_network": {
+                    "description": "Network(id) to use on the primary NIC",
+                    "type": "string",
+                },
+                "secondary_networks": {
+                    "description": "Additional networks(ids) to assign",
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
             },
-            "primary_network": {"type": "string"},
-            "secondary_networks": {
-                "type": "array",
-                "items": {"type": "string"},
-                "uniqueItems": True,
-            },
+            "required": ["roles", "cluster"],
         },
-        "required": ["roles", "cluster"],
-    },
-    "servers": {
-        "title": "ComputeServers",
-        "type": "object",
-        "properties": {
-            "roles": {"type": "array", "items": {"type": "string"}},
-            "servers": {
-                "type": "array",
-                "items": {"type": "string", "format": "hostname"},
-                "minItems": 1,
+        "servers": {
+            "description": "Description of a specific list of servers to get",
+            "title": "Grid5000 ComputeServers",
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "description": "The concrete resources will be assigned this role",
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+                "servers": {
+                    "description": "List of names (e.g [chetemi-1.lille.grid5000.fr]) ",
+                    "type": "array",
+                    "items": {"type": "string", "format": "hostname"},
+                    "minItems": 1,
+                },
+                "min": {
+                    "description": "Minimal number of nodes to get (default to nodes)",
+                    "type": "number",
+                },
+                "reservable_disks": {
+                    "description": "Request access to reservable disks on nodes",
+                    "type": "boolean",
+                },
+                "primary_network": {
+                    "description": "Network to use on this NIC",
+                    "type": "string",
+                },
+                "secondary_networks": {
+                    "description": "List of the network to use on the other NICs",
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "uniqueItems": True,
+                },
             },
-            "min": {"type": "number"},
-            "reservable_disks": {
-                "type": "boolean",
-                "description": "Request access to reservable disks on nodes",
-            },
-            "primary_network": {"type": "string"},
-            "secondary_networks": {
-                "type": "array",
-                "items": {"type": "string"},
-                "uniqueItems": True,
-            },
+            "required": ["roles", "servers"],
         },
-        "required": ["roles", "servers"],
-    },
-    "network": {
-        "type": "object",
-        "properties": {
-            "id": {"type": "string"},
-            "type": {"enum": NETWORK_TYPES},
-            "roles": {"type": "array", "items": {"type": "string"}},
-            "site": {"type": "string"},
+        "network": {
+            "title": "Grid5000 Network",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Id used to identify network in machines",
+                    "type": "string",
+                },
+                "type": {
+                    "description": "Type of network to use supported by Grid'5000",
+                    "enum": NETWORK_TYPES,
+                },
+                "roles": {
+                    "description": "The concrete resources will be assigned this role",
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+                "site": {
+                    "description": "On which site to reserve the network",
+                    "type": "string",
+                },
+            },
+            "required": ["id", "type", "roles", "site"],
         },
-        "required": ["id", "type", "roles", "site"],
     },
 }
 
