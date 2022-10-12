@@ -7,22 +7,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 job_name = Path(__file__).name
 
-prod_network = en.G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="rennes"
-)
 conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_network_conf(prod_network)
-    .add_machine(
-        roles=["paris"], cluster="paravance", nodes=1, primary_network=prod_network
-    )
-    .add_machine(
-        roles=["berlin"], cluster="paravance", nodes=1, primary_network=prod_network
-    )
-    .add_machine(
-        roles=["londres"], cluster="paravance", nodes=1, primary_network=prod_network
-    )
-    .finalize()
+    .add_machine(roles=["paris"], cluster="paravance", nodes=1)
+    .add_machine(roles=["berlin"], cluster="paravance", nodes=1)
+    .add_machine(roles=["londres"], cluster="paravance", nodes=1)
 )
 provider = en.G5k(conf)
 roles, networks = provider.init()

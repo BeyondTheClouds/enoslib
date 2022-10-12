@@ -4,27 +4,20 @@ from pathlib import Path
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 
 
-prod_network = en.G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="rennes"
-)
 conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine",
         type="slash_22",
         roles=["my_subnet"],
         site="rennes",
     )
-    .add_machine(
-        roles=["control"], cluster="paravance", nodes=10, primary_network=prod_network
-    )
-    .finalize()
+    .add_machine(roles=["control"], cluster="paravance", nodes=10)
 )
 
 provider = en.G5k(conf)
