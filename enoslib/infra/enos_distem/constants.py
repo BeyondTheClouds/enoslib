@@ -4,6 +4,7 @@ import os
 PROVIDER_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 ######
+DEFAULT_ENV_NAME = "debian10-nfs"
 DEFAULT_JOB_NAME = "EnOslib-distem"
 DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"

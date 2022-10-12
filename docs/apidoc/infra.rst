@@ -81,8 +81,6 @@ VMonG5k Schema
     :auto_target:
 
 
-
-
 Containers on Grid5000 (Distem)
 ===============================
 
@@ -97,7 +95,10 @@ Distem Provider Class
 Distem Schema
 -------------
 
-.. literalinclude:: ../../enoslib/infra/enos_distem/schema.py
+.. jsonschema:: enoslib.infra.enos_distem.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
 
 
 Static
