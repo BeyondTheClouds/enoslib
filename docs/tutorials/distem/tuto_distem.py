@@ -3,7 +3,7 @@ from pathlib import Path
 import enoslib as en
 
 FORCE = False
-CLUSTER = "parapluie"
+CLUSTER = "parasilo"
 
 en.init_logging()
 
@@ -19,7 +19,6 @@ conf = (
     )
     .add_machine(roles=["server"], cluster=CLUSTER, number=1, flavour="large")
     .add_machine(roles=["client"], cluster=CLUSTER, number=1, flavour="large")
-    .finalize()
 )
 
 provider = en.Distem(conf)

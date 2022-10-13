@@ -183,7 +183,8 @@ class Providers(Provider):
         Args:
             providers: List of Provider instances that you wish to use
         """
-        super().__init__(None)
+        # super is finalizing the conf we can't send None here
+        # super().__init__(None)
         self.providers = providers
         self.name = "-".join([str(p) for p in self.providers])
 

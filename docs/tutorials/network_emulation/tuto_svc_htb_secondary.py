@@ -9,8 +9,8 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 job_name = Path(__file__).name
 
-prod = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
-private = en.G5kNetworkConf(id="n2", type="kavlan", roles=["private"], site=SITE)
+prod = en.G5kNetworkConf(type="prod", roles=["my_network"], site=SITE)
+private = en.G5kNetworkConf(type="kavlan", roles=["private"], site=SITE)
 
 conf = (
     en.G5kConf.from_settings(
@@ -39,7 +39,6 @@ conf = (
         primary_network=prod,
         secondary_networks=[private],
     )
-    .finalize()
 )
 
 provider = en.G5k(conf)

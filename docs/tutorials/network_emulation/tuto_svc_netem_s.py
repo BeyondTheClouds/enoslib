@@ -10,8 +10,7 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 job_name = Path(__file__).name
 
-prod = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
-private = en.G5kNetworkConf(id="n2", type="kavlan-global", roles=["private"], site=SITE)
+private = en.G5kNetworkConf(type="kavlan-global", roles=["private"], site=SITE)
 
 conf = (
     en.G5kConf.from_settings(
@@ -20,30 +19,25 @@ conf = (
         job_type=["deploy"],
         env_name="debian11-nfs",
     )
-    .add_network_conf(prod)
     .add_network_conf(private)
     .add_machine(
         roles=["paris"],
         cluster=CLUSTER,
         nodes=1,
-        primary_network=prod,
         secondary_networks=[private],
     )
     .add_machine(
         roles=["londres"],
         cluster=CLUSTER,
         nodes=1,
-        primary_network=prod,
         secondary_networks=[private],
     )
     .add_machine(
         roles=["berlin"],
         cluster=CLUSTER,
         nodes=1,
-        primary_network=prod,
         secondary_networks=[private],
     )
-    .finalize()
 )
 
 provider = en.G5k(conf)

@@ -16,12 +16,9 @@ provider_conf = {
                 "roles": ["control"],
                 "cluster": "paravance",
                 "nodes": 1,
-                "primary_network": "n1",
-                "secondary_networks": [],
             }
         ],
         "networks": [
-            {"id": "n1", "type": "prod", "roles": ["my_network"], "site": "rennes"},
             {
                 "id": "not_linked_to_any_machine",
                 "type": "slash_22",

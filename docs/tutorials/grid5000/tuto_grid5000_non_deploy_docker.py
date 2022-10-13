@@ -9,14 +9,9 @@ job_name = Path(__file__).name
 
 CLUSTER = "paravance"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
-# claim the resources
-network = en.G5kNetworkConf(type="prod", roles=["my_network"], site=SITE)
 
-conf = (
-    en.G5kConf.from_settings(job_type=[], job_name=job_name)
-    .add_network_conf(network)
-    .add_machine(roles=["control"], cluster=CLUSTER, nodes=2, primary_network=network)
-    .finalize()
+conf = en.G5kConf.from_settings(job_type=[], job_name=job_name).add_machine(
+    roles=["control"], cluster=CLUSTER, nodes=2
 )
 
 provider = en.G5k(conf)

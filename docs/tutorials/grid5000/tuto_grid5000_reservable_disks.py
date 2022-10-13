@@ -11,15 +11,11 @@ job_name = Path(__file__).name
 SITE = "rennes"
 CLUSTER = "grimoire"
 
-conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_machine(
-        roles=["storage"],
-        cluster=CLUSTER,
-        nodes=2,
-        reservable_disks=True,
-    )
-    .finalize()
+conf = en.G5kConf.from_settings(job_name=job_name, job_type=[]).add_machine(
+    roles=["storage"],
+    cluster=CLUSTER,
+    nodes=2,
+    reservable_disks=True,
 )
 
 provider = en.G5k(conf)

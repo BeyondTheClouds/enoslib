@@ -19,7 +19,6 @@ conf = (
     .add_machine(
         roles=["docker", "control"], cluster="paravance", number=1, flavour="large"
     )
-    .finalize()
 )
 
 provider = en.VMonG5k(conf)

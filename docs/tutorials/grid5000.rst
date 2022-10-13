@@ -16,16 +16,50 @@ documentation of the Grid'5000 provider.
 
 .. include:: ./setup_g5k.rst
 
-
-Basic example
+First example
 =============
 
-We'll implement a basic workflow where 2 nodes are reserved and 2 roles are
-described. Nodes are here put in a dedicated vlan.
+The following shows how to deal with a basic reservation. This will use some
+nodes from the production environment and allow direct SSH access to them as
+root (This uses `sudo-g5k` internally). For this purpose you must have a
+``~/.ssh/id_rsa.pub`` file available. This is interesting when you don't mind
+working with the production settings (OS and network).
 
+Build the configuration from a dictionnary
+------------------------------------------
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
+    :language: python
+    :linenos:
+
+Build the configuration programmatically
+----------------------------------------
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p.py
+    :language: python
+    :linenos:
+
+Complete configuration
+----------------------
+
+The above examples use some practical shortcuts to lighten the configuration.
+Below you'll find a complete configuration that makes the exact same thing but
+explicits the job_type (empty) and the network to use (production network).
+
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_complete.py
+    :language: python
+    :linenos:
+
+
+Deploy example
+==============
+
+We'll implement a classical workflow where 2 nodes are reserved and 2 roles are
+described. Nodes are here put in a dedicated vlan. This example requires to
+deploy a custom OS on the reserved nodes.
 
 Build the configuration from a dictionary
-------------------------------------------
+-----------------------------------------
 
 
 .. literalinclude:: grid5000/tuto_grid5000.py
@@ -79,6 +113,10 @@ inspecting the acquire resources.
 
 Using the secondary interfaces
 ==============================
+
+We put explicitly the second interface on a dedicated vlan. The
+primary network being implicitly declared here will be placed in the production
+network.
 
 .. literalinclude:: grid5000/tuto_grid5000_secondary.py
    :language: python
@@ -181,28 +219,16 @@ Build the configuration programmatically
     :linenos:
 
 
-Non deploy reservation
-======================
+Multi-sites deployment
+=====================
+>>>>>>> eb0e4d2 (doc/g5k: shorten tuto (remove finalize/prod))
 
+There's no global scheduler on Grid'5000. So multi-sites reservation involves
+finding a common slot to start the jobs on each requested site. |enoslib| will
+do that for you. The logic behind is part of a more generic logic that can
+synchronize resource between distinct providers.
 
-The following shows how to deal with a non deploy reservation. Root ssh access
-will be granted to the nodes. For this purpose you must have a
-``~/.ssh/id_rsa.pub`` file available. All the connections will be done as root
-user allowing to mimic the behaviour of deploy jobs (without the kadeploy3
-step). This is particularly interesting if your deployment does't require more
-than one network interface.
-
-Build the configuration from a dictionary
-------------------------------------------
-
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
-    :language: python
-    :linenos:
-
-Build the configuration programmatically
-----------------------------------------
-
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p.py
+.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_multisites.py
     :language: python
     :linenos:
 
@@ -210,20 +236,7 @@ Build the configuration programmatically
 Specific nodes reservation
 ==========================
 
-
 .. literalinclude:: grid5000/tuto_grid5000_p_specific_servers.py
-    :language: python
-    :linenos:
-
-
-Multi-sites deployment
-=====================
-
-There's no global scheduler on Grid'5000. So multi-sites reservation involves
-finding a common slot to start the jobs on each requested site. |enoslib|
-will do that for you.
-
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_multisites.py
     :language: python
     :linenos:
 
@@ -239,12 +252,7 @@ Start Virtual Machines on nodes
   machines are started on specific nodes of your reservation.
 
 
-.. literalinclude:: ../apidoc/examples/grid5000/tuto_grid5000_p_virt.py
-    :language: python
-    :linenos:
-
 .. _g5k_tunnel:
-
 Create a tunnel to a service
 ============================
 

@@ -9,7 +9,6 @@ en.init_logging(level=logging.DEBUG)
 job_name = Path(__file__).name
 
 provider_conf = {
-    "job_type": [],
     "job_name": job_name,
     "resources": {
         "machines": [
@@ -17,19 +16,12 @@ provider_conf = {
                 "roles": ["control"],
                 "cluster": "paravance",
                 "nodes": 1,
-                "primary_network": "n1",
-                "secondary_networks": [],
             },
             {
                 "roles": ["control", "compute"],
                 "cluster": "paravance",
                 "nodes": 1,
-                "primary_network": "n1",
-                "secondary_networks": [],
             },
-        ],
-        "networks": [
-            {"id": "n1", "type": "prod", "roles": ["my_network"], "site": "rennes"}
         ],
     },
 }

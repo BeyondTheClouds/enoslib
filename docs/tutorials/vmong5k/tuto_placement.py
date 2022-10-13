@@ -12,20 +12,13 @@ CLUSTER = "parasilo"
 SITE = "rennes"
 
 
-prod_network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf = (
     en.G5kConf.from_settings(job_type=[], job_name=job_name)
-    .add_network_conf(prod_network)
     .add_network(
         id="not_linked_to_any_machine", type="slash_22", roles=["my_subnet"], site=SITE
     )
-    .add_machine(
-        roles=["role1"], cluster=CLUSTER, nodes=1, primary_network=prod_network
-    )
-    .add_machine(
-        roles=["role2"], cluster=CLUSTER, nodes=1, primary_network=prod_network
-    )
-    .finalize()
+    .add_machine(roles=["role1"], cluster=CLUSTER, nodes=1)
+    .add_machine(roles=["role2"], cluster=CLUSTER, nodes=1)
 )
 
 provider = en.G5k(conf)
@@ -54,7 +47,7 @@ virt_conf = (
         macs=list(islice(subnet[0].free_macs, n_vms))
         # alternative
         # macs=list(islice(en.mac_range(subnet), n_vms))
-    ).finalize()
+    )
 )
 
 # Start them

@@ -4,32 +4,23 @@ import enoslib as en
 
 logging.basicConfig(level=logging.DEBUG)
 
-
-prod_network = en.G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="rennes"
-)
 conf = (
     en.G5kConf.from_settings(job_type=[], walltime="01:00:00")
-    .add_network_conf(prod_network)
     .add_machine(
         roles=["city", "paris"],
         cluster="paravance",
         nodes=1,
-        primary_network=prod_network,
     )
     .add_machine(
         roles=["city", "berlin"],
         cluster="paravance",
         nodes=1,
-        primary_network=prod_network,
     )
     .add_machine(
         roles=["city", "londres"],
         cluster="paravance",
         nodes=1,
-        primary_network=prod_network,
     )
-    .finalize()
 )
 provider = en.G5k(conf)
 roles, networks = provider.init()

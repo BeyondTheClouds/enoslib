@@ -20,7 +20,7 @@ from enoslib.objects import Host, Network, Networks, Roles
 
 from ..provider import Provider
 from ..utils import offset_from_format
-from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME
+from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME, DEFAULT_ENV_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ def _do_build_g5k_conf(distemong5k_conf, site):
         queue=distemong5k_conf.queue,
         job_type="deploy",
         force_deploy=distemong5k_conf.force_deploy,
-        env_name="debian10-x64-nfs",
+        env_name=DEFAULT_ENV_NAME,
     )
     prod_network = g5kconf.NetworkConfiguration(
         roles=["prod"], id="prod", type="prod", site=site

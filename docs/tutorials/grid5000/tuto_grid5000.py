@@ -11,6 +11,7 @@ job_name = Path(__file__).name
 
 provider_conf = {
     "job_name": job_name,
+    "job_type": ["deploy"],
     "resources": {
         "machines": [
             {
@@ -18,20 +19,17 @@ provider_conf = {
                 "cluster": "grisou",
                 "nodes": 1,
                 "primary_network": "n1",
-                "secondary_networks": ["n2"],
             },
             {
                 "roles": ["control", "compute"],
                 "cluster": "grisou",
                 "nodes": 1,
                 "primary_network": "n1",
-                "secondary_networks": ["n2"],
             },
         ],
         "networks": [
-            {"id": "n1", "type": "kavlan", "roles": ["my_network"], "site": "nancy"},
             {
-                "id": "n2",
+                "id": "n1",
                 "type": "kavlan",
                 "roles": ["my_second_network"],
                 "site": "nancy",

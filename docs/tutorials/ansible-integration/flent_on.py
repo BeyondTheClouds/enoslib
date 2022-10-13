@@ -3,7 +3,7 @@ import enoslib as en
 import logging
 
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 # The conf let us define the resources wanted.
 # This is provider specific
@@ -13,7 +13,6 @@ conf = (
     .add_machine(roles=["server"], flavour="tiny", number=1)
     .add_machine(roles=["client"], flavour="tiny", number=1)
     .add_network(roles=["mynetwork"], cidr="192.168.42.0/24")
-    .finalize()
 )
 
 provider = en.Vagrant(conf)

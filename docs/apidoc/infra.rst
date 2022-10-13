@@ -25,7 +25,11 @@ Vagrant Provider Class
 Vagrant Schema
 --------------
 
-.. literalinclude:: ../../enoslib/infra/enos_vagrant/schema.py
+.. jsonschema:: enoslib.infra.enos_vagrant.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
 
 
 Grid5000 (G5k)
@@ -42,7 +46,11 @@ G5k Provider Class
 G5k Schema
 ----------
 
-.. literalinclude:: ../../enoslib/infra/enos_g5k/schema.py
+.. jsonschema:: enoslib.infra.enos_g5k.schema.SCHEMA_USER
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
 
 
 G5k API utils
@@ -67,7 +75,10 @@ VMonG5k Provider Class
 VMonG5k Schema
 --------------
 
-.. literalinclude:: ../../enoslib/infra/enos_vmong5k/schema.py
+.. jsonschema:: enoslib.infra.enos_vmong5k.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
 
 
 Containers on Grid5000 (Distem)
@@ -84,24 +95,29 @@ Distem Provider Class
 Distem Schema
 -------------
 
-.. literalinclude:: ../../enoslib/infra/enos_distem/schema.py
+.. jsonschema:: enoslib.infra.enos_distem.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
 
 
-Static
-======
+FIT/IoT-LAB
+==============
 
-Static Provider Class
----------------------
+.. _iotlab-schema:
 
-.. automodule:: enoslib.infra.enos_static.provider
-    :members: Static
+FIT/IoT-LAB Schema
+----------
 
-.. _static-schema:
+.. jsonschema:: enoslib.infra.enos_iotlab.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
 
-Static Schema
--------------
+Sensor
+------
 
-.. literalinclude:: ../../enoslib/infra/enos_static/schema.py
+.. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
 
 
 Openstack
@@ -145,21 +161,6 @@ Chameleon(bare metal) schema
 ----------------------------
 
 .. literalinclude:: ../../enoslib/infra/enos_chameleonkvm/schema.py
-
-FIT/IoT-LAB
-==============
-
-.. _iotlab-schema:
-
-FIT/IoT-LAB Schema
-----------
-
-.. literalinclude:: ../../enoslib/infra/enos_iotlab/schema.py
-
-Sensor
-------
-
-.. literalinclude:: ../../enoslib/infra/enos_iotlab/objects.py
 
 
 Providers Class
