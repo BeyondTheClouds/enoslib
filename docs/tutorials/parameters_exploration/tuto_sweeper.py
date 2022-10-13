@@ -54,7 +54,7 @@ def bench(parameter: Dict) -> None:
             state="present",
         )
 
-    with en.action(pattern_hosts="server", roles=roles) as p:
+    with en.actions(pattern_hosts="server", roles=roles) as p:
         p.shell("tmux new-session -d 'exec netperf'")
 
     delay = parameter["delay"]

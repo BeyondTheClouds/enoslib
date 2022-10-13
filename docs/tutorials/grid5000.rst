@@ -24,7 +24,7 @@ We'll implement a basic workflow where 2 nodes are reserved and 2 roles are
 described. Nodes are here put in a dedicated vlan.
 
 
-Build the configuration from a dictionnary
+Build the configuration from a dictionary
 ------------------------------------------
 
 
@@ -41,7 +41,7 @@ Build the configuration from a dictionnary
 Build the configuration programmatically
 ----------------------------------------
 
-The above script can be rewritten using the programmatc API.
+The above script can be rewritten using the programmatic API.
 
 .. literalinclude:: grid5000/tuto_grid5000_p.py
    :language: python
@@ -103,7 +103,7 @@ software RAID array with ``mdadm`` and then benchmark it using ``fio``:
 
 ::
 
-    Finished 1 tasks (Granting root acces on the nodes (sudo-g5k))
+    Finished 1 tasks (Granting root access on the nodes (sudo-g5k))
     ─────────────────────────────────────────────────────────────────────────────────────────────────────────
     Finished 13 tasks (Check availability of disk1,Check availability of disk2,Check availability of
     disk3,Check availability of disk4,Create partition on disk1,Create partition on disk2,Create partition on
@@ -147,7 +147,7 @@ An example of such description is the following
     partition_type: 131
     multipart: false
 
-Then in the configuration of the Grid'5000 provider you can specidy the following:
+Then in the configuration of the Grid'5000 provider you can specify the following:
 
 .. code-block:: yaml
 
@@ -166,7 +166,7 @@ Subnet reservation
 
 This shows how to deal with a subnet reservation
 
-Build the configuration from a dictionnary
+Build the configuration from a dictionary
 ------------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_subnet.py
@@ -192,7 +192,7 @@ user allowing to mimic the behaviour of deploy jobs (without the kadeploy3
 step). This is particularly interesting if your deployment does't require more
 than one network interface.
 
-Build the configuration from a dictionnary
+Build the configuration from a dictionary
 ------------------------------------------
 
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
@@ -216,10 +216,10 @@ Specific nodes reservation
     :linenos:
 
 
-Multisites deployment
+Multi-sites deployment
 =====================
 
-There's no global scheduler on Grid'5000. So multisites reservation involves
+There's no global scheduler on Grid'5000. So multi-sites reservation involves
 finding a common slot to start the jobs on each requested site. |enoslib|
 will do that for you.
 

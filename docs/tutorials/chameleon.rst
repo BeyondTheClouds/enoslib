@@ -7,7 +7,7 @@ Provider::Chameleon/ChameleonEdge
 
 This tutorial will let you get started using |enoslib| and
 Chameleon/ChameleonEdge.  Chameleon provider is a specialization of the
-OpenStack provider (so this should be theorically possible to work with a custom
+OpenStack provider (so this should be theoretically possible to work with a custom
 OpenStack platform, but we didn't push too much effort on this lately :))
 
 Here we present you the bare minimum to install the library with the required
@@ -30,11 +30,11 @@ Installation
   It's a good practice to use a virtualenv or a python version manager like `pyenv`.
 
 
-Chameleon Baremetal Example
+Chameleon Bare-metal Example
 ===========================
 
-The following reserve 2 nodes on the chameleon baremetal infrastructure.  The
-prefered way of authenticating to the Chameleon provider using EnOSlib is
+The following reserve 2 nodes on the chameleon bare-metal infrastructure.  The
+preferred way of authenticating to the Chameleon provider using EnOSlib is
 through application credentials (EnOSlib will transparently source your
 application credentials when needed)
 

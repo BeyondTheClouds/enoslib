@@ -7,7 +7,7 @@
   font-size: 1em;
   line-height: 1.5;
   background-color: rgb(250, 249, 249);
-  font-family: "Segoe UI";
+  font-family: "Segoe UI", "sans-serif";
   color: black;
 }
 
@@ -16,7 +16,7 @@
 }
 
 .enoslib_object input + label {
-  margin-bottom: 0%;
+  margin-bottom: 0;
 }
 
 .object_name {

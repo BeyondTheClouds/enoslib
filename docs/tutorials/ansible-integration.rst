@@ -11,7 +11,7 @@ Ansible Integration
 commands ). But in |enoslib| we prefer not leaving the Python world :) so we've
 exposed some convenient functions that use Ansible behind the scene like:
 
-* run a single command on a subset of the nodes and gather the outputs (and erros)
+* run a single command on a subset of the nodes and gather the outputs (and errors)
 * or run a set of actions (Ansible Modules) programmatically
 
 

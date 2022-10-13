@@ -63,3 +63,5 @@ and start using the cli (the cli name has been filled above)::
       g5k        Claim resources on Grid'5000 (frontend).
       prepare    Configure available resources [after deploy,...
       vagrant    Claim resources on vagrant (localhost).
+
+..

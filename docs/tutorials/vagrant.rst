@@ -28,7 +28,7 @@ Installation
 Using the API
 -------------
 
-From a dictionnary
+From a dictionary
 ******************
 
 The following ``tuto_vagrant.py`` implements the desired workflow.

@@ -26,8 +26,8 @@ conf = (
     .finalize()
 )
 
+provider = en.G5k(conf)
 try:
-    provider = en.G5k(conf)
     # Get actual resources
     roles, networks = provider.init()
     # Open port 22 for host in the control group
