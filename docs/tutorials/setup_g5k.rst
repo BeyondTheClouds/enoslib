@@ -58,7 +58,7 @@ SSH external access
 Accessing HTTP services inside Grid'5000
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine). For instance the Distem provider is starting a web server to handle the client requests. In order to access it propertly externally you drom your local machine can either
+If you want to control your experiment from the outside of Grid'5000 (e.g from your local machine), you'll need to access the Distem server running on a node deployed by the Distem Provider. To access it externally from your local machine, you can either:
 
 - Solution 1 (general): use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
 - Solution 2 (HTTP traffic only): create a socks tunnel from your local machine   to Grid'5000
@@ -76,7 +76,7 @@ If you want to control you experiment from the outside of Grid'5000 (e.g from yo
       # Note that browsers can work with proxy socks
       chromium-browser --proxy-server="socks5://127.0.0.1:2100" &
 
-- Solution 3 (ad'hoc): create a forwarding port tunnel
+- Solution 3 (ad-hoc): create a forwarding port tunnel
 
    ::
 

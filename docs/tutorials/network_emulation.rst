@@ -26,7 +26,7 @@ You can use the HTBNetem service for this purpose. The example is based on the
 G5K provider, but can be adapted to another one if desired.
 
 
-- Build from a dictionnary:
+- Build from a dictionary:
 
     .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb.py
         :language: python

@@ -1,14 +1,14 @@
 ***************************
-Syncing Hosts' informations
+Syncing Hosts' information
 ***************************
 
 .. contents::
    :depth: 2
 
-Currently syncing the hosts' informations will update all of the Host
+Currently syncing the hosts' information will update all of the Host
 datastructures with some specific data about them (e.g network IPs, processor
 information). This let's the user code to take decisions based on those
-informations.
+information.
 
 .. note::
 
@@ -19,7 +19,7 @@ informations.
 
    Also, in the future, we expect some providers to fill an initial version of
    the updated attribute to avoid a full sync. For instance, on Grid'5000
-   many informations can be retrieved from the REST API.
+   many information can be retrieved from the REST API.
 
 
 Examples

@@ -61,7 +61,7 @@ for idx, host in enumerate(dockers):
     print(f"{host.alias} <-> {delay}")
     inbound = en.NetemOutConstraint(device="eth0", options=f"delay {delay}ms")
     outbound = en.NetemInConstraint(device="eth0", options=f"delay {delay}ms")
-    sources.append(en.NetemInOutSource(host, constraints=[inbound, outbound]))
+    sources.append(en.NetemInOutSource(host, constraints={inbound, outbound}))
 
 
 # The connection plugin used from here is docker protocol (not ssh). The

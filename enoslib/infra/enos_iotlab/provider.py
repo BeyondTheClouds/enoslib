@@ -1,7 +1,7 @@
 from datetime import datetime, time, timezone
 import pathlib
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.error import HTTPError
 
 import iotlabcli.auth
@@ -101,7 +101,7 @@ class Iotlab(Provider):
 
     def init(
         self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
-    ):
+    ) -> Tuple[Roles, Networks]:
         """
         Take ownership over FIT/IoT-LAB resources
 

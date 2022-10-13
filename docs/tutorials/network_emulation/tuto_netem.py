@@ -41,6 +41,6 @@ for idx, host in enumerate(roles["city"]):
     print(f"{host.alias} <-> {delay}")
     inbound = en.NetemOutConstraint(device="br0", options=f"delay {delay}ms")
     outbound = en.NetemInConstraint(device="br0", options=f"delay {delay}ms")
-    sources.append(en.NetemInOutSource(host, constraints=[inbound, outbound]))
+    sources.append(en.NetemInOutSource(host, constraints={inbound, outbound}))
 
 en.netem(sources)
