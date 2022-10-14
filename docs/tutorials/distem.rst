@@ -12,7 +12,7 @@ containers for you on Grid'5000.
 
 .. note::
 
-    More details on : http://distem.gforge.inria.fr/
+    More details on : https://distem.gitlabpages.inria.fr/
 
 
 .. hint::
@@ -40,7 +40,7 @@ We express this using the Distem provider:
 
 .. note::
     - You can customize your virtual environment as explained in :
-      http://distem.gforge.inria.fr/faq.html#how-to-customize-your-virtual-environment
+      https://distem.gitlabpages.inria.fr/faq.html#how-to-customize-your-virtual-environment
     - Alternatively a quick way to create a base virtual environment (from amerlin):
 
    .. code-block:: bash

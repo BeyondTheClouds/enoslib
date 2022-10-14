@@ -109,7 +109,7 @@ available to the Virtual Machine. In the current implementation, the disk is nei
 - **Make an external (not managed by EnOSlib) disk available to the Virtual Machine**
   A typical use case is to use an hardware disk from the host machine.
   In this situation, use the `extra_devices` parameter of the configuration.
-  It corresponds to the XML string of `Libvirt <https://libvirt.org/formatdomain.html#elementsDisks>`_.
+  It corresponds to the XML string of `Libvirt <https://libvirt.org/formatdomain.html#hard-drives-floppy-disks-cdroms>`_.
 
   .. code-block:: python
 

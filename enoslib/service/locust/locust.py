@@ -246,7 +246,7 @@ class Locust(Service):
     def run_headless(self):
         """Run locust headless
 
-        see https://docs.locust.io/en/stable/running-locust-without-web-ui.html
+        see https://docs.locust.io/en/stable/running-without-web-ui.html
         """
 
         environment = dict(**self.environment)

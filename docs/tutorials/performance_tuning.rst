@@ -12,7 +12,7 @@ This page is about tricks to speed up the deployment time.
 
 - Ansible
 
-  - Use fact caching: https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#caching-facts
+  - Use fact caching: https://docs.ansible.com/ansible/latest/plugins/cache.html
   - Tune the default ssh strategy:
 
     - pipelining: https://docs.ansible.com/ansible/latest/reference_appendices/config.html?highlight=pipelining#ansible-pipelining
@@ -20,6 +20,6 @@ This page is about tricks to speed up the deployment time.
 
   - Switch to another ssh strategy:
 
-    - mitogen: https://networkgenomics.com/ansible/
+    - mitogen: https://mitogen.networkgenomics.com/
 
 - Build a preconfigured image (application specific)

@@ -59,7 +59,7 @@ class K3s(Service):
         creating multiple instances of this service.
 
         Reference:
-        https://rancher.com/docs/k3s/latest/en/quick-start/
+        https://docs.k3s.io/quick-start
 
         This is a basic setup for now. Let us know if something is needed here:
         |chat|
