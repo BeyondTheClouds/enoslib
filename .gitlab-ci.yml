@@ -115,7 +115,7 @@ sonar:
   script:
     - pip install -e .
     - apt update
-    - apt install -y wget unzip openjdk-11-jre
+    - apt install -y wget unzip openjdk-11-jre-headless libpython3-dev --no-install-recommends
     - pip install pylint
     - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-linux.zip
     - unzip sonar-scanner-cli-4.4.0.2170-linux.zip
