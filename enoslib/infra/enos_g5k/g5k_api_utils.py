@@ -722,7 +722,7 @@ def get_clusters_status(clusters: Iterable[str]):
     clusters_status = {}
     for cluster in clusters_sites:
         clusters_status[cluster] = (
-            clusters_sites[cluster].clusters_sites[cluster].status.list()
+            clusters_sites[cluster].clusters[cluster].status.list()
         )
     return clusters_status
 
