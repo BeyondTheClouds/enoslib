@@ -269,6 +269,7 @@ Disabling the cache
     :linenos:
 
 
+.. _g5k_reconfigurable_firewall:
 Reconfigurable Firewall: Open ports to the external world
 =========================================================
 
@@ -293,3 +294,62 @@ state directory `/var/lib/docker` to `/tmp/docker` to gain more space.
 .. literalinclude:: grid5000/tuto_grid5000_non_deploy_docker.py
     :language: python
     :linenos:
+
+
+Accessing internal services from the outside
+============================================
+
+Sometimes, your experiment involves services that you deploy on Grid'5000
+nodes, and you would like to access these services from outside Grid'5000
+(e.g. from your laptop or from a server independent from Grid'5000).
+
+There are several solutions depending on your requirements:
+
+- **Native IPv6 connectivity**: the reconfigurable firewall allows IPv6
+  connectivity to your Grid'5000 nodes from the Internet.  This is the
+  recommended method if your experiment is sensitive to network
+  performance, because it uses native IP connectivity.  See
+  :ref:`g5k_reconfigurable_firewall`.
+
+- `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_: this allows IPv4
+  connectivity to the Grid'5000 network.  However, the VPN is a shared
+  service and has no performance guarantee.  This method is useful if you
+  want to quickly check the state of web service from your laptop, but you
+  should not connect external machines to the VPN to perform actual
+  network-intensive experiments (e.g. network benchmarks, stress tests, or
+  latency measurements)
+
+- **SOCKS proxy tunnel for HTTP traffic**:
+
+   ::
+
+
+      # on one shell
+      ssh -ND 2100 access.grid5000.fr
+
+      # on another shell
+      export https_proxy="socks5h://localhost:2100"
+      export http_proxy="socks5h://localhost:2100"
+
+      # Note that browsers can work with proxy socks
+      chromium-browser --proxy-server="socks5://127.0.0.1:2100" &
+
+- `Grid'5000 HTTP reverse proxy
+  <https://www.grid5000.fr/w/HTTP/HTTPs_access>`_.  This method has
+  several limitations: it only works for HTTP services listening on ports
+  80, 443, 8080 or 8443; it requires authenticating with your Grid'5000
+  credentials.
+
+- **Manual SSH port forwarding**:
+
+   ::
+
+
+      # on one shell
+      ssh -NL 3000:paravance-42.rennes.grid5000.fr:3000 access.grid5000.fr
+
+      # Now all traffic that goes on localhost:3000 is forwarded to paravance-42.rennes.grid5000.fr:3000
+
+- **Programmatic SSH port forwarding**: the same method, but programmatically
+  with :py:class:`~enoslib.infra.enos_g5k.provider.G5kTunnel`.  See also
+  :ref:`g5k_tunnel`.
