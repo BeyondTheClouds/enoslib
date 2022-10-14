@@ -67,7 +67,7 @@ from enoslib.infra.providers import Providers
 
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
-from enoslib.log import getLogger
+from enoslib.log import getLogger, DisableLogging
 from sshtunnel import SSHTunnelForwarder
 
 from grid5000.exceptions import Grid5000CreateError
@@ -88,18 +88,21 @@ def _check_deployed_nodes(
     undeployed = []
     cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
 
-    deployed_results = run(
-        cmd,
-        roles=hosts,
-        raw=True,
-        gather_facts=False,
-        task_name="Check deployment",
-        # Make sure we don't wait too long
-        extra_vars=dict(ansible_timeout=10),
-        # Errors are expected
-        # e.g the first time all hosts are unreachable
-        on_error_continue=True,
-    )
+    # Don't display expected 'unreachable hosts' errors that may be scary
+    # to the end-users.
+    with DisableLogging(level=logging.ERROR):
+        deployed_results = run(
+            cmd,
+            roles=hosts,
+            raw=True,
+            gather_facts=False,
+            task_name="Check deployment",
+            # Make sure we don't wait too long
+            extra_vars=dict(ansible_timeout=10),
+            # Errors are expected
+            # e.g the first time all hosts are unreachable
+            on_error_continue=True,
+        )
     for r in deployed_results.filter(task="Check deployment"):
         if r.ok():
             deployed.append(r.host)
