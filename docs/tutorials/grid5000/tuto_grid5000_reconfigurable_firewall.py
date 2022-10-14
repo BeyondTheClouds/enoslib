@@ -4,7 +4,7 @@ import time
 
 import enoslib as en
 
-en.init_logging(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 

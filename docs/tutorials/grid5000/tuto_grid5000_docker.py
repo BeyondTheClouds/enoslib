@@ -3,12 +3,11 @@ from pathlib import Path
 
 import enoslib as en
 
-en.init_logging(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 
 CLUSTER = "paravance"
-SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 conf = en.G5kConf.from_settings(job_type=[], job_name=job_name).add_machine(
     roles=["control"], cluster=CLUSTER, nodes=2

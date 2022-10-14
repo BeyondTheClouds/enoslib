@@ -5,7 +5,7 @@ import enoslib as en
 from enoslib.service.emul.utils import _validate
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 job_name = Path(__file__).name
 

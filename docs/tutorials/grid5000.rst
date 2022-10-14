@@ -16,111 +16,88 @@ documentation of the Grid'5000 provider.
 
 .. include:: ./setup_g5k.rst
 
-First example
-=============
 
-The following shows how to deal with a basic reservation. This will use some
-nodes from the production environment and allow direct SSH access to them as
-root (This uses `sudo-g5k` internally). For this purpose you must have a
-``~/.ssh/id_rsa.pub`` file available. This is interesting when you don't mind
-working with the production settings (OS and network).
+First reservation example
+=========================
 
-Build the configuration from a dictionnary
-------------------------------------------
+The following shows how to deal with a basic reservation. This will use
+nodes running the `standard Grid'5000 software environment
+<https://www.grid5000.fr/w/Getting_Started#Using_nodes_in_the_default_environment>`_
+(Debian stable with performance tuning and many pre-installed software)
+and connect to them over SSH as root. For this purpose you must have a
+``~/.ssh/id_rsa.pub`` file available. Using the standard Grid'5000
+environment is good for prototyping, but not for scientific experiments
+that care about reproducibility: we'll see later how to deploy a specific
+operating system.
 
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy.py
+.. literalinclude:: grid5000/tuto_grid5000_basic.py
     :language: python
     :linenos:
 
-Build the configuration programmatically
-----------------------------------------
+:download:`tuto_grid5000_basic.py <grid5000/tuto_grid5000_basic.py>`
 
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p.py
-    :language: python
-    :linenos:
-
-Complete configuration
-----------------------
-
-The above examples use some practical shortcuts to lighten the configuration.
-Below you'll find a complete configuration that makes the exact same thing but
-explicits the job_type (empty) and the network to use (production network).
-
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_complete.py
-    :language: python
-    :linenos:
-
-
-Deploy example
-==============
-
-We'll implement a classical workflow where 2 nodes are reserved and 2 roles are
-described. Nodes are here put in a dedicated vlan. This example requires to
-deploy a custom OS on the reserved nodes.
-
-Build the configuration from a dictionary
------------------------------------------
-
-
-.. literalinclude:: grid5000/tuto_grid5000.py
-   :language: python
-   :linenos:
-
-- You can launch the script using :
+To run this experiment, you just have to launch the script:
 
     .. code-block:: bash
 
-        $ python tuto_grid5000.py
+        $ python tuto_grid5000_basic.py
 
-Build the configuration programmatically
-----------------------------------------
+The script will output the different steps needed to reserve and provision
+the physical nodes.  However, we don't actually do anything with the nodes
+yet, so the script will finish rather quickly.
 
-The above script can be rewritten using the programmatic API.
 
-.. literalinclude:: grid5000/tuto_grid5000_p.py
+Using roles to run commands
+===========================
+
+After Grid'5000 machines are provisioned, they are assigned to their
+roles, which can be used to run commands in parallel:
+
+.. literalinclude:: grid5000/tuto_grid5000_commands.py
+    :language: python
+    :linenos:
+
+:download:`tuto_grid5000_commands.py <grid5000/tuto_grid5000_commands.py>`
+
+See :ref:`integration-with-ansible` for more details about running
+commands and configuring your experimental machines.
+
+
+Deploying operating systems
+===========================
+
+Grid'5000 provides several operating systems that can be "deployed"
+(i.e. installed automatically) on all of your nodes.  To specify the
+operating system, use ``env_name`` as well as the ``deploy`` job type:
+
+.. literalinclude:: grid5000/tuto_grid5000_deploy.py
    :language: python
    :linenos:
 
-.. note::
+:download:`tuto_grid5000_deploy.py <grid5000/tuto_grid5000_deploy.py>`
 
-   Here we first create a network and pass its reference to each group of
-   machine to configure the first interface of the Grid'5000 nodes.
+::
 
+    Finished 1 tasks (lsb_release -a)
+    ──────────────────────────────────────
+    Distributor ID:	Ubuntu
+    Description:	Ubuntu 22.04.1 LTS
+    Release:	22.04
+    Codename:	jammy
 
-Resources inspection
-====================
+Deployment takes a few minutes, with some variation depending on cluster
+hardware.
 
-The G5k provider object exposes the actual hosts and networks. It allows for
-inspecting the acquire resources.
+The full list of available operating systems is in the `Grid'5000
+documentation
+<https://www.grid5000.fr/w/Advanced_Kadeploy#Search_an_environment>`_.
 
-.. code-block:: python
+To obtain a minimal environment that reflects the default settings of the
+operating system, use a ``-min`` environment.  You will likely have to
+install additional packages and tools for your experiments.
 
-    # Get all the reserved (and deployed) hosts:
-    provider.hosts
-
-    # Get all the networks
-    provider.networks
-
-    # Example on getting on host
-    [x] provider.hosts[0]
-    <G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>
-
-    # Another example (what are the hosts in the same network as me)
-    [x] provider.hosts[0].primary_network.hosts
-    [<G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>,
-     <G5kHost(roles=['control', 'compute'], fqdn=grisou-9.nancy.grid5000.fr, ssh_address=grisou-9-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>]
-
-
-Using the secondary interfaces
-==============================
-
-We put explicitly the second interface on a dedicated vlan. The
-primary network being implicitly declared here will be placed in the production
-network.
-
-.. literalinclude:: grid5000/tuto_grid5000_secondary.py
-   :language: python
-   :linenos:
+If you need to share data on a network filesystem (available under
+``/home/YOURLOGIN/``), use a ``-nfs`` or ``-big`` environment.
 
 
 Using reservable disks on nodes
@@ -139,6 +116,8 @@ software RAID array with ``mdadm`` and then benchmark it using ``fio``:
    :language: python
    :linenos:
 
+:download:`tuto_grid5000_reservable_disks.py <grid5000/tuto_grid5000_reservable_disks.py>`
+
 ::
 
     Finished 1 tasks (Granting root access on the nodes (sudo-g5k))
@@ -152,121 +131,75 @@ software RAID array with ``mdadm`` and then benchmark it using ``fio``:
     fio-3.25 running on grimoire-6.nancy.grid5000.fr: average /dev/md0 read performance = 519.71 IOPS
 
 
-Using a custom environment
-==========================
-
-First, the description file of your environment should use resolvable URIs for the kadeploy3 server.
-An example of such description is the following
-
-.. code-block:: yaml
-
-    # myimage.desc and myimage.tgz are both located in
-    # the public subdirectory of rennes site of the user {{ login }}
-    ---
-    name: ubuntu1804-x64-min
-    version: 2019052116
-    description: ubuntu 18.04 (bionic) - min
-    author: support-staff@list.grid5000.fr
-    visibility: public
-    destructive: false
-    os: linux
-    image:
-    file: https://api.grid5000.fr/sid/sites/rennes/public/{{ login }}/myimage.tgz
-    kind: tar
-    compression: gzip
-    postinstalls:
-    - archive: server:///grid5000/postinstalls/g5k-postinstall.tgz
-    compression: gzip
-    script: g5k-postinstall --net netplan
-    boot:
-    kernel: "/vmlinuz"
-    initrd: "/initrd.img"
-    filesystem: ext4
-    partition_type: 131
-    multipart: false
-
-Then in the configuration of the Grid'5000 provider you can specify the following:
-
-.. code-block:: yaml
-
-    job_name: test_myimage
-    ...
-    job_type: [deploy]
-    env_name: https://api.grid5000.fr/sid/sites/rennes/public/{{ login }}/myimage.desc
-    ...
-    resources:
-    ...
-
-
-Subnet reservation
-==================
-
-
-This shows how to deal with a subnet reservation
-
-Build the configuration from a dictionary
-------------------------------------------
-
-.. literalinclude:: grid5000/tuto_grid5000_subnet.py
-    :language: python
-    :linenos:
-
-Build the configuration programmatically
-----------------------------------------
-
-.. literalinclude:: grid5000/tuto_grid5000_subnet_p.py
-    :language: python
-    :linenos:
-
-
-Multi-sites deployment
-=====================
->>>>>>> eb0e4d2 (doc/g5k: shorten tuto (remove finalize/prod))
-
-There's no global scheduler on Grid'5000. So multi-sites reservation involves
-finding a common slot to start the jobs on each requested site. |enoslib| will
-do that for you. The logic behind is part of a more generic logic that can
-synchronize resource between distinct providers.
-
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_p_multisites.py
-    :language: python
-    :linenos:
-
-
 Specific nodes reservation
 ==========================
 
-.. literalinclude:: grid5000/tuto_grid5000_p_specific_servers.py
+On Grid'5000, machines belonging to a given cluster are normally
+homogeneous.  But it is impossible to provide absolute guarantees about
+it: for instance, physical disks may have different performance
+caracteristics across nodes of a cluster even though they share the same
+vendor and model.  For this reason, experimenters may need to reproduce an
+experiment several times using the exact same hardware.
+
+This is possible by specifying nodes with their exact name:
+
+.. literalinclude:: grid5000/tuto_grid5000_specific_servers.py
     :language: python
     :linenos:
 
+:download:`tuto_grid5000_specific_servers.py <grid5000/tuto_grid5000_specific_servers.py>`
 
-Start Virtual Machines on nodes
-===============================
-
-
-.. hint::
-  Note that it is now possible to use the ``VMonG5k`` provider directly. This
-  provider will handle the reservation and deployment of virtual machines in an
-  atomic way. The following example illustrates a mixed environment where some virtual
-  machines are started on specific nodes of your reservation.
+This is an advanced feature: if the required nodes are not available, the
+experiment will either wait for the resources to become available (e.g. if
+another user is currently using them) or fail (e.g. if one machine is down
+due to a maintenance or hardware issue).
 
 
-.. _g5k_tunnel:
-Create a tunnel to a service
-============================
+Multi-sites experiments
+=======================
 
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_tunnel.py
+To run an experiment involving multiple Grid'5000 sites, you simply have
+to request clusters from each site in the same configuration.  For
+instance, to request nodes from Lille and Rennes:
+
+.. literalinclude:: grid5000/tuto_grid5000_multisites.py
     :language: python
     :linenos:
 
+:download:`tuto_grid5000_multisites.py <grid5000/tuto_grid5000_multisites.py>`
 
-Disabling the cache
-===================
+Network-wise, traffic between sites is routed (layer 3) over the Grid'5000
+network backbone.  If you need nodes from different sites to share the
+same layer-2 network, you need a **global kavlan**, see :ref:`g5k_kavlan`.
 
-.. literalinclude:: grid5000/tuto_grid5000_disable_cache.py
-    :language: python
-    :linenos:
+
+.. note::
+
+   There is no global scheduler on Grid'5000.  Multi-sites reservation
+   involves finding a common slot to start the jobs on each requested site
+   at the same time. |enoslib| will do that for you.  The logic behind it
+   is part of a more generic logic that can synchronize resources between
+   distinct providers.
+
+
+.. _g5k_kavlan:
+Dedicated networks (kavlan)
+===========================
+
+
+
+Using the secondary interfaces
+------------------------------
+
+We put explicitly the second interface on a dedicated vlan. The
+primary network being implicitly declared here will be placed in the production
+network.
+
+.. literalinclude:: grid5000/tuto_grid5000_secondary.py
+   :language: python
+   :linenos:
+
+:download:`tuto_grid5000_secondary.py <grid5000/tuto_grid5000_secondary.py>`
 
 
 .. _g5k_reconfigurable_firewall:
@@ -282,8 +215,11 @@ documentation page. <https://www.grid5000.fr/w/Reconfigurable_Firewall>`_
     :language: python
     :linenos:
 
-Docker's peculiarities
-======================
+:download:`tuto_grid5000_reconfigurable_firewall.py <grid5000/tuto_grid5000_reconfigurable_firewall.py>`
+
+
+Setting up Docker
+=================
 
 There's a docker registry cache installed on Grid'5000 that can be used to
 speed up your docker-based deployment and also to overcome the docker pull
@@ -291,9 +227,35 @@ limits.
 Also the ``/var`` partition is rather small. You may want to bind docker
 state directory `/var/lib/docker` to `/tmp/docker` to gain more space.
 
-.. literalinclude:: grid5000/tuto_grid5000_non_deploy_docker.py
+.. literalinclude:: grid5000/tuto_grid5000_docker.py
     :language: python
     :linenos:
+
+:download:`tuto_grid5000_docker.py <grid5000/tuto_grid5000_docker.py>`
+
+
+Resources inspection
+====================
+
+The G5k provider object exposes the actual hosts and networks. It allows for
+inspecting the acquired resources.
+
+.. code-block:: python
+
+    # Get all the reserved (and deployed) hosts:
+    provider.hosts
+
+    # Get all the networks
+    provider.networks
+
+    # Example on getting on host
+    [x] provider.hosts[0]
+    <G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>
+
+    # Another example (what are the hosts in the same network as me)
+    [x] provider.hosts[0].primary_network.hosts
+    [<G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>,
+     <G5kHost(roles=['control', 'compute'], fqdn=grisou-9.nancy.grid5000.fr, ssh_address=grisou-9-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>]
 
 
 Accessing internal services from the outside
@@ -353,3 +315,93 @@ There are several solutions depending on your requirements:
 - **Programmatic SSH port forwarding**: the same method, but programmatically
   with :py:class:`~enoslib.infra.enos_g5k.provider.G5kTunnel`.  See also
   :ref:`g5k_tunnel`.
+
+
+Using a custom environment
+==========================
+
+First, the description file of your environment should use resolvable URIs for the kadeploy3 server.
+An example of such description is the following
+
+.. code-block:: yaml
+
+    # myimage.desc and myimage.tgz are both located in
+    # the public subdirectory of rennes site of the user {{ YOURLOGIN }}
+    ---
+    name: ubuntu1804-x64-min
+    version: 2019052116
+    description: ubuntu 18.04 (bionic) - min
+    author: support-staff@list.grid5000.fr
+    visibility: public
+    destructive: false
+    os: linux
+    image:
+    file: https://api.grid5000.fr/sid/sites/rennes/public/{{ YOURLOGIN }}/myimage.tgz
+    kind: tar
+    compression: gzip
+    postinstalls:
+    - archive: server:///grid5000/postinstalls/g5k-postinstall.tgz
+    compression: gzip
+    script: g5k-postinstall --net netplan
+    boot:
+    kernel: "/vmlinuz"
+    initrd: "/initrd.img"
+    filesystem: ext4
+    partition_type: 131
+    multipart: false
+
+Then in the configuration of the Grid'5000 provider you need to specify
+the URL where your description file can be found:
+
+.. code-block:: python
+
+    conf = en.G5kConf.from_settings(
+      job_name="test_myimage",
+      job_type=["deploy"],
+      env_name="https://api.grid5000.fr/sid/sites/rennes/public/{{ YOURLOGIN }}/myimage.desc",
+    )
+
+
+Subnet reservation
+==================
+
+This shows how to make a subnet reservation, which is useful if you want
+to manually run containers or virtual machines on your Grid'5000 nodes.
+
+Build the configuration from a dictionary
+------------------------------------------
+
+.. literalinclude:: grid5000/tuto_grid5000_subnet.py
+    :language: python
+    :linenos:
+
+:download:`tuto_grid5000_subnet.py <grid5000/tuto_grid5000_subnet.py>`
+
+Build the configuration programmatically
+----------------------------------------
+
+.. literalinclude:: grid5000/tuto_grid5000_subnet_p.py
+    :language: python
+    :linenos:
+
+:download:`tuto_grid5000_subnet_p.py <grid5000/tuto_grid5000_subnet_p.py>`
+
+.. _g5k_tunnel:
+Create a tunnel to a service
+============================
+
+.. literalinclude:: grid5000/tuto_grid5000_tunnel.py
+    :language: python
+    :linenos:
+
+:download:`tuto_grid5000_tunnel.py <grid5000/tuto_grid5000_tunnel.py>`
+
+
+Disabling the cache
+===================
+
+.. literalinclude:: grid5000/tuto_grid5000_disable_cache.py
+    :language: python
+    :linenos:
+
+:download:`tuto_grid5000_disable_cache.py <grid5000/tuto_grid5000_disable_cache.py>`

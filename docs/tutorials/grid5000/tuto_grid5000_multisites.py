@@ -3,7 +3,7 @@ from pathlib import Path
 
 import enoslib as en
 
-en.init_logging(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 
@@ -18,7 +18,7 @@ provider = en.G5k(conf)
 try:
     # Get actual resources
     roles, networks = provider.init()
-    # Do your stuffs here
+    # Do your stuff here
     # ...
 except Exception as e:
     print(e)
