@@ -3,17 +3,10 @@ import enoslib as en
 en.init_logging()
 
 # claim the resources
-network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
-
 conf = (
-    en.G5kConf.from_settings(job_type=[], job_name="k3s")
-    .add_network_conf(network)
-    .add_machine(
-        roles=["master"], cluster="paravance", nodes=1, primary_network=network
-    )
-    .add_machine(
-        roles=["agent"], cluster="parapluie", nodes=10, primary_network=network
-    )
+    en.G5kConf.from_settings(walltime="0:45:00", job_type=[], job_name="k3s")
+    .add_machine(roles=["master"], cluster="paravance", nodes=1)
+    .add_machine(roles=["agent"], cluster="paravance", nodes=10)
     .finalize()
 )
 

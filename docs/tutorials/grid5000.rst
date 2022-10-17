@@ -160,7 +160,8 @@ Multi-sites experiments
 
 To run an experiment involving multiple Grid'5000 sites, you simply have
 to request clusters from each site in the same configuration.  For
-instance, to request nodes from Lille and Rennes:
+instance, to request nodes from Lille and Rennes (with convenient roles)
+and check connectivity:
 
 .. literalinclude:: grid5000/tuto_grid5000_multisites.py
     :language: python
@@ -186,20 +187,84 @@ same layer-2 network, you need a **global kavlan**, see :ref:`g5k_kavlan`.
 Dedicated networks (kavlan)
 ===========================
 
+Kavlan allows to create dedicated networks that are isolated on layer 2,
+and then reconfigure the physical network interfaces of nodes to put them
+in these dedicated networks.
 
-
-Using the secondary interfaces
+Kavlan on secondary interfaces
 ------------------------------
 
-We put explicitly the second interface on a dedicated vlan. The
-primary network being implicitly declared here will be placed in the production
-network.
+We explicitly put the second network interface of each node on a dedicated
+vlan. The primary interface is still implicitly in the default network.
+Note that using Kavlan currently requires an OS deployment.
 
-.. literalinclude:: grid5000/tuto_grid5000_secondary.py
+.. literalinclude:: grid5000/tuto_grid5000_kavlan_secondary.py
    :language: python
    :linenos:
 
-:download:`tuto_grid5000_secondary.py <grid5000/tuto_grid5000_secondary.py>`
+:download:`tuto_grid5000_kavlan_secondary.py <grid5000/tuto_grid5000_kavlan_secondary.py>`
+
+.. hint::
+
+   You have to make sure that the cluster you select has at least two
+   physical network interfaces.  Check the `List of Hardware
+   <https://www.grid5000.fr/w/Hardware>`_ to choose a suitable cluster.
+
+Kavlan on primary interface
+---------------------------
+
+The primary network interface of the nodes is a special case, because
+Enoslib uses it to manage the nodes through SSH.  The primary interface
+can still be configured in a Kavlan network, but be aware that you should
+not break connectivity on this interface.
+
+.. literalinclude:: grid5000/tuto_grid5000_kavlan_primary.py
+   :language: python
+   :linenos:
+
+:download:`tuto_grid5000_kavlan_primary.py <grid5000/tuto_grid5000_kavlan_primary.py>`
+
+Multi-sites layer-2 connectivity with global Kavlan
+---------------------------------------------------
+
+Each global kavlan network is a layer-2 network that spans all Grid'5000
+sites.  This is very useful when you want to experiment with software
+routers in different locations and you need direct layer-2 connectivity
+between them.
+
+.. literalinclude:: grid5000/tuto_grid5000_kavlan_global.py
+   :language: python
+   :linenos:
+
+:download:`tuto_grid5000_kavlan_global.py <grid5000/tuto_grid5000_kavlan_global.py>`
+
+.. hint::
+
+   Although global kavlan networks are assigned to a site, they can be
+   used on any other site.  In addition, there is only a single kavlan
+   network available on each site.  Consequently, if you need several
+   global kavlan networks for a single experiment, you need to pick them
+   from different sites.
+
+Using many Kavlan networks together
+-----------------------------------
+
+For this much more complex example, we use the `grisou cluster
+<https://www.grid5000.fr/w/Nancy:Hardware#grisou>`_ on which every node
+has 4 physical network interfaces.  In addition, this example includes
+many advanced features:
+
+- how to setup a complex network topology involving several Grid'5000 sites
+- how to target specific network interfaces (here, the Intel X520 NIC of grisou nodes)
+- how to efficiently iterate on groups of hosts to setup routes
+- how to install python packages, copy a script and run it on target nodes
+- how to process results
+
+.. literalinclude:: grid5000/tuto_grid5000_kavlan_complex.py
+   :language: python
+   :linenos:
+
+:download:`tuto_grid5000_kavlan_global.py <grid5000/tuto_grid5000_kavlan_complex.py>`
 
 
 .. _g5k_reconfigurable_firewall:
@@ -317,8 +382,8 @@ There are several solutions depending on your requirements:
   :ref:`g5k_tunnel`.
 
 
-Using a custom environment
-==========================
+Using a custom operating system environment
+===========================================
 
 First, the description file of your environment should use resolvable URIs for the kadeploy3 server.
 An example of such description is the following

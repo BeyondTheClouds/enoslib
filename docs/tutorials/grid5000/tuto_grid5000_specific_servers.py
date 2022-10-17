@@ -16,7 +16,7 @@ conf = (
         servers=["paravance-19.rennes.grid5000.fr"],
     )
     .add_machine(
-        roles=["control"],
+        roles=["compute"],
         servers=["parasilo-28.rennes.grid5000.fr"],
     )
     .add_machine(

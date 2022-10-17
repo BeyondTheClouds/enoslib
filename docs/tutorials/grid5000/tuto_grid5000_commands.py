@@ -10,11 +10,7 @@ job_name = Path(__file__).name
 conf = (
     en.G5kConf.from_settings(job_name=job_name, walltime="0:10:00")
     .add_machine(roles=["compute", "control"], cluster="paravance", nodes=1)
-    .add_machine(
-        roles=["compute"],
-        cluster="paravance",
-        nodes=1,
-    )
+    .add_machine(roles=["compute"], cluster="paravance", nodes=1)
 )
 
 # This will validate the configuration, but not reserve resources yet
