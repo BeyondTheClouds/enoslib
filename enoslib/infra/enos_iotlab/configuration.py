@@ -32,7 +32,7 @@ class Configuration(BaseConfiguration):
         elif kwargs.get("hostname") is not None:
             self.add_machine_conf(PhysNodeConfiguration(*args, **kwargs))
         else:
-            ValueError("Must be a physical node or board configuration")
+            raise ValueError("Must be a physical node or board configuration")
         return self
 
     @classmethod

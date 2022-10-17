@@ -80,7 +80,7 @@ class Configuration(BaseConfiguration):
         elif kwargs.get("cluster") is not None:
             machine = ClusterConfiguration(*args, **kwargs)
         else:
-            ValueError("Must be a cluster or server configuration")
+            raise ValueError("Must be a cluster or server configuration")
         self.add_machine_conf(machine)
         return self
 
