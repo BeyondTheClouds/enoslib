@@ -32,8 +32,7 @@ try:
     roles, networks = provider.init()
     # Do your stuff here
     # ...
-except Exception as e:
-    print(e)
+
 finally:
     # Free all resources
     provider.destroy()

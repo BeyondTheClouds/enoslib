@@ -28,8 +28,6 @@ try:
     for result in results:
         print(result.payload["stdout"])
 
-except Exception as e:
-    print(e)
 finally:
     # Clean everything
     provider.destroy()

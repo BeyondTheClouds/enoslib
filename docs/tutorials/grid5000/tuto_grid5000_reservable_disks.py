@@ -76,8 +76,6 @@ try:
             f"average /dev/md0 read performance = {read_perf_iops:.2f} IOPS"
         )
 
-except Exception as e:
-    print(e)
 finally:
     # Clean everything
     provider.destroy()

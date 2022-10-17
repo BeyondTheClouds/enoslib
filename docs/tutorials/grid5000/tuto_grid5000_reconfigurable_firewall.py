@@ -34,8 +34,7 @@ try:
         print("-" * 80)
         print(f"Nginx available on IPV6: {result[0].stdout}")
         time.sleep(3600)
-except Exception as e:
-    print(e)
+
 finally:
     # Clean everything
     # Clean the firewall rules (not mandatory since this will be removed when

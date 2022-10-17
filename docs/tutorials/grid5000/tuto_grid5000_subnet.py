@@ -46,8 +46,7 @@ try:
 
     # Do your stuff here
     # ...
-except Exception as e:
-    print(e)
+
 finally:
     # Clean everything
     provider.destroy()
