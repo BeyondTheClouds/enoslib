@@ -10,6 +10,7 @@ job_name = Path(__file__).name
 
 provider_conf = {
     "job_name": job_name,
+    "walltime": "0:10:00",
     "resources": {
         "machines": [
             {
@@ -33,20 +34,19 @@ provider_conf = {
 conf = en.G5kConf.from_dictionary(provider_conf)
 provider = en.G5k(conf)
 
-try:
-    # Get actual resources
-    roles, networks = provider.init()
+# Get actual resources
+roles, networks = provider.init()
 
-    # Retrieving subnet
-    subnet = networks["my_subnet"][0]
-    logging.info(subnet.__dict__)
-    # This returns the subnet information:
-    # subnet.network -> IPv4Network('10.158.0.0/22')
-    # subnet.gateway -> IPv4Address('10.159.255.254')
+# Retrieving subnet
+subnet = networks["my_subnet"][0]
+logging.info(subnet.__dict__)
+# This returns the subnet information:
+# subnet.network -> IPv4Network('10.158.0.0/22')
+# subnet.gateway -> IPv4Address('10.159.255.254')
 
-    # Do your stuff here
-    # ...
+# Do your stuff here
+# ...
 
-finally:
-    # Clean everything
-    provider.destroy()
+
+# Release all Grid'5000 resources
+provider.destroy()

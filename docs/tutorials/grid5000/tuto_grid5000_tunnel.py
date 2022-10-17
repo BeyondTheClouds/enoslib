@@ -7,9 +7,9 @@ en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 
-conf = en.G5kConf.from_settings(job_type=[], job_name=job_name).add_machine(
-    roles=["control"], cluster="parasilo", nodes=1
-)
+conf = en.G5kConf.from_settings(
+    job_type=[], job_name=job_name, walltime="0:20:00"
+).add_machine(roles=["control"], cluster="parasilo", nodes=1)
 
 provider = en.G5k(conf)
 roles, networks = provider.init()
@@ -23,3 +23,7 @@ with en.G5kTunnel(roles["control"][0].address, 80) as (local_address, local_port
 
     response = requests.get(f"http://{local_address}:{local_port}")
     print(response.text)
+
+
+# Release all Grid'5000 resources
+provider.destroy()

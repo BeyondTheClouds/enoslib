@@ -11,6 +11,7 @@ job_name = Path(__file__).name
 
 provider_conf = {
     "job_name": job_name,
+    "walltime": "0:10:00",
     "resources": {
         "machines": [
             {
@@ -43,12 +44,11 @@ provider_conf = {
 conf = en.G5kConf.from_dictionary(provider_conf)
 provider = en.G5k(conf)
 
-try:
-    # Get actual resources
-    roles, networks = provider.init()
-    # Do your stuff
-    # ...
+# Get actual resources
+roles, networks = provider.init()
+# Do your stuff
+# ...
 
-finally:
-    # Clean everything
-    provider.destroy()
+
+# Release all Grid'5000 resources
+provider.destroy()

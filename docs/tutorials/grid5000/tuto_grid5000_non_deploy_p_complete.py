@@ -11,7 +11,7 @@ job_name = Path(__file__).name
 network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
 
 conf = (
-    en.G5kConf.from_settings(job_type=[], job_name=job_name)
+    en.G5kConf.from_settings(job_type=[], job_name=job_name, walltime="0:10:00")
     .add_network_conf(network)
     .add_machine(
         roles=["control"], cluster="paravance", nodes=1, primary_network=network
@@ -26,12 +26,12 @@ conf = (
 
 
 provider = en.G5k(conf)
-try:
-    # Get actual resources
-    roles, networks = provider.init()
-    # Do your stuff here
-    # ...
 
-finally:
-    # Clean everything
-    provider.destroy()
+# Get actual resources
+roles, networks = provider.init()
+# Do your stuff here
+# ...
+
+
+# Release all Grid'5000 resources
+provider.destroy()

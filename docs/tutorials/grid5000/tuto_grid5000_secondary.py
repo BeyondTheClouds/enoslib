@@ -14,7 +14,10 @@ private = en.G5kNetworkConf(type="kavlan", roles=["private"], site=SITE)
 
 conf = (
     en.G5kConf.from_settings(
-        job_name=job_name, job_type=["deploy"], env_name="debian11-nfs"
+        job_name=job_name,
+        job_type=["deploy"],
+        env_name="debian11-nfs",
+        walltime="0:20:00",
     )
     .add_network_conf(private)
     .add_machine(
@@ -32,12 +35,12 @@ conf = (
 )
 
 provider = en.G5k(conf)
-try:
-    # Get actual resources
-    roles, networks = provider.init()
-    # Do your stuff here
-    # ...
 
-finally:
-    # Clean everything
-    provider.destroy()
+# Get actual resources
+roles, networks = provider.init()
+# Do your stuff here
+# ...
+
+
+# Release all Grid'5000 resources
+provider.destroy()
