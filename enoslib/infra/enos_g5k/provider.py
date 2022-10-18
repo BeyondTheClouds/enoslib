@@ -86,7 +86,9 @@ def _check_deployed_nodes(
     hosts = [Host(n, user="root") for n in nodes]
     deployed = []
     undeployed = []
-    cmd = "! (mount | grep -E '^/dev/[[:alpha:]]+2 on / ')"
+    # Deployed environments are deployed on the third partition
+    # (e.g. /dev/sdb3 or /dev/nvme0n1p3)
+    cmd = "mount | grep -q '^/dev/.*3 on / '"
 
     # Don't display expected 'unreachable hosts' errors that may be scary
     # to the end-users.
