@@ -1,12 +1,5 @@
 exclude: "enoslib/service/skydive/skydive*"
 repos:
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.6.2
-    hooks:
-      - id: prettier
-        # Exclude the HTML, since it doesn't understand Jinja2
-        exclude: .+((\.html)|index\.(.+)\.css)$
-
   - repo: https://github.com/psf/black
     rev: 22.8.0
     hooks:
