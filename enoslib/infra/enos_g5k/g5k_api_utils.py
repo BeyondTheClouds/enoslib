@@ -333,12 +333,12 @@ def wait_for_jobs(jobs):
 def _deploy(
     site: str, deployed: List[str], undeployed: List[str], count: int, config: Dict
 ) -> Tuple[List[str], List[str]]:
+    if count > MAX_DEPLOY or len(undeployed) == 0:
+        return deployed, undeployed
+
     logger.info(
         "Deploying %s with options %s [%s/%s]", undeployed, config, count, MAX_DEPLOY
     )
-    if count >= MAX_DEPLOY or len(undeployed) == 0:
-        return deployed, undeployed
-
     d, u = deploy(site, undeployed, config)
 
     return _deploy(site, deployed + d, u, count + 1, config)
@@ -362,7 +362,7 @@ def grid_deploy(site: str, nodes: List[str], config: Dict):
         raise Exception("The public key file %s is not correct." % key_path)
     logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
     config.update(key=key_path.read_text())
-    return _deploy(site, [], nodes, 0, config)
+    return _deploy(site, [], nodes, 1, config)
 
 
 def set_nodes_vlan(site, nodes, interface, vlan_id):
