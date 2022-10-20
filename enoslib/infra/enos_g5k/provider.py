@@ -113,6 +113,20 @@ def _check_deployed_nodes(
     return deployed, undeployed
 
 
+def _run_dhcp(sshable_hosts: List[G5kHost]):
+    logger.debug("Configuring network interfaces on the nodes")
+    hosts = [
+        Host(
+            h.ssh_address,
+            user="root",
+            extra=dict(cmd=h.dhcp_networks_command()),
+        )
+        for h in sshable_hosts
+    ]
+    # cmd might be empty
+    run("echo '' ; {{ cmd }}", hosts, task_name="Run dhcp on the nodes")
+
+
 def _concretize_nodes(
     group_configs: List[GroupConfiguration], g5k_nodes: List[str]
 ) -> List[ConcreteGroup]:
@@ -588,7 +602,7 @@ class G5kBase(Provider):
     def wait(self):
         self.driver.wait()
 
-    def deploy(self) -> Tuple[List[G5kHost], List[G5kNetwork]]:
+    def deploy(self) -> Tuple[List[G5kHost], List[G5kHost]]:
         def _key(host):
             """Get the site and the primary network of a concrete description"""
             site, _, _ = host._where
@@ -601,6 +615,12 @@ class G5kBase(Provider):
         # network type.
         # hosts = copy.deepcopy(self.hosts)
         hosts = self.hosts
+
+        # keep track of ssable hosts == deployed ones
+        self.sshable_hosts = []
+        # keep track of deploy/undeployed host globally
+        self.deployed = []
+        self.undeployed = []
         s_hosts = sorted(hosts, key=_key)
         for (site, net), i_hosts in groupby(s_hosts, key=_key):
             _hosts = list(i_hosts)
@@ -634,25 +654,15 @@ class G5kBase(Provider):
                 # get the corresponding host
                 h = [host for host in hosts if host.fqdn == fqdn][0]
                 h.ssh_address = t_fqdn
-            self.deployed = [h for h in _hosts if h.fqdn in deployed]
-            self.undeployed = [h for h in _hosts if h.fqdn in undeployed]
-            self.sshable_hosts = self.deployed
+            self.deployed += [h for h in _hosts if h.fqdn in deployed]
+            self.undeployed += [h for h in _hosts if h.fqdn in undeployed]
+            self.sshable_hosts += self.deployed
         return self.deployed, self.undeployed
 
     def dhcp_networks(self):
         dhcp = self.provider_conf.dhcp
         if dhcp:
-            logger.debug("Configuring network interfaces on the nodes")
-            hosts = [
-                Host(
-                    h.ssh_address,
-                    user="root",
-                    extra=dict(cmd=h.dhcp_networks_command()),
-                )
-                for h in self.sshable_hosts
-            ]
-            # cmd might be empty
-            run("echo '' ; {{ cmd }}", hosts, task_name="Run dhcp on the nodes")
+            _run_dhcp(self.sshable_hosts)
 
     def grant_root_access(self):
         hosts = [
