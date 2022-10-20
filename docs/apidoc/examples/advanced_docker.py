@@ -11,20 +11,14 @@ from pathlib import Path
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 job_name = Path(__file__).name
 
 
-prod_network = en.G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="rennes"
-)
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_network_conf(prod_network)
-    .add_machine(
-        roles=["control"], cluster="paravance", nodes=5, primary_network=prod_network
-    )
+    en.G5kConf.from_settings(job_name=job_name, walltime="0:50:00", job_type=[])
+    .add_machine(roles=["control"], cluster="ecotype", nodes=3)
     .finalize()
 )
 
@@ -34,10 +28,13 @@ provider = en.G5k(conf)
 roles, networks = provider.init()
 
 # Install docker
-d = en.Docker(agent=roles["control"], bind_var_docker="/tmp/docker")
+registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
+d = en.Docker(
+    agent=roles["control"], bind_var_docker="/tmp/docker", registry_opts=registry_opts
+)
 d.deploy()
 
-# Start some containers
+# Start N containers on each G5K host (for a total of 3*N containers)
 N = 25
 with en.play_on(roles=roles) as p:
     p.raw("modprobe ifb")
@@ -50,7 +47,7 @@ with en.play_on(roles=roles) as p:
             capabilities=["NET_ADMIN"],
         )
 
-# Get all the dockers running on the remote hosts
+# Get all the docker containers running on all remote hosts
 dockers = en.get_dockers(roles=roles)
 
 # Build the network contraints to apply on the remote docker
@@ -64,13 +61,10 @@ for idx, host in enumerate(dockers):
     sources.append(en.NetemInOutSource(host, constraints={inbound, outbound}))
 
 
-# The connection plugin used from here is docker protocol (not ssh). The
-# Ansible implementation to support this protocol isn't as robust as SSH. For
-# instance there's no automatic retries. Fortunately for such lack in the
-# Ansible connection backend, enoslib provides an ``ansible_retries`` parameter
-# that will keep retrying the whole set of tasks on the failed hosts until all
-# hosts have succeeded.
-with en.play_on(roles=dict(all=dockers), gather_facts=False, ansible_retries=5) as p:
-    p.raw("apt update && apt install -y iproute2")
+# TODO: the following doesn't work, it seems to try the local Docker
+# daemon instead of connecting through SSH.
 
-en.netem(sources, ansible_retries=5)
+with en.play_on(roles=dockers, gather_facts=False) as p:
+    p.apt(name="iproute2", state="present", update_cache="yes")
+
+en.netem(sources)
