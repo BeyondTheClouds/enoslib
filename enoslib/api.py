@@ -769,7 +769,9 @@ __python3__.raw(
     (
         "(python --version | grep --regexp ' 3.*')"
         "||"
-        "(apt update && apt install -y python3 python3-pip)"
+        "(apt update && "
+        " DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical "
+        " apt-get install -q -y python3 python3-pip)"
     ),
     task_name="Install python3",
 )
