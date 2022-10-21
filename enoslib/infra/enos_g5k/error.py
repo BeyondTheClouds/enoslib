@@ -1,3 +1,5 @@
+from typing import List
+
 from enoslib.errors import EnosError
 
 
@@ -16,6 +18,10 @@ class NotEnoughNodesError(DeployError):
         self.msg = msg
 
 
+class EnosG5kInvalidArgumentsError(EnosError):
+    pass
+
+
 class EnosG5kDuplicateJobsError(EnosError):
     def __init__(self, site, job_name):
         super().__init__(f"Duplicate jobs on {site} with the same name {job_name}")
@@ -29,6 +35,11 @@ class EnosG5kSynchronisationError(EnosError):
                 "Try to make an explicit reservation instead",
             )
         )
+
+
+class EnosG5kKavlanNodesError(EnosError):
+    def __init__(self, vlan_id: str, failed_nodes: List[str]):
+        super().__init__(f"Failed to add nodes {failed_nodes} to kavlan {vlan_id}")
 
 
 class EnosG5kWalltimeFormatError(EnosError):

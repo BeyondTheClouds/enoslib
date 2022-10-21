@@ -316,7 +316,7 @@ class G5kVlanNetwork(G5kNetwork):
         ]
 
     def attach(self, fqdns: List[str], device: str):
-        set_nodes_vlan(self.site, fqdns, device, self.vlan_id)
+        set_nodes_vlan(fqdns, device, self.vlan_id)
 
     def to_enos(self):
         """Build the generic network type implementation.
