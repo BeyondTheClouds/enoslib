@@ -6,6 +6,15 @@ from enoslib.api import Results, CommandResult, STATUS_OK, STATUS_FAILED
 from enoslib.errors import NegativeWalltime
 from enoslib.objects import Host
 
+from enoslib.infra.enos_g5k.error import (
+    EnosG5kInvalidArgumentsError,
+    EnosG5kKavlanNodesError,
+)
+
+from enoslib.infra.enos_g5k.g5k_api_utils import (
+    set_nodes_vlan,
+)
+
 from enoslib.infra.enos_g5k.provider import (
     _check_deployed_nodes,
     G5k,
@@ -584,6 +593,165 @@ class TestDeploy(EnosTest):
         )
         # 1 vlan ipv4 + its ipv6 counterpart
         self.assertEqual(2, len(networks["role1"]))
+
+    @mock.patch("enoslib.infra.enos_g5k.driver.grid_reload_jobs_from_name")
+    @mock.patch("enoslib.infra.enos_g5k.driver.wait_for_jobs")
+    @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
+    @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
+    @mock.patch("enoslib.infra.enos_g5k.objects.set_nodes_vlan")
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_multisite_deploy_kavlan_secondary(
+        self,
+        mock_api,
+        mock_set_nodes_vlan,
+        mock_run_dhcp,
+        mock_check_deployed_nodes,
+        mock_grid_deploy,
+        mock_wait_for_jobs,
+        mock_grid_reload_jobs_from_name,
+    ):
+
+        kavlan_rennes = NetworkConfiguration(
+            roles=["role1"], type="kavlan-global", site="rennes"
+        )
+
+        cluster_config_nancy = ClusterConfiguration(
+            cluster="grisou",
+            site="nancy",
+            roles=["role1"],
+            nodes=2,
+            secondary_networks=[kavlan_rennes],
+        )
+        cluster_config_rennes = ClusterConfiguration(
+            cluster="paravance",
+            site="rennes",
+            roles=["role1"],
+            nodes=2,
+            secondary_networks=[kavlan_rennes],
+        )
+
+        provider_config = (
+            Configuration.from_settings(job_type=["deploy"], env_name="debian11-nfs")
+            .add_machine_conf(cluster_config_nancy)
+            .add_machine_conf(cluster_config_rennes)
+            .add_network_conf(kavlan_rennes)
+        )
+
+        # build a provider
+        p = G5k(provider_config)
+
+        # we bypass the reserve phase / wait phase
+        p.reserve = mock.MagicMock()
+        p.reserve.return_value = None
+
+        # mimicking a grid5000.Job object (we only need to access the status,
+        # assigned_resources)
+        Job = namedtuple(
+            "Job", ["status", "site", "assigned_nodes", "resources_by_type"]
+        )
+
+        oar_nodes_rennes = [
+            "paravance-1.rennes.grid5000.fr",
+            "paravance-2.rennes.grid5000.fr",
+        ]
+        oar_nodes_nancy = ["grisou-1.nancy.grid5000.fr", "grisou-2.nancy.grid5000.fr"]
+        mock_grid_reload_jobs_from_name.return_value = [
+            Job("Running", "nancy", oar_nodes_nancy, {}),
+            Job("Running", "rennes", oar_nodes_rennes, {"vlans": ["16"]}),
+        ]
+        mock_wait_for_jobs.return_value = None
+
+        # not called (see below)
+        mock_grid_deploy.side_effect = [(oar_nodes_nancy, []), (oar_nodes_rennes, [])]
+
+        # called twice one per site
+        mock_check_deployed_nodes.side_effect = [
+            (oar_nodes_nancy, []),
+            (oar_nodes_rennes, []),
+        ]
+        mock_run_dhcp.return_value = None
+
+        mock_api.return_value = get_offline_client()
+
+        roles, networks = p.init()
+
+        mock_grid_deploy.assert_not_called()
+        self.assertEqual(2, mock_check_deployed_nodes.call_count)
+        kavlan_nodes = [
+            "paravance-1.rennes.grid5000.fr",
+            "paravance-2.rennes.grid5000.fr",
+            "grisou-1.nancy.grid5000.fr",
+            "grisou-2.nancy.grid5000.fr",
+        ]
+        self.maxDiff = None
+        self.assertCountEqual(
+            [Host(h, user="root") for h in kavlan_nodes], roles["role1"]
+        )
+
+        mock_set_nodes_vlan.assert_any_call(
+            ["paravance-1.rennes.grid5000.fr"], "eth1", "16"
+        )
+        mock_set_nodes_vlan.assert_any_call(
+            ["paravance-2.rennes.grid5000.fr"], "eth1", "16"
+        )
+        mock_set_nodes_vlan.assert_any_call(
+            ["grisou-1.nancy.grid5000.fr"], "eth1", "16"
+        )
+        mock_set_nodes_vlan.assert_any_call(
+            ["grisou-2.nancy.grid5000.fr"], "eth1", "16"
+        )
+        # 1 vlan ipv4 + its ipv6 counterpart
+        self.assertEqual(2, len(networks["role1"]))
+
+
+class TestKavlan(EnosTest):
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_set_nodes_vlan_multisite_error(self, mock_api):
+        nodes = ["paravance-1.rennes.grid5000.fr", "grisou-1.nancy.grid5000.fr"]
+        with self.assertRaises(EnosG5kInvalidArgumentsError):
+            set_nodes_vlan(nodes, "eth1", "42")
+
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_set_nodes_vlan_kavlan_ok(self, mock_api):
+        # Input data
+        site = "rennes"
+        nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
+        interface = "eth1"
+        vlan_id = "42"
+        # Mock Kavlan API
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
+            nodes[0]: {"status": "success", "message": "dummy"},
+            nodes[1]: {"status": "success", "message": "dummy"},
+        }
+        mock_api.return_value = kavlan_api
+        # Call mocked API
+        set_nodes_vlan(nodes, interface, vlan_id)
+        # Check calls
+        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.assert_called_once_with(
+            [
+                "paravance-1-eth1.rennes.grid5000.fr",
+                "paravance-2-eth1.rennes.grid5000.fr",
+            ]
+        )
+
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_set_nodes_vlan_kavlan_error(self, mock_api):
+        # Input data
+        site = "rennes"
+        nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
+        interface = "eth1"
+        vlan_id = "42"
+        # Mock Kavlan API
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
+            nodes[0]: {"status": "success", "message": "dummy"},
+            nodes[1]: {"status": "failure", "message": "error"},
+        }
+        mock_api.return_value = kavlan_api
+        with self.assertRaises(EnosG5kKavlanNodesError):
+            set_nodes_vlan(nodes, interface, vlan_id)
 
 
 class TestCheckDeployedNode(EnosTest):

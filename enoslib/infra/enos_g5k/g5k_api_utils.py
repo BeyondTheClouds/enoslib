@@ -22,6 +22,8 @@ import pytz
 
 from .error import (
     EnosG5kDuplicateJobsError,
+    EnosG5kInvalidArgumentsError,
+    EnosG5kKavlanNodesError,
     EnosG5kWalltimeFormatError,
 )
 from .constants import (
@@ -365,16 +367,21 @@ def grid_deploy(site: str, nodes: List[str], config: Dict):
     return _deploy(site, [], nodes, 1, config)
 
 
-def set_nodes_vlan(site, nodes, interface, vlan_id):
+def set_nodes_vlan(nodes: List[str], interface: str, vlan_id: str):
     """Set the interface of the nodes in a specific vlan.
 
-    It is assumed that the same interface name is available on the node.
+    All nodes need to belong to the same Grid'5000 site.
+
+    It is assumed that the same interface name is available on all nodes.
 
     Args:
-        site(str): site to consider
         nodes(list): nodes to consider
         interface(str): the network interface to put in the vlan
         vlan_id(str): the id of the vlan
+
+    Raises:
+        EnosG5kInvalidArgument: if not all nodes belong to the same site.
+        EnosG5kKavlanNodesError: if some nodes couldn't be added to the VLAN.
     """
 
     def _to_network_address(host):
@@ -386,10 +393,20 @@ def set_nodes_vlan(site, nodes, interface, vlan_id):
         splitted[0] = splitted[0] + "-" + interface
         return ".".join(splitted)
 
+    sites = {n.split(".")[1] for n in nodes}
+    if len(sites) > 1:
+        raise EnosG5kInvalidArgumentsError(
+            f"Cannot set nodes in VLAN because they belong to different sites: {nodes}"
+        )
+    site = sites.pop()
     gk = get_api_client()
     network_addresses = [_to_network_address(n) for n in nodes]
-    logger.debug(network_addresses)
-    gk.sites[site].vlans[str(vlan_id)].nodes.submit(network_addresses)
+    result = gk.sites[site].vlans[str(vlan_id)].nodes.submit(network_addresses)
+    failed_nodes = [node for node, res in result.items() if res["status"] != "success"]
+    for node in failed_nodes:
+        logger.error(f"Failed to change VLAN of {node}: {result[node]['message']}")
+    if failed_nodes:
+        raise EnosG5kKavlanNodesError(vlan_id, failed_nodes)
 
 
 def get_api_username():
