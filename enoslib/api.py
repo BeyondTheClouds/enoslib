@@ -291,6 +291,12 @@ class SpinnerCallback(CallbackBase):
         )
         self.console.rule()
 
+    def __del__(self):
+        # make sure we clean the status correctly
+        # otherwise our terminal cursor might be in a weird state
+        if self.status:
+            self.status.stop()
+
 
 class _MyCallback(CallbackBase):
 
