@@ -767,9 +767,11 @@ class play_on(actions):
 __python3__ = actions()
 __python3__.raw(
     (
-        "(python --version | grep --regexp ' 3.*')"
+        "python3 --version"
         "||"
-        "(apt update && apt install -y python3 python3-pip)"
+        "(apt update && "
+        " DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical "
+        " apt-get install -q -y python3)"
     ),
     task_name="Install python3",
 )
@@ -784,10 +786,12 @@ __docker__ = actions()
 __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 
-def ensure_python3(make_default=True, **kwargs):
-    """Make sure python3 is installed on the remote nodes and is the default.
+def ensure_python3(make_default=False, **kwargs):
+    """Make sure python3 is installed on the remote nodes, and optionally make
+    it the default.
 
     It inherits the arguments of :py:class:`enoslib.api.play_on`.
+
     """
     kwargs.pop("priors", None)
     kwargs.pop("gather_facts", None)
