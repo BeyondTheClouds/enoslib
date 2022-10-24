@@ -231,6 +231,9 @@ class SpinnerCallback(CallbackBase):
         self.console = Console()
         self.status = None
         self.tasks_lst = []
+        # keep track of all the hosts involved
+        # by at least one task
+        self.hosts_set = set()
 
     def v2_runner_on_start(self, host, task):
         """
@@ -256,6 +259,7 @@ class SpinnerCallback(CallbackBase):
         status_str = " ".join(
             [status.value % host for (host, status) in hosts_status.items()]
         )
+        self.hosts_set = self.hosts_set.union([h for h in hosts_status.keys()])
         self.status.update(
             f"[bold blue]Running[/bold blue] [magenta]{task_name}[/magenta] "
             f"on {status_str}"
@@ -287,7 +291,7 @@ class SpinnerCallback(CallbackBase):
         tasks_str = ",".join(self.tasks_lst)
         self.console.print(
             f"[bold blue]Finished {len(self.running_tasks)} tasks[/bold blue] "
-            f"[italic]({tasks_str})[/italic]"
+            f"[italic]({tasks_str})[/italic] on {self.hosts_set}"
         )
         self.console.rule()
 
