@@ -1,10 +1,12 @@
+from packaging import version
+
 import ansible
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
 
 from enoslib.objects import Host
 
-ANSIBLE_VERSION = ansible.__version__
+ANSIBLE_VERSION = version.parse(ansible.__version__)
 
 
 class EnosInventory(Inventory):
@@ -27,7 +29,7 @@ class EnosInventory(Inventory):
         extra = {}
         # don't parse empty sources (avoid Warning)
         # at this point roles isn't empty
-        if not sources and ANSIBLE_VERSION >= "2.11":
+        if not sources and ANSIBLE_VERSION >= version.parse("2.11"):
             extra = dict(parse=False)
         super().__init__(loader, sources=sources, **extra)
 
