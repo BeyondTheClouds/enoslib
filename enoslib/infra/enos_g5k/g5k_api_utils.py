@@ -402,7 +402,8 @@ def set_nodes_vlan(nodes: List[str], interface: str, vlan_id: str):
     gk = get_api_client()
     network_addresses = [_to_network_address(n) for n in nodes]
     result = gk.sites[site].vlans[str(vlan_id)].nodes.submit(network_addresses)
-    failed_nodes = [node for node, res in result.items() if res["status"] != "success"]
+    # Possible status are 'success', 'failure' or 'unchanged'
+    failed_nodes = [node for node, res in result.items() if res["status"] == "failure"]
     for node in failed_nodes:
         logger.error(f"Failed to change VLAN of {node}: {result[node]['message']}")
     if failed_nodes:
