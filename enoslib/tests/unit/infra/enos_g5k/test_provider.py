@@ -737,6 +737,30 @@ class TestKavlan(EnosTest):
         )
 
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_set_nodes_vlan_kavlan_unchanged(self, mock_api):
+        # Input data
+        site = "rennes"
+        nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
+        interface = "eth1"
+        vlan_id = "42"
+        # Mock Kavlan API
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
+            nodes[0]: {"status": "success", "message": "dummy"},
+            nodes[1]: {"status": "unchanged", "message": "dummy"},
+        }
+        mock_api.return_value = kavlan_api
+        # Call mocked API
+        set_nodes_vlan(nodes, interface, vlan_id)
+        # Check calls
+        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.assert_called_once_with(
+            [
+                "paravance-1-eth1.rennes.grid5000.fr",
+                "paravance-2-eth1.rennes.grid5000.fr",
+            ]
+        )
+
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_set_nodes_vlan_kavlan_error(self, mock_api):
         # Input data
         site = "rennes"
