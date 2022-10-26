@@ -8,7 +8,7 @@ We strongly suggest to use a virtual environment to install and run your experim
     $ python3 -m venv venv/
     $ source venv/bin/activate
     $ pip install -U pip
-    $ pip install enoslib
+    $ pip install enoslib[iot]
 
 
 Configuration
