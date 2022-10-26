@@ -144,7 +144,8 @@ class Network(ABC):
 
 
 class DefaultNetwork(Network):
-    """Good enough implementation of Network for most situations.
+    """
+    Good enough implementation of Network for most situations.
 
     Provides pooling for contiguous ips and/or macs.
     Support IPv4 and IPv6.
@@ -434,7 +435,7 @@ class NetDevice:
                       attached to an EnOSlib network. Ignored if ``networks`` is not
                       None.
 
-        Return:
+        Returns:
             A list of addresses
         """
         if networks:
@@ -536,7 +537,7 @@ class Host(BaseHost):
             :py:meth:`~enoslib.objects.Host.set_extra` or
             :py:meth:`~enoslib.objects.Host.reset_extra`
         net_devices: list of network devices configured on this host.
-            can be synced with the :py:func:`enoslib.api.sync_info`.
+            can be synced with :py:func:`~enoslib.api.sync_info`.
 
     Note:
         In the future we'd like the provider to populate the net_devices
@@ -638,7 +639,7 @@ class Host(BaseHost):
                       attached to an EnOSlib network. Ignored if ``networks`` is not
                       None.
 
-        Return:
+        Returns:
             A list of addresses
         """
         addresses = []
@@ -662,7 +663,7 @@ class Host(BaseHost):
                       attached to an EnOSlib network. Ignored if ``networks`` is not
                       None.
 
-        Return:
+        Returns:
             A list of interface names.
         """
         interfaces = []

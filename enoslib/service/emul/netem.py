@@ -92,8 +92,8 @@ class NetemInOutSource:
     """Model a host and the constraints on its network devices.
 
     Args:
-        inbound : The constraints to set on the ingress part of the host
-                  devices
+        inbound: The constraints to set on the ingress part of the host
+                 devices
         outbound: The constraints to set on the egress part of the host
                   devices
     """
@@ -188,7 +188,7 @@ def netem(sources: List[NetemInOutSource], chunk_size: int = 100, **kwargs):
     Args:
         sources: list of constraints to apply as a list of Source
         chunk_size: size of the chunk to use
-        kwargs: keyword argument to pass to  :py:fun:`enoslib.api.run_ansible`.
+        kwargs: keyword argument to pass to  :py:func:`enoslib.api.run_ansible`.
 
 
     Example:

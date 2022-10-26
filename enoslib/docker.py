@@ -36,6 +36,7 @@ Example:
     .. literalinclude:: examples/advanced_docker.py
         :language: python
         :linenos:
+
 """
 
 import json
@@ -46,16 +47,18 @@ from enoslib.objects import Host, Roles
 
 
 class DockerHost(Host):
-    """A kind of host reachable using docker protocol.
+    """
+    A kind of host reachable using docker protocol.
 
     Args:
         alias: **unique** name across the deployment
-        name : name of the docker container on the remote hosts
-        host : the host where the container can be found
+        name: name of the docker container on the remote hosts
+        host: the host where the container can be found
         proto: how to connect to the remote host
-                (DockerHost.PROTO_TCP/DockerHost.PROTO_SSH)
-                [Default DockerHost.PROTO_SSH]
+               (DockerHost.PROTO_TCP/DockerHost.PROTO_SSH)
+               [Default DockerHost.PROTO_SSH]
         state: dict representing the state as returned by ``docker inspect``
+
     """
 
     PROTO_SSH = "ssh"

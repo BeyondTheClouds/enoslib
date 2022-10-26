@@ -42,14 +42,16 @@ def start_virtualmachines(
             undercloud machines to use. Round Robin strategy to distribute the VMs
             to the PMs will be used for each configuration. Mac addresses will be
             generated according to the g5k_subnet parameter.
-        g5k_subnets: The subnets to use. Each element is a serialization
-            of
+        g5k_subnets: The subnets to use. Each element is a serialization of
             :py:class:`enoslib.infra.enos_vmong5k.configuration.NetworkConfiguration`
         skip: number of addresses to skip when distributing them to the virtual
               machines. This can be useful when starting incrementally the
               virtual machines to avoid overlaping ip assignments between iterations.
         force_deploy (boolean): controls whether the virtual machines should be
             restarted from scratch.
+
+    Returns:
+        roles
 
     Examples:
 
@@ -60,9 +62,6 @@ def start_virtualmachines(
         .. literalinclude:: ./examples/grid5000/tuto_grid5000_p_virt_batch.py
             :language: python
             :linenos:
-
-    Returns:
-        roles
 
     """
 

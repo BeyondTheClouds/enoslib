@@ -148,6 +148,7 @@ class Iotlab(Provider):
         1. REST API, about experiment: saved as <exp_id>.tar.gz
 
         2. .iot-lab/, from each frontend: saved as <exp_id>-<frontend>.tar.gz
+
         Args:
             exp_dir: Where to saves the tar.gz files. If none is provided
             it will save in the current folder.

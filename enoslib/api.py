@@ -560,7 +560,7 @@ def run_play(
         inventory_path (str): inventory to use
         hosts: host like datastructure used as a drop in replacement for an inventory.
         extra_vars (dict): extra_vars to use
-        on_error_continue(bool): Don't throw any exception in case a host is
+        on_error_continue (bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
 
     Raises:
@@ -657,7 +657,7 @@ class actions:
         background: A shortcut that injects async=1year, poll=0 to run the
             commands in detached mode. Can be overridden at the task level.
         strategy: ansible execution strategy
-        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`.
+        kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`.
 
 
     Examples:
@@ -679,15 +679,15 @@ class actions:
 
     .. hint::
 
-        - Module can be run asynchronously using the corresponding Ansible options
-            Note that not all the modules support asynchronous execution.
+        - Module can be run asynchronously using the corresponding Ansible options.
+          Note that not all the modules support asynchronous execution.
 
         - Note that the actual result isn't available in the result file but will
-            be available through a file specified in the result object.
+          be available through a file specified in the result object.
 
         - Any ansible module can be called using the above way. You'll need to
-            refer to the module reference documentation to find the corresponding
-            kwargs to use.
+          refer to the module reference documentation to find the corresponding
+          kwargs to use.
     """
 
     def __init__(
@@ -838,13 +838,13 @@ def run_command(
         extra_vars (dict): extra_vars to use
         gather_facts: True wheter facts should be gathered prior to the
             execution. Might be useful if Ansible variables are used.
-        on_error_continue(bool): Don't throw any exception in case a host is
+        on_error_continue (bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
-        run_as(str): run the command as this user.
+        run_as (str): run the command as this user.
             This is equivalent to passing become=yes and become_user=user but
             become_method can be passed to modify the privileged escalation
             method. (default to sudo).
-        background: run the remote command in the background (detached mode)
+        background (bool): run the remote command in the background (detached mode)
             This is equivalent to passing async=one_year, poll=0
         task_name: name of the command to display, can be used for further
             filtering once the results is retrieved.
@@ -992,7 +992,7 @@ def gather_facts(
         inventory_path (str): inventory to use
         roles (dict): the roles to use (replacement for inventory_path).
         extra_vars (dict): extra_vars to use
-        on_error_continue(bool): Don't throw any exception in case a host is
+        on_error_continue (bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
 
     Raises:
@@ -1093,7 +1093,7 @@ def run_ansible(
         inventory_path (str): path to the hosts file (inventory)
         extra_vars (dict): extra vars to pass
         tags (list): list of tags to run
-        on_error_continue(bool): Don't throw any exception in case a host is
+        on_error_continue (bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
         basedir: Ansible basedir
         ansible_retries: a generic retry mechanism. Set this to a positive
@@ -1201,7 +1201,7 @@ def sync_info(
             :py:meth:`enoslib.infra.provider.Provider.init`
         inplace: bool, default False
             If False, return a copy of roles. Otherwise, do operation inplace.
-        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
+        kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`
 
     Returns:
         RolesLike of the same type as passed. With updated information.
@@ -1266,10 +1266,10 @@ def generate_inventory(
     have their IP set.
 
     Args:
-        roles         : role->hosts mapping as returned by
-                        :py:meth:`enoslib.infra.provider.Provider.init`
-        networks      : role->networks mapping as returned by
-                        :py:meth:`enoslib.infra.provider.Provider.init`
+        roles: role->hosts mapping as returned by
+               :py:meth:`enoslib.infra.provider.Provider.init`
+        networks: role->networks mapping as returned by
+                  :py:meth:`enoslib.infra.provider.Provider.init`
         inventory_path: path to the inventory to generate
         check_networks: True to sync the hosts before dumping the inventory.
     """
@@ -1316,9 +1316,9 @@ def wait_for(
 
     Args:
         roles: Roles to wait for
-        retries: Number of time we'll be retrying a connection
-        interval: Interval to wait in seconds between two retries
-        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
+        retries (int): Number of time we'll be retrying a connection
+        interval (int): Interval to wait in seconds between two retries
+        kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`
     """
     for i in range(0, retries):
         try:

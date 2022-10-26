@@ -31,7 +31,7 @@ Installation
 
 
 Chameleon Bare-metal Example
-===========================
+============================
 
 The following reserve 2 nodes on the chameleon bare-metal infrastructure.  The
 preferred way of authenticating to the Chameleon provider using EnOSlib is
@@ -65,6 +65,6 @@ inference. We show the main script, other resources can be found in |enoslib|
 source code.
 
 
-.. literalinclude:: chameleon/tuto_chameleon_edge_to_cloud.py
+.. literalinclude:: multi_providers/tuto_chameleon_edge_to_cloud.py
    :language: python
    :linenos:

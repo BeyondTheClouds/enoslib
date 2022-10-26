@@ -167,12 +167,12 @@ This is mandatory if you deployed from your local machine.
 - Solution 2: Add the following in your configuration force Ansible to
   jump through a gateway (``access.grid5000.fr``):
 
-  :: code-block:: python
+  .. code-block:: python
 
-  Configuration.from_settings(...
-                              gateway=True
-                              ...
-                             )
+    Configuration.from_settings(...
+                                gateway=True
+                                ...
+                               )
 
 Controlling the virtual machines placement
 ==========================================

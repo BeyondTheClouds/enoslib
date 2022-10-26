@@ -51,7 +51,7 @@ SCHEMA_USER = {
             "type": "string",
         },
         "monitor": {
-            "description": "Activate on demand metrics (e.g 'prom_.*')",
+            "description": "Activate on demand metrics (e.g ``prom_.*``)",
             "type": "string",
         },
         "oargrid_jobids": {

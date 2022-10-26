@@ -283,7 +283,7 @@ def in_conda_cmd(cmd: str, env: str, prefix: str):
         env: The conda environment to activate
         prefix: The conda prefix, where the conda installation is
 
-    Return:
+    Returns:
         The command string prefixed by the right command to jump into the
         conda env.
     """
@@ -349,7 +349,7 @@ class Dask(Service):
 
         It can be used as a context manager.
         Note that the exit method isn't optimal though (see
-        :py:method:`enoslib.service.conda.conda.AutoDask.destroy`)
+        :py:meth:`enoslib.service.conda.conda.AutoDask.destroy`)
 
         Args:
             conda_env   : name of the conda environment (on the remote system)

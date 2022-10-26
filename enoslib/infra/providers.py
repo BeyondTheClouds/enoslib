@@ -71,7 +71,8 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
     [start_time, start_time + provider.walltime] where the provider can
     be started.
 
-    The slot found is guaranteed to
+    The slot found is guaranteed to:
+
     - not exceed the right bound (a negative walltime would raise an error)
       in the current implementation, we chose to work with a fixed end time.
     - and start in the future: start_time might be in the past, and reserving
@@ -88,11 +89,11 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
 
     Raises:
         InvalidReservationTime: If a provider object cannot be initialized anymore,
-        due to an update to it's related platform status since we first
-        fetched it
+            due to an update to it's related platform status since we first
+            fetched it
         NoSlotError: If a Providers object cannot be initialized at its
-        given start_time or if a provider fails to be initialized after too many
-        retries.
+            given start_time or if a provider fails to be initialized after too many
+            retries.
     """
     for retry in range(3):
         try:

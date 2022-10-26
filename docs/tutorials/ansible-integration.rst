@@ -31,11 +31,10 @@ Let's consider the following script :
 
 - :py:func:`~enoslib.api.run_command` takes at least 2 parameters :
 
-   - the actual command to run
-
-   - the :py:class:`~enoslib.objects.Roles` (as returned by the provider init
-   method), or an iterable of :py:class:`~enoslib.objects.Host`, or a single
-   Host
+  - the actual command to run
+  - the :py:class:`~enoslib.objects.Roles` (as returned by the provider
+    init method), or an iterable of :py:class:`~enoslib.objects.Host`, or
+    a single Host
 
 - A :py:class:`~enoslib.api.Results` object is returned and allow for further filtering.
 
