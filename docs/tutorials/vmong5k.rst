@@ -191,6 +191,7 @@ will take care of reserving nodes and subnet on the different sites and
 configure the VMs' network card accordingly.
 
 
+.. _vmong5k_home_directory:
 Mounting your home directory (or a group storage)
 =================================================
 

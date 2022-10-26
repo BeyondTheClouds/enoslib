@@ -800,7 +800,7 @@ def ensure_python3(make_default=False, **kwargs):
     """Make sure python3 is installed on the remote nodes, and optionally make
     it the default.
 
-    It inherits the arguments of :py:class:`enoslib.api.play_on`.
+    It inherits the arguments of :py:class:`enoslib.api.actions`.
 
     """
     kwargs.pop("priors", None)

@@ -100,6 +100,7 @@ If you need to share data on a network filesystem (available under
 ``/home/YOURLOGIN/``), use a ``-nfs`` or ``-big`` environment.
 
 
+.. _g5k_reservable_disks:
 Using reservable disks on nodes
 ===============================
 

@@ -1,58 +1,120 @@
 ⚒️ Changelog
 ============
 
-8.0.0
------
+8.0.0 (unreleased)
+------------------
 
-Providers
-+++++++++
+Added
++++++
 
-- all: introduce ``test_slot``, ``set_reservation`` at the interface level (prepare multi-provider experiment)
-  This will test if a slot (time x resource) can be started on the corresponding platform
-- all: Provider(s) can now take a name
-- 🚀 Providers: a provider that can sync resources on multiple platforms
-- g5k: fix an issue on the reservation date preventing multisite deployment
-- g5k: reduce number of log at the info level
-- g5k: ``provider.destroy`` can now wait for a state change (use ``wait=True``)
-- g5k: exposes the jobs through the ``provider.jobs`` property
-- g5k: Introduce ``enable_home_for_job`` and ``enable_group_storage`` to mount
-- g5k: Implement ``test_slot`` (non naïve implementation)
-- g5k: Execo-ectomy
-- iotlab: Implement ``test_slot`` (non naïve implementation)
-- vmong5k: support multisite deployment.
-- vmong5k: document how to mount group storage on the VMs
-- 🚀 Chameleon Edge provider
+- 🚀 :doc:`Chameleon Edge provider </tutorials/chameleon>`
+- 🚀 :py:class:`~enoslib.infra.providers.Providers`: a provider that can sync resources on multiple platforms
+
+General changes
++++++++++++++++
+
+- Python 3.10 support
+- Introduce provider-specific pip packages to make dependencies
+  optional. The base ``enoslib`` package now only supports Grid'5000, but
+  you can install the following pip package variants:
+  ``enoslib[vagrant]``, ``enoslib[chameleon]``, ``enoslib[iot]``,
+  ``enoslib[distem]``, or ``enoslib[all]`` for everything.
+- Increase the supported Ansible version range (>=2.9,<=6.3)
+
+New providers features
+++++++++++++++++++++++
+
+- **g5k:** use standard Grid'5000 environment by default instead of deploying
+  a ``debian11-nfs`` image:
+
+  - this is the same behaviour as the (now deprecated)
+    ``allow_classic_ssh`` job type
+  - this new default behaviour is much faster to provision and matches the
+    behaviour of native Grid'5000 tools
+  - however, this might impact your experiments because the standard
+    environment comes with many more tools than ``debian11-nfs``
+  - if you want accurate control on the software environment, you should
+    always use the ``deploy`` job type
+
+- **g5k:** env name is now required when using the ``deploy`` job type
+- **g5k:** simplify configuration by auto-configuring primary network if not specified
+- **g5k:** :ref:`add support <g5k_reservable_disks>` for `reservable disks <https://www.grid5000.fr/w/Disk_reservation>`_
+- **g5k:** :py:meth:`provider.destroy() <enoslib.infra.enos_g5k.provider.G5kBase.destroy>` can now wait for a state change (use ``wait=True``)
+- **g5k:** expose the jobs through the :py:attr:`provider.jobs <enoslib.infra.enos_g5k.provider.G5kBase.jobs>` property
+- **g5k:** Introduce :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_home_for_job` and :py:func:`~enoslib.infra.enos_g5k.g5k_api_utils.enable_group_storage` to allow to mount NFS storage provided by Grid'5000 (either user home or a group storage)
+- **g5k:** Add support for ``besteffort`` OAR queue.
+- **vmong5k:** support multisite deployment.
+
+Providers fixes
++++++++++++++++
+
+- **g5k:** fix global kavlan configuration: when a node was located on another
+  site as the global kavlan network, it was not actually put in the kavlan
+  network (calls to the Kavlan API were silently failing).
+- **g5k:** fix missing nodes in roles when using multi-sites deployments
+- **g5k:** use new Providers mechanism for multi-sites reservations.  This
+  fixes several issues with multi-sites experiments:
+
+  - only relevant sites are queried
+  - partial job reloading now works as expected (e.g. reloading a job on
+    one site while creating a new job on another site)
+
+- **g5k:** fix an issue on the reservation date preventing multisite deployment
+- **g5k:** reduce number of log entries printed at the info level
+- **g5k:** fix misleading deployment logging
 
 Services
 ++++++++
 
-- Netem: Introduce ``AccurateNetemHTB`` to apply more accurate network latency between node.
-  This takes into account the physical delay of targetted paths
-- NetemHTB: support constraints on IPv6 addresses
-- NetemHTB: loss parameter is explicitly a percentage
-- Netem: Introduce ``fping_stats`` static method to read from the backuped
+- **Netem:** Introduce :py:class:`~enoslib.service.emul.htb.AccurateNetemHTB` to apply more accurate network latency between node.
+  This takes into account the physical delay of targeted paths
+- **NetemHTB:** add support for constraints on IPv6 addresses
+- **NetemHTB:** loss parameter is explicitly a percentage
+- **Netem:** Introduce ``fping_stats`` static method to read from the backuped
   file easily after a call to ``validate``.
-- k3s: refresh service (deploy the dashboard automatically)
+- **k3s:** refresh service (deploy the dashboard automatically)
 
 Library
 +++++++
 
-- config/cache: ``g5k_cache`` can be now backed by an LRU cache or a DiskCache.
-  Default to a Diskcache.
-- Remove warning about empty host list (Ansible>=2.11 only)
-- api: ``actions`` can now take fqdn names (e.g. ``ansible.builtin.shell``)
+- **api:** change :py:func:`~enoslib.api.ensure_python3` to pull fewer
+  Debian packages (only ``python3`` itself)
+- **api:** change default behaviour of
+  :py:func:`~enoslib.api.ensure_python3` to no longer create a ``python ->
+  python3`` symlink by default.
+- **api:** add :py:func:`~enoslib.check` function to validate basic functionality of Enoslib
+- **api:** :py:func:`~enoslib.api.actions` can now take fqdn names (e.g. ``ansible.builtin.shell``).
   This allows for using any third party Ansible modules.
-- api: ``actions`` can now takes the top-level ``vars`` options.
-- Host: expose ``get_extra``, ``set_extra`` and ``reset_extra`` method to
-  manipulate the extra vars of the host.
-- Dependencies: Increase the Ansible version ranged (>=2.9,<=6.1)
+- **api:** :py:func:`~enoslib.api.actions`  can now takes the top-level ``vars`` options.
+- **Host:** expose :py:meth:`~enoslib.objects.Host.get_extra`,
+  :py:meth:`~enoslib.objects.Host.set_extra`, and
+  :py:meth:`~enoslib.objects.Host.reset_extra` methods to manipulate the
+  extra vars of the host.
+- Remove warning about empty host list (Ansible>=2.11 only)
 
-Misc
-++++
+Documentation
++++++++++++++
 
-- doc: enoslib-tutorials is now a standalone repo (imported as submodule here)
-- doc/theys-use-it: add hal-03654722, 10.1109/CCGrid54584.2022.00084
-- doc: update chameleon tutorial with an edge-to-cloud example
+- **vmong5k:** document :ref:`how to mount home directory or group storage
+  on the VMs <vmong5k_home_directory>`
+- **chameleon:** update chameleon tutorial with an :doc:`edge-to-cloud example </tutorials/chameleon>`
+- **g5k:** update all :doc:`Grid'5000 tutorials </tutorials/grid5000>` to be
+  more progressive and to showcase new features
+- **enoslib-tutorials** is now a standalone repo (imported as submodule here)
+- **they-use-it:** add hal-03654722, 10.1109/CCGrid54584.2022.00084
+
+Internals
++++++++++
+
+- **all:** Provider(s) can now take a name
+- **all:** introduce ``test_slot``, ``set_reservation`` at the interface level
+  (prepare multi-provider experiment).  This will test if a slot (time x
+  resource) can be started on the corresponding platform
+- **iotlab:** Implement ``test_slot`` (non naïve implementation)
+- **g5k:** Implement ``test_slot`` (non naïve implementation)
+- **g5k:** remove Execo dependency
+- **CI:** use pylint and type checking to improve static analysis
+
 
 7.2.1
 -----
