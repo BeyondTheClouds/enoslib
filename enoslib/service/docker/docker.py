@@ -42,6 +42,15 @@ class Docker(Service):
             },
         ]
     }
+    CREDENTIALS_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "login": {"type": "string"},
+            "password": {"type": "string"},
+        },
+        "additionalProperties": False,
+        "required": ["login", "password"],
+    }
 
     def __init__(
         self,
@@ -50,7 +59,8 @@ class Docker(Service):
         registry=None,
         registry_opts=None,
         bind_var_docker=None,
-        swarm=False
+        swarm=False,
+        credentials=None
     ):
         """Deploy docker agents on the nodes and registry cache(optional)
 
@@ -82,6 +92,10 @@ class Docker(Service):
                 :language: python
                 :linenos:
 
+            .. literalinclude:: examples/docker_g5k.py
+                :language: python
+                :linenos:
+
 
         Args:
             agent (list): list of :py:class:`enoslib.Host` where the docker
@@ -97,10 +111,17 @@ class Docker(Service):
                 the fallback to the default location.
             swarm (bool): Whether a docker swarm needs to be created over the agents.
                 The first agent will be taken as the swarm master.
+            credentials (dict): Optional 'login' and 'password' for Docker hub.
+                Useful to access private images, or to bypass Docker hub rate-limiting:
+                in that case, it is recommended to use a token with the "Public Repo
+                Read-Only" permission as password, because it is stored in cleartext
+                on the nodes.
         """
         # TODO: use a decorator for this purpose
         if registry_opts:
             validate(instance=registry_opts, schema=self.SCHEMA)
+        if credentials:
+            validate(instance=credentials, schema=self.CREDENTIALS_SCHEMA)
 
         self.agent = agent if agent else []
         self.registry_opts = registry_opts if registry_opts else REGISTRY_OPTS
@@ -118,6 +139,7 @@ class Docker(Service):
 
         self.bind_var_docker = bind_var_docker
         self.swarm = swarm
+        self.credentials = credentials
         self._roles = Roles(
             {
                 "agent": self.agent,
@@ -138,6 +160,9 @@ class Docker(Service):
         if self.bind_var_docker:
             # In the Ansible playbook, undefined means no binding
             extra_vars.update(bind_var_docker=self.bind_var_docker)
+        if self.credentials:
+            # In the Ansible playbook, undefined means no logging in
+            extra_vars.update(dockerhub_credentials=self.credentials)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):

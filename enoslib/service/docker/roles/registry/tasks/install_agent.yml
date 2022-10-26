@@ -34,6 +34,11 @@
 - name: Installing docker
   shell: which docker || (curl -sSL https://get.docker.com/ | sh)
 
+- name: Login to docker hub
+  command: docker login -u {{ dockerhub_credentials.login }} -p {{ dockerhub_credentials.password }}
+  when:
+    - dockerhub_credentials is defined
+
 # Installing nvidia runtime if that's needed
 - name: Detecting GPUs
   apt:

@@ -76,6 +76,7 @@ Services
 - **Netem:** Introduce ``fping_stats`` static method to read from the backuped
   file easily after a call to ``validate``.
 - **k3s:** refresh service (deploy the dashboard automatically)
+- **Docker:** allow to login to Docker hub (to access private images or to bypass rate-limiting)
 
 Library
 +++++++
