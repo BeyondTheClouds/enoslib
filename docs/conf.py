@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.abspath(".."))
 # ones.
 # extensions = []
 extensions = [
+    "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
     "autodocsumm",
     "nbsphinx",
