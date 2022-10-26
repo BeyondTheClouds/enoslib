@@ -1,6 +1,8 @@
 ⚒️ Changelog
 ============
 
+.. _v8.0.0:
+
 8.0.0 (unreleased)
 ------------------
 
@@ -116,11 +118,16 @@ Internals
 - **CI:** use pylint and type checking to improve static analysis
 
 
+.. _v7.2.1:
+
 7.2.1
 -----
 
 - jupyter is an optional dependency (if you want to have rich output)
   ``pip install enoslib[jupyter]``
+
+
+.. _v7.2.0:
 
 7.2.0
 -----
@@ -143,6 +150,9 @@ Internals
   virtualizaton / ``qemu`` full emulation mode)
 - VMonG5K: Allow to specify a reservation date
 
+
+.. _v7.1.2:
+
 7.1.2
 -----
 
@@ -153,10 +163,16 @@ Internals
   environment from environmental variables
 - Docker: adapt to debian11
 
+
+.. _v7.1.1:
+
 7.1.1
 -----
 
 - api: `Results` exposes a `to_dict` method (purpose is to json serialize)
+
+
+.. _v7.1.0:
 
 7.1.0
 -----
@@ -167,10 +183,15 @@ Internals
   to confgure the stdout plugin using the Ansible configuration file
 
 
+.. _v7.0.1:
+
 7.0.1
 -----
 
 - svc/skydive: update to new Roles datastructure
+
+
+.. _v7.0.0:
 
 7.0.0
 -----
@@ -203,6 +224,9 @@ Internals
     The ``id`` is still mandatory when using a dictionnary to build the whole configuration.
 
 
+
+.. _v6.2.0:
+
 6.2.0
 -----
 
@@ -224,6 +248,9 @@ Possibly breaking:
   EnOSlib can benefit from any (third party or updated core) collections
   installed locally.
 
+
+.. _v6.1.0:
+
 6.1.0
 -----
 
@@ -244,6 +271,9 @@ Misc:
   key is in the env (resp. set a default value) (cherry-pick from 5.x)
 - svc/monitoring: remove the use of explicit ``become`` in the deployment
 
+
+.. _v6.0.4:
+
 6.0.4
 -----
 
@@ -251,10 +281,8 @@ Misc:
 - doc: fix typo  + some improvements (emojis)
 - api/play_on: now accepts an Ansible Inventory (cherry-pick from 5.x)
 
-5.5.2
------
 
-- svc/docker: allow to specify a port
+.. _v6.0.3:
 
 6.0.3
 -----
@@ -262,17 +290,26 @@ Misc:
 - svc:netem: fix an issue with missing self.extra_vars
 - svc:monitoring: stick to influxdb < 2 for now (influxdb2 requires an auth)
 
+
+.. _v6.0.2:
+
 6.0.2
 -----
 
 - doc/G5k: Add an example that makes use of the internal docker registries
   of Grid'5000
 
+
+.. _v6.0.1:
+
 6.0.1
 -----
 
 - doc: install instructions on the front page
 - doc/G5k: Document G5kTunnel
+
+
+.. _v6.0.0:
 
 6.0.0 (the IPv6 release and plenty other stuffs)
 ------------------------------------------------
@@ -340,11 +377,16 @@ Misc:
 Older versions
 ---------------
 
+.. _v5.5.4:
+
 5.5.4
 +++++
 
 - tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
   key is in the env (resp. set a default value)
+
+
+.. _v5.5.3:
 
 5.5.3
 +++++
@@ -352,10 +394,16 @@ Older versions
 - api: ``play_on`` can be called with an inventory file
 
 
+
+.. _v5.5.2:
+
 5.5.2
 +++++
 
 - svc/docker: allow to specify a port
+
+
+.. _v5.5.1:
 
 5.5.1
 +++++
@@ -364,6 +412,9 @@ Older versions
   exotic hardware, you can pass either ``job_type=[allow_classic_ssh, exotic]``
   or ``job_type=[deploy, exotic]``. Passing a single string to ``job_type`` is
   also possible (backward compatibility)
+
+
+.. _v5.5.0:
 
 5.5.0
 +++++
@@ -390,11 +441,17 @@ Older versions
 
 - G5k: G5kTunnel context manager to automatically manage a tunnel from your current machine to Grid'5000 machines.
 
+
+.. _v5.4.3:
+
 5.4.3
 +++++
 
 - G5k: returned Host.address was wrong when using vlans
 - Doc: fix execo url
+
+
+.. _v5.4.2:
 
 5.4.2
 +++++
@@ -402,10 +459,16 @@ Older versions
 - Doc: G5k change tutorial URL
 - G5k: Align the code with the new REST API for vlans (need python-grid5000 >= 1.0.0)
 
+
+.. _v5.4.1:
+
 5.4.1
 +++++
 
 - Service/docker: swarm support
+
+
+.. _v5.4.0:
 
 5.4.0
 +++++
@@ -418,32 +481,50 @@ Older versions
 - G5k: configuration can take the project as a key
 - Doc: G5k uniformize examples
 
+
+.. _v5.3.4:
+
 5.3.4
 +++++
 
 - G5k: make the project configurable (use the project key in the
   configuration)
 
+
+.. _v5.3.3:
+
 5.3.3
 +++++
 
 - G5k: fix an issue when dealing with global vlans
+
+
+.. _v5.3.2:
 
 5.3.2
 +++++
 
 - VMonG5k: resurrect nested kvm
 
+
+.. _v5.3.1:
+
 5.3.1
 +++++
 
 - Doc: Add E2Clab
+
+
+.. _v5.3.0:
 
 5.3.0
 +++++
 
 - Service/dstat: migrate to ``dool`` as a ``dstat`` alternative
 - Fix Ansible 2.9.11 compatibility
+
+
+.. _v5.2.0:
 
 5.2.0
 +++++
@@ -452,21 +533,33 @@ Older versions
 - Doc: Fix netem example inclusion
 
 
+
+.. _v5.1.3:
+
 5.1.3
 +++++
 
 - Tasks: Fix an issue with predefined env creation
 - Service/dstat: Fix idempotency of deploy
 
+
+.. _v5.1.2:
+
 5.1.2
 +++++
 
 - Tasks: automatic ``env_name`` change to remove colons from the name
 
+
+.. _v5.1.1:
+
 5.1.1
 +++++
 
 - Netem: Better support for large deployment (introduce `chunk_size` parameter)
+
+
+.. _v5.1.0:
 
 5.1.0
 +++++
@@ -477,6 +570,9 @@ Older versions
 - Doc:
     - Add autodoc summary in the APIs pages (provided by autodocsumm)
     - Align some examples with the new Netem implementation
+
+
+.. _v5.0.0:
 
 5.0.0
 +++++
@@ -502,6 +598,9 @@ Older versions
 - Api: Add `when` in the top-level kwargs of `play_on` modules.
 - Service/dstat: use a named session.
 
+
+.. _v4.11.0:
+
 4.11.0
 ++++++
 
@@ -511,6 +610,9 @@ Older versions
     - Default to registry:None, meaning that this will
       deploy independent docker daemons
 
+
+.. _v4.10.1:
+
 4.10.1
 ++++++
 
@@ -518,31 +620,49 @@ Older versions
 - service/monitoring: typecheck
 
 
+
+.. _v4.10.0:
+
 4.10.0
 ++++++
 
 - Service/dstat: add a new dstat monitoring
 - Doc: some fixes (comply with the discover_networks)
 
+
+.. _v4.9.4:
+
 4.9.4
 +++++
 
 - Doc: some fixes
+
+
+.. _v4.9.3:
 
 4.9.3
 +++++
 
 - Doc: some fixes / add a ref
 
+
+.. _v4.9.2:
+
 4.9.2
 +++++
 
 - Doc: add some refs in they-use-it.rst
 
+
+.. _v4.9.1:
+
 4.9.1
 +++++
 
 - Fix: include the missing BREAKING change of 4.9.0
+
+
+.. _v4.9.0:
 
 4.9.0
 ++++++
@@ -552,10 +672,16 @@ Older versions
 - Service/Netem: support for bridged networks
 - Api/BREAKING: `discover_networks` doesn't have side effects anymore on the hosts.
 
+
+.. _v4.8.12:
+
 4.8.12
 ++++++
 
 - Doc: Simplify network emulation example
+
+
+.. _v4.8.11:
 
 4.8.11
 ++++++
@@ -566,16 +692,25 @@ Older versions
   the number of slave to start on each node.
 - Doc: Expose the Locust documentation
 
+
+.. _v4.8.10:
+
 4.8.10
 ++++++
 
 - Service/monitoring: allow for some customisations
 - VMonG5K: use the libvirt directory for all the operations
 
+
+.. _v4.8.9:
+
 4.8.9
 +++++
 
 - Service/netem: fix validate when network is partitioned
+
+
+.. _v4.8.8:
 
 4.8.8
 +++++
@@ -583,11 +718,17 @@ Older versions
 - Doc: Add content for quick access
 - Doc: Add parameters sweeper tutorial
 
+
+.. _v4.8.7:
+
 4.8.7
 +++++
 
 - Doc: clean and use continuation line
 - Service/docker: remove useless statement
+
+
+.. _v4.8.6:
 
 4.8.6
 +++++
@@ -595,6 +736,9 @@ Older versions
 - Api/play_on: don't gather facts twice
 - VMonG5k: 🐎 enable virtio for network device 🐎
 - Service/monitoring: add the influxdb datasource automatically
+
+
+.. _v4.8.5:
 
 4.8.5
 +++++
@@ -604,6 +748,9 @@ Older versions
 - Api: ``wait_ssh`` now uses the raw module
 - Api: rename some prior with a double underscore (e.g. ``__python3__``)
 
+
+.. _v4.8.4:
+
 4.8.4
 +++++
 
@@ -612,11 +759,17 @@ Older versions
 - API: ``play_on`` offers new strategies to gather Ansible facts
 - type: Type definitions for Host, Role and Network
 
+
+.. _v4.8.3:
+
 4.8.3
 +++++
 
 - G5K/api: job_reload_from_name fix for anonymous user
 - Doc: some cleaning, advertise mattermost channel
+
+
+.. _v4.8.2:
 
 4.8.2
 +++++
@@ -625,10 +778,16 @@ Older versions
 - Host: copy the passed extra dict
 - Skydive: fix docstring
 
+
+.. _v4.8.1:
+
 4.8.1
 +++++
 
 - Service/Monitoring: fix collector_address for telegraf agents
+
+
+.. _v4.8.0:
 
 4.8.0
 +++++
@@ -640,6 +799,9 @@ Older versions
 - ``enoslib.host.Host`` is now a dataclass
 - Typecheck enabled in CI
 
+
+.. _v4.7.0:
+
 4.7.0
 +++++
 
@@ -650,6 +812,9 @@ Older versions
     - Activate VLC console (fix an issue with newest G5K virt images...)
     - Run VMs as root
 
+
+.. _v4.6.0:
+
 4.6.0
 +++++
 
@@ -658,6 +823,9 @@ Older versions
 - Locust/service: initial version (locust.io)
 - G5k: support for arbitrary SSH key
 
+
+.. _v4.5.0:
+
 4.5.0
 +++++
 
@@ -665,41 +833,65 @@ Older versions
 - VMonG5K/API break: use g5k api username instead of USER environment variable
 - VMonG5K: make the provider idempotent
 
+
+.. _v4.4.5:
+
 4.4.5
 +++++
 
 - Doc: some fixes
 - VMonG5k: change gateway description
 
+
+.. _v4.4.4:
+
 4.4.4
 +++++
 
 - Doc: distem makes use of stretch image by default
+
+
+.. _v4.4.3:
 
 4.4.3
 +++++
 
 - Doc: Doc updates (readme and distem)
 
+
+.. _v4.4.2:
+
 4.4.2
 +++++
 
 - Doc: update distem tutorial
+
+
+.. _v4.4.1:
 
 4.4.1
 +++++
 
 - Catch up changelog
 
+
+.. _v4.4.0:
+
 4.4.0
 +++++
 
 - New provider: Distem
 
+
+.. _v4.3.1:
+
 4.3.1
 +++++
 
 - G5k: fix walltime > 24h
+
+
+.. _v4.3.0:
 
 4.3.0
 +++++
@@ -707,10 +899,16 @@ Older versions
 - G5k: ``get_api_username`` to retrieve the current user login
 - Doc: fix ``play_on``
 
+
+.. _v4.2.5:
+
 4.2.5
 +++++
 
 - Services: Add missing files in the wheel
+
+
+.. _v4.2.4:
 
 4.2.4
 +++++
@@ -718,20 +916,32 @@ Older versions
 - Skydive: Fix topology discovery
 - Doc: Fix ``pattern_hosts`` kwargs
 
+
+.. _v4.2.3:
+
 4.2.3
 +++++
 
 - Doc: Factorize readme and doc index
+
+
+.. _v4.2.2:
 
 4.2.2
 +++++
 
 - Doc: Fix sphinx warnings
 
+
+.. _v4.2.1:
+
 4.2.1
 +++++
 
 - Fix changelog syntax
+
+
+.. _v4.2.0:
 
 4.2.0
 +++++
@@ -739,11 +949,17 @@ Older versions
 - Service: Add skydive service
 - Service: Internal refactoring
 
+
+.. _v4.1.1:
+
 4.1.1
 +++++
 
 - Catch-up changelog for 4.1.x
 
+
+
+.. _v4.1.0:
 
 4.1.0
 +++++
@@ -757,20 +973,32 @@ Older versions
 - API: Support for ``raw`` module in ``play_on``
 - Black formatting is enforced
 
+
+.. _v4.0.3:
+
 4.0.3
 +++++
 
 - Doc: Fix netem service link
+
+
+.. _v4.0.2:
 
 4.0.2
 +++++
 
 - Doc: Add a placement example (vmong5k)
 
+
+.. _v4.0.1:
+
 4.0.1
 +++++
 
 - Doc: Capitalize -> EnOSlib
+
+
+.. _v4.0.0:
 
 4.0.0
 +++++
@@ -785,15 +1013,24 @@ Older versions
 - Api: ``play_on`` tasks now accept a ``display_name`` keyword. The string will
   be displayed on the screen as the name of the command.
 
+
+.. _v3.4.2:
+
 3.4.2
 +++++
 
 - Service: fix example
 
+
+.. _v3.4.1:
+
 3.4.1
 +++++
 
 - Service: monitoring update doc
+
+
+.. _v3.4.0:
 
 3.4.0
 +++++
@@ -801,15 +1038,24 @@ Older versions
 - Introduce a monitoring service (quickly deploy a monitoring stack)
 - API: Add `display_name` kwargs in `play_on` (debug/display purpose)
 
+
+.. _v3.3.3:
+
 3.3.3
 ++++++
 
 - Doc: in using-tasks include whole python script
 
+
+.. _v3.3.2:
+
 3.3.2
 ++++++
 
 - Doc: fix using-tasks output
+
+
+.. _v3.3.1:
 
 3.3.1
 ++++++
@@ -818,66 +1064,105 @@ Older versions
 - ChameleonBaremetal: fix tutorial
 
 
+.. _v3.3.0:
+
 3.3.0
 ++++++
 
 - G5k: automatic redepoy (max 3) when nodes aren't deployed correctly
+
+
+.. _v3.2.4:
 
 3.2.4
 ++++++
 
 - Avoid job_name collision from 2 distinct users
 
+
+.. _v3.2.3:
+
 3.2.3
 ++++++
 
 - Fix an issue with emulate_network (it now uses `inventory_hostname`)
+
+
+.. _v3.2.2:
 
 3.2.2
 ++++++
 
 - VMonG5k: fix the networks returned value
 
+
+.. _v3.2.1:
+
+
 3.2.1
 ++++++
 
 - G5k: Fix static driver
+
+
+.. _v3.2.0:
 
 3.2.0
 ++++++
 
 - VMonG5K: Enables taktuk for image broadcast
 
+
+.. _v3.1.4:
+
 3.1.4
 ++++++
 
 - Doc: Fix network_emulation conf
+
+
+.. _v3.1.3:
 
 3.1.3
 ++++++
 
 - Doc: add missing files
 
+
+.. _v3.1.2:
+
 3.1.2
 ++++++
 
 - Doc: Document network emulation
+
+
+.. _v3.1.1:
 
 3.1.1
 ++++++
 
 - Doc: VMonG5K warning about the `working_dir` being removed
 
+
+.. _v3.1.0:
+
 3.1.0
 ++++++
 
 - VMonG5k: expose `start_virtualmachines` function
+
+
+.. _v3.0.1:
 
 3.0.1
 ++++++
 
 - Doc: Add VMonG5k primer
 - Doc: Secure credential file
+
+
+.. _v3.0.0:
 
 3.0.0
 ++++++
@@ -886,15 +1171,24 @@ Older versions
 - [VMonG5K]: Add a gateway option
 - [VMonG5K]: Coerce to `enoslib.Host` before returning from init.
 
+
+.. _v2.2.10:
+
 2.2.10
 ++++++
 
 - Doc: use std env for primer on g5k
 
+
+.. _v2.2.9:
+
 2.2.9
 ++++++
 
 - Doc add 10.1109/TPDS.2019.2907950
+
+
+.. _v2.2.8:
 
 2.2.8
 ++++++
@@ -904,10 +1198,16 @@ Older versions
 - Vagrant: force gateway ip to string
 - Doc: add performance tuning section
 
+
+.. _v2.2.7:
+
 2.2.7
 ++++++
 
 - Doc: Gender equality fix
+
+
+.. _v2.2.6:
 
 2.2.6
 ++++++
@@ -915,25 +1215,40 @@ Older versions
 - Doc: static provider
 - Doc: various fixes
 
+
+.. _v2.2.5:
+
 2.2.5
 ++++++
 
 - CI: add `play_on` functional test
+
+
+.. _v2.2.4:
 
 2.2.4
 ++++++
 
 - Doc: Update Primer (add g5k example)
 
+
+.. _v2.2.3:
+
 2.2.3
 ++++++
 
 - API: fix `gather_facts=False` in `play_on`
 
+
+.. _v2.2.2:
+
 2.2.2
 ++++++
 
 - Doc: put project boostrap at the end (formerly quickstart)
+
+
+.. _v2.2.1:
 
 2.2.1
 ++++++
@@ -941,10 +1256,16 @@ Older versions
 - Doc: add EnOSlib primer
 - API: discover_network now add `<network>_ip` and `<network>_dev` in the hosvars
 
+
+.. _v2.2.0:
+
 2.2.0
 ++++++
 
 - API: Introduce `play_on` context_manager to describe a playbook directly from python
+
+
+.. _v2.1.0:
 
 2.1.0
 ++++++
@@ -954,16 +1275,25 @@ Older versions
 - VMonG5K: allow to specify a working directory
 - Dependencies: Upgrade Ansible to latest stable (2.7.x)
 
+
+.. _v2.0.2:
+
 2.0.2
 ++++++
 
 - (breaking) VMonG5K/Vagrant: Unify code. `flavour_desc` dict can be used after
   building the MachineConfiguration.
 
+
+.. _v2.0.1:
+
 2.0.1
 ++++++
 
 - VMonG5K: Package was missing site.yml file
+
+
+.. _v2.0.0:
 
 2.0.0
 ++++++
@@ -994,21 +1324,33 @@ Warning breaking changes:
 
 - VMonG5K: new provider that allows to start virtual machines on G5K.
 
+
+.. _v1.12.3:
+
 1.12.3
 ++++++
 
 - API: `utils.yml` playbook now forces fact gahering.
 - Misc: initial gitlab-ci supports
 
+
+.. _v1.12.2:
+
 1.12.2
 ++++++
 
 - G5K: Refix an issue when number of nodes is zero
 
+
+.. _v1.12.1:
+
 1.12.1
 ++++++
 
 - G5K: fix an issue when number of nodes is zero
+
+
+.. _v1.12.0:
 
 1.12.0
 ++++++
@@ -1017,20 +1359,32 @@ Warning breaking changes:
 - G5K: `secondary_networks` are now a mandatory key
 - G5K: support for zero nodes roles
 
+
+.. _v1.11.2:
+
 1.11.2
 ++++++
 
 - Make sure role and roles are mutually exclusive
+
+
+.. _v1.11.1:
 
 1.11.1
 ++++++
 
 - Fix empty `config_file` case in enostask
 
+
+.. _v1.11.0:
+
 1.11.0
 ++++++
 
 - G5K: add static oar job support
+
+
+.. _v1.10.0:
 
 1.10.0
 ++++++
@@ -1039,12 +1393,18 @@ Warning breaking changes:
 - API: validate_network now filters devices without ip address
 - API: check_network now uses JSON serialisation to perform better
 
+
+.. _v1.9.0:
+
 1.9.0
 ++++++
 
 - G5K api: expose get_clusters_sites
 - G5K: dhcp is blocking
 - G5k: introduce drivers to interact with the platform
+
+
+.. _v1.8.2:
 
 1.8.2
 ++++++
@@ -1053,10 +1413,16 @@ Warning breaking changes:
 - Chameleon: Create one reservation per flavor
 - Openstack: fix python3 compatibility
 
+
+.. _v1.8.1:
+
 1.8.1
 ++++++
 
 - relax openstack client constraints
+
+
+.. _v1.8.0:
 
 1.8.0
 ++++++
@@ -1065,12 +1431,18 @@ Warning breaking changes:
 - Openstack: enable the use of session for blazar
 - Openstack: Allow keystone v3 authentification
 
+
+.. _v1.7.0:
+
 1.7.0
 ++++++
 
 - G5K api: fixed get_clusters_interfaces function
 - Ansible: group vars were'nt loaded
 - Allow fake interfaces to be mapped to net roles
+
+
+.. _v1.6.0:
 
 1.6.0
 ++++++
@@ -1081,11 +1453,17 @@ Warning breaking changes:
 - Openstack/Chameleon: support for extra prefix for the resources
 - Chameleon: use config lease name
 
+
+.. _v1.5.0:
+
 1.5.0
 ++++++
 
 - python3 compatibility
 - Confirm with predictable NIC names on g5k
+
+
+.. _v1.4.0:
 
 1.4.0
 ++++++
@@ -1094,11 +1472,17 @@ Warning breaking changes:
 - Document the cookiecutter generation
 - Default to debian9 for g5k
 
+
+.. _v1.3.0:
+
 1.3.0
 ++++++
 
 - Change setup format
 - Move chameleon dependencies to extra_require
+
+
+.. _v1.2.1:
 
 1.2.1
 ++++++
@@ -1106,16 +1490,24 @@ Warning breaking changes:
 - Drop validation of the bandwitdh
 - Add missing host file
 
+
+.. _v1.2.0:
+
 1.2.0
 ++++++
 
 - Add reset network
 
 
+.. _v0.0.6:
+
 0.0.6
 ++++++
 
 - add `min` keyword in machine descipriotn on for G5K
+
+
+.. _v0.0.5:
 
 0.0.5
 ++++++
@@ -1124,6 +1516,9 @@ Warning breaking changes:
 - `expand_groups` is available in the api
 - `get_cluster_interfaces` is available in the g5k api.
 
+
+.. _v0.0.4:
+
 0.0.4
 ++++++
 
@@ -1131,6 +1526,9 @@ Warning breaking changes:
 - Take force_deploy in g5k provider
 - Wait ssh to be ready when `check_network=True` in `generate_inventory`
 - Add start/end enostask logging
+
+
+.. _v0.0.3:
 
 0.0.3
 ++++++
@@ -1142,6 +1540,9 @@ Warning breaking changes:
 - Add dummy functionnal tests
 - Add network emulation
 
+
+.. _v0.0.2:
+
 0.0.2
 ++++++
 
@@ -1149,6 +1550,9 @@ Warning breaking changes:
 - Encapsulate check_network in generate_inventory
 - Add automatic discovery of network interfaces names/roles
 - Add vagrant/g5k provider
+
+
+.. _v0.0.1:
 
 0.0.1
 ++++++
