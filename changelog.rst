@@ -336,25 +336,29 @@ Misc:
 
 - Note that the Openstack provider is broken currently.
 
+
+Older versions
+---------------
+
 5.5.4
------
++++++
 
 - tasks: env implements ``__contains__`` (resp. ``setdefault``) to check if a
   key is in the env (resp. set a default value)
 
 5.5.3
------
++++++
 
 - api: ``play_on`` can be called with an inventory file
 
 
 5.5.2
------
++++++
 
 - svc/docker: allow to specify a port
 
 5.5.1
------
++++++
 
 - G5k: support for ``exotic`` job type. If you want to reserve a node on
   exotic hardware, you can pass either ``job_type=[allow_classic_ssh, exotic]``
@@ -362,7 +366,7 @@ Misc:
   also possible (backward compatibility)
 
 5.5.0
------
++++++
 
 -  	🎉 New provider	🎉: Iotlab provides resources on https://www.iot-lab.info/.
 
@@ -385,9 +389,6 @@ Misc:
     - Example updated accordingly
 
 - G5k: G5kTunnel context manager to automatically manage a tunnel from your current machine to Grid'5000 machines.
-
-Older versions
----------------
 
 5.4.3
 +++++
