@@ -115,14 +115,14 @@ sonar:
   script:
     - pip install -e .
     - apt update
-    - apt install -y wget unzip openjdk-11-jre-headless libpython3-dev --no-install-recommends
+    - apt install -y wget unzip openjdk-11-jre-headless --no-install-recommends
     - pip install pylint
     - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-linux.zip
     - unzip sonar-scanner-cli-4.4.0.2170-linux.zip
     - mv sonar-scanner-4.4.0.2170-linux sonar
     - wget --no-check-certificate https://sonarqube.inria.fr/static/digicertca.crt
     - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar/jre/lib/security/cacerts -file digicertca.crt
-    - pip install tox && tox -e py37
+    - pip install tox && tox -e py310
     - sonar/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
 
 doc:
