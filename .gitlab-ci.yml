@@ -223,7 +223,7 @@ test_static_run_ansible$debian11$:
 test_static_tasks$debian11$:
   <<: *debian11
 
-test_discover_networks$debian11$:
+test_sync_info$debian11$:
   <<: *debian11
 
 test_dstat$debian11$:
@@ -251,7 +251,7 @@ test_static_run_ansible$debian10$:
 test_static_tasks$debian10$:
   <<: *debian10
 
-test_discover_networks$debian10$:
+test_sync_info$debian10$:
   <<: *debian10
 
 test_dstat$debian10$:
@@ -278,7 +278,7 @@ test_static_run_ansible$debiantesting$:
 test_static_tasks$debiantesting$:
   <<: *debiantesting
 
-test_discover_networks$debiantesting$:
+test_sync_info$debiantesting$:
   <<: *debiantesting
 
 test_dstat$debiantesting$:
@@ -305,7 +305,7 @@ test_static_run_ansible$ubuntu2004$:
 test_static_tasks$ubuntu2004$:
   <<: *ubuntu2004
 
-test_discover_networks$ubuntu2004$:
+test_sync_info$ubuntu2004$:
   <<: *ubuntu2004
 
 test_dstat$ubuntu2004$:
@@ -332,7 +332,7 @@ test_static_run_ansible$ubuntu2204$:
 test_static_tasks$ubuntu2204$:
   <<: *ubuntu2204
 
-test_discover_networks$ubuntu2204$:
+test_sync_info$ubuntu2204$:
   <<: *ubuntu2204
 
 test_dstat$ubuntu2204$:
