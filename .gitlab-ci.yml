@@ -217,46 +217,74 @@ test_discover_networks$debian11$:
 test_dstat$debian11$:
   <<: *debian11
 
-## debian latest
+## debian 10
 #-----------------------------------------------
-test_static_run_command$debian$: &debian
+test_static_run_command$debian10$: &debian10
   <<: *debian11
-  image: debian:latest
+  image: debian:10
 
-test_static_gather_facts$debian$:
-  <<: *debian
+test_static_gather_facts$debian10$:
+  <<: *debian10
 
-test_static_play_on$debian$:
-  <<: *debian
+test_static_play_on$debian10$:
+  <<: *debian10
 
-test_static_run_ansible$debian$:
-  <<: *debian
+test_static_run_ansible$debian10$:
+  <<: *debian10
 
-# test_monitoring_service$debian$:
-#  <<: *debian
+# monitoring functional tests are failing lately
+# test_monitoring_service$debian10$:
+#   <<: *debian10
 
-test_static_tasks$debian$:
-  <<: *debian
+test_static_tasks$debian10$:
+  <<: *debian10
 
-test_discover_networks$debian$:
-  <<: *debian
+test_discover_networks$debian10$:
+  <<: *debian10
 
-test_dstat$debian$:
-  <<: *debian
+test_dstat$debian10$:
+  <<: *debian10
 
-## ubuntu 1804
+## debian testing
 #-----------------------------------------------
-test_static_run_command$ubuntu1804$: &ubuntu2004
+test_static_run_command$debiantesting$: &debiantesting
+  <<: *debian11
+  image: debian:testing
+
+test_static_gather_facts$debiantesting$:
+  <<: *debiantesting
+
+test_static_play_on$debiantesting$:
+  <<: *debiantesting
+
+test_static_run_ansible$debiantesting$:
+  <<: *debiantesting
+
+# test_monitoring_service$debiantesting$:
+#  <<: *debiantesting
+
+test_static_tasks$debiantesting$:
+  <<: *debiantesting
+
+test_discover_networks$debiantesting$:
+  <<: *debiantesting
+
+test_dstat$debiantesting$:
+  <<: *debiantesting
+
+## ubuntu 20.04
+#-----------------------------------------------
+test_static_run_command$ubuntu2004$: &ubuntu2004
   <<: *debian11
   image: ubuntu:20.04
 
-test_static_gather_facts$ubuntu1804$:
+test_static_gather_facts$ubuntu2004$:
   <<: *ubuntu2004
 
-test_static_play_on$ubuntu1804$:
+test_static_play_on$ubuntu2004$:
   <<: *ubuntu2004
 
-test_static_run_ansible$ubuntu1804$:
+test_static_run_ansible$ubuntu2004$:
   <<: *ubuntu2004
 
 # test_monitoring_service$ubuntu2004$:
@@ -271,32 +299,32 @@ test_discover_networks$ubuntu2004$:
 test_dstat$ubuntu2004$:
   <<: *ubuntu2004
 
-## ubuntu latest
+## ubuntu 22.04
 #-----------------------------------------------
-test_static_run_command$ubuntu$: &ubuntu
+test_static_run_command$ubuntu2204$: &ubuntu2204
   <<: *debian11
-  image: ubuntu:latest
+  image: ubuntu:22.04
 
-test_static_gather_facts$ubuntu$:
-  <<: *ubuntu
+test_static_gather_facts$ubuntu2204$:
+  <<: *ubuntu2204
 
-test_static_play_on$ubuntu$:
-  <<: *ubuntu
+test_static_play_on$ubuntu2204$:
+  <<: *ubuntu2204
 
-test_static_run_ansible$ubuntu$:
-  <<: *ubuntu
+test_static_run_ansible$ubuntu2204$:
+  <<: *ubuntu2204
 
-# test_monitoring_service$ubuntu$:
-#   <<: *ubuntu
+# test_monitoring_service$ubuntu2204$:
+#   <<: *ubuntu2204
 
-test_static_tasks$ubuntu$:
-  <<: *ubuntu
+test_static_tasks$ubuntu2204$:
+  <<: *ubuntu2204
 
-test_discover_networks$ubuntu$:
-  <<: *ubuntu
+test_discover_networks$ubuntu2204$:
+  <<: *ubuntu2204
 
-test_dstat$ubuntu$:
-  <<: *ubuntu
+test_dstat$ubuntu2204$:
+  <<: *ubuntu2204
 
 ###############################################################################
 #
