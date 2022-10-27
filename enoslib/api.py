@@ -640,23 +640,23 @@ class actions:
 
 
     Args:
-        pattern_hosts: pattern to describe ansible hosts to target.
+        pattern_hosts (str): pattern to describe ansible hosts to target.
             see https://docs.ansible.com/ansible/latest/intro_patterns.html
-        inventory_path: inventory to use
-        roles: roles as returned by :py:meth:`enoslib.infra.provider.Provider.init`
-        extra_vars: extra_vars to use
-        on_error_continue: don't throw any exception in case a host
+        inventory_path (str): inventory to use
+        roles (RolesLike): roles as returned by
+            :py:meth:`enoslib.infra.provider.Provider.init`
+        extra_vars (dict): extra_vars to use
+        on_error_continue (bool): don't throw any exception in case a host
             is unreachable or the playbooks run with errors
-        gather_facts: controls how the facts will be gathered.
-            - True    -> Gathers facts of :py:attr:`pattern_hosts` hosts.
-            - False   -> Does not gather facts.
-            - pattern -> Gathers facts of `pattern` hosts.
-        priors: tasks in each prior will be prepended in the playbook
-        run_as: A shortcut that injects become and become_user to each task.
-                become* at the task level has the precedence over this parameter
-        background: A shortcut that injects async=1year, poll=0 to run the
-            commands in detached mode. Can be overridden at the task level.
-        strategy: ansible execution strategy
+        gather_facts (bool): whether facts will be gathered.
+        priors (list): tasks in each prior will be prepended in the playbook
+        run_as (str): A shortcut that injects ``become`` and ``become_user``
+            to each task.  ``become*`` at the task level has the precedence
+            over this parameter.
+        background (bool): A shortcut that injects ``async=1year, poll=0``
+            to run the commands in detached mode. Can be overridden at the
+            task level.
+        strategy (str): ansible execution strategy
         kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`.
 
 
