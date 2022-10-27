@@ -146,25 +146,37 @@ doc:
 
 ## TEST VARIOUS ANSIBLE VERSIONS
 #-----------------------------------------------
-test_ansible_3: &ansible
+test_ansible_2_9: &ansible
   image: debian:11
   stage: functional
   tags: [ci.inria.fr]
   variables:
-    ANSIBLE_VERSION: ">=3,<4"
+    ANSIBLE_VERSION: ">=2.9,<2.10"
   script:
     - |
       apt update
       apt install -y python3 python3-pip iproute2 cmake zlib1g-dev libssl-dev libffi-dev
       ip a
+      # Test several versions of ansible
+      python3 -m pip install ansible${ANSIBLE_VERSION}
       python3 -m pip install -e .
       cd enoslib/tests/functional
 
-      # test several versions of ansible
-      python3 -m pip uninstall -y ansible ansible-base ansible-core && pip install ansible${ANSIBLE_VERSION}
       python3 test_static_play_on.py
       python3 test_static_run_ansible.py
       python3 test_static_run_command.py
+      python3 test_static_gather_facts.py
+      python3 test_static_tasks.py
+
+test_ansible_2_10:
+  <<: *ansible
+  variables:
+    ANSIBLE_VERSION: ">=2.10,<2.11"
+
+test_ansible_3:
+  <<: *ansible
+  variables:
+    ANSIBLE_VERSION: ">=3,<4"
 
 test_ansible_4:
   <<: *ansible
