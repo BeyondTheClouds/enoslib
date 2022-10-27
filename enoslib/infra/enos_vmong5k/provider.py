@@ -55,11 +55,7 @@ def start_virtualmachines(
 
     Examples:
 
-        .. literalinclude:: ./examples/grid5000/tuto_grid5000_p_virt.py
-            :language: python
-            :linenos:
-
-        .. literalinclude:: ./examples/grid5000/tuto_grid5000_p_virt_batch.py
+        .. literalinclude:: ../tutorials/vmong5k/tuto_placement.py
             :language: python
             :linenos:
 
