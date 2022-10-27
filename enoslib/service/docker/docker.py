@@ -1,10 +1,10 @@
 import os
-from typing import List
+from typing import Dict, List, Optional
 
 from jsonschema import validate
 
 from enoslib.api import run_ansible
-from enoslib.objects import Roles
+from enoslib.objects import Host, Roles
 from ..service import Service
 
 
@@ -55,12 +55,12 @@ class Docker(Service):
     def __init__(
         self,
         *,
-        agent=None,
-        registry=None,
-        registry_opts=None,
-        bind_var_docker=None,
-        swarm=False,
-        credentials=None
+        agent: Optional[List[Host]] = None,
+        registry: Optional[List[Host]] = None,
+        registry_opts: Optional[Dict] = None,
+        bind_var_docker: Optional[str] = None,
+        swarm: bool = False,
+        credentials: Optional[Dict] = None
     ):
         """Deploy docker agents on the nodes and registry cache(optional)
 
