@@ -128,16 +128,22 @@ class Docker(Service):
             validate(instance=credentials, schema=self.CREDENTIALS_SCHEMA)
 
         self.agent = agent if agent else []
-        self.registry_opts = registry_opts if registry_opts else REGISTRY_OPTS
-        if self.registry_opts["type"] == "none":
-            self.registry: List = []
-        if self.registry_opts["type"] == "external":
-            self.registry = []
-        if self.registry_opts["type"] == "internal" or registry is not None:
-            _registry = registry[0] if registry else agent[0]
-            self.registry = [_registry]
+        self.registry_opts = dict(registry_opts) if registry_opts else REGISTRY_OPTS
+        if registry is not None:
             self.registry_opts["type"] = "internal"
-            self.registry_opts["ip"] = _registry.address
+
+        self.registry: List[Host] = []
+        if self.registry_opts["type"] == "internal":
+            if registry is not None:
+                _registry_host = registry[0]
+            elif agent is not None:
+                _registry_host = agent[0]
+            else:
+                raise ValueError(
+                    "'registry' and 'agent' parameters cannot both be None"
+                )
+            self.registry = [_registry_host]
+            self.registry_opts["ip"] = _registry_host.address
             if self.registry_opts.get("port") is None:
                 self.registry_opts["port"] = 5000
 
