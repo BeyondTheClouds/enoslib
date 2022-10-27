@@ -2,7 +2,7 @@ import logging
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
 
 provider_conf = {
     "resources": {
@@ -24,6 +24,7 @@ provider_conf = {
 
 conf = en.VagrantConf.from_dictionary(provider_conf)
 provider = en.Vagrant(conf)
+
 roles, networks = provider.init()
 
 with en.actions(roles=roles) as p:
@@ -31,21 +32,6 @@ with en.actions(roles=roles) as p:
 
 with en.actions(pattern_hosts="client", roles=roles) as p:
     p.debug(msg="{{ inventory_hostname  }}")
-    # this fails
-    # p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
-
-with en.actions(pattern_hosts="control", roles=roles) as p:
-    p.debug(msg="{{ inventory_hostname  }}")
-
-with en.actions(pattern_hosts="client", roles=roles, gather_facts="control") as p:
-    p.debug(msg="{{ inventory_hostname  }}")
-    # This doesn't fail because we gather facts on the control host
-    p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
-
-with en.actions(pattern_hosts="client", roles=roles, gather_facts="all") as p:
-    p.debug(msg="{{ inventory_hostname  }}")
-    # This doesn't fail because we gather facts on all hosts
-    p.debug(msg="{{ hostvars[groups['control'][0]].ansible_fqdn }}")
 
 # Using the actions wrapper allows for using a list of hosts instead of a Roles object
 with en.actions(roles=roles["client"]) as p:
