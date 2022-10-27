@@ -75,12 +75,16 @@ class Docker(Service):
 
             .. code-block:: python
 
-                # Use an internal registry on the first agent
+                # Simply install the docker agent without any registry
                 docker = Docker(agent=roles["agent"])
 
-                # Use an internal registry on the specified host
+                # Install and use an internal registry on the specified host
                 docker = Docker(agent=roles["agent"],
                                 registry=roles["registry"])
+
+                # Install and use an internal registry on the first agent
+                docker = Docker(agent=roles["agent"],
+                                registry_opts=dict(type="internal"))
 
                 # Use an external registry
                 docker = Docker(agent=roles["compute"] + roles["control"],
