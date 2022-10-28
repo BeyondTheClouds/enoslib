@@ -324,6 +324,8 @@ class G5kVlanNetwork(G5kNetwork):
         A vlan in G5k has 2 flavours IPv4 and IPv6 so
         we generate both generic network type here corresponding to this vlan.
         """
+        # Beware: the order of networks (IPv4 then IPv6) is now part of
+        # the public Enoslib API and users rely on it, so don't change it!
         return (
             self.roles,
             [
