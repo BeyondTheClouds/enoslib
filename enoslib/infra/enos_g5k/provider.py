@@ -40,7 +40,7 @@ from enoslib.infra.enos_g5k.constants import (
     SLASH_16,
     SLASH_22,
 )
-from enoslib.infra.enos_g5k.driver import get_driver
+from enoslib.infra.enos_g5k.driver import get_driver, Job
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
@@ -432,7 +432,15 @@ def check() -> List[Tuple[str, bool, str]]:
 
 
 class G5kBase(Provider):
-    """(internal)Provider dedicated to single site interaction."""
+    """Internal class.
+
+    Provider dedicated to single site interaction.
+
+    Attributes:
+        jobs (list): List of `Grid'5000 Job objects
+            <https://api.grid5000.fr/doc/stable/#tag/job/paths/~1stable~1sites~1{siteId}~1jobs~1{jobId}/get>`_
+            managed by this provider
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -539,7 +547,7 @@ class G5kBase(Provider):
         self.driver.destroy(wait=wait)
 
     @property
-    def jobs(self):
+    def jobs(self) -> List[Job]:
         return self.driver.get_jobs()
 
     def launch(self):
