@@ -169,10 +169,15 @@ test_ansible_2_9: &ansible
       python3 -m pip install -e .[analysis]
       cd enoslib/tests/functional
 
+      # Make sure we perform all tests and then display a summary
+      failures=""
+      retcode=0
       for test in ${FUNCTIONAL_TESTS}
       do
-        python3 ${test}
+        python3 ${test} || { retcode=$?; failures="$failures $test"; }
       done
+      [ -n "$failures" ] && echo "FAILED TESTS: $failures"
+      exit $retcode
 
 test_ansible_2_10:
   <<: *ansible
@@ -218,10 +223,15 @@ test_functional$debian11$: &debian11
       # test_dstat needs pandas
       python3 -m pip install -e .[analysis]
       cd enoslib/tests/functional
+      # Make sure we perform all tests and then display a summary
+      failures=""
+      retcode=0
       for test in ${FUNCTIONAL_TESTS}
       do
-        python3 ${test}
+        python3 ${test} || { retcode=$?; failures="$failures $test"; }
       done
+      [ -n "$failures" ] && echo "FAILED TESTS: $failures"
+      exit $retcode
 
 
 ## debian 10
