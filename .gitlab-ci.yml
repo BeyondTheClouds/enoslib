@@ -155,8 +155,13 @@ test_ansible_2_9: &ansible
   script:
     - |
       apt update
-      apt install -y python3 python3-pip iproute2 cmake zlib1g-dev libssl-dev libffi-dev
+      # procps is required for "kill" for the dstat test
+      apt install --no-install-recommends -y python3 python3-pip python3-venv iproute2 procps
       ip a
+      # Create virtualenv
+      python3 -m venv /tmp/venv
+      . /tmp/venv/bin/activate
+      python3 -m pip install -U pip wheel
       # Test several versions of ansible
       python3 -m pip install ansible${ANSIBLE_VERSION}
       python3 -m pip install -e .
@@ -200,12 +205,19 @@ test_static_run_command$debian11$: &debian11
   stage: functional
   tags: [ci.inria.fr]
   script:
-    - apt update
-    - apt install -y python3 python3-pip iproute2 cmake zlib1g-dev libssl-dev libffi-dev
-    - ip a
-    - python3 -m pip install -e .[analysis]
-    - cd enoslib/tests/functional
-    - python3 ${CI_JOB_NAME//$*$/}.py
+    - |
+      apt update
+      # procps is required for "kill" for the dstat test
+      apt install --no-install-recommends -y python3 python3-pip python3-venv iproute2 procps
+      ip a
+      # Create virtualenv
+      python3 -m venv /tmp/venv
+      . /tmp/venv/bin/activate
+      python3 -m pip install -U pip wheel
+      # test_dstat needs pandas
+      python3 -m pip install -e .[analysis]
+      cd enoslib/tests/functional
+      python3 ${CI_JOB_NAME//$*$/}.py
 
 test_static_gather_facts$debian11$:
   <<: *debian11
