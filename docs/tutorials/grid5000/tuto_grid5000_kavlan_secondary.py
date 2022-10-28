@@ -4,12 +4,11 @@ from pathlib import Path
 import enoslib as en
 
 en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
 
-SITE = "rennes"
-
-private_net = en.G5kNetworkConf(type="kavlan", roles=["private"], site=SITE)
+private_net = en.G5kNetworkConf(type="kavlan", roles=["private"], site="rennes")
 
 conf = (
     en.G5kConf.from_settings(

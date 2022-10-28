@@ -4,8 +4,8 @@ from pathlib import Path
 import enoslib as en
 from enoslib.service.emul.utils import _validate
 
-
-logging.basicConfig(level=logging.INFO)
+en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
 

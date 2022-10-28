@@ -1,3 +1,4 @@
+import logging
 import traceback
 from pathlib import Path
 from typing import Dict
@@ -6,7 +7,8 @@ from execo_engine import ParamSweeper, sweep
 
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
 
 CLUSTER = "paranoia"
 

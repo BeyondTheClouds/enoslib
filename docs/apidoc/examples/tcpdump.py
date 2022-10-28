@@ -5,16 +5,16 @@ from pathlib import Path
 import enoslib as en
 from scapy.all import rdpcap
 
-logging.basicConfig(level=logging.INFO)
+en.init_logging(level=logging.INFO)
+en.check()
 
 
 CLUSTER = "parasilo"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
-
 job_name = Path(__file__).name
 
 # claim the resources
-conf = en.G5kConf.from_settings(job_type=[], job_name=job_name)
+conf = en.G5kConf.from_settings(job_name=job_name, walltime="0:20:00", job_type=[])
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf.add_network_conf(network).add_machine(
     roles=["control", "client"], cluster=CLUSTER, nodes=1, primary_network=network
@@ -30,7 +30,7 @@ roles = en.sync_info(roles, networks)
 # start a capture
 # - on all the interface configured on the my_network network
 # - we dump icmp traffic only
-# - for the duration of the commands (here a client is pigging the server)
+# - for the duration of the commands (here a client is pinging the server)
 with en.TCPDump(
     hosts=roles["control"], networks=networks["my_network"], options="icmp"
 ) as t:

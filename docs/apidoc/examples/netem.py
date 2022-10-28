@@ -1,6 +1,8 @@
+import logging
+
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
 
 conf = (
     en.VagrantConf()

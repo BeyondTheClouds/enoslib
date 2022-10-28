@@ -6,6 +6,7 @@ FORCE = False
 CLUSTER = "parasilo"
 
 en.init_logging()
+en.check()
 
 job_name = Path(__file__).name
 

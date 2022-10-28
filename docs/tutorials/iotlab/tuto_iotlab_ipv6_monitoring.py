@@ -1,8 +1,11 @@
+import logging
 import time
 from ipaddress import IPv6Network
 
 import enoslib as en
 
+en.init_logging(level=logging.INFO)
+en.check()
 
 # IoT-LAB provider configuration
 iotlab_dict = {

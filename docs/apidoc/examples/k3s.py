@@ -1,10 +1,16 @@
+import logging
+from pathlib import Path
+
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
+
+job_name = Path(__file__).name
 
 # claim the resources
 conf = (
-    en.G5kConf.from_settings(walltime="0:45:00", job_type=[], job_name="k3s")
+    en.G5kConf.from_settings(job_name=job_name, walltime="0:45:00", job_type=[])
     .add_machine(roles=["master"], cluster="paravance", nodes=1)
     .add_machine(roles=["agent"], cluster="paravance", nodes=10)
     .finalize()

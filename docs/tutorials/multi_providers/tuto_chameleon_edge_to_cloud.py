@@ -9,6 +9,7 @@ import os
 
 en.init_logging(level=logging.INFO)
 logging.basicConfig(level=logging.INFO)
+en.check()
 
 prefix = os.getlogin()
 _walltime = "02:00:00"

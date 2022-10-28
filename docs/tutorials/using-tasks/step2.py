@@ -1,7 +1,9 @@
+import logging
+
 import enoslib as en
 
-en.init_logging()
-
+en.init_logging(level=logging.INFO)
+en.check()
 
 provider_conf = {
     "backend": "libvirt",

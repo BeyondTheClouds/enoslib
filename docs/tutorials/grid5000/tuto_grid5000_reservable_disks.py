@@ -5,17 +5,15 @@ from pathlib import Path
 import enoslib as en
 
 en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
-
-SITE = "rennes"
-CLUSTER = "grimoire"
 
 conf = en.G5kConf.from_settings(
     job_name=job_name, job_type=[], walltime="0:30:00"
 ).add_machine(
     roles=["storage"],
-    cluster=CLUSTER,
+    cluster="grimoire",
     nodes=2,
     reservable_disks=True,
 )

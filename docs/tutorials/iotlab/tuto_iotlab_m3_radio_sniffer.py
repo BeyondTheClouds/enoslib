@@ -1,11 +1,11 @@
-import enoslib as en
-
 import logging
-import sys
 import time
 import contextlib
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+import enoslib as en
+
+en.init_logging(level=logging.INFO)
+en.check()
 
 provider_conf = {
     "walltime": "01:00",

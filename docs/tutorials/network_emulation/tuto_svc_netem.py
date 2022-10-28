@@ -2,7 +2,8 @@ import logging
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
+en.check()
 
 conf = (
     en.G5kConf.from_settings(job_type=[], walltime="01:00:00")

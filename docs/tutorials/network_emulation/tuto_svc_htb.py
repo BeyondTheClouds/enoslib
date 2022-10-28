@@ -3,7 +3,8 @@ from pathlib import Path
 
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
 

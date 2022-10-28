@@ -3,10 +3,10 @@ from pathlib import Path
 
 import enoslib as en
 
-_ = en.init_logging(logging.INFO)
+en.init_logging(logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
-
 
 conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[], walltime="0:10:00")
