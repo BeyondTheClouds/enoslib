@@ -1,7 +1,4 @@
-from enoslib import run_command
-from enoslib.api import sync_info
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
+import enoslib as en
 
 import logging
 import sys
@@ -25,15 +22,15 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 try:
     roles, networks = p.init()
-    roles = sync_info(roles, networks)
+    roles = en.sync_info(roles, networks)
     print(roles)
     print("A8 nodes have a simple linux OS. We can run 'date' command in them.")
-    result = run_command(command="date", pattern_hosts="my_a8*", roles=roles)
+    result = en.run_command(command="date", pattern_hosts="my_a8*", roles=roles)
     print("Results:")
     json.dump(result["ok"], sys.stdout, indent=2)
     json.dump(result["error"], sys.stderr, indent=2)

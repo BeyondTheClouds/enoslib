@@ -1,5 +1,4 @@
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
+import enoslib as en
 
 import logging
 import sys
@@ -38,9 +37,9 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 try:
 
     roles, networks = p.init()

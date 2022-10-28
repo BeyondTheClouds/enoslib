@@ -1,6 +1,4 @@
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
-from enoslib.infra.enos_iotlab.objects import IotlabSerial, IotlabSniffer
+import enoslib as en
 
 import logging
 import sys
@@ -45,9 +43,9 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 try:
 
     roles, networks = p.init()
@@ -57,9 +55,9 @@ try:
     sensor = roles["sensor"][0]
 
     with contextlib.ExitStack() as stack:
-        stack.enter_context(IotlabSniffer(sniffer))
-        s_sniffer = stack.enter_context(IotlabSerial(sniffer, interactive=True))
-        s_sensor = stack.enter_context(IotlabSerial(sensor, interactive=True))
+        stack.enter_context(en.IotlabSniffer(sniffer))
+        s_sniffer = stack.enter_context(en.IotlabSerial(sniffer, interactive=True))
+        s_sensor = stack.enter_context(en.IotlabSerial(sensor, interactive=True))
 
         print("Send a small packet with the sniffer (%s)" % sniffer.alias)
         s_sniffer.write("s")
