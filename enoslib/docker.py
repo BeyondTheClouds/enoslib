@@ -52,7 +52,7 @@ class DockerHost(Host):
 
     Args:
         alias: **unique** name across the deployment
-        name: name of the docker container on the remote hosts
+        container_name: name of the docker container on the remote host
         host: the host where the container can be found
         proto: how to connect to the remote host
                (DockerHost.PROTO_TCP/DockerHost.PROTO_SSH)
