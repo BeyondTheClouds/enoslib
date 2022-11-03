@@ -444,16 +444,31 @@ class Results(list):
     EnOSlib manage the results as a flat list of individual result (one per host
     and command) but allow for some filtering to be done.
 
-    Examples:
+    Example with a single command:
 
         .. code-block:: python
 
             result = en.run_command("date", roles=roles)
-            # print the stdout of foo-1
-            print(result.filter(host="foo-1").stdout)
+            # print the stdout of command on host "foo-1"
+            print([res.stdout for res in result.filter(host="foo-1")])
 
-            # get all the stderr of ko tasks (note the plural form)
-            print(result.filter(status=STATUS_FAILED).stderrs)
+            # get the stderr of failed tasks on all hosts
+            [res.stderr for res in result.filter(status=enoslib.STATUS_FAILED)]
+
+            # get all unreachable hosts
+            [res.host for res in result.filter(status=enoslib.STATUS_UNREACHABLE)]
+
+    Example with multiple commands:
+
+        .. code-block:: python
+
+            with en.actions(roles=roles) as a:
+                a.apt(task_name="Install htop", name="htop", state="present")
+                a.command(task_name="Get date", cmd="date")
+                results = a.results
+
+            # print the stdout of "Get date" tasks on all hosts
+            print([res.stdout for res in result.filter(task="Get date")])
     """
 
     def filter(self, **kwargs):
