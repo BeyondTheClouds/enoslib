@@ -1,0 +1,27 @@
+
+metadata_dir = "/dev/shm/meta"
+data_dir = "/tmp/data"
+
+replication_mode = "3"
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "{{ ansible_default_ipv4.address }}:3901"
+# FIXME: change this in production
+rpc_secret = "5262cb0c8c1db1ddd3b8b910d95125fc22453cc092fc89539511faa7dea8dcf3"
+
+bootstrap_peers = []
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.garage.localhost"
+index = "index.html"
+
+[admin]
+api_bind_addr = "[::]:3903"
+# FIXME: change this in production
+admin_token = "d86b5714b2b2f279cf6cf2c01d88218e124deec8fc553b85e53ac50cbc81c02d"
