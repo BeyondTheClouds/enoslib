@@ -30,7 +30,7 @@ In this context, EnOSlib smoothes the experimental code and can
 - integrate your code with interactive development environment like Jupyter.
 
 
-.. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/master/pipeline.svg
+.. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/main/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines
 
 .. |License| image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
