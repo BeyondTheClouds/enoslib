@@ -18,8 +18,8 @@ job_name = Path(__file__).name
 
 
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, walltime="0:50:00", job_type=[])
-    .add_machine(roles=["control"], cluster="ecotype", nodes=3)
+    en.G5kConf.from_settings(job_name=job_name, walltime="0:30:00", job_type=[])
+    .add_machine(roles=["control"], cluster="ecotype", nodes=2)
     .finalize()
 )
 
@@ -35,8 +35,8 @@ d = en.Docker(
 )
 d.deploy()
 
-# Start N containers on each G5K host (for a total of 3*N containers)
-N = 25
+# Start N containers on each G5K host (for a total of 2*N containers)
+N = 4
 with en.play_on(roles=roles) as p:
     p.raw("modprobe ifb")
     for i in range(N):
@@ -56,16 +56,16 @@ dockers = en.get_dockers(roles=roles)
 sources = []
 for idx, host in enumerate(dockers):
     delay = idx
-    print(f"{host.alias} <-> {delay}")
+    print(f"{host.alias} <-> {delay}ms")
     inbound = en.NetemOutConstraint(device="eth0", options=f"delay {delay}ms")
     outbound = en.NetemInConstraint(device="eth0", options=f"delay {delay}ms")
     sources.append(en.NetemInOutSource(host, constraints={inbound, outbound}))
 
-
-# TODO: the following doesn't work, it seems to try the local Docker
-# daemon instead of connecting through SSH.
-
+# This requires the Docker client to be installed on the local machine.
+# Also, it might not work well because SSH connections are handled by Docker.
+# See https://gitlab.inria.fr/discovery/enoslib/-/issues/163 for discussion
 with en.play_on(roles=dockers, gather_facts=False) as p:
-    p.apt(name="iproute2", state="present", update_cache="yes")
+    # We can't use the 'apt' module because python is not installed in containers
+    p.raw("apt update && DEBIAN_FRONTEND=noninteractive apt install -qq -y iproute2")
 
 en.netem(sources)
