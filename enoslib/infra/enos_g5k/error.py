@@ -47,6 +47,11 @@ class EnosG5kWalltimeFormatError(EnosError):
         super().__init__("Walltime must be specified in HH:MM:SS format")
 
 
+class EnosG5kInvalidJobTypesError(EnosError):
+    def __init__(self, job_types: List[str]):
+        super().__init__(f"Invalid job types: {job_types}")
+
+
 class EnosG5kReservationDateFormatError(EnosError):
     def __init__(self):
         super().__init__(
