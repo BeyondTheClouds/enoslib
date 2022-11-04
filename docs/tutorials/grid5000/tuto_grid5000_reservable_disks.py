@@ -63,7 +63,7 @@ with en.actions(roles=roles) as p:
     p.command("mdadm --stop /dev/md0", task_name="Stop RAID array")
     p.command(f"wipefs -a {raid_parts}", task_name="Wipe RAID signatures")
 
-    results = p.results
+results = p.results
 
 # Get output of FIO and print result
 res_per_node = {res.host: res.stdout for res in results.filter(task="Run fio")}

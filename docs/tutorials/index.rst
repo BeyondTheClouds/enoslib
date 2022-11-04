@@ -13,6 +13,7 @@
     chameleon
     iotlab
     multi_providers
+    reproducibility
     using-tasks
     sync-info
     docker
