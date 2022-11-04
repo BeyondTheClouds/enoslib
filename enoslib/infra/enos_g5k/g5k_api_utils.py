@@ -623,6 +623,10 @@ def can_start_on_cluster(
     candidates = []
     # node is the uid, e.g: paranoia-8.rennes.grid5000.fr
     for node, status in nodes_status.items():
+        hardware_state = status.get("hard")
+        # Dead or Suspected nodes can't be used
+        if hardware_state in ("dead", "suspected"):
+            continue
         reservations = status.get("reservations", [])
         # we search for the overlapping reservations
         overlapping_reservations = []
