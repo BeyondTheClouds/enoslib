@@ -12,7 +12,7 @@
       ^^^
 
       Make your experiment span one or more testbeds like Grid'5000, IOTlab,
-      Chameleon
+      Chameleon.
 
 
    .. grid-item-card::
@@ -22,6 +22,15 @@
       ^^^
 
       Control your experiments from Jupyter. Ideal for lab class.
+
+
+   .. grid-item-card::
+      :link: tutorials/reproducibility.html
+
+      :octicon:`rocket;2em;sd-text-info` Reproducibility
+      ^^^
+
+      |enoslib| helps you design reproducible experiments.
 
 
    .. grid-item-card::
@@ -39,28 +48,25 @@
       :octicon:`telescope;2em;sd-text-info` Services
       ^^^
 
-      |enoslib| is shipped with various facilities for your experiments
+      |enoslib| is shipped with various facilities for your experiments.
 
 
    .. grid-item-card::
-      :link: https://pypi.org/project/enoslib/
-
-      :octicon:`package;2em;sd-text-info` Get Started
-      ^^^
-
-      ``pip install enoslib``
-
-
-   .. grid-item-card::
-      :link: https://gitlab.inria.fr/discovery/enoslib
+      :link: https://framateam.org/enoslib
 
       :octicon:`people;2em;sd-text-info` Community
       ^^^
 
+      Come say *Hi* in our chat room :)
 
-      Come say *Hi* in our `chat room <https://framateam.org/enoslib>`_ :)
 
-      |enoslib| is licensed under GPLv3
+   .. grid-item-card::
+      :link: https://gitlab.inria.fr/discovery/enoslib/
+
+      :octicon:`file-code;2em;sd-text-info` Open Source
+      ^^^
+
+      |enoslib| is licensed under the GPLv3.
 
 
 At a glance
@@ -71,6 +77,17 @@ The tip of the Iceberg featuring Grid'5000 testbed and a dummy benchmark.
 .. raw:: html
 
    <script id="asciicast-zFHSJ2PkXnvI5K18vECdhRvgZ" src="https://asciinema.org/a/zFHSJ2PkXnvI5K18vECdhRvgZ.js" data-speed="2" data-rows="50" async></script>
+
+
+Getting started
+---------------
+
+Enoslib is a Python package:
+
+``pip install enoslib``
+
+Then follow our :doc:`Jupyter tutorials </jupyter/index>` or :doc:`complete tutorials </tutorials/index>`.
+
 
 .. toctree::
    :maxdepth: 2
