@@ -171,7 +171,8 @@ with en.actions(roles=roles["nantes"]) as p:
     p.copy(dest="/tmp/ping.py", content=pingscript)
     for target in targets:
         p.command(f"python3 /tmp/ping.py {target}", task_name=f"ping {target}")
-    results = p.results
+
+results = p.results
 
 # Print all pairs of pings and check validity
 for (target_node, target) in zip(target_nodes, targets):

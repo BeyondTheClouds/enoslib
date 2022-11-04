@@ -24,10 +24,10 @@ roles, networks = provider.init()
 
 with en.actions(roles=roles["garage"], gather_facts=True) as p:
     p.get_url(
+        task_name="Download garage",
         url=GARAGE_URL,
         dest="/tmp/garage",
         mode="755",
-        task_name="Download garage",
     )
     p.template(
         task_name="Create config",
@@ -48,9 +48,9 @@ with en.actions(roles=roles["garage"], gather_facts=True) as p:
         task_name="Get node ID",
         cmd="/tmp/garage -c /tmp/garage.toml node id -q",
     )
-    results = p.results
 
 # Collect Garage nodes ID in a dictionary
+results = p.results
 nodes_id = {r.host: r.stdout for r in results.filter(task="Get node ID")}
 
 with en.actions(roles=roles["garage"], gather_facts=False) as p:
