@@ -8,23 +8,23 @@ en.check()
 
 job_name = Path(__file__).name
 
-# claim the resources
-network = en.G5kNetworkConf(type="prod", roles=["my_network"], site="rennes")
-
 conf = (
-    en.G5kConf.from_settings(job_type=[], job_name=job_name, walltime="0:10:00")
-    .add_network_conf(network)
+    en.G5kConf()
+    .from_settings(job_name=job_name, walltime="0:10:00")
     .add_machine(
-        roles=["control"], cluster="paravance", nodes=1, primary_network=network
+        roles=["compute"],
+        servers=["paravance-19.rennes.grid5000.fr"],
     )
     .add_machine(
-        roles=["control", "network"],
+        roles=["compute"],
+        servers=["parasilo-28.rennes.grid5000.fr"],
+    )
+    .add_machine(
+        roles=["control"],
         cluster="paravance",
         nodes=1,
-        primary_network=network,
     )
 )
-
 
 provider = en.G5k(conf)
 

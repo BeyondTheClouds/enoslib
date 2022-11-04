@@ -1,19 +1,18 @@
+import logging
+from pathlib import Path
+
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
+
+job_name = Path(__file__).name
 
 # claim the resources
-network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site="rennes")
-
 conf = (
-    en.G5kConf.from_settings(job_type=[], job_name="k3s")
-    .add_network_conf(network)
-    .add_machine(
-        roles=["master"], cluster="paravance", nodes=1, primary_network=network
-    )
-    .add_machine(
-        roles=["agent"], cluster="parapluie", nodes=10, primary_network=network
-    )
+    en.G5kConf.from_settings(job_name=job_name, walltime="0:45:00", job_type=[])
+    .add_machine(roles=["master"], cluster="paravance", nodes=1)
+    .add_machine(roles=["agent"], cluster="paravance", nodes=10)
     .finalize()
 )
 

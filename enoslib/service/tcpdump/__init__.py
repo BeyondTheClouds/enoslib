@@ -21,7 +21,8 @@ class TCPDump(Service):
         options: str = "",
         backup_dir: Union[Path, str] = None,
     ):
-        """Monitor network traffic using tcpdump.
+        """
+        Monitor network traffic using tcpdump.
 
         This connects to every host to launch as many tcpdump processes as
         network interfaces to monitor.  The pcap files can be retrieved and

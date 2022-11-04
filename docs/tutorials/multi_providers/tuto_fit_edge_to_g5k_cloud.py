@@ -1,5 +1,5 @@
-# Chameleon User Guide: Edge to Cloud
-# This example is based on:
+# Edge to Cloud example with Iot-Lab and Grid'5000
+# This example is inspired from:
 # https://www.chameleoncloud.org/experiment/share/37991779-fd7b-4ab0-8d6f-e726a9204946
 
 from ipaddress import IPv6Interface
@@ -8,6 +8,7 @@ import enoslib as en
 import os
 
 en.init_logging(level=logging.INFO)
+en.check()
 
 prefix = os.getlogin()
 _walltime = "02:00:00"

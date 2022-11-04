@@ -1,11 +1,10 @@
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
-
 import logging
-import sys
 import time
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+import enoslib as en
+
+en.init_logging(level=logging.INFO)
+en.check()
 
 provider_conf = {
     "walltime": "01:00",
@@ -38,9 +37,9 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 try:
 
     roles, networks = p.init()

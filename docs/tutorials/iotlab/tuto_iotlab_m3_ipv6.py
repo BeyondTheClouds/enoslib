@@ -1,8 +1,11 @@
+import logging
 import re
 
 import enoslib as en
 import iotlabcli.auth
 
+en.init_logging(level=logging.INFO)
+en.check()
 
 provider_conf = {
     "walltime": "01:00",

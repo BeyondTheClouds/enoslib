@@ -7,9 +7,9 @@ infrastructure provider such as:
 - OVH: http://ovh.com
 - Chameleon Cloud: https://www.chameleoncloud.org/
 - Gulliver: https://gulliver.saclay.inria.fr/
-and many others.
+- and many others.
 
-The supported deployment model let's you get a bunch of compute servers, a
+The supported deployment model lets you get a bunch of compute servers, a
 single private network. One of your server can act as a gateway and will be
 assigned a floating IP (EnOSlib hosts will be configured accordingly).
 

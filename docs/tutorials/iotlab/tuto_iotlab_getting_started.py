@@ -1,13 +1,11 @@
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
-from enoslib.infra.enos_iotlab.objects import IotlabSerial
-
 import logging
-import sys
 import time
 import threading
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+import enoslib as en
+
+en.init_logging(level=logging.INFO)
+en.check()
 
 stop_reading = False
 
@@ -46,16 +44,16 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 try:
     roles, networks = p.init()
     print(roles)
 
     sender = roles["sender"][0]
     receiver = roles["receiver"][0]
-    with IotlabSerial(sender, interactive=True) as s_sender, IotlabSerial(
+    with en.IotlabSerial(sender, interactive=True) as s_sender, en.IotlabSerial(
         receiver, interactive=True
     ) as s_receiver:
 

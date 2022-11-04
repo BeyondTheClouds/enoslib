@@ -1,7 +1,7 @@
 Installation
 ============
 
-On Grid'5000, you can go with a virtualenv :
+To use Grid'5000 with Enoslib, you can go with a virtualenv :
 
 .. code-block:: bash
 
@@ -29,19 +29,19 @@ the home directory. It can be created with the following:
    chmod 600 ~/.python-grid5000.yaml
 
 
-With the above you can access the Grid'5000 API from you local machine aswell.
+The above configuration should work both from a Grid'5000 frontend machine
+and from your local machine as well.
 
 
-External access
----------------
+External access (from your laptop)
+----------------------------------
 
-If you want to control you experiment from the outside of Grid'5000 (e.g from your local machine) you can refer to the following. You can jump this section if you work from inside Grid'5000.
-
-SSH external access
-^^^^^^^^^^^^^^^^^^^
+If you want to control your experiments from outside Grid'5000 (e.g from
+your local machine) you can refer to the following.  Jump this section if
+you only plan to work from inside Grid'5000.
 
 - Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
-- Solution 2: configure you ``~/.ssh/config`` properly:
+- Solution 2: configure your ``~/.ssh/config`` properly:
 
 ::
 
@@ -53,37 +53,12 @@ SSH external access
       UserKnownHostsFile /dev/null
       ForwardAgent yes
 
+.. hint::
 
-
-Accessing HTTP services inside Grid'5000
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you want to control your experiment from the outside of Grid'5000 (e.g from your local machine), you'll need to access the Distem server running on a node deployed by the Distem Provider. To access it externally from your local machine, you can either:
-
-- Solution 1 (general): use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
-- Solution 2 (HTTP traffic only): create a socks tunnel from your local machine   to Grid'5000
-
-   ::
-
-
-      # on one shell
-      ssh -ND 2100 access.grid5000.fr
-
-      # on another shell
-      export https_proxy="socks5h://localhost:2100"
-      export http_proxy="socks5h://localhost:2100"
-
-      # Note that browsers can work with proxy socks
-      chromium-browser --proxy-server="socks5://127.0.0.1:2100" &
-
-- Solution 3 (ad-hoc): create a forwarding port tunnel
-
-   ::
-
-
-      # on one shell
-      ssh -NL 3000:paravance-42.rennes.grid5000.fr:3000 access.grid5000.fr
-
-      # Now all traffic that goes on localhost:3000 is forwarded to paravance-42.rennes.grid5000.fr:3000
-
-- Solution 3' : The same but programmatically with :py:class:`~enoslib.infra.enos_g5k.provider.G5kTunnel` (See also :ref:`g5k_tunnel`)
+   This SSH configuration might not work properly if you want to control a
+   larger number of nodes (around 14 or more), because it generates too
+   many SSH connections on the Grid'5000 jump host.  Please report any
+   issue you face `on the dedicated bug report
+   <https://gitlab.inria.fr/discovery/enoslib/-/issues/147>`_.  In the
+   meantime, the workaround is to use the Grid'5000 VPN or to work
+   directly inside Grid'5000.

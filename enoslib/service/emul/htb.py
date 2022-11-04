@@ -255,7 +255,7 @@ def netem_htb(htb_hosts: List[HTBSource], chunk_size: int = 100, **kwargs):
     Args:
         htb_hosts : list of constraints to apply.
         chunk_size: size of the chunk to use
-        kwargs: keyword arguments passed to :py:fun:`enoslib.api.run_ansible`
+        kwargs: keyword arguments passed to :py:func:`enoslib.api.run_ansible`
 
     Examples:
 
@@ -323,6 +323,10 @@ class NetemHTB(BaseNetem):
                 resources (default to all networks)
             symmetric: True iff the symmetric rules should be also added.
 
+        Returns:
+            The current service with updated constraints.
+            (This allows to chain the addition of constraints)
+
         Examples:
 
             .. literalinclude:: ../tutorials/network_emulation/tuto_svc_htb_build.py
@@ -335,9 +339,6 @@ class NetemHTB(BaseNetem):
                 :language: python
                 :linenos:
 
-        Returns:
-            The current service with updated constraints.
-            (This allows to chain the addition of constraints)
         """
         if symetric is not None:  # Remove when deprecation phase will be ended
             symmetric = symetric
@@ -479,11 +480,11 @@ class NetemHTB(BaseNetem):
         used by enos.
 
         Args:
-            roles(dict): role -> hosts mapping as returned by
-                : py: meth: `enoslib.infra.provider.Provider.init`
-            inventory_path(str): path to an inventory
-            output_dir(str): directory where validation files will be stored.
-                Default to: py: const: `enoslib.constants.TMP_DIRNAME`.
+            roles (dict): role -> hosts mapping as returned by
+                :py:meth:`enoslib.infra.provider.Provider.init`
+            inventory_path (str): path to an inventory
+            output_dir (str): directory where validation files will be stored.
+                Default to :py:const:`enoslib.constants.TMP_DIRNAME`.
         """
         if output_dir is None:
             output_dir = Path.cwd() / TMP_DIRNAME
@@ -512,13 +513,13 @@ class AccurateNetemHTB(NetemHTB):
     of:
 
     - the latency for a packet to go out of the first machine
-    (e.g. IP stack latency + network card latency).
+      (e.g. IP stack latency + network card latency).
 
     - the latency for the packet to flight to the second machine
-    (e.g. network, middle-boxes latency)
+      (e.g. network, middle-boxes latency)
 
     - the latency for a packet to be transferred to the application on the second
-    machine.
+      machine.
 
     This service tries the compensated the extra latency added to outgoing
     packets by TC so that the End-to-End latency stick to the one specified by

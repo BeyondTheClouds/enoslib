@@ -26,6 +26,7 @@ def _get_address(host: Host, networks: Optional[Iterable[Network]]) -> str:
     Args:
         host: Host information
         networks: List of networks
+
     Returns:
         str: IP address from host
     """

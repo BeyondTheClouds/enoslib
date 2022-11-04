@@ -6,7 +6,7 @@ Managing Docker Containers
    :depth: 2
 
 
-For some use cases, remote a Docker container can be seen as special
+For some use cases, a remote Docker container can be seen as a special
 ``Host``. |enoslib| provides a ``DockerHost`` abstraction that helps in
 controlling remote Docker Containers.
 

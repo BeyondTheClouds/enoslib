@@ -14,8 +14,8 @@ used directly.
     :members: ResourcesSet, RolesDict
 
 
-Resource's abstractions
-----------------------
+Resource abstractions
+---------------------
 
 .. automodule:: enoslib.objects
     :members: Network, DefaultNetwork, Host, HostsView, Roles, Networks, NetworksView

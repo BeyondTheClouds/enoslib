@@ -23,6 +23,11 @@ class Provider:
     :py:meth:`~enoslib.infra.provider.Provider.init` with the ``start_time``
     parameter set.
 
+    Args:
+        provider_conf (BaseConfiguration): configuration of the provider.
+            The configuration object is specific to each provider and must follow
+            the provider's schema
+
     Example:
 
         Typical workflow:
@@ -51,11 +56,6 @@ class Provider:
                     ...
                 # Resources are automatically released at the end
 
-
-    Args:
-        provider_conf (BaseConfiguration): configuration of the provider.
-            The configuration object is specific to each provider and must follow
-            the provider's schema
     """
 
     __metaclass__ = ABCMeta
@@ -77,9 +77,9 @@ class Provider:
         and networks).
 
         Args:
-            force_deploy: boolean
+            force_deploy (bool):
                 Indicates that the resources must be redeployed.
-            start_time: timestamp (int)
+            start_time (timestamp (int)):
                 Date (UTC) when you want to have your resources ready.
 
         Returns:
@@ -132,9 +132,9 @@ class Provider:
         The two latter are found in the internal configuration.
 
         Args:
-            start_time: timestamp (seconds)
+            start_time (timestamp (int)):
                 Test for a possible slot that starts at start_time (UTC)
-            end_time: timestamp (seconds)
+            end_time: (timestamp (int)):
                 How much time in the future we should look for possible reservation.
                 This is used on some platform to know how much time in the
                 future we look in the planning data. Timestamp is based on UTC.
@@ -150,7 +150,7 @@ class Provider:
         Ignored on platform that aren't based on a reservation system.
 
         Args:
-            timestamp: timestamp (seconds)
+            timestamp (timestamp (int)):
                 The reservation date (UTC) as timestamp in seconds.
         """
         pass

@@ -1,8 +1,10 @@
+import logging
 from pathlib import Path
 
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
 
@@ -10,17 +12,17 @@ conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[])
     .add_machine(
         roles=["city", "paris"],
-        cluster="parapluie",
+        cluster="paravance",
         nodes=1,
     )
     .add_machine(
         roles=["city", "berlin"],
-        cluster="parapluie",
+        cluster="paravance",
         nodes=1,
     )
     .add_machine(
         roles=["city", "londres"],
-        cluster="parapluie",
+        cluster="paravance",
         nodes=1,
     )
 )

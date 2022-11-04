@@ -68,6 +68,7 @@ class IotlabAPI:
 
         Args:
             resources: list of resources from schema configuration
+
         Returns:
             list: list of iotlabcli.experiment.exp_resources
         """
@@ -186,6 +187,7 @@ class IotlabAPI:
 
         Args:
             name: Job name
+
         Returns:
             int, int: (job identifier, walltime) or (None, None) if not found
         """
@@ -230,6 +232,7 @@ class IotlabAPI:
             resources: List of nodes in job
             start_time: Time at which you precisely wish to start the job,
             by default None
+
         Returns:
             list: List with nodes name
         """
@@ -434,6 +437,7 @@ or choose other nodes"""
 
         Args:
             name: Profile name to be created
+
         Returns:
             bool: True if profile already exists, false otherwise
         """

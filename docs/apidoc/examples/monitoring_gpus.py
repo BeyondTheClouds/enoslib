@@ -1,11 +1,16 @@
 import json
+import logging
+from pathlib import Path
 import time
 
 import requests
 
 import enoslib as en
 
-en.init_logging()
+en.init_logging(level=logging.INFO)
+en.check()
+
+job_name = Path(__file__).name
 
 
 # They have GPU in lille !
@@ -14,7 +19,7 @@ SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 
 # claim the resources
-conf = en.G5kConf.from_settings(job_type=[], job_name="test-non-deploy")
+conf = en.G5kConf.from_settings(job_name=job_name, walltime="0:30:00", job_type=[])
 network = en.G5kNetworkConf(id="n1", type="prod", roles=["my_network"], site=SITE)
 conf.add_network_conf(network).add_machine(
     roles=["control"], cluster=CLUSTER, nodes=1, primary_network=network

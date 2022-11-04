@@ -5,7 +5,7 @@ Parameters exploration
 **********************
 
 
-This tutorial illustrates how parameters can be explored. The cornerstone here is the excellent `Execo ParamSweeper <http://execo.gforge.inria.fr/>`_.
+This tutorial illustrates how parameters can be explored. The cornerstone here is the excellent `Execo ParamSweeper <https://mimbert.gitlabpages.inria.fr/execo/>`_.
 For the illustration purpose we consider the following question:
 
 - How the network performance is impacted by concurrent network flows and different network conditions ?

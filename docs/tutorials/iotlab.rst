@@ -1,5 +1,5 @@
 *********************
-Provider::FIT/IoT-LAB
+FIT/IoT-LAB tutorials
 *********************
 
 .. contents::
@@ -10,8 +10,6 @@ This tutorial illustrates the use of EnOSlib to interact with FIT/IoT-LAB testbe
 .. hint::
 
    For a complete schema reference see :ref:`iotlab-schema`
-
-.. hint::
 
 
 .. include:: ./setup_iotlab.rst

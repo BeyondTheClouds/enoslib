@@ -1,14 +1,11 @@
-from enoslib import run_command
-from enoslib.api import sync_info
-from enoslib.infra.enos_iotlab.provider import Iotlab
-from enoslib.infra.enos_iotlab.configuration import Configuration
-
 import logging
 import sys
 import json
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+import enoslib as en
 
+en.init_logging(level=logging.INFO)
+en.check()
 
 # IoT-LAB provider configuration
 provider_conf = {
@@ -25,13 +22,13 @@ provider_conf = {
     },
 }
 
-conf = Configuration.from_dictionary(provider_conf)
+conf = en.IotlabConf.from_dictionary(provider_conf)
 
-p = Iotlab(conf)
+p = en.Iotlab(conf)
 roles, networks = p.init()
-roles = sync_info(roles, networks)
+roles = en.sync_info(roles, networks)
 print(roles)
 print("RPis nodes have a simple linux OS. We can run 'date' command in them.")
-result = run_command(command="date", roles=roles)
+result = en.run_command(command="date", roles=roles)
 print("Results:")
 json.dump(result.to_dict(), sys.stdout, indent=2)

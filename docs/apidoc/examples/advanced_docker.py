@@ -11,20 +11,15 @@ from pathlib import Path
 
 import enoslib as en
 
-logging.basicConfig(level=logging.DEBUG)
+en.init_logging(level=logging.INFO)
+en.check()
 
 job_name = Path(__file__).name
 
 
-prod_network = en.G5kNetworkConf(
-    id="n1", type="prod", roles=["my_network"], site="rennes"
-)
 conf = (
-    en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_network_conf(prod_network)
-    .add_machine(
-        roles=["control"], cluster="paravance", nodes=5, primary_network=prod_network
-    )
+    en.G5kConf.from_settings(job_name=job_name, walltime="0:30:00", job_type=[])
+    .add_machine(roles=["control"], cluster="ecotype", nodes=2)
     .finalize()
 )
 
@@ -34,11 +29,14 @@ provider = en.G5k(conf)
 roles, networks = provider.init()
 
 # Install docker
-d = en.Docker(agent=roles["control"], bind_var_docker="/tmp/docker")
+registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
+d = en.Docker(
+    agent=roles["control"], bind_var_docker="/tmp/docker", registry_opts=registry_opts
+)
 d.deploy()
 
-# Start some containers
-N = 25
+# Start N containers on each G5K host (for a total of 2*N containers)
+N = 4
 with en.play_on(roles=roles) as p:
     p.raw("modprobe ifb")
     for i in range(N):
@@ -50,7 +48,7 @@ with en.play_on(roles=roles) as p:
             capabilities=["NET_ADMIN"],
         )
 
-# Get all the dockers running on the remote hosts
+# Get all the docker containers running on all remote hosts
 dockers = en.get_dockers(roles=roles)
 
 # Build the network contraints to apply on the remote docker
@@ -58,19 +56,16 @@ dockers = en.get_dockers(roles=roles)
 sources = []
 for idx, host in enumerate(dockers):
     delay = idx
-    print(f"{host.alias} <-> {delay}")
+    print(f"{host.alias} <-> {delay}ms")
     inbound = en.NetemOutConstraint(device="eth0", options=f"delay {delay}ms")
     outbound = en.NetemInConstraint(device="eth0", options=f"delay {delay}ms")
     sources.append(en.NetemInOutSource(host, constraints={inbound, outbound}))
 
+# This requires the Docker client to be installed on the local machine.
+# Also, it might not work well because SSH connections are handled by Docker.
+# See https://gitlab.inria.fr/discovery/enoslib/-/issues/163 for discussion
+with en.play_on(roles=dockers, gather_facts=False) as p:
+    # We can't use the 'apt' module because python is not installed in containers
+    p.raw("apt update && DEBIAN_FRONTEND=noninteractive apt install -qq -y iproute2")
 
-# The connection plugin used from here is docker protocol (not ssh). The
-# Ansible implementation to support this protocol isn't as robust as SSH. For
-# instance there's no automatic retries. Fortunately for such lack in the
-# Ansible connection backend, enoslib provides an ``ansible_retries`` parameter
-# that will keep retrying the whole set of tasks on the failed hosts until all
-# hosts have succeeded.
-with en.play_on(roles=dict(all=dockers), gather_facts=False, ansible_retries=5) as p:
-    p.raw("apt update && apt install -y iproute2")
-
-en.netem(sources, ansible_retries=5)
+en.netem(sources)

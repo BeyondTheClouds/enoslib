@@ -3,6 +3,7 @@ import os
 import enoslib as en
 
 en.init_logging(level=logging.INFO)
+en.check()
 
 prefix = os.getlogin()
 

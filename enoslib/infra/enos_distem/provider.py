@@ -36,16 +36,15 @@ def start_containers(
 
     Args:
         g5k_roles: physical machines to start the containers on.
-        provider_conf(Configuration):
+        provider_conf (Configuration):
             :py:class:`enoslib.infra.enos_distem.configuration.Configuration`
             This is the abstract description of your overcloud (containers). Each
             configuration has its undercloud attributes filled with the
             undercloud machines to use. Round Robin strategy to distribute the
             containers to the PMs will be used for each configuration. Mac addresses
             will be generated according to the g5k_subnet parameter.
-        g5k_subnets(list): The subnets to use. Each element is a serialization
-            of
-            :py:class:`enoslib.infra.enos_distem.configuraton.NetworkConfiguration`
+        g5k_subnets (list): The subnets to use. Each element is a serialization
+            of :py:class:`enoslib.infra.enos_distem.configuraton.NetworkConfiguration`
 
     Returns:
         (roles, networks) tuple

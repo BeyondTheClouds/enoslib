@@ -19,11 +19,13 @@ SCHEMA_USER = {
     "title": "Grid5000 Configuration Schema",
     "properties": {
         "dhcp": {
-            "description": "(kavlan only) Run dhcp client automatically.",
+            "description": "Run dhcp client automatically on kavlan networks "
+            "(default: True)",
             "type": "boolean",
         },
         "force_deploy": {
-            "description": "True iff nodes must be redeployed (deploy only)",
+            "description": "Force systematic redeployment on nodes (deploy only) "
+            "(default: False)",
             "type": "boolean",
         },
         "env_name": {
@@ -49,7 +51,7 @@ SCHEMA_USER = {
             "type": "string",
         },
         "monitor": {
-            "description": "Activate on demand metrics (e.g 'prom_.*')",
+            "description": "Activate on demand metrics (e.g ``prom_.*``)",
             "type": "string",
         },
         "oargrid_jobids": {

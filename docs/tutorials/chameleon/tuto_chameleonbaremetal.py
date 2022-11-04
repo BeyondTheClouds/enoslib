@@ -1,6 +1,7 @@
 import enoslib as en
 
 en.init_logging()
+en.check()
 
 provider_conf = {
     "key_name": "enos_matt",

@@ -1,6 +1,6 @@
-***************
-Multi-providers
-***************
+*************************
+Multi-providers tutorials
+*************************
 
 .. contents::
    :depth: 2

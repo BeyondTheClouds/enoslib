@@ -40,7 +40,7 @@ from enoslib.infra.enos_g5k.constants import (
     SLASH_16,
     SLASH_22,
 )
-from enoslib.infra.enos_g5k.driver import get_driver
+from enoslib.infra.enos_g5k.driver import get_driver, Job
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
@@ -432,7 +432,15 @@ def check() -> List[Tuple[str, bool, str]]:
 
 
 class G5kBase(Provider):
-    """(internal)Provider dedicated to single site interaction."""
+    """Internal class.
+
+    Provider dedicated to single site interaction.
+
+    Attributes:
+        jobs (list): List of `Grid'5000 Job objects
+            <https://api.grid5000.fr/doc/stable/#tag/job/paths/~1stable~1sites~1{siteId}~1jobs~1{jobId}/get>`_
+            managed by this provider
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -485,20 +493,22 @@ class G5kBase(Provider):
 
             The call to the function is **idempotent** and the following is ensured:
 
-            - Existing job(s) (based on the name) will be reloaded - The
-              mapping between concrete resources and their corresponding roles
+            - Existing job(s) (based on the name) will be reloaded.
+            - The mapping between concrete resources and their corresponding roles
               is fixed across runs. This includes:
-                - the mapping between machines and roles
-                - the mapping between networks and roles
-                - the mapping between network cards and networks
+
+              - the mapping between machines and roles
+              - the mapping between networks and roles
+              - the mapping between network cards and networks
+
             - Deployments is performed only on nodes that are not deployed yet
               (up to three attempts).
             - At the end machine are reachable using the root account.
 
         Args:
-            force_deploy: bool
+            force_deploy (bool):
                 True iff the environment must be redeployed
-            start_time: timestamp (int in seconds)
+            start_time (timestamp (int)):
                 Time at which to start the job, by default whenever
                 possible
 
@@ -537,7 +547,7 @@ class G5kBase(Provider):
         self.driver.destroy(wait=wait)
 
     @property
-    def jobs(self):
+    def jobs(self) -> List[Job]:
         return self.driver.get_jobs()
 
     def launch(self):
@@ -715,12 +725,12 @@ class G5kBase(Provider):
         """Create a tunnel if necessary between here and there (in G5k).
 
         Args:
-            address: str
+            address (str):
                 The remote address to reach (assuming inside g5k)
-            port: int
+            port (int):
                 The remote port to reach
 
-        Returns
+        Returns:
             The context manager
         """
         return G5kTunnel(address, port).start()

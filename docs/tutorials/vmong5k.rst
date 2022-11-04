@@ -1,7 +1,7 @@
 .. _vmong5k:
 
 *****************
-Provider::VMonG5K
+VMonG5K tutorials
 *****************
 
 .. contents::
@@ -109,7 +109,7 @@ available to the Virtual Machine. In the current implementation, the disk is nei
 - **Make an external (not managed by EnOSlib) disk available to the Virtual Machine**
   A typical use case is to use an hardware disk from the host machine.
   In this situation, use the `extra_devices` parameter of the configuration.
-  It corresponds to the XML string of `Libvirt <https://libvirt.org/formatdomain.html#elementsDisks>`_.
+  It corresponds to the XML string of `Libvirt <https://libvirt.org/formatdomain.html#hard-drives-floppy-disks-cdroms>`_.
 
   .. code-block:: python
 
@@ -167,12 +167,12 @@ This is mandatory if you deployed from your local machine.
 - Solution 2: Add the following in your configuration force Ansible to
   jump through a gateway (``access.grid5000.fr``):
 
-  :: code-block:: python
+  .. code-block:: python
 
-  Configuration.from_settings(...
-                              gateway=True
-                              ...
-                             )
+    Configuration.from_settings(...
+                                gateway=True
+                                ...
+                               )
 
 Controlling the virtual machines placement
 ==========================================
@@ -191,6 +191,7 @@ will take care of reserving nodes and subnet on the different sites and
 configure the VMs' network card accordingly.
 
 
+.. _vmong5k_home_directory:
 Mounting your home directory (or a group storage)
 =================================================
 

@@ -62,7 +62,7 @@ class Client(Grid5000):
         """Constructor.
 
         Args:
-            excluded_sites(list): sites to forget about when reloading the
+            excluded_sites (list): sites to forget about when reloading the
                 jobs. The primary use case was to exclude unreachable sites and
                 allow the program to go on.
         """
@@ -187,7 +187,7 @@ def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
-        jobs(list): The list of python-grid5000 jobs
+        jobs (list): The list of python-grid5000 jobs
 
     Returns:
         nodes, networks tuple where
@@ -307,7 +307,7 @@ def wait_for_jobs(jobs):
     """Waits for all the jobs to be runnning.
 
     Args:
-        jobs(list): list of the python-grid5000 jobs to wait for
+        jobs (list): list of the python-grid5000 jobs to wait for
 
 
     Raises:
@@ -350,9 +350,9 @@ def grid_deploy(site: str, nodes: List[str], config: Dict):
     """Deploy and wait for the deployment to be finished.
 
     Args:
-        site(str): the site
-        nodes(list): list of nodes (str) to depoy
-        config(dict): option of the deployment (refer to the Grid'5000 API
+        site (str): the site
+        nodes (list): list of nodes (str) to depoy
+        config (dict): option of the deployment (refer to the Grid'5000 API
             Specifications)
 
     Returns:
@@ -486,7 +486,7 @@ def get_clusters_sites(clusters):
     """Get the corresponding sites of given clusters.
 
     Args:
-        clusters(list): list of the clusters (str)
+        clusters (list): list of the clusters (str)
 
     Returns:
         dict of corresponding to the mapping cluster -> site
@@ -499,7 +499,7 @@ def get_cluster_site(cluster):
     """Get the site of a given cluster.
 
     Args:
-        cluster(str): a Grid'5000 cluster
+        cluster (str): a Grid'5000 cluster
 
     Returns:
         The corresponding site(str)
@@ -512,7 +512,7 @@ def get_nodes(cluster):
     """Get all the nodes of a given cluster.
 
     Args:
-        cluster(string): uid of the cluster (e.g 'rennes')
+        cluster (str): uid of the cluster (e.g 'rennes')
     """
     gk = get_api_client()
     site = get_cluster_site(cluster)
@@ -528,7 +528,7 @@ def get_nics(cluster):
     """Get the network cards information
 
     Args:
-        cluster(str): Grid'5000 cluster name
+        cluster (str): Grid'5000 cluster name
 
     Returns:
         dict of nic information
@@ -547,8 +547,8 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     Ehernet interfaces are returned.
 
     Args:
-        cluster(str): the cluster to consider
-        extra_cond(lambda): boolean lambda that takes the nic(dict) as
+        cluster (str): the cluster to consider
+        extra_cond (lambda): boolean lambda that takes the nic(dict) as
             parameter
     """
     nics = get_nics(cluster)
@@ -576,8 +576,8 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
     Args:
         clusters (str): list of the clusters
         extra_cond (lambda): extra predicate to filter network card retrieved
-    from the API. E.g. lambda nic: not nic['mounted'] will retrieve all the
-    usable network cards that are not mounted by default.
+            from the API. E.g. lambda nic: not nic['mounted'] will retrieve all
+            the usable network cards that are not mounted by default.
 
     Returns:
         dict of cluster with their associated nic names
@@ -589,6 +589,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
             actual = get_clusters_interfaces(["paravance"])
             expected = {"paravance": ["eth0", "eth1"]}
             assertDictEquals(expected, actual)
+
     """
 
     interfaces = {}

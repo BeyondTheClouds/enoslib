@@ -324,6 +324,8 @@ class G5kVlanNetwork(G5kNetwork):
         A vlan in G5k has 2 flavours IPv4 and IPv6 so
         we generate both generic network type here corresponding to this vlan.
         """
+        # Beware: the order of networks (IPv4 then IPv6) is now part of
+        # the public Enoslib API and users rely on it, so don't change it!
         return (
             self.roles,
             [
@@ -396,7 +398,7 @@ class G5kSubnetNetwork(G5kNetwork):
     def __init__(self, roles: List[str], id: str, site: str, subnets: List[str]):
         """Representation of a subnet resource of G5k (/16 or /22).
 
-        .. info::
+        .. note::
 
             Subnets are weird beasts on G5k. Especially /16 networks for
             which you will be given 64 /22 networks and they aren't
@@ -644,22 +646,20 @@ class G5kHost:
             extra_cond: predicate over a nic to further filter the results.
                 Here a nic is a dictionary as returned in the API.
 
-        NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
-        the api description keeps the legacy name (device key) and the new
-        predictable name (key name).  The legacy names is still used for api
-        request to the vlan endpoint This should be fixed in
-        https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
-        When its fixed we should be able to only use the new predictable name.
-
-        Args:
-            extra_cond(lambda): boolean lambda that takes the nic(dict) as
-                parameter
-
         Returns:
-            An list of nics.
-            Each nic is a tuple (legacy name, deterministic name)(
-            e.g ("eth0", "eno1")
-            Result is sorted (ensure idempotence)
+            A list of nics.
+            Each nic is a tuple (legacy name, deterministic name)
+            e.g ("eth0", "eno1").
+            Result is sorted to ensure idempotence.
+
+        .. note::
+
+            NOTE(msimonin): Since 05/18 nics on g5k nodes have predictable names but
+            the api description keeps the legacy name (device key) and the new
+            predictable name (key name).  The legacy names is still used for api
+            request to the vlan endpoint This should be fixed in
+            https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=9272
+            When its fixed we should be able to only use the new predictable name.
 
         """
         nics = [
