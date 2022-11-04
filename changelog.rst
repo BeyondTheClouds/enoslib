@@ -19,7 +19,7 @@ General changes
 - Introduce provider-specific pip packages to make dependencies
   optional. The base ``enoslib`` package now only supports Grid'5000, but
   you can install the following pip package variants:
-  ``enoslib[vagrant]``, ``enoslib[chameleon]``, ``enoslib[iot]``,
+  ``enoslib[vagrant]``, ``enoslib[chameleon]``, ``enoslib[iotlab]``,
   ``enoslib[distem]``, or ``enoslib[all]`` for everything.
 - Increase the supported Ansible version range (>=2.9,<=6.3)
 

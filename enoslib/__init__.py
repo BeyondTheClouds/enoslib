@@ -188,7 +188,7 @@ def _check_deps() -> List[Tuple[str, Optional[bool], str, str]]:
         ("ChameleonKVM", "enos_chameleonkvm", r"pip install enoslib\[chameleon]"),
         ("ChameleonEdge", "enos_chameleonedge", r"pip install enoslib\[chameleon]"),
         ("Distem", "enos_distem", r"pip install enoslib\[distem]"),
-        ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iot]"),
+        ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iotlab]"),
         ("Grid'5000", "enos_g5k", ""),
         ("Openstack", "enos_openstack", r"pip install enoslib\[chameleon]"),
         ("Vagrant", "enos_vagrant", r"pip install enoslib\[vagrant]"),
