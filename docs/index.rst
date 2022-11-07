@@ -72,7 +72,7 @@
    .. grid-item-card::
       :link: https://framateam.org/enoslib
 
-      :octicon:`people;2em;sd-text-info` Packages
+      :octicon:`people;2em;sd-text-info` Community
       ^^^
 
       Come say *Hi* in our chat room :)
