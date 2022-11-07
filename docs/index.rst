@@ -51,14 +51,6 @@
       |enoslib| is shipped with various facilities for your experiments.
 
 
-   .. grid-item-card::
-      :link: https://framateam.org/enoslib
-
-      :octicon:`people;2em;sd-text-info` Community
-      ^^^
-
-      Come say *Hi* in our chat room :)
-
 
    .. grid-item-card::
       :link: https://gitlab.inria.fr/discovery/enoslib/
@@ -77,16 +69,6 @@ The tip of the Iceberg featuring Grid'5000 testbed and a dummy benchmark.
 .. raw:: html
 
    <script id="asciicast-zFHSJ2PkXnvI5K18vECdhRvgZ" src="https://asciinema.org/a/zFHSJ2PkXnvI5K18vECdhRvgZ.js" data-speed="2" data-rows="50" async></script>
-
-
-Getting started
----------------
-
-Enoslib is a Python package:
-
-``pip install enoslib``
-
-Then follow our :doc:`Jupyter tutorials </jupyter/index>` or :doc:`complete tutorials </tutorials/index>`.
 
 
 .. toctree::
