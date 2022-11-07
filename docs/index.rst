@@ -61,6 +61,24 @@
       |enoslib| is licensed under the GPLv3.
 
 
+   .. grid-item-card::
+      :link: https://pypi.org/project/enoslib/
+
+      :octicon:`package;2em;sd-text-info` Packages
+      ^^^
+
+      ``pip install enoslib``
+
+   .. grid-item-card::
+      :link: https://framateam.org/enoslib
+
+      :octicon:`people;2em;sd-text-info` Packages
+      ^^^
+
+      Come say *Hi* in our chat room :)
+
+
+
 At a glance
 -----------
 
