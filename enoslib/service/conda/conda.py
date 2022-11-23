@@ -159,14 +159,14 @@ class _Conda(Service):
                 return
 
             # Install packages if any
-            if env_name is not None and len(packages) > 0:
+            if env_name != "" and len(packages) > 0:
                 _shell_in_conda(
                     p,
                     f"conda create --yes --name={env_name} {' '.join(packages)}",
                     executable="/bin/bash",
                 )
                 _create_wrapper_script(p, env_name)
-            if env_name is None and len(packages) > 0:
+            elif env_name == "" and len(packages) > 0:
                 _shell_in_conda(
                     p,
                     f"conda create --yes -n enoslib {' '.join(packages)}",
