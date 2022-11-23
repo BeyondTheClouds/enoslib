@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, MutableSequence, Optional
 
 from grid5000.objects import Job
-from enoslib.infra.enos_g5k.configuration import Configuration
 
+from enoslib.infra.enos_g5k.configuration import Configuration
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     build_resources,
     get_api_username,
@@ -67,7 +67,7 @@ class Driver:
     def wait(self):
         wait_for_jobs(self.jobs)
 
-    def resources(self) -> Tuple[List[str], List[OarNetwork]]:
+    def resources(self) -> Tuple[MutableSequence[str], MutableSequence[OarNetwork]]:
         return build_resources(self.jobs)
 
 
@@ -86,6 +86,7 @@ class OargridStaticDriver(Driver):
     def __init__(self, oargrid_jobids):
         super().__init__()
         self.oargrid_jobids = oargrid_jobids
+        self.reservation_date: Optional[str] = None
 
     def reserve(self):
         self._jobs = grid_reload_from_ids(self.oargrid_jobids)

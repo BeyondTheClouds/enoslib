@@ -509,9 +509,10 @@ class G5kHost:
         self.fqdn = fqdn
         self.roles = roles
         self.primary_network = primary_network
-        self.secondary_networks = secondary_networks
         if secondary_networks is None:
-            self.secondary_networks = []
+            self.secondary_networks: List[G5kNetwork] = []
+        else:
+            self.secondary_networks = secondary_networks
 
         # by default the ssh address is set to the fqdn
         # this might change if the node is on a vlan
@@ -577,7 +578,9 @@ class G5kHost:
         Returns:
             A tuple of (legacy name, deterministic name) for the network card.
         """
-        nics = self.get_nics(extra_cond=lambda nic: nic["mounted"])
+        nics: List[Tuple[str, str]] = self.get_nics(
+            extra_cond=lambda nic: nic["mounted"]
+        )
         return nics[0]
 
     @property

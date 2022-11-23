@@ -1,20 +1,35 @@
-from collections import namedtuple
 import ipaddress
-from typing import Dict
+from typing import Dict, Optional, List
 from unittest import mock
+
+from collections import namedtuple
 from enoslib.api import Results, CommandResult, STATUS_OK, STATUS_FAILED
 from enoslib.errors import NegativeWalltime
-from enoslib.objects import Host
-
+from enoslib.infra.enos_g5k.configuration import (
+    ClusterConfiguration,
+    Configuration,
+    NetworkConfiguration,
+)
+from enoslib.infra.enos_g5k.constants import (
+    NETWORK_ROLE_PROD,
+    DEFAULT_SSH_KEYFILE,
+    KAVLAN,
+    PROD,
+)
 from enoslib.infra.enos_g5k.error import (
     EnosG5kInvalidArgumentsError,
     EnosG5kKavlanNodesError,
 )
-
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     set_nodes_vlan,
 )
-
+from enoslib.infra.enos_g5k.objects import (
+    G5kEnosProd4Network,
+    G5kEnosProd6Network,
+    G5kEnosVlan4Network,
+    G5kEnosVlan6Network,
+    G5kEnosSubnetNetwork,
+)
 from enoslib.infra.enos_g5k.provider import (
     _check_deployed_nodes,
     G5k,
@@ -23,26 +38,7 @@ from enoslib.infra.enos_g5k.provider import (
     G5kVlanNetwork,
     G5kSubnetNetwork,
 )
-
-from enoslib.infra.enos_g5k.objects import (
-    G5kEnosProd4Network,
-    G5kEnosProd6Network,
-    G5kEnosVlan4Network,
-    G5kEnosVlan6Network,
-    G5kEnosSubnetNetwork,
-)
-
-from enoslib.infra.enos_g5k.constants import (
-    NETWORK_ROLE_PROD,
-    DEFAULT_SSH_KEYFILE,
-    KAVLAN,
-    PROD,
-)
-from enoslib.infra.enos_g5k.configuration import (
-    ClusterConfiguration,
-    Configuration,
-    NetworkConfiguration,
-)
+from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 
 
@@ -71,7 +67,9 @@ class TestG5kEnos(EnosTest):
 
     def test_production(self):
         enos_prod = ipaddress.ip_network("172.16.0.0/16")
-        enos_network = G5kEnosProd4Network(enos_prod, "172.16.0.254", "172.16.0.25")
+        enos_network: G5kEnosProd4Network = G5kEnosProd4Network(
+            enos_prod, "172.16.0.254", "172.16.0.25"
+        )
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
         self.assertFalse(enos_network.has_free_macs)
@@ -79,16 +77,16 @@ class TestG5kEnos(EnosTest):
 
     def test_production6(self):
         enos_prod = ipaddress.ip_network("2001:660:4406:07::/64")
-        enos_network = G5kEnosProd6Network(enos_prod, "::1", "::2")
+        enos_network: G5kEnosProd6Network = G5kEnosProd6Network(enos_prod, "::1", "::2")
         self.assertFalse(enos_network.has_free_ips)
         self.assertCountEqual([], list(enos_network.free_ips))
         self.assertFalse(enos_network.has_free_macs)
         self.assertCountEqual([], list(enos_network.free_macs))
 
     def test_kavlan(self):
-        enos_kavlan = ipaddress.ip_network("10.24.0.0/18")
-        enos_kavlan = G5kEnosVlan4Network(
-            enos_kavlan, "172.16.0.254", "172.16.0.25", "4"
+        enos_kavlan_net_type = ipaddress.ip_network("10.24.0.0/18")
+        enos_kavlan: G5kEnosVlan4Network = G5kEnosVlan4Network(
+            enos_kavlan_net_type, "4", "172.16.0.254", "172.16.0.25"
         )
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
@@ -98,14 +96,16 @@ class TestG5kEnos(EnosTest):
         self.assertFalse(enos_kavlan.has_free_macs)
 
     def test_kavlan6(self):
-        enos_kavlan = ipaddress.ip_network("2001:660:4406:0790::/64")
-        enos_kavlan = G5kEnosVlan6Network(enos_kavlan, "1::", "2::", 4)
+        enos_kavlan_net_type = ipaddress.ip_network("2001:660:4406:0790::/64")
+        enos_kavlan: G5kEnosVlan6Network = G5kEnosVlan6Network(
+            enos_kavlan_net_type, "4", "1::", "2::"
+        )
         self.assertTrue(enos_kavlan.has_free_ips)
         # There should be a lot of ips available in the worse case
         # (/20 network == local vlan) => some /24 contiguous subnet
         it_ips = enos_kavlan.free_ips
         # let's get some ips
-        ips = []
+        ips: List = []
         for i in range(3000):
             ips.append(next(it_ips))
         self.assertEqual(3000, len(ips))
@@ -113,8 +113,10 @@ class TestG5kEnos(EnosTest):
         self.assertFalse(enos_kavlan.has_free_macs)
 
     def test_subnet(self):
-        enos_subnet = ipaddress.ip_network("10.140.0.0/22")
-        enos_subnet = G5kEnosSubnetNetwork(enos_subnet, "172.16.42.254", "172.16.42.25")
+        enos_subnet_net_type = ipaddress.ip_network("10.140.0.0/22")
+        enos_subnet: G5kEnosSubnetNetwork = G5kEnosSubnetNetwork(
+            enos_subnet_net_type, "172.16.42.254", "172.16.42.25"
+        )
         self.assertTrue(enos_subnet.has_free_ips)
         # we get rid of the first and last address of the /22
         # which leaves us with 1022 addresses
@@ -213,7 +215,7 @@ class TestTranslate(EnosTest):
 
 
 class TestDeploy(EnosTest):
-    def build_provider(self, conf: Dict = None):
+    def build_provider(self, conf: Optional[Dict] = None):
         if conf is None:
             conf = {}
         site = "rennes"
@@ -253,7 +255,7 @@ class TestDeploy(EnosTest):
 
         return p, site, oar_nodes
 
-    def build_complex_provider(self, conf: Dict = None):
+    def build_complex_provider(self, conf: Optional[Dict] = None):
 
         if conf is None:
             conf = {"job_type": ["deploy"], "env_name": "debian11-min"}
@@ -305,8 +307,8 @@ class TestDeploy(EnosTest):
         conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
         p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
-        deployed = [h.fqdn for h in p.hosts]
-        undeployed = []
+        deployed: List = [h.fqdn for h in p.hosts]
+        undeployed: List = []
         # no nodes has been deployed initially
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
@@ -328,8 +330,8 @@ class TestDeploy(EnosTest):
         conf = {"env_name": "debian11-nfs", "job_type": ["deploy"], "key": "test_key"}
         p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
-        deployed = [h.fqdn for h in p.hosts]
-        undeployed = []
+        deployed: List = [h.fqdn for h in p.hosts]
+        undeployed: List = []
         # no nodes has been deployed initially
         p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         with mock.patch(
@@ -348,8 +350,8 @@ class TestDeploy(EnosTest):
     def test_dont_deploy_if_check_deployed_pass(self):
         p, site, oar_nodes = self.build_provider()
         # mimic a successful deployment
-        deployed = [h.fqdn for h in p.hosts]
-        undeployed = []
+        deployed: List = [h.fqdn for h in p.hosts]
+        undeployed: List = []
         # all nodes are already deployed
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
@@ -366,8 +368,8 @@ class TestDeploy(EnosTest):
     def test_1_deployments_with_undeployed(self):
         p, site, oar_nodes = self.build_provider()
         # mimic a unsuccessful deployment
-        deployed = []
-        undeployed = [h.fqdn for h in p.hosts]
+        deployed: List = []
+        undeployed: List = [h.fqdn for h in p.hosts]
 
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
@@ -451,11 +453,11 @@ class TestDeploy(EnosTest):
         p = G5k(provider_config)
 
         # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()
+        p.reserve = mock.MagicMock()  # type: ignore
         p.reserve.return_value = None
 
-        p.mirror_state = mock.MagicMock()
-        p.mirror_state.return_value = None
+        p.mirror_state = mock.MagicMock()  # type: ignore
+        p.mirror_state.return_value = None  # type: ignore
 
         # mimicking a grid5000.Job object (we only need to access the status,
         # assigned_resources)
@@ -540,14 +542,14 @@ class TestDeploy(EnosTest):
         )
 
         # build a provider
-        p = G5k(provider_config)
+        p: G5k = G5k(provider_config)
 
         # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()
+        p.reserve = mock.MagicMock()  # type: ignore
         p.reserve.return_value = None
 
-        p.mirror_state = mock.MagicMock()
-        p.mirror_state.return_value = None
+        p.mirror_state = mock.MagicMock()  # type: ignore
+        p.mirror_state.return_value = None  # type: ignore
 
         # mimicking a grid5000.Job object (we only need to access the status,
         # assigned_resources)
@@ -642,7 +644,7 @@ class TestDeploy(EnosTest):
         p = G5k(provider_config)
 
         # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()
+        p.reserve = mock.MagicMock()  # type: ignore
         p.reserve.return_value = None
 
         # mimicking a grid5000.Job object (we only need to access the status,

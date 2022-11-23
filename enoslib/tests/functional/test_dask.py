@@ -38,8 +38,7 @@ provider = Static(conf)
 roles, networks = provider.init()
 
 roles = sync_info(roles, networks)
-
-m = Dask(scheduler=roles["control"][0], worker=roles["control"])
+m = Dask(scheduler=roles["control"][0], workers=roles["control"], conda_env="enoslib")
 m.deploy()
 m.backup()
 m.destroy()

@@ -25,23 +25,15 @@ from ipaddress import (
     IPv6Interface,
     ip_address,
     ip_interface,
+    IPv4Network,
+    IPv6Network,
 )
 from itertools import islice
 from pathlib import Path
-from typing import (
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-)
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 
 from netaddr import EUI
 
-
-from .collections import ResourcesSet, RolesDict
 from enoslib.html import (
     dict_to_html_foldable_sections,
     html_to_foldable_section,
@@ -49,10 +41,11 @@ from enoslib.html import (
     html_from_sections,
     repr_html_check,
 )
+from .collections import ResourcesSet, RolesDict
 
-NetworkType = Union[bytes, int, str]
-AddressType = Union[bytes, int, str]
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
+NetworkType = Union[bytes, int, str, IPv4Network, IPv6Network]
+AddressType = Union[bytes, int, str, IPv4Address, IPv6Address]
 
 Role = str
 RolesNetworks = Tuple["Roles", "Networks"]
@@ -62,8 +55,8 @@ RolesNetworks = Tuple["Roles", "Networks"]
 # Iterable[Host] (e.g. coming from Roles filtering)
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
+# TODO RolesLike = Union["Roles", Sequence["Host"], Mapping[str, "Host"], "Host"]
 RolesLike = Union["Roles", Iterable["Host"], "Host"]
-
 PathLike = Union[Path, str]
 
 
@@ -175,8 +168,8 @@ class DefaultNetwork(Network):
         dns: Optional[str] = None,
         ip_start: Optional[AddressType] = None,
         ip_end: Optional[AddressType] = None,
-        mac_start: str = None,
-        mac_end: str = None,
+        mac_start: Optional[str] = None,
+        mac_end: Optional[str] = None,
     ):
 
         super().__init__(address=address)
@@ -247,10 +240,12 @@ class DefaultNetwork(Network):
         content_only == True  => html_object == <div class=enoslib>...</div>
         content_only == False => html_base(html_object) == css +
         """
-        ips = list(islice(self.free_ips, 0, 10, 1))
+        ips: List[Union[AddressInterfaceType, str]] = list(
+            islice(self.free_ips, 0, 10, 1)
+        )
         if len(ips) > 0:
             ips += ["[truncated list]"]
-        macs = list(islice(self.free_macs, 0, 10, 1))
+        macs: List[Union[EUI, str]] = list(islice(self.free_macs, 0, 10, 1))
         if len(macs) > 0:
             macs += ["[truncated list]"]
         d = {
@@ -570,7 +565,7 @@ class Host(BaseHost):
             self.extra = copy.deepcopy(self.extra)
 
         if self.net_devices is None:
-            self.net_devices = set()
+            self.net_devices = set()  # unreachable normally
         self.net_devices = set(self.net_devices)
 
         # write by the sync_from_ansible_method
@@ -701,8 +696,9 @@ class Host(BaseHost):
         )
 
     def __str__(self):
+        alias = self.alias if self.alias is not None else self.address
         args = [
-            self.alias,
+            alias,
             "address=%s" % self.address,
             "user=%s" % self.user,
             "keyfile=%s" % self.keyfile,

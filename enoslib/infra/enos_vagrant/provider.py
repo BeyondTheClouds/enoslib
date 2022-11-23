@@ -1,6 +1,7 @@
 from ipaddress import ip_interface
 import logging
 import os
+from typing import List, Dict
 
 from jinja2 import Environment, FileSystemLoader
 from netaddr import IPNetwork
@@ -53,8 +54,8 @@ class Enos_vagrant(Provider):
                 }
             )
 
-        vagrant_machines = []
-        vagrant_roles = {}
+        vagrant_machines: List = []
+        vagrant_roles: Dict = {}
         global_prefix = self.provider_conf.name_prefix or DEFAULT_NAME_PREFIX
         for counter, machine in enumerate(machines):
             prefix = (
@@ -128,9 +129,9 @@ class Enos_vagrant(Provider):
         logger.debug(roles)
         logger.debug(networks)
 
-        return (roles, networks)
+        return roles, networks
 
-    def destroy(self, wait=False):
+    def destroy(self, wait=False, **kwargs):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()

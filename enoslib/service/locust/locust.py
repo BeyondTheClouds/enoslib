@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 import time
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, MutableMapping
 
 from enoslib.api import __python3__, actions
 from enoslib.html import (
@@ -43,7 +43,7 @@ class Locust(Service):
         remote_working_dir: str = "/builds/locust",
         backup_dir: Optional[Path] = None,
         priors: List[actions] = [__python3__],
-        extra_vars: Dict = None,
+        extra_vars: Optional[Dict] = None,
     ):
         """Deploy a distributed Locust (see locust.io)
 
@@ -203,8 +203,10 @@ class Locust(Service):
         # remove dangling execution
         self.destroy()
         self._prepare()
-        if self.environment is None:
-            environment = {}
+        environment: MutableMapping = {}
+        if self.environment is not None:
+            environment.update(self.environment)
+
         locustpath = self.__copy_experiment(self.local_expe_dir, self.locustfile)
         with actions(
             pattern_hosts="master", roles=self.roles, extra_vars=self.extra_vars
@@ -220,7 +222,7 @@ class Locust(Service):
                     f"--logfile={self.remote_working_dir}/locust-master.log &"
                 ),
                 environment=environment,
-                task_name="Running locust (%s) on master..." % (locustpath),
+                task_name="Running locust (%s) on master..." % locustpath,
             )
 
         with actions(
@@ -249,7 +251,7 @@ class Locust(Service):
         see https://docs.locust.io/en/stable/running-without-web-ui.html
         """
 
-        environment = dict(**self.environment)
+        environment: Dict = dict(**self.environment)
         locustpath = self.__copy_experiment(self.local_expe_dir, self.locustfile)
         workers = len(self.roles["agent"]) * self.worker_density
         with actions(

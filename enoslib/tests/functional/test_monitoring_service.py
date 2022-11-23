@@ -38,7 +38,6 @@ provider = Static(conf)
 roles, networks = provider.init()
 
 roles = sync_info(roles, networks)
-
 # testing TIG stack
 m_tig = TIGMonitoring(
     collector=roles["control"][0], agent=roles["control"], ui=roles["control"][0]

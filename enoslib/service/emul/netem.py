@@ -250,7 +250,7 @@ class Netem(BaseNetem):
         symmetric: bool = False,
         networks: Optional[Iterable[Network]] = None,
         *,
-        symetric: bool = None,
+        symetric: Optional[bool] = None,
     ):
         if symetric is not None:  # Remove when deprecation phase will be ended
             symmetric = symetric
@@ -280,7 +280,10 @@ class Netem(BaseNetem):
         pass
 
     def validate(
-        self, networks: Iterable[Network] = None, output_dir: PathLike = None, **kwargs
+        self,
+        networks: Optional[Iterable[Network]] = None,
+        output_dir: Optional[PathLike] = None,
+        **kwargs,
     ) -> Results:
         if output_dir is None:
             output_dir = Path.cwd() / TMP_DIRNAME

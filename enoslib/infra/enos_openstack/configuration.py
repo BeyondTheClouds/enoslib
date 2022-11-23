@@ -1,3 +1,5 @@
+from typing import MutableMapping
+
 from ..configuration import BaseConfiguration
 
 from .schema import SCHEMA
@@ -54,7 +56,7 @@ class Configuration(BaseConfiguration):
         return self
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(
             key_name=self.key_name,
             image=self.image,
@@ -82,6 +84,6 @@ class MachineConfiguration:
         return cls(roles=roles, flavour=flavour, number=number)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(roles=self.roles, flavour=self.flavour, number=self.number)
         return d

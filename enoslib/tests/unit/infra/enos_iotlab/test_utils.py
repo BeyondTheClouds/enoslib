@@ -1,4 +1,6 @@
+from typing import Dict
 from datetime import timezone
+
 from enoslib.infra.enos_iotlab import iotlab_api
 from enoslib.infra.enos_iotlab.configuration import (
     BoardConfiguration,
@@ -307,7 +309,7 @@ class TestIotStuffs(EnosTest):
             ]
         }
 
-        experiments_status = {"items": []}
+        experiments_status: Dict = {"items": []}
 
         conf = Configuration().from_settings(walltime="00:01")
         conf.add_machine_conf(

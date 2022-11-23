@@ -1,4 +1,5 @@
 import warnings
+from typing import MutableMapping, Type, MutableSequence, Optional
 
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -19,11 +20,11 @@ class Configuration(BaseConfiguration):
         super().__init__()
         self.job_name = DEFAULT_JOB_NAME
         self.walltime = DEFAULT_WALLTIME
-        self.profiles = None
+        self.profiles: Optional[MutableSequence] = None
         self.start_time = None
 
-        self._machine_cls = GroupConfiguration
-        self._network_cls = NetworkConfiguration
+        self._machine_cls: Type[GroupConfiguration] = GroupConfiguration
+        self._network_cls: Type[NetworkConfiguration] = NetworkConfiguration
 
     def add_machine(self, *args, **kwargs):
         # we need to discriminate between phys node and board
@@ -382,6 +383,6 @@ class NetworkConfiguration:
         return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d

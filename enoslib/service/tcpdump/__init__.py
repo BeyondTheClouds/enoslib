@@ -19,7 +19,7 @@ class TCPDump(Service):
         ifnames: Optional[List[str]] = None,
         networks: Optional[Iterable[Network]] = None,
         options: str = "",
-        backup_dir: Union[Path, str] = None,
+        backup_dir: Optional[Union[Path, str]] = None,
     ):
         """
         Monitor network traffic using tcpdump.

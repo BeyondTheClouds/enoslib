@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 from jsonschema import validate
 
@@ -104,7 +105,7 @@ class Docker(Service):
         self.agent = agent if agent else []
         self.registry_opts = registry_opts if registry_opts else REGISTRY_OPTS
         if self.registry_opts["type"] == "none":
-            self.registry = []
+            self.registry: List = []
         if self.registry_opts["type"] == "external":
             self.registry = []
         if self.registry_opts["type"] == "internal" or registry is not None:

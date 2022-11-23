@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Optional
 
 from enoslib.objects import BaseHost
 from enoslib.html import html_from_dict, repr_html_check
@@ -15,17 +14,17 @@ class Sensor(BaseHost):
     """
 
     address: str
-    alias: Optional[str] = field(default=None)
+    alias: str = field(default="")
 
     def __post_init__(self):
-        if not self.alias:
+        if self.alias == "":
             self.alias = self.address
 
     def __str__(self):
-        args = [
+        args = (
             self.alias,
             "address=%s" % self.address,
-        ]
+        )
         return "Sensor(%s)" % ", ".join(args)
 
     def to_dict(self):

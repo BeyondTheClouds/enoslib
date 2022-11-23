@@ -1,4 +1,6 @@
 from itertools import groupby
+from typing import MutableMapping
+
 from enoslib.errors import NegativeWalltime
 import logging
 
@@ -8,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def mk_pools(things, keyfnc=lambda x: x):
     """Indexes a thing by the keyfnc to construct pools of things."""
-    pools = {}
+    pools: MutableMapping = {}
     sthings = sorted(things, key=keyfnc)
     for key, thingz in groupby(sthings, key=keyfnc):
         pools.setdefault(key, []).extend(list(thingz))

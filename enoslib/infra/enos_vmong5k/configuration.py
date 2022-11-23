@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Type, MutableMapping
 import uuid
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 
@@ -42,8 +42,8 @@ class Configuration(BaseConfiguration):
         self.subnet_type = DEFAULT_SUBNET_TYPE
         self.working_dir = DEFAULT_WORKING_DIR
 
-        self._machine_cls = MachineConfiguration
-        self._network_cls = str
+        self._machine_cls: Type[MachineConfiguration] = MachineConfiguration
+        self._network_cls: Type[str] = str
 
         self.networks = DEFAULT_NETWORKS
 
@@ -137,7 +137,7 @@ class MachineConfiguration:
 
     @classmethod
     def from_dictionary(cls, dictionary):
-        kwargs = {}
+        kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
 
@@ -172,7 +172,7 @@ class MachineConfiguration:
         return cls(**kwargs)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         undercloud = self.undercloud
         if undercloud is not None:
             undercloud = [h.to_dict() for h in undercloud]
