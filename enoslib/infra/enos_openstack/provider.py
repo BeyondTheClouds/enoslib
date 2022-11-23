@@ -20,20 +20,22 @@ assigned a floating IP (EnOSlib hosts will be configured accordingly).
 """
 import ipaddress
 import logging
-from operator import itemgetter
 import os
 import re
 import time
+from operator import itemgetter
+from typing import MutableMapping
 
 from glanceclient import client as glance
-from keystoneauth1.identity import v2, v3
 from keystoneauth1 import session
+from keystoneauth1.identity import v2, v3
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
 
-from enoslib.objects import Host, Networks, Roles
-from enoslib.infra.utils import pick_things, mk_pools
+from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 from enoslib.infra.provider import Provider
+from enoslib.infra.utils import pick_things, mk_pools
+from enoslib.objects import Host, Networks, Roles
 from .constants import (
     NOVA_VERSION,
     GLANCE_VERSION,
@@ -42,8 +44,6 @@ from .constants import (
     ROUTER_NAME,
 )
 from .objects import OSNetwork
-
-from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +193,7 @@ def check_network(
     ext_net = [n for n in networks if n["router:external"]]
     if len(ext_net) < 1:
         raise Exception("No external network found")
-    ext_net = ext_net[0]
+    first_ext_net = ext_net[0]
 
     subnets = nclient.list_subnets()["subnets"]
     subnet_name = subnet["name"]
@@ -228,7 +228,7 @@ def check_network(
     if router_present and configure_network:
         router = {
             "name": router_name,
-            "external_gateway_info": {"network_id": ext_net["id"]},
+            "external_gateway_info": {"network_id": first_ext_net["id"]},
         }
         r = nclient.create_router({"router": router})
         logger.info("[neutron]  %s router created" % router_name)
@@ -237,7 +237,7 @@ def check_network(
         interface = {"subnet_id": subnet["id"]}
         nclient.add_interface_router(str(r["router"]["id"]), interface)
 
-    return (ext_net, network, subnet)
+    return first_ext_net, network, subnet
 
 
 def set_free_floating_ip(env, server_id):
@@ -454,7 +454,7 @@ def check_environment(provider_conf):
 
 def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
     def build_roles(provider_conf, env, servers, keyfnc):
-        result = {}
+        result: MutableMapping = {}
         pools = mk_pools(servers, keyfnc)
         machines = provider_conf.machines
         for desc in machines:

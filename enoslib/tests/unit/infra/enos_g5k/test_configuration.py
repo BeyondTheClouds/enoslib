@@ -1,4 +1,5 @@
 import warnings
+from typing import MutableMapping
 
 from jsonschema.exceptions import ValidationError
 import pytest
@@ -17,7 +18,7 @@ from ... import EnosTest
 
 class TestConfiguration(EnosTest):
     def test_from_dictionary_minimal(self):
-        d = {"resources": {"machines": [], "networks": []}}
+        d: MutableMapping = {"resources": {"machines": [], "networks": []}}
         conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
         self.assertEqual([], conf.job_type)
@@ -27,7 +28,7 @@ class TestConfiguration(EnosTest):
         self.assertEqual([], conf.networks)
 
     def test_from_dictionary_some_metadatas(self):
-        d = {
+        d: MutableMapping = {
             "job_name": "test",
             "queue": "production",
             "resources": {"machines": [], "networks": []},
@@ -39,7 +40,7 @@ class TestConfiguration(EnosTest):
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
 
     def test_from_dictionary_job_types(self):
-        d = {
+        d: MutableMapping = {
             "job_name": "test",
             "queue": "production",
             "job_type": "exotic",
@@ -83,7 +84,7 @@ class TestConfiguration(EnosTest):
         self.assertIn("inner=bla", cm.exception.cause.args[0])
 
     def test_from_dictionary_deploy_job(self):
-        d = {
+        d: MutableMapping = {
             "job_name": "test",
             "queue": "production",
             "job_type": ["deploy"],
@@ -110,16 +111,22 @@ class TestConfiguration(EnosTest):
         self.assertEqual([], conf.job_type)
 
     def test_from_dictionary_invalid_walltime(self):
-        d = {"walltime": "02:00", "resources": {"machines": [], "networks": []}}
+        d: MutableMapping = {
+            "walltime": "02:00",
+            "resources": {"machines": [], "networks": []},
+        }
         with self.assertRaises(ValidationError):
             Configuration.from_dictionary(d)
 
     def test_from_dictionary_big_walltime(self):
-        d = {"walltime": "200:00:00", "resources": {"machines": [], "networks": []}}
+        d: MutableMapping = {
+            "walltime": "200:00:00",
+            "resources": {"machines": [], "networks": []},
+        }
         self.assertTrue(Configuration.from_dictionary(d))
 
     def test_missing_cluster_and_servers(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [{"roles": ["r1"], "nodes": 1, "primary_network": "n1"}],
                 "networks": [],
@@ -129,7 +136,7 @@ class TestConfiguration(EnosTest):
             _ = Configuration.from_dictionary(d)
 
     def test_from_dictionary_invalid_hostname(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -148,7 +155,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_servers_same_cluster(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -166,7 +173,7 @@ class TestConfiguration(EnosTest):
         self.assertEqual("foo", conf.machines[0].cluster)
 
     def test_servers_different_cluster(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -188,7 +195,7 @@ class TestConfiguration(EnosTest):
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
     def test_from_dictionary_with_machines(self, mock_get_cluster_site):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -222,7 +229,7 @@ class TestConfiguration(EnosTest):
     def test_from_dictionary_with_machines_and_secondary_networks(
         self, mock_get_cluster_site
     ):
-        d = {
+        d: MutableMapping = {
             "job_type": ["deploy"],
             "env_name": "debian11-min",
             "resources": {
@@ -262,7 +269,7 @@ class TestConfiguration(EnosTest):
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
     def test_from_dictionary_with_warnings_kavlan(self, mock_get_cluster_site):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -306,7 +313,7 @@ class TestConfiguration(EnosTest):
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
     def test_from_dictionary_default_network(self, mock_get_cluster_site):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -336,7 +343,7 @@ class TestConfiguration(EnosTest):
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
     def test_from_dictionary_no_network(self, mock_get_cluster_site):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -362,7 +369,7 @@ class TestConfiguration(EnosTest):
         self.assertEqual(network.site, "siteA")
 
     def test_from_dictionary_unknown_network(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -380,7 +387,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_from_dictionary_unbound_network(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -405,7 +412,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_from_dictionary_no_secondary_networks(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -426,7 +433,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_from_dictionary_unbound_secondary_networks(self):
-        d = {
+        d: MutableMapping = {
             "resources": {
                 "machines": [
                     {
@@ -546,7 +553,12 @@ class TestConfiguration(EnosTest):
 
 class TestNetworkConfiguration(EnosTest):
     def test_network_minimal(self):
-        n = {"id": "n1", "roles": ["r1"], "site": "siteA", "type": "prod"}
+        n: MutableMapping = {
+            "id": "n1",
+            "roles": ["r1"],
+            "site": "siteA",
+            "type": "prod",
+        }
 
         network = NetworkConfiguration.from_dictionary(n)
         self.assertEqual("siteA", network.site)

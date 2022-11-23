@@ -1,3 +1,5 @@
+from typing import Dict
+
 from jsonschema.exceptions import ValidationError
 import pytest
 
@@ -238,7 +240,7 @@ class TestConfiguration(EnosTest):
         self.assertEqual(1, len(conf.machines))
 
     def test_profile_wrong_no_name(self):
-        d = {
+        d: Dict = {
             "resources": {
                 "machines": [
                     {
@@ -267,7 +269,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_profile_wrong_archi(self):
-        d = {
+        d: Dict = {
             "resources": {
                 "machines": [
                     {
@@ -297,7 +299,7 @@ class TestConfiguration(EnosTest):
             Configuration.from_dictionary(d)
 
     def test_profile_radio_dict(self):
-        d = {
+        d: Dict = {
             "resources": {
                 "machines": [
                     {
@@ -342,7 +344,7 @@ class TestConfiguration(EnosTest):
         )
 
     def test_profile_consumption_dict(self):
-        d = {
+        d: Dict = {
             "resources": {
                 "machines": [
                     {

@@ -180,7 +180,7 @@ def convert_dict_to_html_table(input):
     return converted_output
 
 
-def html_object(name: str, foldable_sections: Union[str, List[str]]):
+def html_object(name: str, foldable_sections: Union[str, List[str]]) -> str:
     if isinstance(foldable_sections, str):
         foldable_sections = [foldable_sections]
 
@@ -196,7 +196,7 @@ def html_object(name: str, foldable_sections: Union[str, List[str]]):
     return s
 
 
-def html_base(content: str):
+def html_base(content: str) -> str:
     """Wrap an existing html representation, include the css stylesheet."""
     css = f"<style> {_load_css()} </style>"
     res = f"""
@@ -210,7 +210,7 @@ def html_base(content: str):
 
 def html_from_sections(
     class_name: str, sections: Union[str, List[str]], content_only=False
-):
+) -> str:
     html = html_object(class_name, sections)
 
     if content_only:
@@ -219,7 +219,7 @@ def html_from_sections(
     return html_base(html)
 
 
-def html_from_dict(class_name: str, content: dict, content_only=False):
+def html_from_dict(class_name: str, content: dict, content_only=False) -> str:
     html = dict_to_html_foldable_sections(content)
 
     return html_from_sections(class_name, html, content_only=content_only)

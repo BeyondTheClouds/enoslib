@@ -1,5 +1,5 @@
 import os
-from typing import Iterable, List, Dict
+from typing import Iterable, List, Dict, Optional
 from itertools import chain
 
 from enoslib.api import (
@@ -24,14 +24,22 @@ DEFAULT_VARS = {
 
 
 class Skydive(Service):
+    def destroy(self):
+        print("Skydive.destroy() is not implemented")
+        pass
+
+    def backup(self):
+        print("Skydive.backup() is not implemented")
+        pass
+
     def __init__(
         self,
         *,
-        analyzers: Iterable[Host] = None,
-        agents: Iterable[Host] = None,
-        networks: Iterable[Network] = None,
+        analyzers: Optional[Iterable[Host]] = None,
+        agents: Optional[Iterable[Host]] = None,
+        networks: Optional[Iterable[Network]] = None,
         priors: List[actions] = [__python3__, __docker__],
-        extra_vars: Dict = None,
+        extra_vars: Optional[Dict] = None,
     ):
         """Deploy Skydive (see http://skydive.network/).
 
@@ -59,17 +67,16 @@ class Skydive(Service):
                 :linenos:
 
         """
-        self.analyzers = analyzers if analyzers is not None else []
+        self.analyzers: Iterable[Host] = analyzers if analyzers is not None else []
         assert self.analyzers is not None
-        self.agents = list(set(agents)) if agents is not None else []
+        self.agents: List[Host] = list(set(agents)) if agents is not None else []
         assert self.agents is not None
-        self.skydive = chain(self.analyzers, self.agents)
-        self.networks = networks
+        self.skydive: Iterable[Host] = chain(self.analyzers, self.agents)
+        self.networks: Optional[Iterable[Network]] = networks
         self.priors = priors
         self.roles = Roles(analyzers=analyzers, agents=agents, skydive=self.skydive)
 
-        self.extra_vars = {}
-        self.extra_vars.update(DEFAULT_VARS)
+        self.extra_vars: Dict = DEFAULT_VARS
         if extra_vars is not None:
             self.extra_vars.update(extra_vars)
 
@@ -80,7 +87,7 @@ class Skydive(Service):
 
     def build_fabric(self):
         def fabric_for_role(network):
-            fabric = []
+            fabric: List[str] = []
             for agent in self.agents:
                 devices = agent.filter_interfaces([network])
                 for device in devices:
@@ -98,7 +105,7 @@ class Skydive(Service):
                         )
             return fabric
 
-        fabric = []
+        fabric: List = []
         if self.networks is None:
             return fabric
 

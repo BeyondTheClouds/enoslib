@@ -6,26 +6,31 @@ It wraps the python-grid5000 library to provide some usual routines to interact
 with the platform.
 """
 
-from collections import defaultdict, namedtuple
+import os
+import re
+import threading
+import time
 from datetime import datetime, timezone
 from functools import lru_cache
-
-import re
-from grid5000.objects import Job, Node, Vlan
-import os
-import time
-import threading
-from typing import Dict, Iterable, List, MutableMapping, Optional, Tuple
 from pathlib import Path
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    MutableMapping,
+    Optional,
+    Tuple,
+    MutableSequence,
+)
 
 import pytz
+from grid5000 import Grid5000
+from grid5000.exceptions import Grid5000DeleteError
+from grid5000.objects import Job, Node, Vlan
 
-from .error import (
-    EnosG5kDuplicateJobsError,
-    EnosG5kInvalidArgumentsError,
-    EnosG5kKavlanNodesError,
-    EnosG5kWalltimeFormatError,
-)
+from collections import defaultdict, namedtuple
+from enoslib.infra.utils import _date2h
+from enoslib.log import getLogger
 from .constants import (
     KAVLAN_GLOBAL,
     KAVLAN_IDS,
@@ -36,13 +41,12 @@ from .constants import (
     NATURE_PROD,
     MAX_DEPLOY,
 )
-from enoslib.log import getLogger
-from enoslib.infra.utils import _date2h
-
-from grid5000 import Grid5000
-
-from grid5000.exceptions import Grid5000DeleteError
-
+from .error import (
+    EnosG5kDuplicateJobsError,
+    EnosG5kInvalidArgumentsError,
+    EnosG5kKavlanNodesError,
+    EnosG5kWalltimeFormatError,
+)
 
 logger = getLogger(__name__, ["G5k"])
 
@@ -95,11 +99,11 @@ def to_prod_nature() -> str:
 
 
 def get_api_client():
-    """Gets the reference to the API cient (singleton)."""
+    """Gets the reference to the API client (singleton)."""
     with _api_lock:
         global _api_client
         if not _api_client:
-            conf_file = os.path.join(os.environ.get("HOME"), ".python-grid5000.yaml")
+            conf_file = os.path.join(os.environ["HOME"], ".python-grid5000.yaml")
             _api_client = Client.from_yaml(conf_file)
 
         return _api_client
@@ -122,7 +126,9 @@ def grid_reload_jobs_from_ids(oargrid_jobids):
     return jobs
 
 
-def grid_reload_jobs_from_name(job_name, restrict_to: Optional[List[str]] = None):
+def grid_reload_jobs_from_name(
+    job_name, restrict_to: Optional[MutableSequence[str]] = None
+):
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
     By default, all the sites will be searched for jobs with the name
@@ -183,7 +189,9 @@ def grid_reload_from_ids(oargrid_jobids):
     return jobs
 
 
-def build_resources(jobs: List[Job]) -> Tuple[List[str], List[OarNetwork]]:
+def build_resources(
+    jobs: MutableSequence[Job],
+) -> Tuple[MutableSequence[str], MutableSequence[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
@@ -298,7 +306,7 @@ def submit_jobs(job_specs):
         logger.error("Cleaning the jobs created")
         for job in jobs:
             job.delete()
-        raise (e)
+        raise e
 
     return jobs
 
@@ -592,7 +600,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
 
     """
 
-    interfaces = {}
+    interfaces: MutableMapping = {}
     for cluster in clusters:
         nics = get_cluster_interfaces(cluster, extra_cond=extra_cond)
         interfaces.setdefault(cluster, nics)
@@ -800,7 +808,7 @@ def grid_get_or_create_job(
 
 
 def _build_reservation_criteria(machines, networks):
-    criteria = {}
+    criteria: MutableMapping = {}
     # machines reservations
     # FIXME(msimonin): this should be refactor like this
     # for machine in machines

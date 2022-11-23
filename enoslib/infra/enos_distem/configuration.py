@@ -1,4 +1,5 @@
 import uuid
+from typing import MutableMapping
 
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -113,7 +114,7 @@ class MachineConfiguration:
 
     @classmethod
     def from_dictionary(cls, dictionary):
-        kwargs = {}
+        kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
 
@@ -140,7 +141,7 @@ class MachineConfiguration:
         return cls(**kwargs)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         undercloud = self.undercloud
         if undercloud is not None:
             undercloud = [h.to_dict() for h in undercloud]

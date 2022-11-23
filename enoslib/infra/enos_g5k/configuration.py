@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, MutableMapping
 from uuid import uuid4
 import warnings
 
@@ -76,7 +76,7 @@ class Configuration(BaseConfiguration):
     def add_machine(self, *args, **kwargs):
         # we need to discriminate between Cluster/Server
         if kwargs.get("servers") is not None:
-            machine = ServersConfiguration(*args, **kwargs)
+            machine: GroupConfiguration = ServersConfiguration(*args, **kwargs)
         elif kwargs.get("cluster") is not None:
             machine = ClusterConfiguration(*args, **kwargs)
         else:
@@ -224,7 +224,7 @@ class GroupConfiguration:
         return get_cluster_site(cluster)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         primary_network_id = (
             self.primary_network.id if self.primary_network is not None else None
         )
@@ -278,7 +278,7 @@ class GroupConfiguration:
             )
 
         if cluster is not None:
-            kwargs = {}
+            kwargs: MutableMapping = {}
             nodes = dictionary.get("nodes")
             if nodes is not None:
                 kwargs.update(nodes=nodes)
@@ -393,7 +393,7 @@ class NetworkConfiguration:
         return cls(id=id, roles=roles, type=type, site=site)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d
 

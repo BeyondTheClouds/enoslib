@@ -99,9 +99,9 @@ class K3s(Service):
 
         token = result[0].stdout
         with actions(roles=self.roles["agent"], gather_facts=False) as p:
-            cmd = f"K3S_URL=https://{self.master[0].address}:6443 K3S_TOKEN={token} sh"
+            cmd = f"K3S_URL=https://{self.master.__iter__().__next__().address}:6443 K3S_TOKEN={token} sh"  # noqa
             p.shell(
-                (f"curl -sfL https://get.k3s.io | {cmd}"),
+                f"curl -sfL https://get.k3s.io | {cmd}",
                 task_name="[agent] Deploying K3s on agent",
             )
         with actions(roles=self.roles["master"], gather_facts=False) as p:

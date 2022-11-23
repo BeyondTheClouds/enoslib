@@ -44,13 +44,13 @@ class IotlabAPI:
             the command 'iotlab-auth -u <username> -p <password>'"""
                 )
             )
-        self.api = iotlabcli.rest.Api(user, passwd)
-        self.user = user
-        self.password = passwd
+        self.api: iotlabcli.rest.Api = iotlabcli.rest.Api(user, passwd)
+        self.user: str = user
+        self.password: str = passwd
 
         # this state can be reloaded from the conf
-        self.job_id = None
-        self.walltime = None
+        self.job_id: Optional[int] = None
+        self.walltime: Optional[int] = None
         self.profiles: Set[str] = set()
 
         # this state depend on the previous ones
@@ -358,11 +358,11 @@ or choose other nodes"""
             api=self.api, command=cmd, exp_id=self.job_id, nodes_list=nodes
         )
 
-    def get_job_id(self) -> int:
+    def get_job_id(self) -> Optional[int]:
         """Get experiment ID"""
         return self.job_id
 
-    def get_walltime(self) -> int:
+    def get_walltime(self) -> Optional[int]:
         """Get experiment walltime"""
         return self.walltime
 
@@ -474,9 +474,10 @@ def get_candidates(nodes_status: Dict) -> Dict:
     """
     candidates = {}
     nodes = nodes_status.get("items")
-    for node_status in nodes:
-        if node_status["state"] == "Alive" or node_status["state"] == "Busy":
-            candidates[node_status["network_address"]] = node_status
+    if nodes is not None:
+        for node_status in nodes:
+            if node_status["state"] == "Alive" or node_status["state"] == "Busy":
+                candidates[node_status["network_address"]] = node_status
     return candidates
 
 
@@ -504,23 +505,24 @@ def get_free_nodes(
     # at start every node is considered as free
     # and we'll remove from them the nodes with conflicting reservation
     copy_candidates = copy.deepcopy(candidates)
-    for experiment_status in experiments:
-        timezone = pytz.timezone("UTC")
-        experiment_start_date = timezone.localize(
-            datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
-        ).timestamp()
-        # submitted duration is given in minutes !
-        exp_end_date = experiment_start_date + int(
-            experiment_status["submitted_duration"] * 60
-        )
-        if start >= exp_end_date:
-            continue
-        if start + walltime <= experiment_start_date:
-            continue
-        # intersection remove all the nodes of the xp from the candidates
-        for node in experiment_status["nodes"]:
-            if node in copy_candidates:
-                copy_candidates.pop(node)
+    if experiments is not None:
+        for experiment_status in experiments:
+            timezone = pytz.timezone("UTC")
+            experiment_start_date = timezone.localize(
+                datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
+            ).timestamp()
+            # submitted duration is given in minutes !
+            exp_end_date = experiment_start_date + int(
+                experiment_status["submitted_duration"] * 60
+            )
+            if start >= exp_end_date:
+                continue
+            if start + walltime <= experiment_start_date:
+                continue
+            # intersection remove all the nodes of the xp from the candidates
+            for node in experiment_status["nodes"]:
+                if node in copy_candidates:
+                    copy_candidates.pop(node)
     return copy_candidates
 
 
@@ -544,7 +546,7 @@ def test_slot(
     Returns:
         True iff the slot is free and thus can be reserved
     """
-    machines_required = {}
+    machines_required: Dict[Tuple[str, str], int] = {}
     candidates = get_candidates(nodes_status)
     walltime = conf.walltime_s
     logger.debug(f"Test slot: start_time={start_time}, walltime={walltime}")

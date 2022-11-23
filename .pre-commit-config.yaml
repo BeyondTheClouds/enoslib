@@ -1,11 +1,11 @@
 exclude: "enoslib/service/skydive/skydive*"
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.8.0
+    rev: 22.10.0
     hooks:
       - id: black
 
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
@@ -25,7 +25,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.34.0
+    rev: v3.2.2
     hooks:
       - id: pyupgrade
         args: [--py37-plus]

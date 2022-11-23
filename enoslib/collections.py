@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Optional
 
 from collections import UserDict
 from collections.abc import MutableSet
@@ -15,9 +15,9 @@ class ResourcesSet(MutableSet):
     machine as you'd expect with a regular list.
     """
 
-    def __init__(self, iterable: Iterable = None):
+    def __init__(self, iterable: Optional[Iterable] = None):
         self.data = set()
-        if iterable:
+        if iterable is not None:
             self.data = set(iterable)
 
     def __repr__(self):

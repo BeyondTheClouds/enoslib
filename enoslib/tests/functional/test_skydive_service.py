@@ -2,10 +2,9 @@ import logging
 import os
 
 from enoslib.api import sync_info
-from enoslib.service import Skydive
-from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
-
+from enoslib.infra.enos_static.provider import Static
+from enoslib.service import Skydive
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -40,5 +39,4 @@ roles, networks = provider.init()
 roles = sync_info(roles, networks)
 
 m = Skydive(analyzers=roles["control"], agents=roles["control"])
-
 m.deploy()

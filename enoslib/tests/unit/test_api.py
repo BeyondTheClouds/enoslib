@@ -1,8 +1,6 @@
-from enoslib.errors import EnosUnreachableHostsError
-
+from typing import Union, List
 from unittest import mock
 
-from . import EnosTest
 from enoslib.api import (
     CommandResult,
     actions,
@@ -11,7 +9,9 @@ from enoslib.api import (
     STATUS_OK,
     Results,
 )
+from enoslib.errors import EnosUnreachableHostsError, EnosSSHNotReady
 from enoslib.objects import Host, Roles
+from . import EnosTest
 
 
 class TestSSH(EnosTest):
@@ -22,16 +22,24 @@ class TestSSH(EnosTest):
     def test_wait_ssh_succeed(self):
         with mock.patch("enoslib.api.run_play", new_callable=mock.Mock()) as m:
             m.return_value = []
-            self.assertIsNone(wait_for(self.env, interval=0))
+            try:
+                wait_for(self.hosts, interval=0)
+            except (EnosUnreachableHostsError, EnosSSHNotReady):
+                assert False
 
     def test_wait_ssh_eventually_succeed(self):
         with mock.patch("enoslib.api.run_play", new_callable=mock.Mock()) as m:
             # fail 9 times
-            effects = [EnosUnreachableHostsError(self.hosts) for i in range(1, 10)]
+            effects: List[Union[EnosUnreachableHostsError, List]] = [
+                EnosUnreachableHostsError(self.hosts) for i in range(1, 10)
+            ]
             # succeed on the last
             effects.append([])
             m.side_effect = effects
-            self.assertIsNone(wait_for(self.env, retries=10, interval=0))
+            try:
+                wait_for(self.hosts, retries=10, interval=0)
+            except (EnosUnreachableHostsError, EnosSSHNotReady):
+                assert False
 
     def test_wait_ssh_fails(self):
         with self.assertRaisesRegex(Exception, "Maximum retries reached"), mock.patch(
@@ -39,13 +47,13 @@ class TestSSH(EnosTest):
         ) as m:
             # fail all the time
             m.side_effect = EnosUnreachableHostsError(self.hosts)
-            wait_for(self.env, interval=0)
+            wait_for(self.hosts, interval=0)
 
 
 class TestPlayOn(EnosTest):
     def test_modules(self):
         p = actions(pattern_hosts="pattern")
-        p.__exit__ = mock.MagicMock()
+        p.__exit__ = mock.MagicMock()  # type: ignore
         a = p.__enter__()
         a.test_module(name="test", state="present")
         self.assertEqual(1, len(a._tasks))
@@ -61,11 +69,13 @@ class TestPlayOn(EnosTest):
 
 class TestGetHosts(EnosTest):
     def test_get_all(self):
-        roles = {
-            "client.1": [Host("1.2.3.4")],
-            "client.2": [Host("2.2.3.4")],
-            "server": [Host("3.2.3.4")],
-        }
+        roles: Roles = Roles(
+            {
+                "client.1": [Host("1.2.3.4")],
+                "client.2": [Host("2.2.3.4")],
+                "server": [Host("3.2.3.4")],
+            }
+        )
         hosts = get_hosts(roles)
         self.assertEqual(3, len(hosts))
         hosts = get_hosts(roles, pattern_hosts="client*")
