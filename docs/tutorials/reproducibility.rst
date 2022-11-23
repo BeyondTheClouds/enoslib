@@ -55,6 +55,24 @@ experiment:
 Don't forget to document all these steps.  You should also document which
 version of Python you used to run your experiment.
 
+Using Guix
+----------
+
+As an alternative to the above you can use the `GNU/Guix
+<https://guix.gnu.org/>`_ system to manage your software environment.  |enoslib|
+is known in Guix as ``python-enoslib``.
+
+.. code-block:: shell
+
+    # spawn a one-off shell to run myscript.py
+    guix shell python python-enoslib -- python3 myscript.py
+
+
+.. note::
+
+    - Refer to the Guix documentation to get started on your environment.
+    - On Grid'5000 you can refer to the `dedicated tutorial <https://www.grid5000.fr/w/Guix>`_ to get started.
+
 
 Reproducible experiments with Enoslib
 =====================================
@@ -226,10 +244,32 @@ that your experiment will always use the same exact Debian packages.
 :download:`reproducible_g5k_full.py <reproducibility/reproducible_g5k_full.py>`
 
 
+Experiment's shareability
+=========================
+
+Sharing experiment requires packaging it and share it somehow.
+A proof of concept using |enoslib| for a Multi-platform Edge-to-Cloud Experiment
+Workflow is available as an artifact of the `Trovi/Jupyter
+<https://www.chameleoncloud.org/experiment/share/347adbf3-7c14-4834-b802-b45fdd0d9564>`_
+platform of Chameleon. This work is part of `Daniel
+Rosendo <https://team.inria.fr/kerdata/daniel-rosendo/>`_ 's work on
+reproducibility of edge to cloud experiments.
+
+
+Experiment's shareability
+=========================
+
+Sharing experiment requires packaging it and share it somehow.
+A proof of concept using |enoslib| for a Multi-platform Edge-to-Cloud Experiment
+Workflow is available as an artifact of the `Trovi/Jupyter
+<https://www.chameleoncloud.org/experiment/share/347adbf3-7c14-4834-b802-b45fdd0d9564>`_
+platform of Chameleon. This work is part of `Daniel
+Rosendo <https://team.inria.fr/kerdata/daniel-rosendo/>`_ 's work on
+reproducibility of edge to cloud experiments.
+
+
 Going further
 =============
-
-* Install the GUIX package for Enoslib
 
 Do you have more ideas to make experiments with Enoslib reproducible?
 Come tell us! |chat|

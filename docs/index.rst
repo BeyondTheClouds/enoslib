@@ -69,6 +69,8 @@
 
       ``pip install enoslib``
 
+      ``guix install python-enoslib``
+
    .. grid-item-card::
       :link: https://framateam.org/enoslib
 

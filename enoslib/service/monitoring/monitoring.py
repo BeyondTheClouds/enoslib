@@ -52,16 +52,16 @@ class TIGMonitoring(Service):
         collector: Host,
         agent: Iterable[Host],
         *,
-        ui: Host = None,
-        networks: Iterable[Network] = None,
+        ui: Optional[Host] = None,
+        networks: Optional[Iterable[Network]] = None,
         remote_working_dir: str = "/builds/monitoring",
-        backup_dir: Path = None,
+        backup_dir: Optional[Path] = None,
         collector_env: Optional[Dict] = None,
         agent_conf: Optional[str] = None,
         agent_env: Optional[Dict] = None,
         agent_image: str = DEFAULT_AGENT_IMAGE,
         ui_env: Optional[Dict] = None,
-        extra_vars: Dict = None,
+        extra_vars: Optional[Dict] = None,
     ):
         """Deploy a TIG stack: Telegraf, InfluxDB, Grafana.
 
@@ -228,8 +228,8 @@ class TPGMonitoring(Service):
         collector: Host,
         agent: Iterable[Host],
         *,
-        ui: Host = None,
-        networks: Iterable[Network] = None,
+        ui: Optional[Host] = None,
+        networks: Optional[Iterable[Network]] = None,
         remote_working_dir: str = "/builds/monitoring",
         backup_dir: Optional[Path] = None,
     ):

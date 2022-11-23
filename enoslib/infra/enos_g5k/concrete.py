@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, MutableSequence
 
 from .configuration import (
     ClusterConfiguration,
@@ -8,7 +8,11 @@ from .configuration import (
 from .error import NotEnoughNodesError
 
 
-class MinMixin:
+class ConcreteGroup:
+    def __init__(self, oar_nodes: MutableSequence[str], config: GroupConfiguration):
+        self.oar_nodes: MutableSequence[str] = oar_nodes
+        self.config: GroupConfiguration = config
+
     def raise_for_min(self):
         if self.config.min > len(self.oar_nodes):
             raise NotEnoughNodesError(
@@ -17,23 +21,15 @@ class MinMixin:
             )
 
 
-class ConcreteGroup(MinMixin):
-    """Concretization of a cluster configuration (Base class)."""
-
-    def __init__(self, oar_nodes: List[str], config: GroupConfiguration):
-        self.oar_nodes = oar_nodes
-        self.config = config
-
-
-class ConcreteClusterConf(ConcreteGroup, MinMixin):
-    """Concretization of a cluster configuration."""
+class ConcreteClusterConf(ConcreteGroup):
+    """Realization of a cluster configuration."""
 
     def __init__(self, oar_nodes: List[str], config: ClusterConfiguration):
         super().__init__(oar_nodes, config)
 
 
-class ConcreteServersConf(ConcreteGroup, MinMixin):
-    """Concretization of a servers' configuration."""
+class ConcreteServersConf(ConcreteGroup):
+    """Realization of a servers' configuration."""
 
     def __init__(self, oar_nodes: List[str], config: ServersConfiguration):
         super().__init__(oar_nodes, config)

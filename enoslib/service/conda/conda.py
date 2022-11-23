@@ -331,12 +331,16 @@ def conda_from_env():
 
 
 class Dask(Service):
+    def backup(self):
+        print("Dask.backup is not implemented.")
+        pass
+
     def __init__(
         self,
         conda_env: str,
-        conda_prefix: str = None,
-        scheduler: Host = None,
-        workers: Iterable[Host] = None,
+        conda_prefix: Optional[str] = None,
+        scheduler: Optional[Host] = None,
+        workers: Optional[Iterable[Host]] = None,
         worker_args: str = "",
         run_as: str = "root",
     ):
@@ -369,7 +373,7 @@ class Dask(Service):
         """
         self.conda_env = conda_env
         if conda_prefix is None:
-            self.conda_prefix = f"/home/{run_as}/miniconda3"
+            self.conda_prefix: str = f"/home/{run_as}/miniconda3"
         else:
             self.conda_prefix = conda_prefix
         self.scheduler = scheduler

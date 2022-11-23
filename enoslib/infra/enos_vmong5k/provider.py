@@ -14,7 +14,7 @@ from typing import Dict, List, Optional
 from netaddr import EUI, mac_unix_expanded
 
 from enoslib.api import run_ansible
-from enoslib.objects import Host, Roles, RolesNetworks
+from enoslib.objects import Host, Roles
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 def start_virtualmachines(
     provider_conf: Configuration,
     force_deploy: bool = False,
-) -> RolesNetworks:
+) -> Roles:
     """Starts virtualmachines on G5K.
 
     This first distributes the virtual machine according to the undercloud
@@ -183,7 +183,7 @@ def _build_g5k_conf(vmong5k_conf):
     return _do_build_g5k_conf(vmong5k_conf)
 
 
-def _distribute(machines, extra=None):
+def _distribute(machines, extra=None) -> Roles:
     vmong5k_roles = Roles()
     for machine in machines:
         pms = machine.undercloud
@@ -267,7 +267,7 @@ class VirtualMachine(Host):
         self.eui = eui
         self.pm = pm
         self.user = "root"
-        self.net_devices = extra_devices
+        self.net_devices: str = extra_devices  # type:ignore
         self.disk = flavour_desc.get("disk", None)
         if self.disk is not None:
             path = f"{LIBVIRT_DIR}/{self.alias}-extra.raw"

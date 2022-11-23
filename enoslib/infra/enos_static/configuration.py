@@ -1,3 +1,5 @@
+from typing import MutableMapping
+
 from ..configuration import BaseConfiguration
 from .schema import SCHEMA
 
@@ -68,7 +70,7 @@ class MachineConfiguration:
         )
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(address=self.address, roles=self.roles)
         if self.alias:
             d.update(alias=self.alias)
@@ -108,7 +110,7 @@ class NetworkConfiguration:
         )
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(
             roles=self.roles,
             cidr=self.cidr,

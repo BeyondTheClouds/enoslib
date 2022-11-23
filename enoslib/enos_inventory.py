@@ -82,11 +82,11 @@ class EnosInventory(Inventory):
                         proxy_cmd.append("-l %s" % gateway_user)
 
                     proxy_cmd.append(gateway)
-                    proxy_cmd = " ".join(proxy_cmd)
-                    common_args.append('-o ProxyCommand="%s"' % proxy_cmd)
+                    final_proxy_cmd = " ".join(proxy_cmd)
+                    common_args.append('-o ProxyCommand="%s"' % final_proxy_cmd)
 
-                common_args = " ".join(common_args)
-                host.set_variable("ansible_ssh_common_args", f"{common_args}")
+                final_common_args = " ".join(common_args)
+                host.set_variable("ansible_ssh_common_args", f"{final_common_args}")
 
                 for k, v in machine.extra.items():
                     if k not in ["gateway", "gateway_user", "forward_agent"]:
@@ -95,13 +95,11 @@ class EnosInventory(Inventory):
                 self.reconcile_inventory()
 
     def to_ini_string(self):
-        def to_inventory_string(v):
+        def to_inventory_string(v) -> str:
             """Handle the cas of List[String]."""
             if isinstance(v, list):
                 # [a, b, c] -> "['a','b','c']"
-                s = map(lambda x: "'%s'" % x, v)
-                s = '"[%s]"' % ",".join(s)
-                return s
+                return '"[%s]"' % ",".join(map(lambda x: "'%s'" % x, v))
             return f"'{v}'"
 
         s = []
@@ -111,7 +109,7 @@ class EnosInventory(Inventory):
                 h = self.get_host(hostname)
                 # i = [f"ansible_host='{h.address}'"]
                 i = []
-                # NOTE(mimonin): The intend of generating an ini is because we
+                # NOTE(mimonin): The intent of generating an ini is because we
                 # want an inventory_file and inventory dir set so removing
                 # those keys (None values).
                 for k, v in h.vars.items():

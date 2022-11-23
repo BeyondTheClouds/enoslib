@@ -4,7 +4,6 @@ en.init_logging()
 
 provider_conf = {
     "backend": "libvirt",
-    "box": "generic/debian9",
     "resources": {
         "machines": [
             {

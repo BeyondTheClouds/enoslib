@@ -1,7 +1,7 @@
-from datetime import datetime, time, timezone
 import pathlib
 import re
-from typing import List, Optional, Tuple
+from datetime import datetime, time, timezone
+from typing import List, Optional, Tuple, Dict
 from urllib.error import HTTPError
 
 import iotlabcli.auth
@@ -13,8 +13,10 @@ from enoslib.errors import (
     InvalidReservationTooOld,
     NegativeWalltime,
 )
-from enoslib.objects import Host, Networks, Roles
-from enoslib.infra.provider import Provider
+from enoslib.infra.enos_iotlab.configuration import (
+    PhysNodeConfiguration,
+)
+from enoslib.infra.enos_iotlab.constants import PROD
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI, test_slot
 from enoslib.infra.enos_iotlab.objects import (
     IotlabHost,
@@ -22,13 +24,10 @@ from enoslib.infra.enos_iotlab.objects import (
     IotlabNetwork,
     ssh_enabled,
 )
+from enoslib.infra.provider import Provider
 from enoslib.infra.utils import mk_pools, pick_things
-
-from enoslib.infra.enos_iotlab.constants import PROD
-from enoslib.infra.enos_iotlab.configuration import (
-    PhysNodeConfiguration,
-)
 from enoslib.log import getLogger
+from enoslib.objects import Host, Networks, Roles
 
 logger = getLogger(__name__, ["IOTlab"])
 
@@ -97,10 +96,10 @@ class Iotlab(Provider):
         self.sensors: List[IotlabSensor] = []
         self.networks: List[IotlabNetwork] = []
         self.nodes_status = None
-        self.experiments_status = None
+        self.experiments_status: Optional[Dict] = None
 
     def init(
-        self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
     ) -> Tuple[Roles, Networks]:
         """
         Take ownership over FIT/IoT-LAB resources
@@ -175,17 +174,17 @@ class Iotlab(Provider):
             roles=[Host(site + ".iot-lab.info", user=user) for site in sites],
             on_error_continue=True,
         ) as p:
-            filename = "%d-{{ inventory_hostname }}.tar.gz" % (exp_id)
+            filename = "%s-{{ inventory_hostname }}.tar.gz" % exp_id
             # use --ignore-command-error to avoid errors if monitoring
             # files are being written
             p.shell(
-                "cd .iot-lab/; tar --ignore-command-error -czf %s %d/"
+                "cd .iot-lab/; tar --ignore-command-error -czf %s %s/"
                 % (filename, exp_id)
             )
             p.fetch(src=".iot-lab/" + filename, dest=dest_dir + "/", flat=True)
             p.shell("cd .iot-lab/; rm -f %s" % filename)
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False, **kwargs):
         """Destroys the job and monitoring profiles."""
         profiles = self.provider_conf.profiles
 
@@ -196,7 +195,7 @@ class Iotlab(Provider):
 
     def reset(self):
         """Reset all sensors."""
-        image_dict = {}
+        image_dict: Dict = {}
         for sensor in self.sensors:
             if sensor.image is not None:
                 image_dict.setdefault(sensor.image, []).append(sensor.address)
@@ -277,7 +276,11 @@ class Iotlab(Provider):
         """
         self.reset()
 
-        self.client.wait_ssh([h.ssh_address for h in self.hosts])
+        ssh_addresses: List[str] = []
+        for h in self.hosts:
+            if h.ssh_address is not None:
+                ssh_addresses.append(h.ssh_address)
+        self.client.wait_ssh(ssh_addresses)
 
     @staticmethod
     def timezone():
@@ -405,11 +408,11 @@ class Iotlab(Provider):
                 consumption=profile.consumption,
             )
 
-    def _to_enoslib(self):
+    def _to_enoslib(self) -> Tuple[Roles, Networks]:
         """Transform from provider specific resources to library-level resources"""
         roles = Roles()
         # keep track of duplicates
-        _hosts = []
+        _hosts: List[Host] = []
         for host in self.hosts:
             if host.ssh_address:
                 h = Host(host.ssh_address, user="root")
@@ -447,9 +450,15 @@ class Iotlab(Provider):
             self.experiments_status = self.client.api.method(
                 url=f"drawgantt/experiments?start={start_param}&stop={stop_param}"
             )
-        return test_slot(
-            self.provider_conf, self.nodes_status, self.experiments_status, start_time
-        )
+        if self.experiments_status is not None:
+            return test_slot(
+                self.provider_conf,
+                self.nodes_status,
+                self.experiments_status,
+                start_time,
+            )
+        else:
+            return False
 
     def set_reservation(self, timestamp: int):
         # input timestamp is utc by design
@@ -469,7 +478,7 @@ class Iotlab(Provider):
         if walltime_sec <= 0:
             raise NegativeWalltime()
         # The walltime being in Hours:Minutes format, it will be rounded down if
-        # there're spare seconds
+        # there are spare seconds
         new_walltime = time(
             hour=int(walltime_sec / 3600), minute=int((walltime_sec % 3600) / 60)
         )

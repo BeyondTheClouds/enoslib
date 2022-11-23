@@ -1,3 +1,5 @@
+from typing import MutableMapping, Type
+
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_BACKEND,
@@ -24,8 +26,8 @@ class Configuration(BaseConfiguration):
         self.name_prefix = DEFAULT_NAME_PREFIX
         self.config_extra = ""
 
-        self._machine_cls = MachineConfiguration
-        self._network_cls = NetworkConfiguration
+        self._machine_cls: Type[MachineConfiguration] = MachineConfiguration
+        self._network_cls: Type[NetworkConfiguration] = NetworkConfiguration
 
     @classmethod
     def from_dictionary(cls, dictionary, validate=True):
@@ -47,7 +49,7 @@ class Configuration(BaseConfiguration):
         return self
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(
             backend=self.backend,
             user=self.user,
@@ -86,7 +88,7 @@ class MachineConfiguration:
 
     @classmethod
     def from_dictionary(cls, dictionary):
-        kwargs = {}
+        kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
 
@@ -104,7 +106,7 @@ class MachineConfiguration:
         return cls(**kwargs)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(
             roles=self.roles,
             flavour_desc=self.flavour_desc,
@@ -121,7 +123,7 @@ class NetworkConfiguration:
 
     @classmethod
     def from_dictionary(cls, dictionary):
-        kwargs = {}
+        kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         cidr = dictionary["cidr"]
         kwargs.update(roles=roles, cidr=cidr)
@@ -129,6 +131,6 @@ class NetworkConfiguration:
         return cls(**kwargs)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(roles=self.roles, cidr=self.cidr)
         return d

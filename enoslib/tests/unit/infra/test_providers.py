@@ -47,13 +47,13 @@ class TestFindSlot(EnosTest):
         provider1 = Mock()
         provider1.async_init.return_value = ...
         provider1.init.return_value = (Roles(Dummy=[host1]), Networks(Dummy=[network1]))
-        provider1.__str__ = Mock()
+        provider1.__str__ = Mock()  # type: ignore
         provider1.__str__.return_value = "provider1"
 
         provider2 = Mock()
         provider1.async_init.return_value = ...
         provider2.init.return_value = (Roles(Dummy=[host2]), Networks(Dummy=[network2]))
-        provider2.__str__ = Mock()
+        provider2.__str__ = Mock()  # type: ignore
         provider2.__str__.return_value = "provider2"
 
         providers = Providers([provider1, provider2])

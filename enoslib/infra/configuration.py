@@ -1,7 +1,7 @@
-import logging
 import json
-from typing import Callable, Dict, Optional, Any
+import logging
 import warnings
+from typing import Callable, Dict, Optional, Any, Type, MutableSequence
 
 import jsonschema
 
@@ -23,13 +23,13 @@ class BaseConfiguration:
 
     def __init__(self):
         # A configuration has the least these two
-        self.machines = []
-        self.networks = []
+        self.machines: MutableSequence = []
+        self.networks: MutableSequence = []
 
         # Filling up with the right machine and network
-        # constructor is deferred to the sub-classes.
-        self._machine_cls = str
-        self._network_cls = str
+        # constructor is deferred to the subclasses.
+        self._machine_cls: Optional[Type] = None
+        self._network_cls: Optional[Type] = None
 
     @classmethod
     def from_dictionary(cls, dictionary, validate=True):
@@ -85,7 +85,8 @@ class BaseConfiguration:
         return self
 
     def add_machine(self, *args, **kwargs):
-        self.machines.append(self._machine_cls(**kwargs))
+        if self._machine_cls is not None:
+            self.machines.append(self._machine_cls(**kwargs))  # pylint: disable=E1102
         return self
 
     def add_network_conf(self, network):
@@ -93,7 +94,10 @@ class BaseConfiguration:
         return self
 
     def add_network(self, *args, **kwargs):
-        self.networks.append(self._network_cls(*args, **kwargs))
+        if self._network_cls is not None:
+            self.networks.append(
+                self._network_cls(*args, **kwargs)  # pylint: disable=E1102
+            )
         return self
 
     def __repr__(self):
