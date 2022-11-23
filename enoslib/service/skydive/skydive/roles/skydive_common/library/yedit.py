@@ -27,6 +27,7 @@
 # -*- -*- -*- Begin included fragment: lib/import.py -*- -*- -*-
 
 # pylint: disable=wrong-import-order,wrong-import-position,unused-import
+# mypy: ignore-errors
 
 from __future__ import print_function  # noqa: F401
 import copy  # noqa: F401

@@ -1,7 +1,7 @@
 import copy
 from ipaddress import ip_interface
 from pathlib import Path
-from typing import Iterable, List, Optional, Set, Tuple, Union
+from typing import Iterable, List, Optional, Set, Tuple, Union, MutableMapping, Dict
 from enoslib.api import run_command
 from enoslib.utils import _check_tmpdir
 import logging
@@ -26,7 +26,7 @@ def _chunks(_list, size):
 
 def _combine(*args, separator=";", chunk_size=100):
     """Build the commands indexed by host."""
-    c = defaultdict(list)
+    c: Dict = defaultdict(list)
     _args = args
     for a in list(_args):
         for s, l in a.items():
@@ -40,7 +40,7 @@ def _combine(*args, separator=";", chunk_size=100):
 
 def _build_options(extra_vars, options):
     """This only merges two dicts."""
-    _options = {}
+    _options: MutableMapping = {}
     _options.update(extra_vars)
     _options.update(options)
     return _options

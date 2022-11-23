@@ -1,3 +1,5 @@
+from typing import Dict
+
 import jsonschema
 
 from enoslib.infra.enos_openstack.configuration import Configuration
@@ -7,7 +9,7 @@ from ... import EnosTest
 
 class TestConfiguration(EnosTest):
     def test_from_dictionary_minimal(self):
-        d = {
+        d: Dict = {
             "key_name": "test_key",
             "user": "test_user",
             "image": "test_image",
@@ -19,12 +21,12 @@ class TestConfiguration(EnosTest):
         self.assertEqual(constants.DEFAULT_CONFIGURE_NETWORK, conf.configure_network)
 
     def test_from_dictionary_missing_keys(self):
-        d = {"resources": {"machines": [], "networks": []}}
+        d: Dict = {"resources": {"machines": [], "networks": []}}
         with self.assertRaises(jsonschema.exceptions.ValidationError) as _:
             Configuration.from_dictionary(d)
 
     def test_from_dictionary(self):
-        d = {
+        d: Dict = {
             "key_name": "test_key",
             "user": "test_user",
             "image": "test_image",

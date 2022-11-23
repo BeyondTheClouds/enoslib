@@ -28,7 +28,19 @@ import warnings
 from collections import defaultdict, namedtuple
 from pathlib import Path
 import sys
-from typing import Any, Dict, Sequence, List, Mapping, Optional, Set, Tuple
+from typing import (
+    Any,
+    Dict,
+    Sequence,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    overload,
+    Iterable,
+)
 
 # These two imports are 2.9
 from ansible.executor.playbook_executor import PlaybookExecutor
@@ -227,7 +239,7 @@ class SpinnerCallback(CallbackBase):
 
     def __init__(self):
         super().__init__()
-        self.running_tasks = defaultdict(dict)
+        self.running_tasks: Dict = defaultdict(dict)
         self.console = Console()
         self.status = None
         self.tasks_lst = []
@@ -375,7 +387,7 @@ class BaseCommandResult:
         )
 
     def _summarize(self):
-        p = {
+        p: Union[Dict, str] = {
             k: self.payload[k]
             for k in self._payload_keys()
             if self.payload.get(k) is not None
@@ -410,7 +422,7 @@ class BaseCommandResult:
         Use case: json serialization
 
         Args:
-            include_payload: True wheter the payload must be included.
+            include_payload: True whether the payload must be included.
 
         Returns:
             A dict representing the object
@@ -471,10 +483,10 @@ class Results(list):
             print([res.stdout for res in result.filter(task="Get date")])
     """
 
-    def filter(self, **kwargs):
+    def filter(self, **kwargs) -> "Results":
         return Results([c for c in self if c.match(**kwargs)])
 
-    def ok(self, **kwargs):
+    def ok(self, **kwargs) -> "Results":
         return Results([c for c in self if c.ok()])
 
     @repr_html_check
@@ -499,7 +511,7 @@ class Results(list):
         return [r.to_dict(include_payload=include_payload) for r in self]
 
     @staticmethod
-    def from_ansible(results: List[_AnsibleExecutionRecord]):
+    def from_ansible(results: List[_AnsibleExecutionRecord]) -> "Results":
         return Results(BaseCommandResult.from_play(r) for r in results)
 
 
@@ -832,13 +844,13 @@ def run_command(
     *,
     pattern_hosts: str = "all",
     inventory_path: Optional[str] = None,
-    roles: RolesLike = None,
+    roles: Optional[RolesLike] = None,
     gather_facts: bool = False,
     extra_vars: Optional[Mapping] = None,
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
     background: bool = False,
-    task_name: str = None,
+    task_name: Optional[str] = None,
     raw: bool = False,
     **kwargs: Any,
 ) -> Results:
@@ -1096,7 +1108,7 @@ def run_ansible(
     playbooks: List[str],
     inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
-    tags: List[str] = None,
+    tags: Optional[List[str]] = None,
     on_error_continue: bool = False,
     basedir: Optional[str] = ".",
     extra_vars: Optional[Mapping] = None,
@@ -1104,6 +1116,7 @@ def run_ansible(
     """Run Ansible.
 
     Args:
+        roles:
         playbooks (list): list of paths to the playbooks to run
         inventory_path (str): path to the hosts file (inventory)
         extra_vars (dict): extra vars to pass
@@ -1197,8 +1210,27 @@ def _sync_from_facts(roles: Roles, networks: Networks, facts: Dict) -> Roles:
     return roles
 
 
+@overload
 def sync_info(
-    roles: RolesLike, networks: Networks, inplace=False, **kwargs
+    roles: Roles, networks: Networks, inplace: bool = False, **kwargs
+) -> Roles:
+    ...
+
+
+@overload
+def sync_info(roles: Host, networks: Networks, inplace: bool = False, **kwargs) -> Host:
+    ...
+
+
+@overload
+def sync_info(
+    roles: Iterable[Host], networks: Networks, inplace: bool = False, **kwargs
+) -> Iterable[Host]:
+    ...
+
+
+def sync_info(
+    roles: RolesLike, networks: Networks, inplace: bool = False, **kwargs
 ) -> RolesLike:
     """Sync each host network information with their actual configuration
 

@@ -44,7 +44,6 @@ time.sleep(10)
 m.destroy()
 m.backup()
 
-
 df = en.Dstat.to_pandas(m.backup_dir)
 print(df)
 assert not df.empty

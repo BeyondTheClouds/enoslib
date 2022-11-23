@@ -1,20 +1,14 @@
 import copy
-from enoslib.infra.enos_g5k.provider import (
-    _concretize_networks,
-    _concretize_nodes,
-    _join,
-)
-from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork
+from typing import List, MutableSequence
+
+from ddt import ddt, data
+
+from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     ServersConfiguration,
     NetworkConfiguration,
 )
-
-from ddt import ddt, data
-
-from enoslib.infra.enos_g5k import g5k_api_utils
-from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
 from enoslib.infra.enos_g5k.constants import (
     NATURE_PROD,
     PROD,
@@ -22,7 +16,15 @@ from enoslib.infra.enos_g5k.constants import (
     SLASH_22,
     SLASH_16,
 )
+from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
+from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork
+from enoslib.infra.enos_g5k.provider import (
+    _concretize_networks,
+    _concretize_nodes,
+    _join,
+)
 from enoslib.tests.unit import EnosTest
+from enoslib.infra.enos_g5k.objects import G5kSubnetNetwork, G5kNetwork
 
 
 class TestConcretizeNetwork(EnosTest):
@@ -60,13 +62,19 @@ class TestConcretizeNetwork(EnosTest):
             for i in range(65)
         ]
         oar_networks = [OarNetwork(**n) for n in _networks]
-        concrete = _concretize_networks(self.subnets, oar_networks)
-        self.assertCountEqual(
-            [n.descriptor for n in oar_networks[0:1]], concrete[0].subnets
+        concrete: MutableSequence[G5kNetwork] = _concretize_networks(
+            self.subnets, oar_networks
         )
-        self.assertCountEqual(
-            [n.descriptor for n in oar_networks[1:]], concrete[1].subnets
-        )
+        concrete_network_0 = concrete[0]
+        if isinstance(concrete_network_0, G5kSubnetNetwork):
+            self.assertCountEqual(
+                [n.descriptor for n in oar_networks[0:1]], concrete_network_0.subnets
+            )
+        concrete_network_1 = concrete[1]
+        if isinstance(concrete_network_1, G5kSubnetNetwork):
+            self.assertCountEqual(
+                [n.descriptor for n in oar_networks[1:]], concrete_network_1.subnets
+            )
 
     def test_act_subnets_not_enough(self):
         oar_networks = [
@@ -74,11 +82,13 @@ class TestConcretizeNetwork(EnosTest):
             for i in range(33)
         ]
         concrete = _concretize_networks(self.subnets, oar_networks)
-        self.assertEqual(32, len(concrete[1].subnets))
+        concrete_network_1 = concrete[1]
+        if isinstance(concrete_network_1, G5kSubnetNetwork):
+            self.assertEqual(32, len(concrete_network_1.subnets))
 
     def test_prod(self):
         self.networks[0].type = PROD
-        self.networks[0].nature = PROD
+        # self.networks[0].nature = PROD  # self.networks[0] is NetworkConfiguration
         oar_networks = [
             OarNetwork(site="rennes", nature="kavlan", descriptor="5"),
             OarNetwork(site="rennes", nature=NATURE_PROD, descriptor=PROD_VLAN_ID),
@@ -108,8 +118,16 @@ class TestConcretizeNetwork(EnosTest):
         g5k_networks_2 = _concretize_networks(networks_2, oar_networks_2)
 
         # concrete are filled following the order of the config
-        self.assertCountEqual(g5k_networks_1[0].vlan_id, g5k_networks_2[0].vlan_id)
-        self.assertCountEqual(g5k_networks_1[1].vlan_id, g5k_networks_2[1].vlan_id)
+        if (
+            g5k_networks_1[0].vlan_id is not None
+            and g5k_networks_2[0].vlan_id is not None
+        ):
+            self.assertCountEqual(g5k_networks_1[0].vlan_id, g5k_networks_2[0].vlan_id)
+        if (
+            g5k_networks_1[1].vlan_id is not None
+            and g5k_networks_2[1].vlan_id is not None
+        ):
+            self.assertCountEqual(g5k_networks_1[1].vlan_id, g5k_networks_2[1].vlan_id)
 
 
 class TestConcretizeNodes(EnosTest):
@@ -224,7 +242,7 @@ class TestConcretizeNodesMin(EnosTest):
         )
 
     def test_all_missing(self):
-        nodes = []
+        nodes: List = []
         with self.assertRaises(NotEnoughNodesError):
             _concretize_nodes(self.machines, nodes)
 

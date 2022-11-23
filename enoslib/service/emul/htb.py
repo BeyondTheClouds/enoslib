@@ -210,7 +210,7 @@ class HTBSource:
 
     @repr_html_check
     def _repr_html_(self, content_only=False):
-        d = [
+        d: List[Dict] = [
             dict(
                 device=c.device,
                 delay=c.delay,
@@ -309,7 +309,7 @@ class NetemHTB(BaseNetem):
         networks: Optional[Iterable[Network]] = None,
         symmetric: bool = False,
         *,
-        symetric: bool = None,
+        symetric: Optional[bool] = None,
     ):
         """Add some constraints.
 
@@ -469,7 +469,7 @@ class NetemHTB(BaseNetem):
         self,
         *,
         networks: Optional[Iterable[Network]] = None,
-        output_dir: PathLike = None,
+        output_dir: Optional[PathLike] = None,
         **kwargs,
     ) -> Results:
         """Validate the network parameters(latency, bandwidth ...)
@@ -498,7 +498,10 @@ class NetemHTB(BaseNetem):
     @repr_html_check
     def _repr_html_(self, content_only=False):
         sections = [
-            html_to_foldable_section(h.alias, s._repr_html_(content_only=True))
+            html_to_foldable_section(
+                h.alias if h.alias is not None else h.address,
+                s._repr_html_(content_only=True),
+            )
             for h, s in self.sources.items()
         ]
         return html_from_sections(

@@ -1,6 +1,6 @@
 # flake8: noqa
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any, Dict
 from enoslib.config import set_config, config_context
 
 from enoslib.api import (
@@ -320,7 +320,7 @@ def init_logging(level=logging.INFO, **kwargs):
     """
     from rich.logging import RichHandler
 
-    default_kwargs = dict(
+    default_kwargs: Dict[str, Any] = dict(
         show_time=False,
     )
 

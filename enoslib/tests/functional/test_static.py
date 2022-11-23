@@ -1,10 +1,10 @@
+from enoslib import Netem
 from enoslib.api import sync_info
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
 from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration as StaticConf
-from enoslib.service import Netem
-
+from typing import Dict
 import logging
 import os
 
@@ -22,13 +22,13 @@ provider_conf = {
     }
 }
 
-tc = {"enable": True, "default_delay": "20ms", "default_rate": "1gbit"}
+# tc = {"enable": True, "default_delay": "20ms", "default_rate": "1gbit"}
 inventory = os.path.join(os.getcwd(), "hosts")
 print("Starting resources with the provider vagrant")
 provider = Enos_vagrant(VagrantConf.from_dictionary(provider_conf))
 roles, networks = provider.init()
 print("Building the machine list")
-resources = {"machines": [], "networks": []}
+resources: Dict = {"machines": [], "networks": []}
 
 for role, machines in roles.items():
     for machine in machines:
@@ -46,9 +46,11 @@ for role, machines in roles.items():
 resources["networks"] = networks
 
 
-provider = Static(StaticConf.from_dictionary({"resources": resources}))
-roles, networks = provider.init()
+provider_snd = Static(StaticConf.from_dictionary({"resources": resources}))
+roles, networks = provider_snd.init()
 roles = sync_info(roles, networks)
-netem = Netem(tc, roles=roles)
+netem = Netem()  # TODO check constraints
+netem.add_constraints("delay 20ms", roles)
+netem.add_constraints("bandwidth 1gbit", roles)
 netem.deploy()
 netem.validate()

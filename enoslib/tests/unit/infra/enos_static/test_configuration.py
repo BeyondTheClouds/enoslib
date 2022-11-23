@@ -1,3 +1,5 @@
+from typing import MutableMapping
+
 import jsonschema
 
 from enoslib.infra.enos_static.configuration import (
@@ -10,7 +12,7 @@ from ... import EnosTest
 
 class TestConfiguration(EnosTest):
     def test_from_dictionary_minimal(self):
-        d = {"resources": {"machines": [], "networks": []}}
+        d: MutableMapping = {"resources": {"machines": [], "networks": []}}
         conf = Configuration.from_dictionary(d)
         self.assertEqual([], conf.machines)
         self.assertEqual([], conf.networks)

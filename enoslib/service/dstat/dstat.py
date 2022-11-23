@@ -35,7 +35,7 @@ class Dstat(Service):
         nodes: Iterable[Host],
         options: str = "-aT",
         backup_dir: Optional[Path] = None,
-        extra_vars: Dict = None,
+        extra_vars: Optional[Dict] = None,
     ):
         """Deploy dstat on all hosts.
 
@@ -136,7 +136,9 @@ class Dstat(Service):
 
         sections = [
             html_to_foldable_section(
-                "nodes", hosts_as_foldable_section(self.nodes), len(self.nodes)
+                "nodes",
+                hosts_as_foldable_section(self.nodes),
+                str(sum(1 for _ in self.nodes)),
             )
         ]
         d = dict(self.__dict__)

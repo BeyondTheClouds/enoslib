@@ -1,11 +1,9 @@
-from collections import defaultdict
 import copy
-from contextlib import contextmanager
-from datetime import datetime, time, timezone
 import logging
 import operator
 import re
-import pytz
+from contextlib import contextmanager
+from datetime import datetime, time, timezone
 from itertools import groupby
 from typing import (
     Any,
@@ -17,20 +15,26 @@ from typing import (
     Tuple,
     Union,
     cast,
+    Sequence,
+    MutableSequence,
 )
 
+import pytz
+from grid5000.exceptions import Grid5000CreateError
+from sshtunnel import SSHTunnelForwarder
 
+from collections import defaultdict
 from enoslib.api import run, CommandResult, CustomCommandResult
+from enoslib.errors import (
+    InvalidReservationCritical,
+    InvalidReservationTime,
+    InvalidReservationTooOld,
+    NegativeWalltime,
+)
 from enoslib.infra.enos_g5k.concrete import (
     ConcreteClusterConf,
     ConcreteGroup,
     ConcreteServersConf,
-)
-from .configuration import (
-    ClusterConfiguration,
-    GroupConfiguration,
-    NetworkConfiguration,
-    ServersConfiguration,
 )
 from enoslib.infra.enos_g5k.constants import (
     JOB_TYPE_DEPLOY,
@@ -56,22 +60,17 @@ from enoslib.infra.enos_g5k.objects import (
     G5kSubnetNetwork,
     G5kVlanNetwork,
 )
-from enoslib.errors import (
-    InvalidReservationCritical,
-    InvalidReservationTime,
-    InvalidReservationTooOld,
-    NegativeWalltime,
-)
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
-
 from enoslib.infra.utils import mk_pools, pick_things
-from enoslib.objects import Host, Networks, Roles
 from enoslib.log import getLogger, DisableLogging
-from sshtunnel import SSHTunnelForwarder
-
-from grid5000.exceptions import Grid5000CreateError
-
+from enoslib.objects import Host, Networks, Roles
+from .configuration import (
+    ClusterConfiguration,
+    GroupConfiguration,
+    NetworkConfiguration,
+    ServersConfiguration,
+)
 
 logger = getLogger(__name__, ["G5k"])
 
@@ -118,7 +117,7 @@ def _check_deployed_nodes(
     return deployed, undeployed
 
 
-def _run_dhcp(sshable_hosts: List[G5kHost]):
+def _run_dhcp(sshable_hosts: Sequence[G5kHost]) -> None:
     logger.debug("Configuring network interfaces on the nodes")
     hosts = [
         Host(
@@ -133,8 +132,8 @@ def _run_dhcp(sshable_hosts: List[G5kHost]):
 
 
 def _concretize_nodes(
-    group_configs: List[GroupConfiguration], g5k_nodes: List[str]
-) -> List[ConcreteGroup]:
+    group_configs: Sequence[GroupConfiguration], g5k_nodes: MutableSequence[str]
+) -> MutableSequence[ConcreteGroup]:
     """Create a mapping between the configuration and the nodes given by OAR.
 
     The mapping *must* be fully deterministic.
@@ -160,7 +159,7 @@ def _concretize_nodes(
         assert isinstance(config, ServersConfiguration)
         _concrete_servers = []
         for s in config.servers:
-            # NOTE(msimonin) this will simply fails if the node isn't here
+            # NOTE(msimonin) this will simply fail if the node isn't here
             try:
                 _oar_nodes.remove(s)
                 _concrete_servers.append(s)
@@ -211,8 +210,8 @@ def _concretize_nodes(
 
 
 def _concretize_networks(
-    network_configs: List[NetworkConfiguration], oar_networks: List[OarNetwork]
-) -> List[G5kNetwork]:
+    network_configs: Iterable[NetworkConfiguration], oar_networks: Iterable[OarNetwork]
+) -> MutableSequence[G5kNetwork]:
     """Create a mapping between the network configuration and the networks given by OAR.
 
     The mapping *must* be fully deterministic.
@@ -225,13 +224,13 @@ def _concretize_networks(
     Returns:
         The mapping between every single group_config and a corresponding oar nodes.
     """
-    # NOTE(msimonin): Sorting avoid non deterministic mapping
+    # NOTE(msimonin): Sorting avoid non-deterministic mapping
     # here we also sort by descriptor to differentiate between vlans
     s_api_networks = sorted(
         oar_networks, key=lambda n: (n.site, n.nature, n.descriptor)
     )
     pools = mk_pools(s_api_networks, lambda n: (n.site, n.nature))
-    g5k_networks = []
+    g5k_networks: MutableSequence[G5kNetwork] = []
     for network_config in network_configs:
         site = network_config.site
         n_type = network_config.type
@@ -244,23 +243,23 @@ def _concretize_networks(
         g5k_network: Optional[G5kNetwork] = None
         if n_type == SLASH_16:
             _networks = pick_things(pools, (site, SLASH_22), 64)
-            if _networks != []:
+            if _networks:
                 g5k_network = G5kSubnetNetwork(
                     roles, n_id, site, [n.descriptor for n in _networks]
                 )
         elif n_type == SLASH_22:
             _networks = pick_things(pools, (site, n_type), 1)
-            if _networks != []:
+            if _networks:
                 g5k_network = G5kSubnetNetwork(
                     roles, n_id, site, [n.descriptor for n in _networks]
                 )
         elif n_type == PROD:
             _networks = pick_things(pools, (site, n_type), 1)
-            if _networks != []:
+            if _networks:
                 g5k_network = G5kProdNetwork(roles, n_id, site)
         elif n_type in KAVLAN_TYPE:
             _networks = pick_things(pools, (site, n_type), 1)
-            if _networks != []:
+            if _networks:
                 g5k_network = G5kVlanNetwork(roles, n_id, site, _networks[0].descriptor)
         else:
             logger.error("Missing Network: are you reloading the right job ?")
@@ -273,9 +272,11 @@ def _concretize_networks(
     return g5k_networks
 
 
-def _join(machines: List[ConcreteGroup], networks: List[G5kNetwork]) -> List[G5kHost]:
+def _join(
+    machines: MutableSequence[ConcreteGroup], networks: MutableSequence[G5kNetwork]
+) -> MutableSequence[G5kHost]:
     """Actually create a list of host."""
-    hosts = []
+    hosts: MutableSequence = []
     for concrete_machine in machines:
         roles = concrete_machine.config.roles
         network_id = concrete_machine.config.primary_network.id
@@ -318,7 +319,7 @@ class G5kTunnel:
         self.port = port
 
         # computed
-        self.tunnel = None
+        self.tunnel: Optional[SSHTunnelForwarder] = None
 
     def start(self):
         """Start the tunnel.
@@ -336,9 +337,10 @@ class G5kTunnel:
                 ssh_username=get_api_username(),
                 remote_bind_address=(self.address, self.port),
             )
-            self.tunnel.start()
-            local_address, local_port = self.tunnel.local_bind_address
-            return local_address, local_port, self.tunnel
+            if self.tunnel is not None:
+                self.tunnel.start()
+                local_address, local_port = self.tunnel.local_bind_address
+                return local_address, local_port, self.tunnel
         return self.address, self.port, None
 
     def close(self):
@@ -447,17 +449,17 @@ class G5kBase(Provider):
         # make sure we are dealing with a single site
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
-        self.hosts = []
+        self.hosts: MutableSequence = []
         # will hold the concrete version of the networks
-        self.networks = []
+        self.networks: MutableSequence = []
         # will hold the concrete hosts deployed/undeployed after calling (ka)deploy3
-        self.deployed = []
-        self.undeployed = []
+        self.deployed: MutableSequence = []
+        self.undeployed: MutableSequence = []
 
         # will hold the hosts reachable through ssh
         # - if no deployment has been performed, this will be self.hosts
         # - if a deployment has been performed, this will be self.deployed
-        self.sshable_hosts = []
+        self.sshable_hosts: MutableSequence = []
 
         # will hold the status of the cluster
         self.clusters_status = None
@@ -471,7 +473,7 @@ class G5kBase(Provider):
 
     def init(
         self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
-    ):
+    ) -> Tuple[Roles, Networks]:
         """Take ownership over some Grid'5000 resources (compute and networks).
 
         The function does the heavy lifting of transforming your
@@ -542,7 +544,7 @@ class G5kBase(Provider):
     def ensure_reserved(self):
         self.reserve()
 
-    def destroy(self, wait=False):
+    def destroy(self, wait=False, **kwargs):
         """Destroys the jobs."""
         self.driver.destroy(wait=wait)
 
@@ -647,7 +649,7 @@ class G5kBase(Provider):
             )
 
             # We remove the vlan id for the production
-            # network (it's undocumented behavior on G5k side) so let's not
+            # network (it is undocumented behavior on G5k side) so let's not
             # take any risk of creating a black hole.
             if net.vlan_id and net.vlan_id != PROD_VLAN_ID:
                 options.update(vlan=net.vlan_id)
@@ -692,12 +694,12 @@ class G5kBase(Provider):
             "{{ cmd }}", hosts, task_name="Granting root access on the nodes (sudo-g5k)"
         )
 
-    def _to_enoslib(self):
+    def _to_enoslib(self) -> Tuple[Roles, Networks]:
         """Transform from provider specific resources to framework resources."""
         # index the host by their associated roles
         hosts = Roles()
         # used to de-duplicate host objects in the roles datastructure
-        _hosts = []
+        _hosts: List[Host] = []
         for host in self.sshable_hosts:
             h = Host(host.ssh_address, user="root")
             if h in _hosts:
@@ -708,7 +710,7 @@ class G5kBase(Provider):
 
         # doing the same on networks
         networks = Networks()
-        _networks = []
+        _networks: List[G5kNetwork] = []
         for network in self.networks:
             roles, enos_networks = network.to_enos()
             for enos_network in enos_networks:
@@ -738,7 +740,7 @@ class G5kBase(Provider):
     @contextmanager
     def firewall(
         self,
-        hosts: Iterable[Host] = None,
+        hosts: Optional[Iterable[Host]] = None,
         port: Optional[Union[int, List[int]]] = None,
         src_addr: Optional[Union[str, List[str]]] = None,
         proto: str = "tcp+udp",
@@ -776,7 +778,7 @@ class G5kBase(Provider):
 
     def fw_create(
         self,
-        hosts: Iterable[Host] = None,
+        hosts: Optional[Iterable[Host]] = None,
         port: Optional[Union[int, List[int]]] = None,
         src_addr: Optional[Union[str, List[str]]] = None,
         proto: str = "tcp+udp",
@@ -915,7 +917,7 @@ class G5k(G5kBase):
             providers.async_init()
 
 
-def _lookup_networks(network_id: str, networks: List[G5kNetwork]):
+def _lookup_networks(network_id: str, networks: MutableSequence[G5kNetwork]):
     """What is the concrete network corresponding the network declared in the conf.
 
     We'll need to review that, later.

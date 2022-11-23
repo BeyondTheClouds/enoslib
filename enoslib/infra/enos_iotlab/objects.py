@@ -1,14 +1,14 @@
-from typing import List, Optional
 import socket
+from typing import List, Optional
 
-import sshtunnel
 import iotlabcli.auth
+import sshtunnel
 
-from enoslib.objects import Host, DefaultNetwork
 from enoslib.api import play_on
-from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
+from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.log import getLogger
+from enoslib.objects import Host, DefaultNetwork
 
 logger = getLogger(__name__, ["IOTlab"])
 
@@ -46,7 +46,7 @@ class IotlabHost(Host):
             self._ssh_address = "node-%s" % self.address
 
     @property
-    def ssh_address(self) -> str:
+    def ssh_address(self) -> Optional[str]:
         """Get an SSH reachable address for this Host.
 
         Returns:
@@ -169,9 +169,9 @@ class IotlabSerial:
         self.interactive = interactive
         self.serial_port = serial_port
         self.timeout = timeout
-        self._serial_tunnel = None
-        self._serial_socket = None
-        self._filename = "~/.iot-lab/%d/log/%s_serial.log" % (
+        self._serial_tunnel: Optional[sshtunnel.SSHTunnelForwarder] = None
+        self._serial_socket: Optional[socket.socket] = None
+        self._filename = "~/.iot-lab/{}/log/{}_serial.log".format(
             self.sensor.exp_id,
             self.sensor.alias,
         )
@@ -244,17 +244,25 @@ class IotlabSerial:
             serial_aggregator tool running on the frontend.
         """
         # convert to seconds
-        timeout = self.sensor.iotlab_client.get_walltime() * 60
+        wall_time = self.sensor.iotlab_client.get_walltime()
+        if wall_time is not None:
+            timeout = wall_time * 60
 
-        with play_on(
-            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
-        ) as p:
-            cmd = "screen -dm bash -c 'serial_aggregator -l {},{} > {} 2>&1'".format(
-                self.sensor.site,
-                self.sensor.alias.replace("-", ","),
-                self._filename,
-            )
-            p.shell(cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0)
+            with play_on(
+                roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
+            ) as p:
+                cmd = (
+                    "screen -dm bash -c 'serial_aggregator -l {},{} > {} 2>&1'".format(
+                        self.sensor.site,
+                        self.sensor.alias.replace("-", ","),
+                        self._filename,
+                    )
+                )
+                p.shell(
+                    cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0
+                )
+        else:
+            logger.error("Wall time is None.")
 
     def disable_logging_serial(self):
         """
@@ -287,7 +295,7 @@ class IotlabSerial:
         else:
             self.disable_logging_serial()
 
-    def write(self, content: str):
+    def write(self, content: str) -> None:
         """
         Sends string on serial interface
 
@@ -299,7 +307,10 @@ class IotlabSerial:
             return
 
         logger.info("IotlabSerial(%s): Writing: %s", self.sensor.alias, content)
-        self._serial_socket.sendall(content.encode())
+        if self._serial_socket is not None:
+            self._serial_socket.sendall(content.encode())
+        else:
+            logger.error("Serial Socket is closed.")
 
     def read(self, size: int = 1024) -> str:
         """
@@ -317,10 +328,11 @@ class IotlabSerial:
             logger.error("Not in interactive mode, impossible to read serial")
             return data.decode()
 
-        try:
-            data = self._serial_socket.recv(size)
-        except socket.timeout:
-            pass
+        if self._serial_socket is not None:
+            try:
+                data = self._serial_socket.recv(size)
+            except socket.timeout:
+                pass
         return data.decode()
 
 
@@ -342,12 +354,12 @@ class IotlabSniffer:
         """
         self.sensor = sensor
         self.timeout = timeout
-        if timeout == -1:
+        wall_time = self.sensor.iotlab_client.get_walltime()
+        if timeout == -1 and wall_time is not None:
             # convert to seconds
-            self.timeout = self.sensor.iotlab_client.get_walltime() * 60
-        self._filename = "~/.iot-lab/%d/sniffer/%s.pcap" % (
-            self.sensor.exp_id,
-            self.sensor.alias,
+            self.timeout = wall_time * 60
+        self._filename = (
+            f"~/.iot-lab/{self.sensor.exp_id}/sniffer/{self.sensor.alias}.pcap"
         )
 
     def start_sniffer(self):
@@ -391,7 +403,7 @@ class IotlabSniffer:
             roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
             on_error_continue=True,
         ) as p:
-            cmd = 'pkill -f "%s"' % (self._filename)
+            cmd = 'pkill -f "%s"' % self._filename
             p.command(cmd, task_name="Killing sniffer_aggregator")
 
     def __enter__(self):

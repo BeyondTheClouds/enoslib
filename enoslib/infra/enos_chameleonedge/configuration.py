@@ -1,4 +1,5 @@
 import warnings
+from typing import Optional, MutableMapping
 
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -122,7 +123,7 @@ class DeviceGroupConfiguration:
         device_model=None,
         site=None,
         count=DEFAULT_NUMBER,
-        container: Container = None,
+        container: Optional[Container] = None,
     ):
         self.roles = roles
         self.device_model = device_model
@@ -131,7 +132,7 @@ class DeviceGroupConfiguration:
         self.container = container
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         for k, v in self.__dict__.items():
             if v is None:
                 continue
@@ -236,6 +237,6 @@ class NetworkConfiguration:
         return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 
     def to_dict(self):
-        d = {}
+        d: MutableMapping = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d

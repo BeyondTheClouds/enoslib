@@ -301,7 +301,9 @@ class TestFindSlot(EnosTest):
     def test_start_provider_within_bounds_invalidReservationTime_error(self):
         provider = Mock()
         provider.async_init.side_effect = [
-            InvalidReservationTime("1970-01-01 10:00:00")
+            InvalidReservationTime(
+                datetime.strptime("1970-01-01 10:00:00", "%Y-%m-%d %H:%M:%S")
+            )
         ]
         with self.assertRaises(InvalidReservationTime):
             start_provider_within_bounds(provider, 80)
@@ -346,7 +348,7 @@ class TestFindSlot(EnosTest):
     def test_do_init_provider_raise_InvalidReservationTime(self):
         provider1 = Mock()
         provider1.offset_walltime.side_effect = InvalidReservationTime(
-            "1970:01:01 01:00:00"
+            datetime.strptime("1970:01:01 01:00:00", "%Y:%m:%d %H:%M:%S")
         )
 
         with self.assertRaises(InvalidReservationTime):
