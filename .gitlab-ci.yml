@@ -228,7 +228,7 @@ test_functional$debian11$: &debian11
       retcode=0
       for test in ${FUNCTIONAL_TESTS}
       do
-        python3 ${test} || { retcode=$?; failures="$failures $test"; }
+        python3 ${test} || { retcode=$?; failures="$failures $(basename $test)"; }
       done
       [ -n "$failures" ] && echo "FAILED TESTS: $failures"
       exit $retcode
