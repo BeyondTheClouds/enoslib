@@ -184,7 +184,7 @@ class DefaultNetwork(Network):
         if gateway is not None:
             self._gateway = ip_address(gateway)
         self._dns = None
-        if self._dns is not None:
+        if dns is not None:
             self._dns = ip_address(dns)
         self.pool_start = None
         if ip_start is not None:
