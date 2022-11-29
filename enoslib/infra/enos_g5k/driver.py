@@ -46,20 +46,20 @@ class Driver:
         return self._jobs
 
     @abstractmethod
-    def reserve(self, wait=True):
-        pass
+    def reserve(self):
+        ...
 
     @abstractmethod
     def destroy(self, wait=False):
-        pass
+        ...
 
     @abstractmethod
-    def deploy(self, site, nodes, force_deploy, options):
-        pass
+    def deploy(self, site, nodes, options):
+        ...
 
     @abstractmethod
     def get_jobs(self):
-        pass
+        ...
 
     def get_user(self) -> str:
         return get_api_username()
@@ -88,13 +88,13 @@ class OargridStaticDriver(Driver):
         self.oargrid_jobids = oargrid_jobids
         self.reservation_date: Optional[str] = None
 
-    def reserve(self):
+    def reserve(self, **kwargs):
         self._jobs = grid_reload_from_ids(self.oargrid_jobids)
 
     def destroy(self, wait=False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
 
-    def deploy(self, site, nodes, options):
+    def deploy(self, site, nodes, options) -> Tuple[List[str], List[str]]:
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
@@ -120,7 +120,7 @@ class OargridDynamicDriver(Driver):
         self.reservation_date = configuration.reservation
         self.project = configuration.project
         # NOTE(msimonin): some time ago asimonet proposes to auto-detect
-        # the queues and it was quiet convenient
+        # the queues and it was quite convenient
         # see https://github.com/BeyondTheClouds/enos/pull/62
         self.queue = configuration.queue
         self.machines = configuration.machines
@@ -129,7 +129,7 @@ class OargridDynamicDriver(Driver):
         # Used to restrict the driver when we scan the jobs
         self.sites = configuration.sites
 
-    def reserve(self):
+    def reserve(self, **kwargs):
         self._jobs = grid_get_or_create_job(
             self.job_name,
             self.walltime,
@@ -146,7 +146,7 @@ class OargridDynamicDriver(Driver):
     def destroy(self, wait=False):
         grid_destroy_from_name(self.job_name, wait=wait, restrict_to=self.sites)
 
-    def deploy(self, site, nodes, options):
+    def deploy(self, site, nodes, options) -> Tuple[List[str], List[str]]:
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
@@ -162,5 +162,4 @@ def get_driver(
     if oargrid_jobids:
         logger.debug("Loading the OargridStaticDriver")
         return OargridStaticDriver(oargrid_jobids)
-    else:
-        return OargridDynamicDriver(configuration)
+    return OargridDynamicDriver(configuration)

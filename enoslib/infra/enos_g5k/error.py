@@ -31,7 +31,7 @@ class EnosG5kSynchronisationError(EnosError):
     def __init__(self, sites):
         super().__init__(
             (
-                "Unable synchronize the jobs on %s" % sites,
+                f"Unable synchronize the jobs on {sites}",
                 "Try to make an explicit reservation instead",
             )
         )
