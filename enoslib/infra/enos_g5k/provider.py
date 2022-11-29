@@ -2,6 +2,7 @@ import copy
 import logging
 import operator
 import re
+from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, time, timezone
 from itertools import groupby
@@ -23,7 +24,6 @@ import pytz
 from grid5000.exceptions import Grid5000CreateError
 from sshtunnel import SSHTunnelForwarder
 
-from collections import defaultdict
 from enoslib.api import run, CommandResult, CustomCommandResult
 from enoslib.errors import (
     InvalidReservationCritical,
@@ -117,7 +117,7 @@ def _check_deployed_nodes(
     return deployed, undeployed
 
 
-def _run_dhcp(sshable_hosts: Sequence[G5kHost]) -> None:
+def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
     logger.debug("Configuring network interfaces on the nodes")
     hosts = [
         Host(
@@ -170,7 +170,6 @@ def _concretize_nodes(
                     "The impossible happened: an explicitly requested "
                     "server is missing in the concrete resource"
                 )
-                pass
         c = ConcreteServersConf(_concrete_servers, config)
         c.raise_for_min()
         concrete.append(c)
@@ -204,7 +203,7 @@ def _concretize_nodes(
         nb = cc.nodes - len(_concrete.oar_nodes)
         c_nodes = pick_things(pools_cluster, cluster, nb)
         #  put concrete hostnames here
-        _concrete.oar_nodes.extend([c_node for c_node in c_nodes])
+        _concrete.oar_nodes.extend(list(c_nodes))
 
     return concrete
 
@@ -321,7 +320,7 @@ class G5kTunnel:
         # computed
         self.tunnel: Optional[SSHTunnelForwarder] = None
 
-    def start(self):
+    def start(self) -> Tuple[str, int, Optional[SSHTunnelForwarder]]:
         """Start the tunnel.
 
         Returns:
@@ -331,7 +330,7 @@ class G5kTunnel:
         import socket
 
         if "grid5000.fr" not in socket.getfqdn():
-            logging.debug(f"Creating a tunnel to {self.address}:{self.port}")
+            logging.debug("Creating a tunnel to %s:%s", self.address, self.port)
             self.tunnel = SSHTunnelForwarder(
                 "access.grid5000.fr",
                 ssh_username=get_api_username(),
@@ -348,7 +347,7 @@ class G5kTunnel:
 
         Note that this won't wait for any connection to finish first."""
         if self.tunnel is not None:
-            logging.debug(f"Closing the tunnel to {self.address}:{self.port}")
+            logging.debug("Closing the tunnel to %s:%s", self.address, self.port)
             self.tunnel.stop(force=True)
 
     def __enter__(self):
@@ -596,15 +595,15 @@ class G5kBase(Provider):
             if search is not None:
                 date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
                 date = self.timezone().localize(date)
-                raise InvalidReservationTime(date)
+                raise InvalidReservationTime(date) from error
             search = re.search(
                 "Reservation too old",
                 format(error),
             )
             if search is not None:
-                raise InvalidReservationTooOld()
+                raise InvalidReservationTooOld() from error
             else:
-                raise InvalidReservationCritical(format(error))
+                raise InvalidReservationCritical(format(error)) from error
 
     def async_init(self, start_time: Optional[int] = None, **kwargs):
         """Reserve but don't wait.
@@ -723,7 +722,9 @@ class G5kBase(Provider):
         return hosts, networks
 
     @staticmethod
-    def tunnel(address: str, port: int):
+    def tunnel(
+        address: str, port: int
+    ) -> Tuple[str, int, Optional[SSHTunnelForwarder]]:
         """Create a tunnel if necessary between here and there (in G5k).
 
         Args:
@@ -885,8 +886,8 @@ class G5kBase(Provider):
 
         self.provider_conf.walltime = new_walltime.strftime("%H:%M:%S")
 
-    def is_created(self):
-        return not (not self.driver.get_jobs())
+    def is_created(self) -> bool:
+        return len(self.driver.get_jobs()) != 0
 
 
 class G5k(G5kBase):
@@ -917,7 +918,9 @@ class G5k(G5kBase):
             providers.async_init()
 
 
-def _lookup_networks(network_id: str, networks: MutableSequence[G5kNetwork]):
+def _lookup_networks(
+    network_id: str, networks: MutableSequence[G5kNetwork]
+) -> G5kNetwork:
     """What is the concrete network corresponding the network declared in the conf.
 
     We'll need to review that, later.

@@ -265,7 +265,7 @@ G5kFormatChecker = FormatChecker()
 
 
 @G5kFormatChecker.checks("hostname")
-def is_valid_hostname(instance):
+def is_valid_hostname(instance) -> bool:
     if not isinstance(instance, str):
         return False
     # cluster-n.site.grid5000.fr
@@ -274,7 +274,7 @@ def is_valid_hostname(instance):
 
 
 @G5kFormatChecker.checks("job_type", raises=EnosG5kInvalidJobTypesError)
-def is_valid_job_type(instance):
+def is_valid_job_type(instance) -> bool:
     if isinstance(instance, str):
         instance = [instance]
 
@@ -291,7 +291,7 @@ def is_valid_job_type(instance):
 
 
 @G5kFormatChecker.checks("walltime", raises=EnosG5kWalltimeFormatError)
-def is_valid_walltime(instance):
+def is_valid_walltime(instance) -> bool:
     if not isinstance(instance, str):
         return False
     # HH:MM:SS
@@ -302,12 +302,12 @@ def is_valid_walltime(instance):
         int(hours)
         datetime.strptime(minutes_seconds, "%M:%S")
         return True
-    except ValueError:
-        raise EnosG5kWalltimeFormatError()
+    except ValueError as err:
+        raise EnosG5kWalltimeFormatError() from err
 
 
 @G5kFormatChecker.checks("reservation", raises=EnosG5kReservationDateFormatError)
-def is_valid_reservation_date(instance):
+def is_valid_reservation_date(instance) -> bool:
     if not isinstance(instance, str):
         return False
     # YYYY-MM-DD hh:mm:ss
@@ -316,8 +316,8 @@ def is_valid_reservation_date(instance):
     try:
         datetime.strptime(instance, "%Y-%m-%d %H:%M:%S")
         return True
-    except ValueError:
-        raise EnosG5kReservationDateFormatError()
+    except ValueError as err:
+        raise EnosG5kReservationDateFormatError() from err
 
 
 def G5kValidator(schema: Dict):

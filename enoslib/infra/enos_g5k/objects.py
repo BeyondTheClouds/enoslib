@@ -1,6 +1,11 @@
 import ipaddress
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Generator
+
+from grid5000.base import RESTObject
+from grid5000.objects import Vlan, Node
+from netaddr.ip import IPNetwork
+from netaddr.ip.sets import IPSet
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
 from enoslib.infra.enos_g5k.g5k_api_utils import (
@@ -13,12 +18,6 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     set_nodes_vlan,
 )
 from enoslib.log import getLogger
-
-from grid5000.base import RESTObject
-from grid5000.objects import VlanNodeManager
-from netaddr.ip import IPNetwork
-from netaddr.ip.sets import IPSet
-
 from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
 
 logger = getLogger(__name__, ["G5k"])
@@ -49,7 +48,7 @@ class G5kNetwork(ABC):
         # circular references ahead
         self.hosts: List["G5kHost"] = []
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         """In case you want to sort networks.
 
         This is used to sort/groupby host by network before deploying them.
@@ -88,7 +87,7 @@ class G5kNetwork(ABC):
         Returns:
             The corresponding RESTObject, None otherwise.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -98,7 +97,7 @@ class G5kNetwork(ABC):
         Return:
             The vlan id. None for subnets.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -108,7 +107,7 @@ class G5kNetwork(ABC):
         Returns:
             The gateway address as a string.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -118,7 +117,7 @@ class G5kNetwork(ABC):
         Returns:
             The gateway address as a string.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -128,7 +127,7 @@ class G5kNetwork(ABC):
         Returns:
             The cidre of the network. None for subnets.
         """
-        pass
+        ...
 
     @property
     @abstractmethod
@@ -138,7 +137,7 @@ class G5kNetwork(ABC):
         Returns:
             The cidre of the network. None for subnets.
         """
-        pass
+        ...
 
     @abstractmethod
     def translate(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
@@ -151,7 +150,7 @@ class G5kNetwork(ABC):
         Returns:
             List of translated names.
         """
-        pass
+        ...
 
     @abstractmethod
     def translate6(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
@@ -164,7 +163,7 @@ class G5kNetwork(ABC):
         Returns:
             List of translated names.
         """
-        pass
+        ...
 
     @abstractmethod
     def attach(self, fqdns: List[str], device: str):
@@ -174,10 +173,10 @@ class G5kNetwork(ABC):
             fqdns: list of hostnames (host uid in the API) to attach
             device: the NIC names to put on this network.
         """
-        pass
+        ...
 
     @abstractmethod
-    def to_enos(self) -> List[Dict]:
+    def to_enos(self):
         """Transform into a provider-agnostic data structure.
 
         For legacy reason we're still using dicts here...
@@ -185,7 +184,7 @@ class G5kNetwork(ABC):
         Returns:
             a list of networks, each being a dict.
         """
-        pass
+        ...
 
     def add_host(self, host: "G5kHost"):
         """Add a host :py:class:`enoslib.infra.enos_g5k.objects.G5kHost`.
@@ -271,11 +270,11 @@ class G5kVlanNetwork(G5kNetwork):
         return None
 
     @property
-    def apinetwork(self) -> VlanNodeManager:
+    def apinetwork(self) -> Vlan:
         self._check_apinetwork()
         return self._apinetwork
 
-    def _translate(self, uid, vlan_id=None, reverse=False, ipv6=False):
+    def _translate(self, uid, vlan_id=None, reverse=False, ipv6=False) -> str:
         direct_descriptor = "%s"
         if vlan_id:
             direct_descriptor += f"-kavlan-{vlan_id}"
@@ -318,7 +317,7 @@ class G5kVlanNetwork(G5kNetwork):
     def attach(self, fqdns: List[str], device: str):
         set_nodes_vlan(fqdns, device, self.vlan_id)
 
-    def to_enos(self):
+    def to_enos(self) -> Tuple[List[str], List]:
         """Build the generic network type implementation.
 
         A vlan in G5k has 2 flavours IPv4 and IPv6 so
@@ -334,7 +333,7 @@ class G5kVlanNetwork(G5kNetwork):
             ],
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<G5kVlanNetwork("
             f"roles={self.roles}, "
@@ -376,7 +375,7 @@ class G5kProdNetwork(G5kVlanNetwork):
         # nothing to do
         pass
 
-    def to_enos(self):
+    def to_enos(self) -> Tuple[List[str], List]:
         """Build the generic network type implementation.
 
         A production network in G5k has 2 flavours IPv4 and IPv6 so
@@ -390,7 +389,7 @@ class G5kProdNetwork(G5kVlanNetwork):
             ],
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<G5kProdNetwork(" f"roles={self.roles}, " f"site={self.site}"
 
 
@@ -419,7 +418,7 @@ class G5kSubnetNetwork(G5kNetwork):
         self._gateway = None
 
     @property
-    def vlan_id(self):
+    def vlan_id(self) -> None:
         return None
 
     @property
@@ -429,11 +428,11 @@ class G5kSubnetNetwork(G5kNetwork):
         return self._gateway
 
     @property
-    def gateway6(self):
+    def gateway6(self) -> None:
         return None
 
     @property
-    def cidr(self):
+    def cidr(self) -> None:
         """Not well-defined.
 
         Since subnets might be an aggregation of several smaller ones
@@ -445,7 +444,7 @@ class G5kSubnetNetwork(G5kNetwork):
         return None
 
     @property
-    def cidr6(self):
+    def cidr6(self) -> None:
         """Not well-defined (and no support for IPv6 now).
 
         Since subnets might be an aggregation of several smaller ones
@@ -457,7 +456,7 @@ class G5kSubnetNetwork(G5kNetwork):
         return None
 
     @property
-    def apinetwork(self):
+    def apinetwork(self) -> None:
         return None
 
     def translate(
@@ -473,7 +472,7 @@ class G5kSubnetNetwork(G5kNetwork):
     def attach(self, fqdns: List[str], nic: str):
         pass
 
-    def to_enos(self):
+    def to_enos(self) -> Tuple[List[str], List["G5kEnosSubnetNetwork"]]:
         """Build the generic network type implementation.
 
         A subnet in G5k doesn't have yet an IPv6 counterpart so we generate a single
@@ -486,7 +485,7 @@ class G5kSubnetNetwork(G5kNetwork):
             nets.append(G5kEnosSubnetNetwork(subnet, self.gateway, self.dns))
         return self.roles, nets
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<G5kSubnetNetwork("
             f"roles={self.roles}, "
@@ -524,7 +523,7 @@ class G5kHost:
         # .self.mirror_state()
 
     @property
-    def ssh_address(self):
+    def ssh_address(self) -> str:
         """Get an SSH reachable address for this Host.
 
         This may differ from the fqdn when using vlans.
@@ -558,7 +557,7 @@ class G5kHost:
         return site, cluster, uid
 
     @property
-    def apinode(self):
+    def apinode(self) -> Node:
         """Get the api Node object.
 
         Return:
@@ -624,7 +623,7 @@ class G5kHost:
         for _, (_, nic) in zip(self.secondary_networks, self._all_secondary_nics):
             ifconfig.append(f"ip link set {nic} up")
             dhcp.append(f"dhclient {nic}")
-        cmd = "{} ; {}".format(";".join(ifconfig), ";".join(dhcp))
+        cmd = f"{';'.join(ifconfig)} ; { ';'.join(dhcp)}"
         return cmd
 
     def grant_root_access_command(self) -> str:
@@ -696,7 +695,7 @@ class G5kHost:
             # The site is known in the context of a concrete network.
             net.attach([self.fqdn], eth)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<G5kHost("
             f"roles={self.roles}, "
@@ -729,7 +728,7 @@ class G5kEnosProd6Network(G5kEnosProd4Network):
     """
 
     @property
-    def gateway(self):
+    def gateway(self) -> None:
         m = f"gateway is not yet implemented for {self.__class__} on the G5k side"
         logger.warning(msg=m)
         return None
@@ -752,11 +751,11 @@ class G5kEnosVlan4Network(DefaultNetwork):
         self.vlan_id = vlan_id
 
     @property
-    def has_free_ips(self):
+    def has_free_ips(self) -> bool:
         return True
 
     @property
-    def free_ips(self) -> Iterable[AddressInterfaceType]:
+    def free_ips(self) -> Generator[AddressInterfaceType, None, None]:
         # On the network, the first IP are reserved to g5k machines.
         # For a routed vlan I don't know exactly how many ip are
         # reserved. However, the specification is clear about global
@@ -798,7 +797,7 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
     """
 
     @property
-    def free_ips(self):
+    def free_ips(self) -> Generator[AddressInterfaceType, None, None]:
         subnets = IPNetwork(str(self.network))
         start = subnets.network + 256
         subnet = IPNetwork(f"{start}/70")
@@ -806,14 +805,14 @@ class G5kEnosVlan6Network(G5kEnosVlan4Network):
             yield ipaddress.ip_address(addr.value)
 
     @property
-    def gateway(self):
+    def gateway(self) -> None:
         # FIXME
         m = f"gateway is not yet implemented for {self.__class__} on the G5k side"
         logger.warning(msg=m)
         return None
 
 
-def build_ipmac(subnet):
+def build_ipmac(subnet) -> Generator[Tuple[str, str], None, None]:
     network = IPNetwork(subnet)
     for ip in list(network[1:-1]):
         _, x, y, z = ip.words
@@ -836,19 +835,19 @@ class G5kEnosSubnetNetwork(DefaultNetwork):
         super().__init__(address, gateway=gateway, dns=dns)
 
     @property
-    def has_free_ips(self):
+    def has_free_ips(self) -> bool:
         return True
 
     @property
-    def free_ips(self):
+    def free_ips(self) -> Generator[AddressInterfaceType, None, None]:
         for ip, _ in build_ipmac(str(self.network)):
             yield ipaddress.ip_address(ip)
 
     @property
-    def has_free_macs(self):
+    def has_free_macs(self) -> bool:
         return True
 
     @property
-    def free_macs(self):
+    def free_macs(self) -> Generator[str, None, None]:
         for _, mac in build_ipmac(str(self.network)):
             yield mac

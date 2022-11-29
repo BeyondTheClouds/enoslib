@@ -1,9 +1,8 @@
-from typing import List, Optional, MutableMapping
-from uuid import uuid4
 import warnings
+from typing import List, Optional, MutableMapping, Tuple, Dict, Collection
+from uuid import uuid4
 
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
-from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_ENV_NAME_COMPAT,
     DEFAULT_JOB_NAME,
@@ -17,6 +16,7 @@ from .constants import (
     SUBNET_TYPES,
 )
 from .schema import SCHEMA_USER, SCHEMA_INTERNAL, G5kValidator
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -26,10 +26,10 @@ class Configuration(BaseConfiguration):
 
     def __init__(self):
         super().__init__()
-        self.dhcp = True
-        self.force_deploy = False
+        self.dhcp: bool = True
+        self.force_deploy: bool = False
         self.env_name: Optional[str] = None
-        self.job_name = DEFAULT_JOB_NAME
+        self.job_name: str = DEFAULT_JOB_NAME
         # since https://gitlab.inria.fr/discovery/enoslib/-/issues/103
         # this is an array.
         # At some point we'll need to rename this to job_type*s*
@@ -38,9 +38,9 @@ class Configuration(BaseConfiguration):
         self.monitor = None
         self.oargrid_jobids = None
         self.project = None
-        self.queue = DEFAULT_QUEUE
+        self.queue: str = DEFAULT_QUEUE
         self.reservation = None
-        self.walltime = DEFAULT_WALLTIME
+        self.walltime: str = DEFAULT_WALLTIME
 
         self._machine_cls = GroupConfiguration
         self._network_cls = NetworkConfiguration
@@ -73,7 +73,7 @@ class Configuration(BaseConfiguration):
         self._set_default_primary_network(machine)
         return super().add_machine_conf(machine)
 
-    def add_machine(self, *args, **kwargs):
+    def add_machine(self, *args, **kwargs) -> "Configuration":
         # we need to discriminate between Cluster/Server
         if kwargs.get("servers") is not None:
             machine: GroupConfiguration = ServersConfiguration(*args, **kwargs)
@@ -85,13 +85,13 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary, validate=True) -> "Configuration":
         if validate:
             cls.validate(dictionary, SCHEMA_USER)
 
         self = cls()
         # populating the attributes
-        for k in self.__dict__.keys():
+        for k in self.__dict__:
             v = dictionary.get(k)
             if v is not None:
                 setattr(self, k, v)
@@ -155,7 +155,7 @@ class Configuration(BaseConfiguration):
         # Call parent method that validates against the schema
         return super().finalize()
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
@@ -220,11 +220,11 @@ class GroupConfiguration:
         if secondary_networks is not None:
             self.secondary_networks = secondary_networks
 
-    def site_of(self, cluster: str):
+    def site_of(self, cluster: str) -> str:
         return get_cluster_site(cluster)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         primary_network_id = (
             self.primary_network.id if self.primary_network is not None else None
         )
@@ -245,7 +245,7 @@ class GroupConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary, networks=None):
+    def from_dictionary(cls, dictionary, networks=None) -> "GroupConfiguration":
         roles = dictionary["roles"]
         # cluster and servers are no individually optional
         # nevertheless the schema validates that at least one is set
@@ -298,15 +298,15 @@ class ClusterConfiguration(GroupConfiguration):
         super().__init__(**kwargs)
         self.nodes = nodes
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, int]:
         d = super().to_dict()
         d.update(cluster=self.cluster, nodes=self.nodes)
         return d
 
-    def get_demands(self):
+    def get_demands(self) -> Tuple[int, List]:
         return self.nodes, []
 
-    def oar(self):
+    def oar(self) -> Tuple[str, Optional[str]]:
         if int(self.nodes) <= 0:
             return self.site, None
         disks = "(type='default' or type='disk') AND " if self.reservable_disks else ""
@@ -315,7 +315,7 @@ class ClusterConfiguration(GroupConfiguration):
 
 
 class ServersConfiguration(GroupConfiguration):
-    def __init__(self, *, servers=None, **kwargs):
+    def __init__(self, *, servers: Optional[Collection] = None, **kwargs):
 
         super().__init__(**kwargs)
         if servers is None:
@@ -328,10 +328,10 @@ class ServersConfiguration(GroupConfiguration):
         # be a risk to fail at network configuration time (think about
         # secondary interfaces)
 
-        def extract_site_cluster(s):
+        def extract_site_cluster(s) -> Tuple[str, str]:
             r = s.split(".")
             c = r[0].split("-")
-            return (c[0], r[1])
+            return c[0], r[1]
 
         cluster_site = {extract_site_cluster(s) for s in servers}
         if len(cluster_site) > 1:
@@ -341,18 +341,18 @@ class ServersConfiguration(GroupConfiguration):
         self.cluster, self.site = cluster_site.pop()
         self.servers = servers
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(servers=self.servers)
         return d
 
-    def get_demands(self):
+    def get_demands(self) -> Tuple:
         return len(self.servers), self.servers
 
-    def oar(self):
+    def oar(self) -> Tuple[str, Optional[str]]:
         # that's a bit too defensive, we must have already checked that the
         # servers belong to the same cluster...
-        if self.servers == []:
+        if not self.servers:
             return self.site, None
         disks = "(type='default' or type='disk') AND " if self.reservable_disks else ""
         server_list = ", ".join([f"'{s}'" for s in self.servers])
@@ -362,17 +362,26 @@ class ServersConfiguration(GroupConfiguration):
 
 
 class NetworkConfiguration:
-    def __init__(self, *, id=None, roles=None, type=None, site=None):
+    def __init__(
+        self,
+        *,
+        id: Optional[str] = None,
+        roles: Optional[List] = None,
+        type=None,
+        site=None,
+    ):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
         # function of the configuration.
-        self.roles = roles
-        if self.roles is None:
-            self.roles = []
+        if roles is None:
+            self.roles: List = []
+        else:
+            self.roles = roles
         self.type = type
         self.site = site
-        self.id = id
         if id is None:
             self.id = str(uuid4())
+        else:
+            self.id = id
 
     @classmethod
     def from_dictionnary(cls, *args, **kwargs):
@@ -384,7 +393,7 @@ class NetworkConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary) -> "NetworkConfiguration":
         id = dictionary["id"]
         type = dictionary["type"]
         roles = dictionary["roles"]
@@ -392,16 +401,16 @@ class NetworkConfiguration:
 
         return cls(id=id, roles=roles, type=type, site=site)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d
 
-    def oar(self):
+    def oar(self) -> Tuple:
         site = self.site
         criterion = None
         if self.type in KAVLAN_TYPE:
-            criterion = "{type='%s'}/vlan=1" % self.type
+            criterion = f"{{type='{self.type}'}}/vlan=1"
         if self.type in SUBNET_TYPES:
-            criterion = "%s=1" % self.type
+            criterion = f"{self.type}=1"
         return site, criterion

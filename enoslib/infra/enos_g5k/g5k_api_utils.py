@@ -10,6 +10,7 @@ import os
 import re
 import threading
 import time
+from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -21,14 +22,14 @@ from typing import (
     Optional,
     Tuple,
     MutableSequence,
+    Mapping,
 )
 
 import pytz
 from grid5000 import Grid5000
 from grid5000.exceptions import Grid5000DeleteError
-from grid5000.objects import Job, Node, Vlan
+from grid5000.objects import Job, Node, Vlan, Site, Cluster
 
-from collections import defaultdict, namedtuple
 from enoslib.infra.utils import _date2h
 from enoslib.log import getLogger
 from .constants import (
@@ -91,14 +92,14 @@ def to_vlan_nature(vlan_id: str) -> str:
 
 
 def to_subnet_nature(cidr: str) -> str:
-    return "slash_%s" % cidr[-2:]
+    return f"slash_{cidr[-2:]}"
 
 
 def to_prod_nature() -> str:
     return "DEFAULT"
 
 
-def get_api_client():
+def get_api_client() -> Client:
     """Gets the reference to the API client (singleton)."""
     with _api_lock:
         global _api_client
@@ -109,7 +110,7 @@ def get_api_client():
         return _api_client
 
 
-def grid_reload_jobs_from_ids(oargrid_jobids):
+def grid_reload_jobs_from_ids(oargrid_jobids) -> List[Job]:
     """Reload jobs of Grid'5000 from their ids
 
     Args:
@@ -128,7 +129,7 @@ def grid_reload_jobs_from_ids(oargrid_jobids):
 
 def grid_reload_jobs_from_name(
     job_name, restrict_to: Optional[MutableSequence[str]] = None
-):
+) -> List[Job]:
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
     By default, all the sites will be searched for jobs with the name
@@ -159,12 +160,12 @@ def grid_reload_jobs_from_name(
     for site in [
         s for s in sites if s.uid not in gk.excluded_site and s.uid in restrict_to
     ]:
-        logger.debug(f"Reloading {job_name} from {site.uid}")
+        logger.debug("Reloading %s from %s", job_name, site.uid)
         _jobs = site.jobs.list(
             name=job_name, state="waiting,launching,running", user=get_api_username()
         )
         if len(_jobs) == 1:
-            logger.info(f"Reloading {_jobs[0].uid} from {site.uid}")
+            logger.info("Reloading %s from %s", _jobs[0].uid, site.uid)
             jobs.append(_jobs[0])
         elif len(_jobs) > 1:
             raise EnosG5kDuplicateJobsError(site, job_name)
@@ -175,7 +176,7 @@ def grid_reload_jobs_from_name(
     return jobs
 
 
-def grid_reload_from_ids(oargrid_jobids):
+def grid_reload_from_ids(oargrid_jobids) -> List[Job]:
     """Reload all running or pending jobs of Grid'5000 from their ids
 
     Args:
@@ -232,7 +233,7 @@ def build_resources(
         # always add the Production network
         networks += [OarNetwork(site=site, nature=NATURE_PROD, descriptor=PROD_VLAN_ID)]
 
-    logger.debug(f"nodes={nodes}, networks={networks}")
+    logger.debug("nodes=%s, networks=%s", nodes, networks)
     return nodes, networks
 
 
@@ -251,10 +252,10 @@ def job_delete(job, wait=False):
     if not wait:
         return
     while job.state in ["running", "waiting", "launching"]:
-        logger.debug(f"Waiting for the job ({job.site}, {job.uid}) to be killed")
+        logger.debug("Waiting for the job (%s, %s) to be killed", job.site, job.uid)
         time.sleep(1)
         job.refresh()
-    logger.info(f"Job killed ({job.site}, {job.uid})")
+    logger.info("Job killed (%s, %s)", job.site, job.uid)
 
 
 def grid_destroy_from_name(
@@ -271,7 +272,7 @@ def grid_destroy_from_name(
     """
     jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     for job in jobs:
-        logger.info(f"Killing the job ({job.site}, {job.uid})")
+        logger.info("Killing the job (%s, %s)", job.site, job.uid)
         job_delete(job, wait=wait)
 
 
@@ -286,10 +287,10 @@ def grid_destroy_from_ids(oargrid_jobids, wait=False):
     jobs = grid_reload_from_ids(oargrid_jobids)
     for job in jobs:
         job_delete(job, wait=wait)
-        logger.info("Killing the jobs %s" % oargrid_jobids)
+        logger.info("Killing the jobs %s", oargrid_jobids)
 
 
-def submit_jobs(job_specs):
+def submit_jobs(job_specs: List[Tuple]) -> List[Job]:
     """Submit a job
 
     Args:
@@ -299,14 +300,14 @@ def submit_jobs(job_specs):
     jobs = []
     try:
         for site, job_spec in job_specs:
-            logger.info(f"Submitting {job_spec} on {site}")
+            logger.info("Submitting %s on %s", job_spec, site)
             jobs.append(gk.sites[site].jobs.create(job_spec))
-    except Exception as e:
+    except Exception as err:
         logger.error("An error occurred during the job submissions")
         logger.error("Cleaning the jobs created")
         for job in jobs:
             job.delete()
-        raise e
+        raise err
 
     return jobs
 
@@ -331,12 +332,11 @@ def wait_for_jobs(jobs):
             scheduled = getattr(job, "scheduled_at", None)
             if scheduled is not None:
                 logger.info(
-                    "Waiting for %s on %s [%s]"
-                    % (job.uid, job.site, _date2h(scheduled))
+                    "Waiting for %s on %s [%s]", job.uid, job.site, _date2h(scheduled)
                 )
             all_running = all_running and job.state == "running"
             if job.state == "error":
-                raise Exception("The job %s is in error state" % job)
+                raise Exception(f"The job {job} is in error state")
     logger.info("All jobs are Running !")
 
 
@@ -354,7 +354,9 @@ def _deploy(
     return _deploy(site, deployed + d, u, count + 1, config)
 
 
-def grid_deploy(site: str, nodes: List[str], config: Dict):
+def grid_deploy(
+    site: str, nodes: List[str], config: Dict
+) -> Tuple[List[str], List[str]]:
     """Deploy and wait for the deployment to be finished.
 
     Args:
@@ -369,7 +371,7 @@ def grid_deploy(site: str, nodes: List[str], config: Dict):
 
     key_path = Path(config["key"]).expanduser().resolve()
     if not key_path.is_file():
-        raise Exception("The public key file %s is not correct." % key_path)
+        raise Exception(f"The public key file {key_path} is not correct.")
     logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
     config.update(key=key_path.read_text())
     return _deploy(site, [], nodes, 1, config)
@@ -392,7 +394,7 @@ def set_nodes_vlan(nodes: List[str], interface: str, vlan_id: str):
         EnosG5kKavlanNodesError: if some nodes couldn't be added to the VLAN.
     """
 
-    def _to_network_address(host):
+    def _to_network_address(host) -> str:
         """Translate a host to a network address
         e.g:
         paranoia-20.rennes.grid5000.fr -> paranoia-20-eth2.rennes.grid5000.fr
@@ -413,12 +415,12 @@ def set_nodes_vlan(nodes: List[str], interface: str, vlan_id: str):
     # Possible status are 'success', 'failure' or 'unchanged'
     failed_nodes = [node for node, res in result.items() if res["status"] == "failure"]
     for node in failed_nodes:
-        logger.error(f"Failed to change VLAN of {node}: {result[node]['message']}")
+        logger.error("Failed to change VLAN of %s: %s", node, result[node]["message"])
     if failed_nodes:
         raise EnosG5kKavlanNodesError(vlan_id, failed_nodes)
 
 
-def get_api_username():
+def get_api_username() -> str:
     """Return username of client
 
     Returns:
@@ -429,11 +431,11 @@ def get_api_username():
     # Anonymous connections happen on g5k frontend
     # In this case we default to the user set in the environment
     if username is None:
-        username = os.environ.get("USER")
+        username = os.environ["USER"]
     return username
 
 
-def get_all_sites_obj():
+def get_all_sites_obj() -> List[Site]:
     """Return the list of the sites.
 
     Returns:
@@ -444,7 +446,7 @@ def get_all_sites_obj():
     return sites
 
 
-def get_site_obj(site):
+def get_site_obj(site) -> Site:
     """Get a single site.
 
     Returns:
@@ -454,7 +456,7 @@ def get_site_obj(site):
     return gk.sites[site]
 
 
-def clusters_sites_obj(clusters: Iterable) -> Dict:
+def clusters_sites_obj(clusters: Iterable) -> Dict[str, Site]:
     """Get all the corresponding sites of the passed clusters.
 
     Args:
@@ -474,7 +476,7 @@ def clusters_sites_obj(clusters: Iterable) -> Dict:
 
 
 @lru_cache(maxsize=32)
-def get_all_clusters_sites():
+def get_all_clusters_sites() -> MutableMapping[str, str]:
     """Get all the cluster of all the sites.
 
     Returns:
@@ -484,13 +486,13 @@ def get_all_clusters_sites():
     gk = get_api_client()
     sites = gk.sites.list()
     for site in sites:
-        clusters = site.clusters.list()
+        clusters: List[Cluster] = site.clusters.list()
         result.update({c.uid: site.uid for c in clusters})
     logger.debug(result)
     return result
 
 
-def get_clusters_sites(clusters):
+def get_clusters_sites(clusters) -> Mapping[str, str]:
     """Get the corresponding sites of given clusters.
 
     Args:
@@ -503,7 +505,7 @@ def get_clusters_sites(clusters):
     return {c: clusters_sites[c] for c in clusters}
 
 
-def get_cluster_site(cluster):
+def get_cluster_site(cluster) -> str:
     """Get the site of a given cluster.
 
     Args:
@@ -516,7 +518,7 @@ def get_cluster_site(cluster):
     return match[cluster]
 
 
-def get_nodes(cluster):
+def get_nodes(cluster) -> List[Node]:
     """Get all the nodes of a given cluster.
 
     Args:
@@ -546,7 +548,7 @@ def get_nics(cluster):
     return nics
 
 
-def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
+def get_cluster_interfaces(cluster, extra_cond=lambda nic: True) -> List:
     """Get the network interfaces names corresponding to a criteria.
 
     Note that the cluster is passed (not the individual node names), thus it is
@@ -578,7 +580,7 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True):
     return nics
 
 
-def get_clusters_interfaces(clusters, extra_cond=lambda nic: True):
+def get_clusters_interfaces(clusters, extra_cond=lambda nic: True) -> MutableMapping:
     """Returns for each cluster the available cluster interfaces
 
     Args:
@@ -746,10 +748,10 @@ def get_vlan(site, vlan_id) -> Vlan:
     return site_info.vlans[vlan_id]
 
 
-def get_clusters_status(clusters: Iterable[str]):
+def get_clusters_status(clusters: Iterable[str]) -> MutableMapping:
     """Get the status of the clusters (current and future reservations)."""
     # mapping cluster -> site
-    clusters_sites: Dict = clusters_sites_obj(clusters)
+    clusters_sites: MutableMapping = clusters_sites_obj(clusters)
     clusters_status = {}
     for cluster in clusters_sites:
         clusters_status[cluster] = (
@@ -764,7 +766,7 @@ def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[s
     deployment = gk.sites[site].deployments.create(config)
     while deployment.status not in ["terminated", "error"]:
         deployment.refresh()
-        logger.info("Waiting for the end of deployment [%s]" % deployment.uid)
+        logger.info("Waiting for the end of deployment [%s]", deployment.uid)
         time.sleep(10)
     # parse output
     deploy = []
@@ -790,7 +792,7 @@ def grid_get_or_create_job(
     networks,
     wait=True,
     restrict_to: Optional[List[str]] = None,
-):
+) -> List[Job]:
     jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     if len(jobs) == 0:
         jobs = grid_make_reservation(
@@ -807,7 +809,7 @@ def grid_get_or_create_job(
     return jobs
 
 
-def _build_reservation_criteria(machines, networks):
+def _build_reservation_criteria(machines, networks) -> MutableMapping:
     criteria: MutableMapping = {}
     # machines reservations
     # FIXME(msimonin): this should be refactor like this
@@ -836,8 +838,8 @@ def _build_reservation_criteria(machines, networks):
 
 def _do_grid_make_reservation(
     criterias, job_name, walltime, reservation_date, queue, job_type, monitor, project
-):
-    job_specs = []
+) -> List[Job]:
+    job_specs: List[Tuple] = []
     if isinstance(job_type, str):
         job_type = [job_type]
     if monitor is not None:
@@ -872,7 +874,7 @@ def grid_make_reservation(
     project,
     machines,
     networks,
-):
+) -> List[Job]:
     # Build the OAR criteria
     criteria = _build_reservation_criteria(machines, networks)
 
