@@ -204,6 +204,11 @@ test_ansible_6:
   variables:
     ANSIBLE_VERSION: ">=6,<7"
 
+test_ansible_7:
+  <<: *ansible
+  variables:
+    ANSIBLE_VERSION: ">=7,<8"
+
 ## TEST AGAINST DIFFERENT DISTROS
 #-----------------------------------------------
 test_functional$debian11$: &debian11
