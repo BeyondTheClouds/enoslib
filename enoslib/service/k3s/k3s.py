@@ -50,7 +50,9 @@ GUARD_PROXY = f"ps aux | grep '{KEY}' | grep -v '{KEY}'"
 
 
 class K3s(Service):
-    def __init__(self, master: Iterable[Host], agent: Iterable[Host]):
+    def __init__(
+        self, master: Iterable[Host], agent: Iterable[Host], version: str = "latest"
+    ):
         """Deploy a single K3s cluster.
 
         Note:
@@ -80,14 +82,23 @@ class K3s(Service):
         self.master = master
         self.agent = agent
         self.roles = Roles(master=self.master, agent=self.agent)
+        if version.startswith("v") or version == "latest":
+            self.version = version
+        else:
+            self.version = f"v{version}"
 
     def deploy(self):
         with actions(roles=self.roles) as p:
             p.apt(name="curl", state="present")
 
+        if self.version == "latest":
+            extra_cmd = ""
+        else:
+            extra_cmd = f"INSTALL_K3S_VERSION={self.version}"
         with actions(roles=self.roles["master"], gather_facts=False) as p:
             p.shell(
-                "curl -sfL https://get.k3s.io | sh", task_name="[master] Deploying K3s"
+                f"curl -sfL https://get.k3s.io | {extra_cmd} sh",
+                task_name="[master] Deploying K3s",
             )
         # Getting the token
         result = run(
@@ -99,7 +110,7 @@ class K3s(Service):
 
         token = result[0].stdout
         with actions(roles=self.roles["agent"], gather_facts=False) as p:
-            cmd = f"K3S_URL=https://{self.master.__iter__().__next__().address}:6443 K3S_TOKEN={token} sh"  # noqa
+            cmd = f"{extra_cmd} K3S_URL=https://{next(iter(self.master)).address}:6443 K3S_TOKEN={token} sh"  # noqa
             p.shell(
                 f"curl -sfL https://get.k3s.io | {cmd}",
                 task_name="[agent] Deploying K3s on agent",
@@ -115,10 +126,16 @@ class K3s(Service):
             p.copy(dest="dashboard.admin-user-role.yml", content=ADMIN_USER_ROLE)
             p.shell(f"{GUARD_ADMIN_USER} || {CREATE_ADMIN_USER}")
             p.shell(f"{GUARD_ADMIN_USER_ROLE} || {CREATE_ADMIN_USER_ROLE}")
-            p.shell(
-                "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'",  # noqa
-                task_name="token",
-            )
+            if self.version < "v1.24" and self.version != "latest":
+                p.shell(
+                    "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'",  # noqa
+                    task_name="token",
+                )
+            else:
+                p.shell(
+                    "k3s kubectl -n kubernetes-dashboard create token admin-user",
+                    task_name="token",
+                )
             p.shell(f"{GUARD_PROXY} || {CREATE_PROXY}", background=True)
         # return dashboard bearer token
         return p.results.filter(task="token")[0].stdout
