@@ -1,9 +1,10 @@
-from enoslib.api import actions, run
 from typing import Iterable
 
-from ..service import Service
-from enoslib.objects import Host, Roles
+from packaging.version import Version
 
+from enoslib.api import actions, run
+from enoslib.objects import Host, Roles
+from ..service import Service
 
 GUARD_DASHBOARD = (
     "k3s kubectl get service" " -n kubernetes-dashboard kubernetes-dashboard"
@@ -126,7 +127,7 @@ class K3s(Service):
             p.copy(dest="dashboard.admin-user-role.yml", content=ADMIN_USER_ROLE)
             p.shell(f"{GUARD_ADMIN_USER} || {CREATE_ADMIN_USER}")
             p.shell(f"{GUARD_ADMIN_USER_ROLE} || {CREATE_ADMIN_USER_ROLE}")
-            if self.version < "v1.24" and self.version != "latest":
+            if self.version != "latest" and Version(self.version) < Version("v1.24"):
                 p.shell(
                     "k3s kubectl -n kubernetes-dashboard describe secret admin-user-token | grep '^token'",  # noqa
                     task_name="token",
