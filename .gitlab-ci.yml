@@ -104,7 +104,15 @@ pylint:
     - pip install tox
     - tox -e pylint
 
-typecheck:
+typecheck-3.7:
+  image: python:3.7
+  stage: test
+  tags: [ci.inria.fr]
+  script:
+    - pip install tox
+    - tox -e typecheck
+
+typecheck-3.11:
   image: python:3.11
   stage: test
   tags: [ci.inria.fr]
