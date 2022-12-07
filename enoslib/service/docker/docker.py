@@ -1,10 +1,10 @@
 import os
-from typing import List
+from typing import Dict, List, Optional
 
 from jsonschema import validate
 
 from enoslib.api import run_ansible
-from enoslib.objects import Roles
+from enoslib.objects import Host, Roles
 from ..service import Service
 
 
@@ -42,15 +42,25 @@ class Docker(Service):
             },
         ]
     }
+    CREDENTIALS_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "login": {"type": "string"},
+            "password": {"type": "string"},
+        },
+        "additionalProperties": False,
+        "required": ["login", "password"],
+    }
 
     def __init__(
         self,
         *,
-        agent=None,
-        registry=None,
-        registry_opts=None,
-        bind_var_docker=None,
-        swarm=False
+        agent: Optional[List[Host]] = None,
+        registry: Optional[List[Host]] = None,
+        registry_opts: Optional[Dict] = None,
+        bind_var_docker: Optional[str] = None,
+        swarm: bool = False,
+        credentials: Optional[Dict] = None
     ):
         """Deploy docker agents on the nodes and registry cache(optional)
 
@@ -65,12 +75,16 @@ class Docker(Service):
 
             .. code-block:: python
 
-                # Use an internal registry on the first agent
+                # Simply install the docker agent without any registry
                 docker = Docker(agent=roles["agent"])
 
-                # Use an internal registry on the specified host
+                # Install and use an internal registry on the specified host
                 docker = Docker(agent=roles["agent"],
                                 registry=roles["registry"])
+
+                # Install and use an internal registry on the first agent
+                docker = Docker(agent=roles["agent"],
+                                registry_opts=dict(type="internal"))
 
                 # Use an external registry
                 docker = Docker(agent=roles["compute"] + roles["control"],
@@ -79,6 +93,10 @@ class Docker(Service):
                                                  "port": 4000})
 
             .. literalinclude:: examples/docker.py
+                :language: python
+                :linenos:
+
+            .. literalinclude:: examples/docker_g5k.py
                 :language: python
                 :linenos:
 
@@ -97,27 +115,41 @@ class Docker(Service):
                 the fallback to the default location.
             swarm (bool): Whether a docker swarm needs to be created over the agents.
                 The first agent will be taken as the swarm master.
+            credentials (dict): Optional 'login' and 'password' for Docker hub.
+                Useful to access private images, or to bypass Docker hub rate-limiting:
+                in that case, it is recommended to use a token with the "Public Repo
+                Read-Only" permission as password, because it is stored in cleartext
+                on the nodes.
         """
         # TODO: use a decorator for this purpose
         if registry_opts:
             validate(instance=registry_opts, schema=self.SCHEMA)
+        if credentials:
+            validate(instance=credentials, schema=self.CREDENTIALS_SCHEMA)
 
         self.agent = agent if agent else []
-        self.registry_opts = registry_opts if registry_opts else REGISTRY_OPTS
-        if self.registry_opts["type"] == "none":
-            self.registry: List = []
-        if self.registry_opts["type"] == "external":
-            self.registry = []
-        if self.registry_opts["type"] == "internal" or registry is not None:
-            _registry = registry[0] if registry else agent[0]
-            self.registry = [_registry]
+        self.registry_opts = dict(registry_opts) if registry_opts else REGISTRY_OPTS
+        if registry is not None:
             self.registry_opts["type"] = "internal"
-            self.registry_opts["ip"] = _registry.address
+
+        self.registry: List[Host] = []
+        if self.registry_opts["type"] == "internal":
+            if registry is not None:
+                _registry_host = registry[0]
+            elif agent is not None:
+                _registry_host = agent[0]
+            else:
+                raise ValueError(
+                    "'registry' and 'agent' parameters cannot both be None"
+                )
+            self.registry = [_registry_host]
+            self.registry_opts["ip"] = _registry_host.address
             if self.registry_opts.get("port") is None:
                 self.registry_opts["port"] = 5000
 
         self.bind_var_docker = bind_var_docker
         self.swarm = swarm
+        self.credentials = credentials
         self._roles = Roles(
             {
                 "agent": self.agent,
@@ -138,6 +170,9 @@ class Docker(Service):
         if self.bind_var_docker:
             # In the Ansible playbook, undefined means no binding
             extra_vars.update(bind_var_docker=self.bind_var_docker)
+        if self.credentials:
+            # In the Ansible playbook, undefined means no logging in
+            extra_vars.update(dockerhub_credentials=self.credentials)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
