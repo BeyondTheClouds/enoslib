@@ -18,6 +18,7 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   TZ: Europe/Paris
   GIT_SUBMODULE_STRATEGY: normal
+  TOX_PACKAGE: "tox<4"
   FUNCTIONAL_TESTS: test_static_run_command.py test_static_gather_facts.py test_static_play_on.py test_static_run_ansible.py test_static_tasks.py test_sync_info.py test_dstat.py
 
 ###############################################################################
@@ -43,7 +44,7 @@ python3.7:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e py37
 
 python3.8:
@@ -51,7 +52,7 @@ python3.8:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e py38
 
 python3.9:
@@ -59,7 +60,7 @@ python3.9:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e py39
 
 python3.10:
@@ -67,7 +68,7 @@ python3.10:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e py310
 
 python3.11:
@@ -75,7 +76,7 @@ python3.11:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e py311
   coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
   artifacts:
@@ -93,7 +94,7 @@ pep8:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e pep8
 
 pylint:
@@ -101,7 +102,7 @@ pylint:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e pylint
 
 typecheck-3.7:
@@ -109,7 +110,7 @@ typecheck-3.7:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e typecheck
 
 typecheck-3.11:
@@ -117,7 +118,7 @@ typecheck-3.11:
   stage: test
   tags: [ci.inria.fr]
   script:
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e typecheck
 
 sonar:
@@ -139,7 +140,7 @@ sonar:
     - mv sonar-scanner-4.4.0.2170-linux sonar
     - wget --no-check-certificate https://sonarqube.inria.fr/static/digicertca.crt
     - keytool -import -alias inria -storepass "changeit" -keystore $(pwd)/sonar/jre/lib/security/cacerts -file digicertca.crt
-    - pip install tox && tox -e py310
+    - pip install $TOX_PACKAGE && tox -e py310
     - sonar/bin/sonar-scanner -X -Dsonar.login=$SONAR_LOGIN
 
 doc:
@@ -149,7 +150,7 @@ doc:
   script:
     - apt update
     - apt install -y pandoc
-    - pip install tox
+    - pip install $TOX_PACKAGE
     - tox -e docs
   artifacts:
     paths:
