@@ -29,6 +29,7 @@ class Configuration(BaseConfiguration):
         self.dhcp: bool = True
         self.force_deploy: bool = False
         self.env_name: Optional[str] = None
+        self.env_version: Optional[int] = None
         self.job_name: str = DEFAULT_JOB_NAME
         # since https://gitlab.inria.fr/discovery/enoslib/-/issues/103
         # this is an array.

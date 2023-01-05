@@ -37,6 +37,12 @@ SCHEMA_USER = {
             "description": "The kadeploy3 environment to use (deploy only)",
             "type": "string",
         },
+        "env_version": {
+            "description": "Kadeploy3 env version to use (deploy only, optional)",
+            "type": "integer",
+            "minimum": 2016011914,
+            "exclusiveMinimum": True,
+        },
         "job_name": {
             "description": f"Name of the job (default: {DEFAULT_JOB_NAME})",
             "type": "string",
