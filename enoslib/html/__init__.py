@@ -1,48 +1,50 @@
-from enoslib.config import get_config
 import logging
 import uuid
 from html import escape as html_escape
-from typing import List, Union
+from typing import List, Union, Optional, Collection, Callable
 
 import pkg_resources
+
+from enoslib.config import get_config
 
 logger = logging.getLogger(__name__)
 
 STATIC_FILES = "html/style.css"
 
 
-def repr_html_check(f):
+def repr_html_check(f) -> Callable[..., str]:
     """Decorator for _repr_html_ for some routines checks."""
     if f.__name__ != "_repr_html_":
         raise ValueError("repr_check can only decorates a _repr_html_ function")
 
-    def wrapped(self, *args, **kwargs):
+    def wrapped(self, *args, **kwargs) -> str:
         if get_config()["display"] != "html":
-            return self.__repr__()
+            return repr(self)
         try:
             return f(self, *args, **kwargs)
-        except Exception as e:
+        except Exception as err:
             logger.error(
-                f"{e} raised when rendering the HTML, proceeding with default __repr__"
+                "%s raised when rendering the HTML, proceeding with default __repr__",
+                err,
             )
-        return self.__repr__()
+        return repr(self)
 
     return wrapped
 
 
-def _html_escape(value, limit=50):
+def _html_escape(value, limit=50) -> str:
     """Truncate value as a string and html_escape it."""
     value = str(value) if len(str(value)) < limit else f"{str(value)[0:limit]}[...]"
     return html_escape(value)
 
 
-def _load_css():
+def _load_css() -> str:
     return pkg_resources.resource_string("enoslib", STATIC_FILES).decode("utf8")
 
 
 def html_to_foldable_section(
     name: str, html_objects: Union[str, List[str]], extra: str = ""
-):
+) -> str:
     """Generate a foldable section from html code.
 
     Wrap the html objects into something foldable
@@ -68,7 +70,7 @@ def html_to_foldable_section(
                 """
 
 
-def inline_value(key: str, value: str):
+def inline_value(key: str, value: str) -> str:
     data_id = f"{key}-" + str(uuid.uuid4())
     return f"""
         <li>
@@ -102,7 +104,7 @@ def dict_to_html_foldable_sections(d: dict) -> str:
     return html
 
 
-def convert_to_html_table(input_data):
+def convert_to_html_table(input_data) -> str:
     """Convert something to a html table.
 
     Accepted input type: list, dict or regular str
@@ -116,12 +118,16 @@ def convert_to_html_table(input_data):
     return _html_escape(str(input_data))
 
 
-def html_table_header(input):
+def html_table_header(input_data) -> Optional[Collection[str]]:
     """This code is borrowed from json2html (MIT)"""
-    if not input or not hasattr(input, "__getitem__") or not hasattr(input[0], "keys"):
+    if (
+        not input_data
+        or not hasattr(input_data, "__getitem__")
+        or not hasattr(input_data[0], "keys")
+    ):
         return None
-    headers = input[0].keys()
-    for entry in input:
+    headers = input_data[0].keys()
+    for entry in input_data:
         if (
             not hasattr(entry, "keys")
             or not hasattr(entry, "__iter__")
@@ -134,49 +140,58 @@ def html_table_header(input):
     return headers
 
 
-def convert_list_to_html_table(list_input):
+def convert_list_to_html_table(list_input) -> str:
     """This code is borrowed from json2html (MIT)"""
-    table_init_tag = "<table>"
     if not list_input:
         return ""
-    output = ""
     headers = html_table_header(list_input)
     if headers is not None:
-        output += table_init_tag
-        output += "<thead>"
-        output += "<tr><th>" + "</th><th>".join(headers) + "</th></tr>"
-        output += "</thead>"
-        output += "<tbody>"
+        output = f"""
+        <table>
+        <thead>
+            <tr>
+                <th>{'</th><th>'.join(headers)}</th>
+            </tr>
+        </thead>
+        <tbody>
+        """
         for list_entry in list_input:
-            output += "<tr><td>"
-            output += "</td><td>".join(
-                [convert_to_html_table(list_entry[header]) for header in headers]
-            )
-            output += "</td></tr>"
-        output += "</tbody>"
-        output += "</table>"
+            output += f"""
+            <tr>
+                <td>
+                {"</td><td>".join([convert_to_html_table(list_entry[header]) for header in headers])} # noqa
+                </td>
+            </tr>
+            """
+        output += "</tbody></table>"
         return output
     # list_input = basic list
-    output = '<ul class="list"><li>'
-    output += "</li><li>".join([convert_to_html_table(child) for child in list_input])
-    output += "</li></ul>"
+    output = f"""
+    <ul class="list">
+        <li>
+        {"</li><li>".join([convert_to_html_table(child) for child in list_input])}
+        </li>
+    </ul>
+    """
     return output
 
 
-def convert_dict_to_html_table(input):
+def convert_dict_to_html_table(input_data) -> str:
     """This code is borrowed from json2html (MIT)"""
-    table_init_tag = "<table>"
-    if not input:
+    if not input_data:
         return ""
-    converted_output = table_init_tag + "<tr>"
-    converted_output += "</tr><tr>".join(
+    converted_output = f"""
+    <table>
+    <tr>
+    {"</tr><tr>".join(
         [
-            "<th>%s</th><td>%s</td>"
-            % (convert_to_html_table(k), convert_to_html_table(v))
-            for k, v in input.items()
+            f"<th>{convert_to_html_table(k)}</th><td>{convert_to_html_table(v)}</td>"
+            for k, v in input_data.items()
         ]
-    )
-    converted_output += "</tr></table>"
+    )}
+    </tr>
+    </table>
+    """
     return converted_output
 
 
@@ -185,13 +200,13 @@ def html_object(name: str, foldable_sections: Union[str, List[str]]) -> str:
         foldable_sections = [foldable_sections]
 
     s = f"""<div class="enoslib_object">
-            <div class="object_name">
-                {html_escape(name)}
-            </div>
-            <ul class="enoslist">
-                {"".join(foldable_sections)}
-            </ul>
-                </div>"""
+                <div class="object_name">
+                    {html_escape(name)}
+                </div>
+                <ul class="enoslist">
+                    {"".join(foldable_sections)}
+                </ul>
+            </div>"""
 
     return s
 
