@@ -19,6 +19,7 @@ conf = (
     .from_settings(
         job_type=["deploy"],
         env_name="debian10-min",
+        env_version=2022090510,  # last env version before 2022-11-03
         job_name=job_name,
         walltime="00:50:00",
     )

@@ -138,7 +138,7 @@ Specific nodes reservation
 On Grid'5000, machines belonging to a given cluster are normally
 homogeneous.  But it is impossible to provide absolute guarantees about
 it: for instance, physical disks may have different performance
-caracteristics across nodes of a cluster even though they share the same
+characteristics across nodes of a cluster even though they share the same
 vendor and model.  For this reason, experimenters may need to reproduce an
 experiment several times using the exact same hardware.
 

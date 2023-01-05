@@ -110,7 +110,7 @@ class OargridDynamicDriver(Driver):
     deployment. This is done using the job name.
     """
 
-    def __init__(self, configuration):
+    def __init__(self, configuration: Configuration):
 
         super().__init__()
         self.job_name = configuration.job_name
