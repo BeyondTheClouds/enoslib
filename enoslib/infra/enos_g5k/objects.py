@@ -9,6 +9,7 @@ from netaddr.ip.sets import IPSet
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
 from enoslib.infra.enos_g5k.g5k_api_utils import (
+    get_api_username,
     get_dns,
     get_ipv6,
     get_node,
@@ -17,8 +18,9 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_vlans,
     set_nodes_vlan,
 )
+from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.log import getLogger
-from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
+from enoslib.objects import DefaultNetwork, Host, NetworkType, AddressInterfaceType
 
 logger = getLogger(__name__, ["G5k"])
 
@@ -694,6 +696,32 @@ class G5kHost:
             # the site of the vlan may differ.
             # The site is known in the context of a concrete network.
             net.attach([self.fqdn], eth)
+
+    def to_enoslib(
+        self, address: str = "", user: str = "root", extra: Optional[Dict] = None
+    ) -> Host:
+        """Return a generic Host object from a G5kHost object.
+
+        We automatically set up a SSH jump configuration if Enoslib is
+        running outside of Grid'5000.
+
+        Args:
+            address: host name to use for SSH, defaults to G5kHost.ssh_address
+            user: SSH user, defaults to "root"
+            extra: optional dictionary of extra Ansible host variables
+
+        Returns: a Host object usable with Ansible.
+        """
+        if not address:
+            address = self.ssh_address
+        all_extra: Dict[str, str] = {}
+        if extra:
+            all_extra.update(extra)
+        if not inside_g5k():
+            all_extra["gateway"] = "access.grid5000.fr"
+            all_extra["gateway_user"] = get_api_username()
+        h = Host(address=address, user=user, extra=all_extra)
+        return h
 
     def __repr__(self) -> str:
         return (

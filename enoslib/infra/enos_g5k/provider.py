@@ -53,7 +53,6 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_clusters_status,
     _test_slot,
 )
-from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
     G5kNetwork,
@@ -77,17 +76,18 @@ logger = getLogger(__name__, ["G5k"])
 
 
 def _check_deployed_nodes(
-    net: G5kNetwork, fqdns: List[str]
+    net: G5kNetwork, nodes: List[G5kHost]
 ) -> Tuple[List[str], List[str]]:
     """This is borrowed from execo."""
-    # we translate in the right vlan
-    nodes = [t[1] for t in net.translate(fqdns)]
-    # we build a one-off list of hosts to run the check command
-    extra = {}
-    if not inside_g5k():
-        extra["gateway"] = "access.grid5000.fr"
-        extra["gateway_user"] = get_api_username()
-    hosts = [Host(n, user="root", extra=extra) for n in nodes]
+    # Translate host names using the right vlan
+    fqdns: List[str] = [node.fqdn for node in nodes]
+    node_to_addr: Dict[G5kHost, str] = {
+        node: t[1] for node, t in zip(nodes, net.translate(fqdns))
+    }
+    # Build Host list to check, forcing the use of the VLAN
+    hosts: List[Host] = [
+        node.to_enoslib(address=addr) for node, addr in node_to_addr.items()
+    ]
     deployed = []
     undeployed = []
     # Deployed environments are deployed on the third partition
@@ -124,17 +124,8 @@ def _check_deployed_nodes(
 
 def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
     logger.debug("Configuring network interfaces on the nodes")
-    extra = {}
-    if not inside_g5k():
-        extra["gateway"] = "access.grid5000.fr"
-        extra["gateway_user"] = get_api_username()
     hosts = [
-        Host(
-            h.ssh_address,
-            user="root",
-            extra={**dict(cmd=h.dhcp_networks_command()), **extra},
-        )
-        for h in sshable_hosts
+        h.to_enoslib(extra=dict(cmd=h.dhcp_networks_command())) for h in sshable_hosts
     ]
     # cmd might be empty
     run("echo '' ; {{ cmd }}", hosts, task_name="Run dhcp on the nodes")
@@ -149,7 +140,7 @@ def _concretize_nodes(
     (whatever is the order of the oar nodes in the input list)
     Returned elements are internal object that will be combined later with
     concrete networks to forge convenient hosts object
-    see py:func:`enoslib.infra.enos_g5k.utils.join`.
+    see py:func:`enoslib.infra.enos_g5k.provider._join`.
 
     Args:
         group_configs: list of group configuration.
@@ -284,7 +275,7 @@ def _join(
     machines: MutableSequence[ConcreteGroup], networks: MutableSequence[G5kNetwork]
 ) -> MutableSequence[G5kHost]:
     """Actually create a list of host."""
-    hosts: MutableSequence = []
+    hosts: MutableSequence[G5kHost] = []
     for concrete_machine in machines:
         roles = concrete_machine.config.roles
         network_id = concrete_machine.config.primary_network.id
@@ -457,17 +448,17 @@ class G5kBase(Provider):
         # make sure we are dealing with a single site
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
-        self.hosts: MutableSequence = []
+        self.hosts: MutableSequence[G5kHost] = []
         # will hold the concrete version of the networks
         self.networks: MutableSequence = []
         # will hold the concrete hosts deployed/undeployed after calling (ka)deploy3
-        self.deployed: MutableSequence = []
-        self.undeployed: MutableSequence = []
+        self.deployed: MutableSequence[G5kHost] = []
+        self.undeployed: MutableSequence[G5kHost] = []
 
         # will hold the hosts reachable through ssh
         # - if no deployment has been performed, this will be self.hosts
         # - if a deployment has been performed, this will be self.deployed
-        self.sshable_hosts: MutableSequence = []
+        self.sshable_hosts: MutableSequence[G5kHost] = []
 
         # will hold the status of the cluster
         self.clusters_status = None
@@ -641,7 +632,7 @@ class G5kBase(Provider):
         # hosts = copy.deepcopy(self.hosts)
         hosts = self.hosts
 
-        # keep track of ssable hosts == deployed ones
+        # keep track of sshable hosts == deployed ones
         self.sshable_hosts = []
         # keep track of deploy/undeployed host globally
         self.deployed = []
@@ -672,7 +663,7 @@ class G5kBase(Provider):
             deployed: List[str] = []
             undeployed: List[str] = fqdns
             if not force_deploy:
-                deployed, undeployed = _check_deployed_nodes(net, fqdns)
+                deployed, undeployed = _check_deployed_nodes(net, _hosts)
 
             if force_deploy or undeployed:
                 deployed, undeployed = self.driver.deploy(site, undeployed, options)
@@ -696,15 +687,10 @@ class G5kBase(Provider):
             _run_dhcp(self.sshable_hosts)
 
     def grant_root_access(self):
-        extra = {}
-        if not inside_g5k():
-            extra["gateway"] = "access.grid5000.fr"
-            extra["gateway_user"] = get_api_username()
         hosts = [
-            Host(
-                h.ssh_address,
+            h.to_enoslib(
                 user=self.driver.get_user(),
-                extra={**dict(cmd=h.grant_root_access_command()), **extra},
+                extra=dict(cmd=h.grant_root_access_command()),
             )
             for h in self.sshable_hosts
         ]
@@ -719,11 +705,7 @@ class G5kBase(Provider):
         # used to de-duplicate host objects in the roles datastructure
         _hosts: List[Host] = []
         for host in self.sshable_hosts:
-            extra = {}
-            if not inside_g5k():
-                extra["gateway"] = "access.grid5000.fr"
-                extra["gateway_user"] = get_api_username()
-            h = Host(host.ssh_address, user="root", extra=extra)
+            h: Host = host.to_enoslib()
             if h in _hosts:
                 h = _hosts[_hosts.index(h)]
             else:
