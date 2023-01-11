@@ -53,6 +53,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_clusters_status,
     _test_slot,
 )
+from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
     G5kNetwork,
@@ -82,7 +83,11 @@ def _check_deployed_nodes(
     # we translate in the right vlan
     nodes = [t[1] for t in net.translate(fqdns)]
     # we build a one-off list of hosts to run the check command
-    hosts = [Host(n, user="root") for n in nodes]
+    extra = {}
+    if not inside_g5k():
+        extra["gateway"] = "access.grid5000.fr"
+        extra["gateway_user"] = get_api_username()
+    hosts = [Host(n, user="root", extra=extra) for n in nodes]
     deployed = []
     undeployed = []
     # Deployed environments are deployed on the third partition
@@ -119,11 +124,15 @@ def _check_deployed_nodes(
 
 def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
     logger.debug("Configuring network interfaces on the nodes")
+    extra = {}
+    if not inside_g5k():
+        extra["gateway"] = "access.grid5000.fr"
+        extra["gateway_user"] = get_api_username()
     hosts = [
         Host(
             h.ssh_address,
             user="root",
-            extra=dict(cmd=h.dhcp_networks_command()),
+            extra={**dict(cmd=h.dhcp_networks_command()), **extra},
         )
         for h in sshable_hosts
     ]
@@ -687,11 +696,15 @@ class G5kBase(Provider):
             _run_dhcp(self.sshable_hosts)
 
     def grant_root_access(self):
+        extra = {}
+        if not inside_g5k():
+            extra["gateway"] = "access.grid5000.fr"
+            extra["gateway_user"] = get_api_username()
         hosts = [
             Host(
                 h.ssh_address,
                 user=self.driver.get_user(),
-                extra=dict(cmd=h.grant_root_access_command()),
+                extra={**dict(cmd=h.grant_root_access_command()), **extra},
             )
             for h in self.sshable_hosts
         ]
@@ -706,7 +719,11 @@ class G5kBase(Provider):
         # used to de-duplicate host objects in the roles datastructure
         _hosts: List[Host] = []
         for host in self.sshable_hosts:
-            h = Host(host.ssh_address, user="root")
+            extra = {}
+            if not inside_g5k():
+                extra["gateway"] = "access.grid5000.fr"
+                extra["gateway_user"] = get_api_username()
+            h = Host(host.ssh_address, user="root", extra=extra)
             if h in _hosts:
                 h = _hosts[_hosts.index(h)]
             else:
