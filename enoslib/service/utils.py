@@ -19,7 +19,9 @@ def _check_path(backup_dir: Path) -> Path:
     return backup_path
 
 
-def _set_dir(one_dir: Optional[Union[Path, str]], default_dir: Union[Path, str]):
+def _set_dir(
+    one_dir: Optional[Union[Path, str]], default_dir: Union[Path, str]
+) -> Path:
     if one_dir is None:
         _dir = Path(default_dir)
     else:

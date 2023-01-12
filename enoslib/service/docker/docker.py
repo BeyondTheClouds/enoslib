@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import List, Optional, Dict
 
 from jsonschema import validate
 
@@ -7,13 +7,12 @@ from enoslib.api import run_ansible
 from enoslib.objects import Host, Roles
 from ..service import Service
 
-
-REGISTRY_OPTS = {"type": "none"}
-SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+REGISTRY_OPTS: Dict = {"type": "none"}
+SERVICE_PATH: str = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Docker(Service):
-    SCHEMA = {
+    SCHEMA: Dict = {
         "oneOf": [
             {
                 "type": "object",
@@ -42,7 +41,7 @@ class Docker(Service):
             },
         ]
     }
-    CREDENTIALS_SCHEMA = {
+    CREDENTIALS_SCHEMA: Dict = {
         "type": "object",
         "properties": {
             "login": {"type": "string"},

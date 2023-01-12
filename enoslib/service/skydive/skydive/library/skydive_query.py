@@ -114,7 +114,7 @@ def run_module():
     try:
         result["nodes"] = make_query(module.params)
     except Exception as e:
-        module.fail_json(msg='Error during request %s' % e, **result)
+        module.fail_json(msg=f'Error during request {e}', **result)
 
     module.exit_json(**result)
 

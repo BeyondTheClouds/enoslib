@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from typing import Dict, Iterable, Optional
 
 from enoslib.api import run_ansible
@@ -7,17 +7,16 @@ from enoslib.objects import Host, Network, Roles
 from ..service import Service
 from ..utils import _set_dir, _to_abs
 
+DEFAULT_UI_ENV: Dict = {"GF_SERVER_HTTP_PORT": "3000"}
 
-DEFAULT_UI_ENV = {"GF_SERVER_HTTP_PORT": "3000"}
-
-DEFAULT_COLLECTOR_ENV = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
+DEFAULT_COLLECTOR_ENV: Dict = {"INFLUXDB_HTTP_BIND_ADDRESS": ":8086"}
 
 DEFAULT_AGENT_IMAGE = "telegraf"
 
-SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+SERVICE_PATH: str = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
-LOCAL_OUTPUT_DIR_TIG = Path("__enoslib_tig__")
-LOCAL_OUTPUT_DIR_TPG = Path("__enoslib_tpg__")
+LOCAL_OUTPUT_DIR_TIG: Path = Path("__enoslib_tig__")
+LOCAL_OUTPUT_DIR_TPG: Path = Path("__enoslib_tpg__")
 
 
 def _get_address(host: Host, networks: Optional[Iterable[Network]]) -> str:
@@ -133,11 +132,11 @@ class TIGMonitoring(Service):
         self.remote_working_dir = remote_working_dir
 
         self.collector_env = DEFAULT_COLLECTOR_ENV
-        collector_env = {} if not collector_env else collector_env
-        self.collector_env.update(collector_env)
+        if collector_env is not None:
+            self.collector_env.update(collector_env)
 
         # agent options
-        self.agent_env = {} if not agent_env else agent_env
+        self.agent_env = {} if agent_env is None else agent_env
         if agent_conf is None:
             self.agent_conf = "telegraf.conf.j2"
         else:
@@ -146,8 +145,8 @@ class TIGMonitoring(Service):
 
         # ui options
         self.ui_env = DEFAULT_UI_ENV
-        ui_env = {} if not ui_env else ui_env
-        self.ui_env.update(ui_env)
+        if ui_env is not None:
+            self.ui_env.update(ui_env)
 
         # backup_dir management
         self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TIG)

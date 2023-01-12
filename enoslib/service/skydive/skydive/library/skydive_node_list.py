@@ -59,7 +59,7 @@ options:
         required: true
 
 notes:
-  - The default value of seed may be unsufficient to disambiguate nodes.
+  - The default value of seed may be insufficient to disambiguate nodes.
   - Using list reduces the communication overhead for creating nodes.
 
 author:
@@ -93,9 +93,7 @@ import os
 import uuid
 
 from ansible.module_utils.basic import AnsibleModule
-
 from skydive.graph import Node
-
 from skydive.websocket.client import NodeAddedMsgType
 from skydive.websocket.client import WSClient
 from skydive.websocket.client import WSClientDefaultProtocol
@@ -126,7 +124,7 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
                 metadata["Type"] = node["type"]
                 seed = node.get("seed", "")
                 if len(seed) == 0:
-                    seed = "%s:%s" % (node["name"], node["type"])
+                    seed = f'{node["name"]}:{node["type"]}'
                 uid = str(uuid.uuid5(uuid.NAMESPACE_OID, seed))
 
                 node = Node(str(uid), host, metadata=metadata)
@@ -136,7 +134,7 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
             result["UUID"] = uuids
         except Exception as e:
             module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+                msg=f'Error during topology update {e}', **result)
         finally:
             self.factory.client.loop.call_soon(self.stop)
 
@@ -166,9 +164,8 @@ def run_module():
         scheme = "wss"
 
     try:
-        url = "%s://%s/ws/publisher" % (scheme, module.params["analyzer"])
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
+        url = f"{scheme}://{module.params['analyzer']}/ws/publisher"
+        wsclient = WSClient(f"ansible-{os.getpid()}-{module.params['host']}",
                             url,
                             protocol=NodeInjectProtocol, persistent=True,
                             insecure=module.params["insecure"],
@@ -180,7 +177,7 @@ def run_module():
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg=f'Connection error {e}', **result)
 
     result['changed'] = True
 

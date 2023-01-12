@@ -1,12 +1,10 @@
 from pathlib import Path
 from typing import Iterable, List, Optional, Union
 
-
 from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.objects import Host, Network, Roles
 from ..service import Service
 from ..utils import _set_dir
-
 
 REMOTE_OUTPUT_DIR = "/tmp/__enoslib_tcpdump__"
 LOCAL_OUTPUT_DIR = "__enoslib_tcpdump__"
@@ -65,7 +63,7 @@ class TCPDump(Service):
                 ifs = host.filter_interfaces(self.networks)
             host.extra.update(tcpdump_ifs=ifs)
 
-    def deploy(self, force=False):
+    def deploy(self, force: bool = False):
         with play_on(roles=self.roles, gather_facts=True) as p:
             p.apt(
                 name=["tcpdump", "tmux"],

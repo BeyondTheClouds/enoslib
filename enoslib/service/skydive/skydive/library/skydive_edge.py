@@ -120,11 +120,9 @@ import os
 import uuid
 
 from ansible.module_utils.basic import AnsibleModule
-
-from skydive.graph import Node, Edge
+from skydive.graph import Edge
 from skydive.rest.client import RESTClient
-
-from skydive.websocket.client import NodeAddedMsgType, EdgeAddedMsgType
+from skydive.websocket.client import EdgeAddedMsgType
 from skydive.websocket.client import WSClient, WSClientDefaultProtocol, WSMessage
 
 
@@ -148,8 +146,7 @@ class EdgeInjectProtocol(WSClientDefaultProtocol):
             metadata = params["metadata"]
             metadata["RelationType"] = params["relation_type"]
 
-            uid = uuid.uuid5(uuid.NAMESPACE_OID, "%s:%s:%s" %
-                             (node1, node2, params["relation_type"]))
+            uid = uuid.uuid5(uuid.NAMESPACE_OID, f"{node1}:{node2}:{params['relation_type']}")
 
             edge = Edge(str(uid), host,
                         node1, node2, metadata=metadata)
@@ -160,12 +157,12 @@ class EdgeInjectProtocol(WSClientDefaultProtocol):
             result["UUID"] = str(uid)
         except Exception as e:
             module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+                msg=f'Error during topology update {e}', **result)
         finally:
             self.stop()
 
 
-def get_node_id(module, node_selector):
+def get_node_id(module, node_selector) -> str:
     scheme = "http"
     if module.params["ssl"]:
         scheme = "https"
@@ -177,10 +174,10 @@ def get_node_id(module, node_selector):
                                 password=module.params["password"])
         nodes = restclient.lookup_nodes(node_selector)
         if len(nodes) == 0:
-            raise Exception("Node not found: %s" % node_selector)
+            raise Exception(f"Node not found: {node_selector}")
         elif len(nodes) > 1:
             raise Exception(
-                "Node selection should return only one node: %s" % node_selector)
+                f"Node selection should return only one node: {node_selector}")
 
         return str(nodes[0].id)
 
@@ -215,17 +212,15 @@ def run_module():
         node2 = get_node_id(module, module.params["node2"])
     except Exception as e:
         module.fail_json(
-            msg='Error during topology request %s' % e, **result)
+            msg=f'Error during topology request {e}', **result)
 
     scheme = "ws"
     if module.params["ssl"]:
         scheme = "wss"
 
     try:
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
-                            "%s://%s/ws/publisher" % (scheme,
-                                                      module.params["analyzer"]),
+        wsclient = WSClient(f"ansible-{os.getpid()}-{module.params['host']}",
+                            f"{scheme}://{module.params['analyzer']}/ws/publisher",
                             protocol=EdgeInjectProtocol, persistent=True,
                             insecure=module.params["insecure"],
                             username=module.params["username"],
@@ -238,7 +233,7 @@ def run_module():
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg=f'Connection error {e}', **result)
 
     result['changed'] = True
 
