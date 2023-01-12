@@ -52,7 +52,10 @@ def get_offline_client():
     from pathlib import Path
 
     data = json.loads((Path(__file__).parent / "reference.json").read_text())
-    return Grid5000Offline(data)
+    api = Grid5000Offline(data)
+    # Allows the use of get_api_username()
+    api.username = "dummy"
+    return api
 
 
 class TestG5kEnos(EnosTest):
@@ -493,8 +496,12 @@ class TestDeploy(EnosTest):
         mock_grid_deploy.assert_not_called()
         self.assertEqual(2, mock_check_deployed_nodes.call_count)
         # two hosts are equal if they target the same machine with the same user
+        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
         self.assertCountEqual(
-            [Host(h, user="root") for h in oar_nodes_nancy + oar_nodes_rennes],
+            [
+                Host(h, user="root", extra=extra)
+                for h in oar_nodes_nancy + oar_nodes_rennes
+            ],
             roles["role1"],
         )
         self.assertEqual(4, len(networks[NETWORK_ROLE_PROD]))
@@ -590,8 +597,9 @@ class TestDeploy(EnosTest):
             "grisou-1-kavlan-16.nancy.grid5000.fr",
             "grisou-2-kavlan-16.nancy.grid5000.fr",
         ]
+        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
         self.assertCountEqual(
-            [Host(h, user="root") for h in kavlan_nodes], roles["role1"]
+            [Host(h, user="root", extra=extra) for h in kavlan_nodes], roles["role1"]
         )
         # 1 vlan ipv4 + its ipv6 counterpart
         self.assertEqual(2, len(networks["role1"]))
@@ -687,8 +695,9 @@ class TestDeploy(EnosTest):
             "grisou-2.nancy.grid5000.fr",
         ]
         self.maxDiff = None
+        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
         self.assertCountEqual(
-            [Host(h, user="root") for h in kavlan_nodes], roles["role1"]
+            [Host(h, user="root", extra=extra) for h in kavlan_nodes], roles["role1"]
         )
 
         mock_set_nodes_vlan.assert_any_call(
@@ -782,7 +791,8 @@ class TestKavlan(EnosTest):
 
 class TestCheckDeployedNode(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.provider.run")
-    def test_check_deployed_nodes(self, mock_run):
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_check_deployed_nodes(self, mock_api, mock_run):
         mock_run.return_value = Results(
             [
                 CommandResult(
@@ -799,16 +809,23 @@ class TestCheckDeployedNode(EnosTest):
                 ),
             ]
         )
+        mock_api.return_value = get_offline_client()
         net = G5kProdNetwork(["tag1"], "id", "rennes")
         deployed, undeployed = _check_deployed_nodes(
-            net, ["plip-1.rennes.grid5000.fr", "plip-2.rennes.grid5000.fr"]
+            net,
+            [
+                G5kHost("plip-1.rennes.grid5000.fr", [], net),
+                G5kHost("plip-2.rennes.grid5000.fr", [], net),
+            ],
         )
         self.assertCountEqual(["plip-1.rennes.grid5000.fr"], deployed)
         self.assertCountEqual(["plip-2.rennes.grid5000.fr"], undeployed)
 
 
 class TestToEnoslib(EnosTest):
-    def test_non_duplicated_hosts(self):
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_non_duplicated_hosts(self, mock_api):
+        mock_api.return_value = get_offline_client()
         provider = G5k(Configuration())
         network = mock.Mock()
         provider.sshable_hosts = [G5kHost("1.2.3.4", ["tag1", "tag2"], network)]

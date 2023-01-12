@@ -9,6 +9,7 @@ from netaddr.ip.sets import IPSet
 
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
 from enoslib.infra.enos_g5k.g5k_api_utils import (
+    get_api_username,
     get_dns,
     get_ipv6,
     get_node,
@@ -17,8 +18,9 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_vlans,
     set_nodes_vlan,
 )
+from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.log import getLogger
-from enoslib.objects import DefaultNetwork, NetworkType, AddressInterfaceType
+from enoslib.objects import DefaultNetwork, Host, NetworkType, AddressInterfaceType
 
 logger = getLogger(__name__, ["G5k"])
 
@@ -140,11 +142,11 @@ class G5kNetwork(ABC):
         ...
 
     @abstractmethod
-    def translate(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
+    def translate(self, fqdns: Iterable[str], reverse=False) -> List[Tuple[str, str]]:
         """Gets the DNS names of the passed fqdns in these networks and vice versa.
 
         Args:
-            fqdns: list of hostnames (host uid in the API) to translate.
+            fqdns: iterable of hostnames (host uid in the API) to translate.
             reverse: Do the opposite operation.
 
         Returns:
@@ -153,11 +155,11 @@ class G5kNetwork(ABC):
         ...
 
     @abstractmethod
-    def translate6(self, fqdns: List[str], reverse=False) -> Iterable[Tuple[str, str]]:
+    def translate6(self, fqdns: Iterable[str], reverse=False) -> List[Tuple[str, str]]:
         """Gets the DNS names (resolved as ipv6) of the passed fqdns in these networks.
 
         Args:
-            fqdns: list of hostnames (host uid in the API) to translate.
+            fqdns: iterable of hostnames (host uid in the API) to translate.
             reverse: Do the opposite operation.
 
         Returns:
@@ -296,16 +298,16 @@ class G5kVlanNetwork(G5kNetwork):
             return uid
 
     def translate(
-        self, fqdns: List[str], reverse: bool = False
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         return [
             (fqdn, self._translate(fqdn, self.vlan_id, reverse=reverse))
             for fqdn in fqdns
         ]
 
     def translate6(
-        self, fqdns: List[str], reverse: bool = False
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         return [
             (
                 fqdn,
@@ -357,8 +359,8 @@ class G5kProdNetwork(G5kVlanNetwork):
         super().__init__(roles, id, site, "DEFAULT")
 
     def translate(
-        self, fqdns: List[str], reverse: bool = False
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         """Node in the production network.
 
         node uid == node name
@@ -366,8 +368,8 @@ class G5kProdNetwork(G5kVlanNetwork):
         return [(f, f) for f in fqdns]
 
     def translate6(
-        self, fqdns: List[str], reverse: bool = False
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         """Translate node name in ipv6 resolvable name."""
         return [(f, self._translate(f, reverse=reverse, ipv6=True)) for f in fqdns]
 
@@ -460,13 +462,13 @@ class G5kSubnetNetwork(G5kNetwork):
         return None
 
     def translate(
-        self, fqdns: List[str], reverse: bool = True
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = True
+    ) -> List[Tuple[str, str]]:
         return [(f, f) for f in fqdns]
 
     def translate6(
-        self, fqdns: List[str], reverse: bool = True
-    ) -> Iterable[Tuple[str, str]]:
+        self, fqdns: Iterable[str], reverse: bool = True
+    ) -> List[Tuple[str, str]]:
         return self.translate(fqdns, reverse=reverse)
 
     def attach(self, fqdns: List[str], nic: str):
@@ -694,6 +696,32 @@ class G5kHost:
             # the site of the vlan may differ.
             # The site is known in the context of a concrete network.
             net.attach([self.fqdn], eth)
+
+    def to_enoslib(
+        self, address: str = "", user: str = "root", extra: Optional[Dict] = None
+    ) -> Host:
+        """Return a generic Host object from a G5kHost object.
+
+        We automatically set up a SSH jump configuration if Enoslib is
+        running outside of Grid'5000.
+
+        Args:
+            address: host name to use for SSH, defaults to G5kHost.ssh_address
+            user: SSH user, defaults to "root"
+            extra: optional dictionary of extra Ansible host variables
+
+        Returns: a Host object usable with Ansible.
+        """
+        if not address:
+            address = self.ssh_address
+        all_extra: Dict[str, str] = {}
+        if extra:
+            all_extra.update(extra)
+        if not inside_g5k():
+            all_extra["gateway"] = "access.grid5000.fr"
+            all_extra["gateway_user"] = get_api_username()
+        h = Host(address=address, user=user, extra=all_extra)
+        return h
 
     def __repr__(self) -> str:
         return (
