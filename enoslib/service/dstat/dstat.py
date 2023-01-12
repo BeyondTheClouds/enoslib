@@ -1,19 +1,18 @@
+import os
+from pathlib import Path
+from time import time_ns
+from typing import Dict, Iterable, Optional
+
+from enoslib.api import play_on, bg_start, bg_stop
 from enoslib.html import (
     dict_to_html_foldable_sections,
     html_from_sections,
     html_to_foldable_section,
     repr_html_check,
 )
-from pathlib import Path
-import os
-from time import time_ns
-from typing import Dict, Iterable, Optional
-
-from enoslib.api import play_on, bg_start, bg_stop
-from enoslib.objects import Host
+from enoslib.objects import Host, PathLike
 from ..service import Service
 from ..utils import _set_dir
-
 
 OUTPUT_FILE = "dstat.csv"
 TMUX_SESSION = "__enoslib_dstat__"
@@ -23,9 +22,9 @@ DOOL_URL = (
     "scottchiefbaker/dool/02b1c69d441764b030db5e78b4b6fb231c29f8f1/dool"
 )
 
-REMOTE_OUTPUT_DIR = Path("/tmp/__enoslib_dstat__")
-DOOL_PATH = REMOTE_OUTPUT_DIR / "dool"
-LOCAL_OUTPUT_DIR = Path("__enoslib_dstat__")
+REMOTE_OUTPUT_DIR: Path = Path("/tmp/__enoslib_dstat__")
+DOOL_PATH: PathLike = REMOTE_OUTPUT_DIR / "dool"
+LOCAL_OUTPUT_DIR: Path = Path("__enoslib_dstat__")
 
 
 class Dstat(Service):
@@ -98,7 +97,7 @@ class Dstat(Service):
             )
 
     def destroy(self):
-        """Destroy the dtsat monitoring stack.
+        """Destroy the dstat monitoring stack.
 
         This kills the dstat processes on the nodes.
         Metric files survive to destroy.
@@ -107,7 +106,7 @@ class Dstat(Service):
             kill_cmd = bg_stop(TMUX_SESSION)
             p.shell(kill_cmd, task_name="Killing existing session")
 
-    def backup(self, backup_dir: Optional[Path] = None):
+    def backup(self, backup_dir: Optional[Path] = None) -> Path:
         """Backup the dstat monitoring stack.
 
         This fetches all the remote dstat csv files under the backup_dir.
@@ -127,7 +126,7 @@ class Dstat(Service):
         return _backup_dir
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         def hosts_as_foldable_section(hosts):
             sections = [
                 html_to_foldable_section(h.alias, h._repr_html_()) for h in hosts

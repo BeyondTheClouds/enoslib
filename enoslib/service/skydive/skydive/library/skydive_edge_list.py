@@ -147,7 +147,7 @@ class EdgeInjectProtocol(WSClientDefaultProtocol):
             result["UUID"] = str(uuids)
         except Exception as e:
             module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+                msg=f'Error during topology update {e}', **result)
         finally:
             self.factory.client.loop.call_soon(self.stop)
 
@@ -177,16 +177,15 @@ def run_module():
         edges = module.params["edges"]
     except Exception as e:
         module.fail_json(
-            msg='Error during topology request %s' % e, **result)
+            msg=f'Error during topology request {e}', **result)
 
     scheme = "ws"
     if module.params["ssl"]:
         scheme = "wss"
 
     try:
-        url = "%s://%s/ws/publisher" % (scheme, module.params["analyzer"])
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
+        url = f"{scheme}://{module.params['analyzer']}/ws/publisher"
+        wsclient = WSClient(f"ansible-{os.getpid()}-{module.params['host']}",
                             url,
                             protocol=EdgeInjectProtocol, persistent=True,
                             insecure=module.params["insecure"],
@@ -199,7 +198,7 @@ def run_module():
         wsclient.connect()
         wsclient.start()
     except Exception as e:
-        module.fail_json(msg='Connection error %s' % str(e), **result)
+        module.fail_json(msg=f'Connection error {e}', **result)
 
     result['changed'] = True
 

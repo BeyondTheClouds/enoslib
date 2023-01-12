@@ -1,27 +1,25 @@
 import copy
-from textwrap import dedent as _d
-from typing import Iterable, List, Optional, Any
-from itertools import chain
 import os
-
-from enoslib.api import actions, run
-from enoslib.objects import Host, Roles
-from ..service import Service
-
+from itertools import chain
+from textwrap import dedent as _d
+from typing import Iterable, List, Optional, Any, Tuple
 
 import yaml
+
+from enoslib.api import actions, run, Results
+from enoslib.objects import Host, Roles
+from ..service import Service
 
 INSTALLER_URL = "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 WRAPPER_PREFIX = "/opt/enoslib_conda"
 CONDA_PREFIX = "/opt/conda"
 
 
-def _conda_wrapper(env_name: str):
+def _conda_wrapper(env_name: str) -> str:
     return f"{WRAPPER_PREFIX}/bin/{env_name}"
 
 
-def _get_env_name(env_file: str):
-    env_name = ""
+def _get_env_name(env_file: str) -> str:
     with open(env_file) as f:
         env = yaml.safe_load(f)
         env_name = env["name"]
@@ -35,7 +33,7 @@ def _shell_in_conda(p: actions, cmd: str, **kwargs: Any):
     prior to the shell commands cmd.
     """
     p.shell(
-        (f"which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh;" f"{cmd}"),
+        f"which conda || source {CONDA_PREFIX}/etc/profile.d/conda.sh; {cmd}",
         **kwargs,
     )
 
@@ -69,7 +67,7 @@ def _inject_wrapper_script(env_name, **kwargs):
         _create_wrapper_script(p, env_name)
 
 
-def _conda_run_command(command: str, env_name: str, **kwargs: Any):
+def _conda_run_command(command: str, env_name: str, **kwargs: Any) -> Results:
     """Run a single shell command in the context of a Conda environment.
 
     Wrapper around :py:func:`enoslib.api.run_command` that is conda aware.
@@ -184,6 +182,10 @@ class _Conda(Service):
 
 
 class _Dask(Service):
+    def backup(self):
+        """Not implemented."""
+        pass
+
     def __init__(
         self,
         scheduler: Host,
@@ -273,7 +275,7 @@ class _Dask(Service):
             )
 
 
-def in_conda_cmd(cmd: str, env: str, prefix: str):
+def in_conda_cmd(cmd: str, env: str, prefix: str) -> str:
     """Build a command line that will run inside a conda env.
 
     Make sure conda env is sourced correctly.
@@ -290,7 +292,7 @@ def in_conda_cmd(cmd: str, env: str, prefix: str):
     return f"source {prefix}/etc/profile.d/conda.sh && conda activate {env} && {cmd}"
 
 
-def conda_from_env():
+def conda_from_env() -> Tuple[str, str]:
     """
     Infer the prefix and conda env name from the environment variable.
 
@@ -303,14 +305,13 @@ def conda_from_env():
     /home/msimonin/miniconda3 because base related files are put at the to level
     We can check the CONDA_DEFAULT_ENV to check the name of the current env
     """
-    import os
     from pathlib import Path
 
     conda_prefix = os.environ.get("CONDA_PREFIX")
     conda_env_name = os.environ.get("CONDA_DEFAULT_ENV")
-    if not conda_prefix:
+    if conda_prefix is None:
         raise ValueError("CONDA_PREFIX not set, are you running a conda environment ?")
-    if not conda_env_name:
+    if conda_env_name is None:
         raise ValueError(
             "CONDA_DEFAULT_ENV not set, are you running a conda environment ?"
         )
@@ -333,7 +334,6 @@ def conda_from_env():
 class Dask(Service):
     def backup(self):
         print("Dask.backup is not implemented.")
-        pass
 
     def __init__(
         self,
@@ -386,7 +386,7 @@ class Dask(Service):
         # can be set to optimize destroy
         self.client = None
 
-    def in_conda_cmd(self, cmd: str):
+    def in_conda_cmd(self, cmd: str) -> str:
         """Transforms a command to be executed in the context of the current conda env.
 
         Args:
@@ -466,7 +466,7 @@ class Dask(Service):
                     task_name="Killing the dask worker ",
                 )
 
-    def __enter__(self):
+    def __enter__(self) -> "Dask":
         self.deploy()
         return self
 

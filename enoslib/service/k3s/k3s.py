@@ -6,9 +6,7 @@ from enoslib.api import actions, run
 from enoslib.objects import Host, Roles
 from ..service import Service
 
-GUARD_DASHBOARD = (
-    "k3s kubectl get service" " -n kubernetes-dashboard kubernetes-dashboard"
-)
+GUARD_DASHBOARD = "k3s kubectl get service -n kubernetes-dashboard kubernetes-dashboard"
 
 CREATE_DASHBOARD = (
     "k3s kubectl create"
@@ -47,7 +45,7 @@ CREATE_ADMIN_USER_ROLE = "k3s kubectl create -f dashboard.admin-user-role.yml"
 CREATE_PROXY = "kubectl proxy --address='0.0.0.0' --accept-hosts='.*'"
 # use grep {CREATE_PROXY}
 KEY = "kubectl proxy"
-GUARD_PROXY = f"ps aux | grep '{KEY}' | grep -v '{KEY}'"
+GUARD_PROXY: str = f"ps aux | grep '{KEY}' | grep -v '{KEY}'"
 
 
 class K3s(Service):

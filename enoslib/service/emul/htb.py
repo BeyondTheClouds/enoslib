@@ -1,6 +1,13 @@
 """HTB based emulation."""
+import logging
+import os
+from dataclasses import dataclass, field
 from ipaddress import IPv4Interface, ip_interface
+from itertools import product
 from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Set, Tuple
+
+from enoslib.api import Results, play_on
 from enoslib.constants import TMP_DIRNAME
 from enoslib.html import (
     convert_list_to_html_table,
@@ -8,17 +15,9 @@ from enoslib.html import (
     html_to_foldable_section,
     repr_html_check,
 )
-import logging
-import os
-from dataclasses import dataclass, field
-from itertools import product
-from typing import Dict, Iterable, List, Optional, Set, Tuple
-
-from enoslib.api import Results, play_on
 from enoslib.objects import Host, Network, Networks, PathLike, Roles
 from enoslib.service.emul.objects import BaseNetem
 from enoslib.service.emul.schema import HTBConcreteConstraintValidator, HTBValidator
-
 from .utils import (
     _build_commands,
     _build_options,
@@ -28,13 +27,13 @@ from .utils import (
     _validate,
 )
 
-SERVICE_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+SERVICE_PATH: str = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 DEFAULT_RATE = "10gbit"
 
-DEFAULT_LOSS = None
+DEFAULT_LOSS: Optional[str] = None
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 @dataclass(eq=True, frozen=True)
@@ -155,7 +154,7 @@ class HTBSource:
         """
         self.add_constraints([HTBConstraint(*args, **kwargs)])
 
-    def add_constraints(self, constraints: Iterable[HTBConstraint]):
+    def add_constraints(self, constraints: Iterable[HTBConstraint]) -> "HTBSource":
         """Merge constraints to existing ones.
 
         In this context if two constraints are set on the same device with
@@ -174,7 +173,7 @@ class HTBSource:
         return self
 
     @staticmethod
-    def equal(c1: HTBConstraint, c2: HTBConstraint):
+    def equal(c1: HTBConstraint, c2: HTBConstraint) -> bool:
         """Encode the equality of two constraints in this context."""
         return (
             c1.__class__ == c2.__class__
@@ -209,7 +208,7 @@ class HTBSource:
         return r, a, c
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         d: List[Dict] = [
             dict(
                 device=c.device,
@@ -310,7 +309,7 @@ class NetemHTB(BaseNetem):
         symmetric: bool = False,
         *,
         symetric: Optional[bool] = None,
-    ):
+    ) -> "NetemHTB":
         """Add some constraints.
 
         Args:
@@ -375,7 +374,9 @@ class NetemHTB(BaseNetem):
         return self
 
     @classmethod
-    def from_dict(cls, network_constraints: Dict, roles: Roles, networks: Networks):
+    def from_dict(
+        cls, network_constraints: Dict, roles: Roles, networks: Networks
+    ) -> "NetemHTB":
         """Build the service from a dictionary describing the network topology.
 
         Args:
@@ -444,7 +445,7 @@ class NetemHTB(BaseNetem):
             )
         return self
 
-    def deploy(self, chunk_size: int = 100, **kwargs):
+    def deploy(self, chunk_size: int = 100, **kwargs) -> List[HTBSource]:
         sources = list(self.sources.values())
         netem_htb(sources, chunk_size=chunk_size, **kwargs)
         return sources
@@ -576,7 +577,7 @@ class AccurateNetemHTB(NetemHTB):
         observed = [(alias, dst, mean(values)) for alias, dst, values in results]
         new_sources: Dict[Host, HTBSource] = {}
         for alias, dst, obs in observed:
-            host_candidates = [h for h in self.sources.keys() if h.alias == alias]
+            host_candidates = [h for h in self.sources if h.alias == alias]
             if not host_candidates:
                 continue
             assert len(host_candidates) == 1
@@ -604,7 +605,7 @@ class AccurateNetemHTB(NetemHTB):
                     rate=constraint.rate,
                     loss=constraint.loss,
                 )
-                logger.debug(f"Fixing constraint: {constraint} -> {c}")
+                logger.debug("Fixing constraint: %s -> %s", constraint, c)
                 new_sources.setdefault(host, HTBSource(host))
                 new_sources[host].add_constraints([c])
                 # actually correct the internal constraints

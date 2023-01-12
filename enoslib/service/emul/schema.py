@@ -1,7 +1,9 @@
+import re
+from typing import Dict
+
 from jsonschema import Draft7Validator, FormatChecker
 
-
-CONSTRAINT_SCHEMA = {
+CONSTRAINT_SCHEMA: Dict = {
     "type": "object",
     "description": {"Override constraints between specific groups"},
     "properties": {
@@ -31,7 +33,7 @@ CONSTRAINT_SCHEMA = {
     "required": ["src", "dst"],
 }
 
-CONCRETE_CONSTRAINT_SCHEMA = {
+CONCRETE_CONSTRAINT_SCHEMA: Dict = {
     "type": "object",
     "properties": {
         "device": {"type": "string"},
@@ -47,7 +49,7 @@ CONCRETE_CONSTRAINT_SCHEMA = {
     "additionnalProperties": False,
 }
 
-SCHEMA = {
+SCHEMA: Dict = {
     "description": "Network constraint description",
     "type": "object",
     "properties": {
@@ -88,11 +90,11 @@ SCHEMA = {
     "constraint": CONSTRAINT_SCHEMA,
 }
 
-HTBFormatChecker = FormatChecker()
+HTBFormatChecker: FormatChecker = FormatChecker()
 
 
 @HTBFormatChecker.checks("delay")
-def is_valid_delay(instance):
+def is_valid_delay(instance) -> bool:
     """Something that ends with ms."""
     if not isinstance(instance, str):
         return False
@@ -102,7 +104,7 @@ def is_valid_delay(instance):
 
 
 @HTBFormatChecker.checks("rate")
-def is_valid_rate(instance):
+def is_valid_rate(instance) -> bool:
     """Something that ends with kbit, mbit or gbit."""
     if not isinstance(instance, str):
         return False
@@ -116,7 +118,7 @@ def is_valid_rate(instance):
 
 
 @HTBFormatChecker.checks("loss")
-def is_valid_loss(instance):
+def is_valid_loss(instance) -> bool:
     """semantic:
     None: don't set any netem loss rule
     x%: set a rule with x% loss
@@ -127,13 +129,11 @@ def is_valid_loss(instance):
     if not isinstance(instance, str):
         return False
     # str
-    import re
-
-    return re.match(r"\d*.?\d*%", str(instance))
+    return re.match(r"\d*.?\d*%", str(instance)) is not None
 
 
 @HTBFormatChecker.checks("ipv4")
-def is_valid_ipv4(instance):
+def is_valid_ipv4(instance) -> bool:
     import ipaddress
 
     try:
@@ -144,12 +144,12 @@ def is_valid_ipv4(instance):
         return False
 
 
-HTBValidator = Draft7Validator(SCHEMA, format_checker=HTBFormatChecker)
+HTBValidator: Draft7Validator = Draft7Validator(SCHEMA, format_checker=HTBFormatChecker)
 
-HTBConstraintValidator = Draft7Validator(
+HTBConstraintValidator: Draft7Validator = Draft7Validator(
     CONSTRAINT_SCHEMA, format_checker=HTBFormatChecker
 )
 
-HTBConcreteConstraintValidator = Draft7Validator(
+HTBConcreteConstraintValidator: Draft7Validator = Draft7Validator(
     CONCRETE_CONSTRAINT_SCHEMA, format_checker=HTBFormatChecker
 )

@@ -14,6 +14,15 @@
 # limitations under the License.
 #
 
+import os
+import uuid
+
+from ansible.module_utils.basic import AnsibleModule
+from skydive.graph import Node
+from skydive.websocket.client import NodeAddedMsgType
+from skydive.websocket.client import WSClient, WSClientDefaultProtocol, WSMessage
+
+
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
@@ -92,16 +101,6 @@ message:
     description: The output message that the sample module generates
 '''
 
-import os
-import uuid
-
-from ansible.module_utils.basic import AnsibleModule
-
-from skydive.graph import Node, Edge
-from skydive.rest.client import RESTClient
-
-from skydive.websocket.client import NodeAddedMsgType, EdgeAddedMsgType
-from skydive.websocket.client import WSClient, WSClientDefaultProtocol, WSMessage
 
 
 class NodeInjectProtocol(WSClientDefaultProtocol):
@@ -135,7 +134,7 @@ class NodeInjectProtocol(WSClientDefaultProtocol):
             result["UUID"] = uid
         except Exception as e:
             module.fail_json(
-                msg='Error during topology update %s' % e, **result)
+                msg=f'Error during topology update {e}', **result)
         finally:
             self.stop()
 
@@ -168,10 +167,8 @@ def run_module():
         scheme = "wss"
 
     try:
-        wsclient = WSClient("ansible-" + str(os.getpid()) + "-"
-                            + module.params["host"],
-                            "%s://%s/ws/publisher" % (scheme,
-                                                      module.params["analyzer"]),
+        wsclient = WSClient(f"ansible-{os.getpid()}-{module.params['host']}",
+                            f"{scheme}://{module.params['analyzer']}/ws/publisher",
                             protocol=NodeInjectProtocol, persistent=True,
                             insecure=module.params["insecure"],
                             username=module.params["username"],

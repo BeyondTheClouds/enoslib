@@ -16,7 +16,7 @@ from enoslib.service.emul.objects import BaseNetem
 
 from .utils import _build_commands, _build_options, _combine, _destroy, _validate
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 @dataclass(eq=True, frozen=True)
@@ -137,7 +137,7 @@ class NetemInOutSource:
                 self.constraints.discard(c)
             self.constraints.add(constraint)
 
-    def equal(self, c1: NetemConstraint, c2: NetemConstraint):
+    def equal(self, c1: NetemConstraint, c2: NetemConstraint) -> bool:
         """Encode the equality between two constraints in this context."""
         return c1.__class__ == c2.__class__ and c1.device == c2.device
 
@@ -154,7 +154,7 @@ class NetemInOutSource:
         return self.remove_commands(), self.add_commands(), self.commands()
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         inbounds = [
             dict(device=c.device, direction="in", options=c.options)
             for c in self.inbounds
@@ -251,7 +251,7 @@ class Netem(BaseNetem):
         networks: Optional[Iterable[Network]] = None,
         *,
         symetric: Optional[bool] = None,
-    ):
+    ) -> "Netem":
         if symetric is not None:  # Remove when deprecation phase will be ended
             symmetric = symetric
             import warnings
@@ -298,7 +298,7 @@ class Netem(BaseNetem):
         _destroy(list(self.sources.keys()), **kwargs)
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         sections = [
             html_to_foldable_section(h.alias, s._repr_html_(content_only=True))
             for h, s in self.sources.items()

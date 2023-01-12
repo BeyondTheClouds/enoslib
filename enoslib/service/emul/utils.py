@@ -1,30 +1,38 @@
 import copy
-from ipaddress import ip_interface
-from pathlib import Path
-from typing import Iterable, List, Optional, Set, Tuple, Union, MutableMapping, Dict
-from enoslib.api import run_command
-from enoslib.utils import _check_tmpdir
 import logging
 from collections import defaultdict
+from ipaddress import ip_interface
 from itertools import groupby
 from operator import attrgetter
+from pathlib import Path
+from typing import (
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    Dict,
+    Generator,
+    Mapping,
+)
 
+from enoslib.api import actions, Results, run_command
 from enoslib.objects import Host, Network
-from enoslib.api import actions, Results
-
+from enoslib.utils import _check_tmpdir
 
 FPING_FILE_SUFFIX = ".fpingout"
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)
 
 
-def _chunks(_list, size):
+def _chunks(_list: List, size: int) -> Generator[List, None, None]:
     """Chunk a list in smaller pieces."""
     for i in range(0, len(_list), size):
         yield _list[i : i + size]
 
 
-def _combine(*args, separator=";", chunk_size=100):
+def _combine(*args, separator: str = ";", chunk_size: int = 100) -> Dict:
     """Build the commands indexed by host."""
     c: Dict = defaultdict(list)
     _args = args
@@ -32,21 +40,21 @@ def _combine(*args, separator=";", chunk_size=100):
         for s, l in a.items():
             c[s] = c[s] + l
     commands = defaultdict(list)
-    for alias in c.keys():
-        for chunk in list(_chunks(c[alias], chunk_size)):
+    for alias, value in c.items():
+        for chunk in list(_chunks(value, chunk_size)):
             commands[alias].append(f" {separator} ".join(chunk))
     return commands
 
 
-def _build_options(extra_vars, options):
+def _build_options(extra_vars: Mapping, options: Mapping) -> Dict:
     """This only merges two dicts."""
-    _options: MutableMapping = {}
+    _options: Dict = {}
     _options.update(extra_vars)
     _options.update(options)
     return _options
 
 
-def _build_commands(sources):
+def _build_commands(sources) -> Tuple[Dict, Dict, Dict]:
     """Source agnostic way of recombining the list of constraints."""
     _remove = defaultdict(list)
     _add = defaultdict(list)

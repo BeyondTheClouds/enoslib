@@ -1,6 +1,6 @@
-from pathlib import Path
 import os
 import time
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional, MutableMapping
 
 from enoslib.api import __python3__, actions
@@ -12,12 +12,11 @@ from enoslib.html import (
 )
 from enoslib.objects import Host, Network, Roles
 from enoslib.utils import get_address
-
 from ..service import Service
 from ..utils import _set_dir
 
-CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-LOCAL_OUTPUT_DIR = Path("__enoslib_locust__")
+CURRENT_PATH: str = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
+LOCAL_OUTPUT_DIR: Path = Path("__enoslib_locust__")
 
 
 class Locust(Service):
@@ -28,7 +27,7 @@ class Locust(Service):
     def __init__(
         self,
         # deployment options
-        master: Optional[Host] = None,
+        master: Host,
         workers: Optional[Iterable[Host]] = None,
         networks: Optional[Iterable[Network]] = None,
         worker_density: int = 1,
@@ -42,7 +41,7 @@ class Locust(Service):
         # orchestration options
         remote_working_dir: str = "/builds/locust",
         backup_dir: Optional[Path] = None,
-        priors: List[actions] = [__python3__],
+        priors: Optional[List[actions]] = None,
         extra_vars: Optional[Dict] = None,
     ):
         """Deploy a distributed Locust (see locust.io)
@@ -98,13 +97,14 @@ class Locust(Service):
                 :linenos:
         """
         self.master = master
-        assert self.master is not None
-
         self.workers = workers if workers is not None else []
         # create a separated working dir for each instance of the service
         self.bench_id = str(int(time.time()))
         self.remote_working_dir = os.path.join(remote_working_dir, self.bench_id)
-        self.priors = priors
+        if priors is None:
+            self.priors = [__python3__]
+        else:
+            self.priors = priors
         self.roles = Roles()
         self.roles.update(master=[self.master], agent=self.workers)
 
@@ -124,17 +124,15 @@ class Locust(Service):
         self.run_time = run_time
         self.worker_density = worker_density
 
-        self.environment = environment
-        if not environment:
-            self.environment = {}
+        self.environment = environment if environment is not None else {}
 
-    def info(self):
-        d = dict(self.__dict__)
+    def info(self) -> Dict:
+        d: Dict = dict(self.__dict__)
         d.update(ui=f"{self.master_ip}:8089")
         return d
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         # This is an attempt to get a more generic representation for a service
         info = self.info()
         # the top level representation made of standard types (int, float,
@@ -204,8 +202,7 @@ class Locust(Service):
         self.destroy()
         self._prepare()
         environment: MutableMapping = {}
-        if self.environment is not None:
-            environment.update(self.environment)
+        environment.update(self.environment)
 
         locustpath = self.__copy_experiment(self.local_expe_dir, self.locustfile)
         with actions(
@@ -222,7 +219,7 @@ class Locust(Service):
                     f"--logfile={self.remote_working_dir}/locust-master.log &"
                 ),
                 environment=environment,
-                task_name="Running locust (%s) on master..." % locustpath,
+                task_name=f"Running locust ({locustpath}) on master...",
             )
 
         with actions(
@@ -274,7 +271,7 @@ class Locust(Service):
                 cmd,
                 environment=environment,
                 chdir=self.remote_working_dir,
-                task_name="Running locust (%s) on master..." % (self.locustfile),
+                task_name=f"Running locust ({self.locustfile}) on master...",
             )
             # record the exact master command
             p.copy(dest=f"{self.remote_working_dir}/cmd", content=cmd)
@@ -311,7 +308,7 @@ class Locust(Service):
                 task_name="Waiting benchmark completion...",
             )
 
-    def __copy_experiment(self, expe_dir: str, locustfile: str):
+    def __copy_experiment(self, expe_dir: str, locustfile: str) -> str:
         src_dir = os.path.join(os.path.abspath(expe_dir), "")
         remote_dir = os.path.join(self.remote_working_dir, expe_dir)
         with actions(

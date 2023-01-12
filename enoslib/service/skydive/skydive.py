@@ -1,6 +1,6 @@
 import os
-from typing import Iterable, List, Dict, Optional
 from itertools import chain
+from typing import Iterable, List, Dict, Optional
 
 from enoslib.api import (
     actions,
@@ -26,11 +26,9 @@ DEFAULT_VARS = {
 class Skydive(Service):
     def destroy(self):
         print("Skydive.destroy() is not implemented")
-        pass
 
     def backup(self):
         print("Skydive.backup() is not implemented")
-        pass
 
     def __init__(
         self,
@@ -38,7 +36,7 @@ class Skydive(Service):
         analyzers: Optional[Iterable[Host]] = None,
         agents: Optional[Iterable[Host]] = None,
         networks: Optional[Iterable[Network]] = None,
-        priors: List[actions] = [__python3__, __docker__],
+        priors: Optional[List[actions]] = None,
         extra_vars: Optional[Dict] = None,
     ):
         """Deploy Skydive (see http://skydive.network/).
@@ -73,7 +71,7 @@ class Skydive(Service):
         assert self.agents is not None
         self.skydive: Iterable[Host] = chain(self.analyzers, self.agents)
         self.networks: Optional[Iterable[Network]] = networks
-        self.priors = priors
+        self.priors = priors if priors is not None else [__python3__, __docker__]
         self.roles = Roles(analyzers=analyzers, agents=agents, skydive=self.skydive)
 
         self.extra_vars: Dict = DEFAULT_VARS
@@ -85,7 +83,7 @@ class Skydive(Service):
         if self.fabric_opts:
             self.extra_vars.update(skydive_fabric=self.fabric_opts)
 
-    def build_fabric(self):
+    def build_fabric(self) -> List[str]:
         def fabric_for_role(network):
             fabric: List[str] = []
             for agent in self.agents:
@@ -93,15 +91,11 @@ class Skydive(Service):
                 for device in devices:
                     if device is not None:
                         infos = f"cidr={network.network}"
-                        infos = "{}, roles={}".format(infos, "-".join(network.roles))
-                        local_port = "{}-{}".format(
-                            "-".join(network.roles),
-                            int(len(fabric) / 2),
-                        )
+                        infos = f"{infos}, roles={'-'.join(network.roles)}"
+                        local_port = f"{'-'.join(network.roles)}-{int(len(fabric) / 2)}"
                         fabric.append(f"{network.network}[{infos}] -> {local_port}")
                         fabric.append(
-                            "%s -> *[Type=host, Hostname=%s]/%s"
-                            % (local_port, agent.alias, device)
+                            f"{local_port} -> *[Type=host, Hostname={agent.alias}]/{device}"  # noqa
                         )
             return fabric
 
