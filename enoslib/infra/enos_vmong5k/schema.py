@@ -1,5 +1,6 @@
 from jsonschema import Draft7Validator, FormatChecker
 
+from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
 from .constants import (
     FLAVOURS,
     DEFAULT_WALLTIME,
@@ -12,8 +13,6 @@ from .constants import (
     DEFAULT_FLAVOUR,
     DEFAULT_NUMBER,
 )
-from enoslib.infra.enos_g5k.constants import QUEUE_TYPES, SUBNET_TYPES
-
 
 STRATEGY = ["copy", "cow"]
 
@@ -156,14 +155,14 @@ VMonG5kFormatChecker = FormatChecker()
 
 @VMonG5kFormatChecker.checks("mac")
 def is_valid_mac(instance):
-    from netaddr import EUI, mac_unix_expanded
+    from netaddr import EUI, mac_unix_expanded, AddrFormatError
 
     try:
         EUI(instance, dialect=mac_unix_expanded)
         return True
-    except Exception:
+    except (AddrFormatError, ValueError):
         return False
 
 
-def VMonG5kValidator(schema):
+def VMonG5kValidator(schema) -> Draft7Validator:
     return Draft7Validator(schema, format_checker=VMonG5kFormatChecker)

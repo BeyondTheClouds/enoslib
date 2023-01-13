@@ -1,24 +1,23 @@
-from collections import defaultdict
 import copy
-from datetime import timezone, datetime
-
-import pytz
-from enoslib.infra.enos_g5k.utils import inside_g5k
-from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
-from ipaddress import IPv4Address
 import itertools
 import logging
 import operator
-from typing import Dict, List, Optional
+from collections import defaultdict
+from datetime import timezone, datetime
+from ipaddress import IPv4Address
+from typing import Dict, List, Optional, Generator, Mapping, Tuple, Set, Iterable
 
+import pytz
 from netaddr import EUI, mac_unix_expanded
 
-from enoslib.api import run_ansible
-from enoslib.objects import Host, Roles
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
-import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-from .configuration import Configuration
+from enoslib.api import run_ansible
+from enoslib.infra.enos_g5k import g5k_api_utils
+from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
+from enoslib.infra.enos_g5k.utils import inside_g5k
+from enoslib.objects import Host, Roles
+from .configuration import Configuration, MachineConfiguration
 from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
 from ..provider import Provider
 from ..utils import offset_from_format
@@ -65,7 +64,7 @@ def start_virtualmachines(
     if provider_conf.gateway or not inside_g5k():
         gateway = "access.grid5000.fr"
         username = g5k_api_utils.get_api_username()
-        logger.debug(f"SSH to the VM requires a jump through {username}@{gateway}")
+        logger.debug("SSH to the VM requires a jump through %s@%s", username, gateway)
         extra.update(gateway=gateway)
         extra.update(gateway_user=username)
 
@@ -76,13 +75,15 @@ def start_virtualmachines(
     return vmong5k_roles
 
 
-def _get_subnet_ip(mac):
+def _get_subnet_ip(mac: EUI) -> IPv4Address:
     # This is the format allowed on G5K for subnets
     address = ["10"] + [str(int(i, 2)) for i in mac.bits().split("-")[-3:]]
     return IPv4Address(".".join(address))
 
 
-def mac_range(g5k_subnets: List[G5kEnosSubnetNetwork], skip=0, step=1):
+def mac_range(
+    g5k_subnets: List[G5kEnosSubnetNetwork], skip: int = 0, step: int = 1
+) -> Generator[str, None, None]:
     """Generator function to get some macs out of G5k subnets
 
     Args:
@@ -100,7 +101,7 @@ def mac_range(g5k_subnets: List[G5kEnosSubnetNetwork], skip=0, step=1):
         it_mac = g5k_subnet.free_macs
         # we always skip the first one as this could not be a regular address
         # e.g 10.158.0.0
-        next(it_mac)
+        next(iter(it_mac))
         emitted = False
         for mac in itertools.islice(it_mac, to_skip, None, step):
             # yield EUI(mac, dialect=mac_unix_expanded)
@@ -108,10 +109,10 @@ def mac_range(g5k_subnets: List[G5kEnosSubnetNetwork], skip=0, step=1):
             emitted = True
         if not emitted:
             to_skip -= len(list(g5k_subnet.free_macs))
-    raise StopIteration
+    return
 
 
-def _get_host_cores(cluster):
+def _get_host_cores(cluster: str) -> int:
     nodes = g5k_api_utils.get_nodes(cluster)
     attributes = nodes[-1]
     processors = attributes.architecture["nb_procs"]
@@ -121,12 +122,12 @@ def _get_host_cores(cluster):
     return cores * processors
 
 
-def _find_nodes_number(machine):
+def _find_nodes_number(machine: MachineConfiguration) -> int:
     cores = _get_host_cores(machine.cluster)
     return -((-1 * machine.number * machine.flavour_desc["core"]) // cores)
 
 
-def _do_build_g5k_conf(vmong5k_conf):
+def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
     g5k_conf = g5kconf.Configuration.from_settings(
         job_name=vmong5k_conf.job_name,
         walltime=vmong5k_conf.walltime,
@@ -150,7 +151,7 @@ def _do_build_g5k_conf(vmong5k_conf):
             prod_networks[site] = g5kconf.NetworkConfiguration(
                 roles=["prod"], id="prod", type="prod", site=site
             )
-        # then check if there a subnet demand
+        # then check if there is a subnet demand
         # we add a site tag to get back the right subnet given a site later
         if site not in subnet_networks:
             subnet_networks[site] = g5kconf.NetworkConfiguration(
@@ -176,14 +177,16 @@ def _do_build_g5k_conf(vmong5k_conf):
     return g5k_conf
 
 
-def _build_g5k_conf(vmong5k_conf):
+def _build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
     """Build the conf of the g5k provider from the vmong5k conf."""
     # first of all, make sure we don't mutate the vmong5k_conf
     vmong5k_conf = copy.deepcopy(vmong5k_conf)
     return _do_build_g5k_conf(vmong5k_conf)
 
 
-def _distribute(machines, extra=None) -> Roles:
+def _distribute(
+    machines: Iterable[MachineConfiguration], extra: Optional[Dict] = None
+) -> Roles:
     vmong5k_roles = Roles()
     for machine in machines:
         pms = machine.undercloud
@@ -210,7 +213,7 @@ def _distribute(machines, extra=None) -> Roles:
     return vmong5k_roles
 
 
-def _index_by_host(roles):
+def _index_by_host(roles: Mapping) -> Tuple[Dict, Set]:
     virtual_machines_by_host = defaultdict(set)
     pms = set()
     for vms in roles.values():
@@ -231,7 +234,9 @@ def _index_by_host(roles):
     return dict(vms_by_host), pms
 
 
-def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
+def _start_virtualmachines(
+    provider_conf: Configuration, vmong5k_roles: Mapping, force_deploy: bool = False
+):
     vms_by_host, pms = _index_by_host(vmong5k_roles)
 
     extra_vars = {
@@ -259,8 +264,17 @@ def _start_virtualmachines(provider_conf, vmong5k_roles, force_deploy=False):
 class VirtualMachine(Host):
     """Internal data structure to manipulate virtual machines."""
 
-    def __init__(self, name, eui, flavour_desc, pm, extra=None, extra_devices=""):
-        super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra)
+    def __init__(
+        self,
+        name: Optional[str],
+        eui: EUI,
+        flavour_desc: Mapping,
+        pm,
+        extra: Optional[Dict] = None,
+        extra_devices="",
+    ):
+        extra_passed = extra if extra is not None else {}
+        super().__init__(str(_get_subnet_ip(eui)), alias=name, extra=extra_passed)
         self.core = flavour_desc["core"]
         # libvirt uses kiB by default
         self.mem = int(flavour_desc["mem"]) * 1024
@@ -279,8 +293,8 @@ class VirtualMachine(Host):
     <target dev='vdz' bus='virtio'/>
 </disk>\n"""
 
-    def to_dict(self):
-        d = super().to_dict()
+    def to_dict(self) -> Dict:
+        d: Dict = super().to_dict()
         d.update(
             core=self.core,
             mem=self.mem,
@@ -291,14 +305,14 @@ class VirtualMachine(Host):
         )
         return d
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return int(self.eui)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return int(self.eui) == int(other.eui)
 
 
-def check():
+def check() -> List[Tuple[str, None, str]]:
     return [("access", None, "Check G5k status")]
 
 
@@ -307,18 +321,18 @@ class VMonG5k(Provider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._g5k_provider = None
+        self._g5k_provider: Optional[g5kprovider.G5k] = None
         # see if we can remove this since we can access them through the g5k_provider
-        self.g5k_roles = None
-        self.g5k_networks = None
+        self.g5k_roles: Optional[g5kprovider.Roles] = None
+        self.g5k_networks: Optional[g5kprovider.Networks] = None
 
     @property
-    def g5k_provider(self):
+    def g5k_provider(self) -> Optional[g5kprovider.G5k]:
         return self._g5k_provider
 
     def init(
         self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
-    ):
+    ) -> Tuple[g5kprovider.Roles, g5kprovider.Networks]:
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
         g5k_conf = _build_g5k_conf(self.provider_conf)
@@ -327,7 +341,7 @@ class VMonG5k(Provider):
             self._g5k_provider.set_reservation(start_time)
         self.g5k_roles, self.g5k_networks = self._g5k_provider.init(**kwargs)
 
-        # we concretize the virtualmachines
+        # we realize the virtual machines
         # assign each group of vms to a list of possible pms and macs
         mac_pools: Dict = {}
         for machine in self.provider_conf.machines:
@@ -350,7 +364,7 @@ class VMonG5k(Provider):
         return roles, self.g5k_networks
 
     def async_init(
-        self, start_time: Optional[int] = None, force_deploy=False, **kwargs
+        self, start_time: Optional[int] = None, force_deploy: bool = False, **kwargs
     ):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
@@ -360,18 +374,20 @@ class VMonG5k(Provider):
             self._g5k_provider.set_reservation(start_time)
         self._g5k_provider.async_init(**kwargs)
 
-    def is_created(self):
+    def is_created(self) -> bool:
         # check that the reservation is created
         # as usual we build everything from scratch and from our source of truth
         # aka the conf
         g5k_conf = _build_g5k_conf(self.provider_conf)
         return g5kprovider.G5k(g5k_conf).is_created()
 
-    def undercloud(self):
+    def undercloud(
+        self,
+    ) -> Tuple[Optional[g5kprovider.Roles], Optional[g5kprovider.Networks]]:
         """Gets the undercloud information (bare-metal machines)."""
         return self.g5k_roles, self.g5k_networks
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False, **kwargs):
         """Destroy the underlying job."""
         g5k_conf = _build_g5k_conf(self.provider_conf)
         g5k = g5kprovider.G5k(g5k_conf)

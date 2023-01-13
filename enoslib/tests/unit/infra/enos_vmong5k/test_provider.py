@@ -1,11 +1,11 @@
 from unittest import mock
 
-from enoslib.objects import Host
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
 from enoslib.infra.enos_vmong5k.provider import (
     _do_build_g5k_conf,
     _distribute,
 )
+from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 
 
@@ -99,7 +99,7 @@ class TestDistribute(EnosTest):
         )
         machines = [machine]
 
-        vmong5k_roles = _distribute(machines, macs)
+        vmong5k_roles = _distribute(machines, None)
         self.assertEqual(2, len(vmong5k_roles["r1"]))
 
         actual_macs = [str(vm.eui) for vm in vmong5k_roles["r1"]]

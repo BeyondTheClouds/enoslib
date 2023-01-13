@@ -1,9 +1,8 @@
-from typing import Iterable, Optional, Type, MutableMapping
 import uuid
-from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
+from typing import Iterable, Optional, Type, MutableMapping, Dict, Mapping, List
 
+from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from enoslib.objects import Host
-from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_DOMAIN_TYPE,
     DEFAULT_FLAVOUR,
@@ -19,6 +18,7 @@ from .constants import (
     FLAVOURS,
 )
 from .schema import SCHEMA, VMonG5kValidator
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -45,10 +45,12 @@ class Configuration(BaseConfiguration):
         self._machine_cls: Type[MachineConfiguration] = MachineConfiguration
         self._network_cls: Type[str] = str
 
-        self.networks = DEFAULT_NETWORKS
+        self.networks: List[str] = DEFAULT_NETWORKS
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
@@ -67,8 +69,8 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
-        d = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
                 "machines",
@@ -94,8 +96,8 @@ class MachineConfiguration:
         *,
         roles=None,
         cluster=None,
-        flavour=None,
-        flavour_desc=None,
+        flavour: Optional[str] = None,
+        flavour_desc: Optional[Dict[str, int]] = None,
         number=DEFAULT_NUMBER,
         undercloud: Optional[Iterable[Host]] = None,
         macs: Optional[Iterable[str]] = None,
@@ -104,15 +106,18 @@ class MachineConfiguration:
         self.roles = roles
 
         # Internally we keep the flavour_desc as reference not a descriptor
-        self.flavour = flavour
-        self.flavour_desc = flavour_desc
-        if flavour is None and flavour_desc is None:
+        if flavour is not None and flavour_desc is not None:
+            self.flavour = flavour
+            self.flavour_desc = flavour_desc
+        elif flavour is None and flavour_desc is None:
             self.flavour, self.flavour_desc = DEFAULT_FLAVOUR
-        if self.flavour is None:
-            # self.flavour_desc is not None
+        elif flavour is None and flavour_desc is not None:
+            # flavour_desc is not None but Mypy complains about it
             self.flavour = "custom"
-        if self.flavour_desc is None:
-            # self.flavour is not None
+            self.flavour_desc = flavour_desc
+        elif flavour is not None and flavour_desc is None:
+            # flavour is not None but Mypy complains about it
+            self.flavour = flavour
             self.flavour_desc = FLAVOURS[self.flavour]
 
         self.number = number
@@ -132,11 +137,11 @@ class MachineConfiguration:
         self.extra_devices = extra_devices
 
     @property
-    def site(self):
+    def site(self) -> str:
         return get_cluster_site(self.cluster)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
         kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
@@ -171,8 +176,8 @@ class MachineConfiguration:
 
         return cls(**kwargs)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         undercloud = self.undercloud
         if undercloud is not None:
             undercloud = [h.to_dict() for h in undercloud]
