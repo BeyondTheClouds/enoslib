@@ -11,12 +11,6 @@ import iotlabcli.profile
 import iotlabsshcli.open_linux
 import pytz
 
-from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
-
-from enoslib.infra.enos_iotlab.constants import (
-    PROFILE_POWER_DEFAULT,
-)
-
 from enoslib.infra.enos_iotlab.configuration import (
     Configuration,
     GroupConfiguration,
@@ -25,6 +19,10 @@ from enoslib.infra.enos_iotlab.configuration import (
     RadioConfiguration,
     ConsumptionConfiguration,
 )
+from enoslib.infra.enos_iotlab.constants import (
+    PROFILE_POWER_DEFAULT,
+)
+from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 from enoslib.log import getLogger
 
 logger = getLogger(__name__, ["IOTlab"])
@@ -63,7 +61,7 @@ class IotlabAPI:
         return int(_t[0]) * 60 + int(_t[1])
 
     @staticmethod
-    def _translate_resources(resources: List[GroupConfiguration]) -> list:
+    def _translate_resources(resources: List[GroupConfiguration]) -> List[Dict]:
         """Convert from node Configuration to a list of resources of FIT/IoT-LAB
 
         Args:
@@ -92,9 +90,8 @@ class IotlabAPI:
                 )
             else:
                 sys.exit(
-                    """The impossible happened again. Resource: %s is neither
+                    f"""The impossible happened again. Resource: {str(cfg)} is neither
                     a BoardConfiguration neither PhysNodeConfiguration"""
-                    % (str(cfg))
                 )
 
         return converted
@@ -240,7 +237,7 @@ class IotlabAPI:
         if self.job_id is None:
             self.submit_experiment(name, walltime, resources, start_time)
 
-    def get_nodes(self):
+    def get_nodes(self) -> List:
         job_info = iotlabcli.experiment.get_experiment(
             api=self.api, exp_id=self.job_id, option="nodes"
         )
@@ -327,14 +324,11 @@ class IotlabAPI:
         )
         # handling errors
         if "1" in res["wait-for-boot"] and len(res["wait-for-boot"]["1"]) > 0:
-            msg = (
-                """
+            msg = """
 Error initializing nodes: %s. \
 Try to restart them in frontend using 'iotlab-node' command \
 or choose other nodes"""
-                % res["wait-for-boot"]["1"]
-            )
-            logger.error(msg)
+            logger.error(msg, res["wait-for-boot"]["1"])
 
         if "0" in res["wait-for-boot"] and len(res["wait-for-boot"]["0"]) > 0:
             logger.info("Nodes initialized: %s", res["wait-for-boot"]["0"])
@@ -420,7 +414,6 @@ or choose other nodes"""
         res = self.api.add_profile(profile)
         logger.info("Submitting profile: %s, got %s", name, str(res))
         self.profiles.add(name)
-        return
 
     def del_profiles(self):
         """Deletes the profiles from testbed"""
@@ -428,7 +421,6 @@ or choose other nodes"""
             logger.info("Deleting monitoring profile: %s", profile)
             self.api.del_profile(name=profile)
         self.profiles.clear()
-        return
 
     def _check_profile_exists(self, name: str) -> bool:
         """
@@ -544,12 +536,12 @@ def test_slot(
         start_time: start time of the job to test
 
     Returns:
-        True iff the slot is free and thus can be reserved
+        True if the slot is free and thus can be reserved
     """
     machines_required: Dict[Tuple[str, str], int] = {}
     candidates = get_candidates(nodes_status)
     walltime = conf.walltime_s
-    logger.debug(f"Test slot: start_time={start_time}, walltime={walltime}")
+    logger.debug("Test slot: start_time=%s, walltime=%s", start_time, walltime)
 
     free_nodes = get_free_nodes(candidates, experiments_status, start_time, walltime)
     for machines in conf.machines:

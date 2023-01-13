@@ -32,9 +32,9 @@ from enoslib.objects import Host, Networks, Roles
 logger = getLogger(__name__, ["IOTlab"])
 
 
-def check():
+def check() -> List[Tuple[str, bool, str]]:
     statuses = []
-    iotlab_user = None
+    iotlab_user: Optional[str] = None
     try:
         iotlab_user, _ = iotlabcli.auth.get_user_credentials()
     except Exception as e:
@@ -174,15 +174,14 @@ class Iotlab(Provider):
             roles=[Host(site + ".iot-lab.info", user=user) for site in sites],
             on_error_continue=True,
         ) as p:
-            filename = "%s-{{ inventory_hostname }}.tar.gz" % exp_id
+            filename = f"{exp_id}-{{{{ inventory_hostname }}}}.tar.gz"
             # use --ignore-command-error to avoid errors if monitoring
             # files are being written
             p.shell(
-                "cd .iot-lab/; tar --ignore-command-error -czf %s %s/"
-                % (filename, exp_id)
+                f"cd .iot-lab/; tar --ignore-command-error -czf {filename} {exp_id}/"
             )
-            p.fetch(src=".iot-lab/" + filename, dest=dest_dir + "/", flat=True)
-            p.shell("cd .iot-lab/; rm -f %s" % filename)
+            p.fetch(src=f".iot-lab/{filename}", dest=f"{dest_dir}/", flat=True)
+            p.shell(f"cd .iot-lab/; rm -f {filename}")
 
     def destroy(self, wait: bool = False, **kwargs):
         """Destroys the job and monitoring profiles."""
@@ -484,7 +483,7 @@ class Iotlab(Provider):
         )
         self.provider_conf.walltime = new_walltime.strftime("%H:%M")
 
-    def is_created(self):
+    def is_created(self) -> bool:
         return self.client.job_is_active(self.provider_conf.job_name) != (
             None,
             None,

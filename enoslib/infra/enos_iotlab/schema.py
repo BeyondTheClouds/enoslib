@@ -1,6 +1,7 @@
+from typing import Dict
+
 from jsonschema import Draft7Validator, FormatChecker
-from .error import EnosIotLabPhysicalNodesError, EnosIotlabStartTimeFormatError
-from .error import EnosIotlabWalltimeFormatError
+
 from .constants import (
     PROFILE_ARCHI_TYPES,
     RADIO_MODE_TYPES,
@@ -11,8 +12,10 @@ from .constants import (
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER_BOARDS,
 )
+from .error import EnosIotLabPhysicalNodesError, EnosIotlabStartTimeFormatError
+from .error import EnosIotlabWalltimeFormatError
 
-SCHEMA = {
+SCHEMA: Dict = {
     "type": "object",
     "title": "FIT/IoT-LAB configuration",
     "properties": {
@@ -178,11 +181,11 @@ SCHEMA = {
     },  # definitions
 }
 
-IotlabFormatChecker = FormatChecker()
+IotlabFormatChecker: FormatChecker = FormatChecker()
 
 
 @IotlabFormatChecker.checks("walltime", raises=EnosIotlabWalltimeFormatError)
-def is_valid_walltime(instance):
+def is_valid_walltime(instance) -> bool:
     """Auxiliary function to check walltime format"""
     if not isinstance(instance, str):
         return False
@@ -197,7 +200,7 @@ def is_valid_walltime(instance):
 
 
 @IotlabFormatChecker.checks("start_time", raises=EnosIotlabStartTimeFormatError)
-def is_valid_start_time(instance):
+def is_valid_start_time(instance) -> bool:
     if not isinstance(instance, str):
         return False
     # YYYY-mm-dd HH:MM:SS
@@ -211,7 +214,7 @@ def is_valid_start_time(instance):
 
 
 @IotlabFormatChecker.checks("hostname", raises=EnosIotLabPhysicalNodesError)
-def is_valid_physical_nodes(instance):
+def is_valid_physical_nodes(instance) -> bool:
     if not isinstance(instance, list):
         return False
     archis = [machine.split("-")[0] for machine in instance]
@@ -223,5 +226,5 @@ def is_valid_physical_nodes(instance):
     return True
 
 
-def IotlabValidator(schema):
+def IotlabValidator(schema) -> Draft7Validator:
     return Draft7Validator(schema, format_checker=IotlabFormatChecker)

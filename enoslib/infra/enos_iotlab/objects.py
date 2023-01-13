@@ -1,5 +1,5 @@
 import socket
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import iotlabcli.auth
 import sshtunnel
@@ -43,7 +43,7 @@ class IotlabHost(Host):
         self._ssh_address: Optional[str] = None
 
         if ssh_enabled(self.archi):
-            self._ssh_address = "node-%s" % self.address
+            self._ssh_address = f"node-{self.address}"
 
     @property
     def ssh_address(self) -> Optional[str]:
@@ -54,7 +54,7 @@ class IotlabHost(Host):
         """
         return self._ssh_address
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<IotlabHost("
             f"roles={self.roles}, "
@@ -91,7 +91,7 @@ class IotlabSensor(Sensor):
         self.user, self.passwd = iotlabcli.auth.get_user_credentials()
         self.exp_id = self.iotlab_client.get_job_id()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<IotlabSensor("
             f"roles={self.roles}, "
@@ -119,7 +119,7 @@ class IotlabSensor(Sensor):
         """
         self.iotlab_client.send_cmd_node(cmd="reset", nodes=[self.address])
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(
             roles=self.roles,
@@ -171,10 +171,7 @@ class IotlabSerial:
         self.timeout = timeout
         self._serial_tunnel: Optional[sshtunnel.SSHTunnelForwarder] = None
         self._serial_socket: Optional[socket.socket] = None
-        self._filename = "~/.iot-lab/{}/log/{}_serial.log".format(
-            self.sensor.exp_id,
-            self.sensor.alias,
-        )
+        self._filename = f"~/.iot-lab/{self.sensor.exp_id}/log/{self.sensor.alias}_serial.log"  # noqa
 
     def open_serial_conn(self):
         """
@@ -205,15 +202,15 @@ class IotlabSerial:
 
         msg = """
  IotlabSensor(%s): Opening SSH tunnel for serial connection: \
- server (%s) remote (%s:%d) local_port: %d""" % (
+ server (%s) remote (%s:%s) local_port: %s"""
+        logger.info(
+            msg,
             self.sensor.alias,
             self.sensor.site,
             self.sensor.address,
             self.serial_port,
             self._serial_tunnel.local_bind_port,
         )
-
-        logger.info(msg)
 
     def close_serial_conn(self):
         """
@@ -249,15 +246,9 @@ class IotlabSerial:
             timeout = wall_time * 60
 
             with play_on(
-                roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)]
+                roles=[Host(f"{self.sensor.site}.iot-lab.info", user=self.sensor.user)]
             ) as p:
-                cmd = (
-                    "screen -dm bash -c 'serial_aggregator -l {},{} > {} 2>&1'".format(
-                        self.sensor.site,
-                        self.sensor.alias.replace("-", ","),
-                        self._filename,
-                    )
-                )
+                cmd = f"screen -dm bash -c 'serial_aggregator -l {self.sensor.site},{self.sensor.alias.replace('-', ',')} > {self._filename} 2>&1'"  # noqa
                 p.shell(
                     cmd, task_name="Running serial_aggregator", asynch=timeout, poll=0
                 )
@@ -271,7 +262,7 @@ class IotlabSerial:
         Stops serial_aggregator tool running on the frontend
         """
         with play_on(
-            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
+            roles=[Host(f"{self.sensor.site}.iot-lab.info", user=self.sensor.user)],
             on_error_continue=True,
         ) as p:
             cmd = "pkill -f 'serial_aggregator -l {},{} > {} 2>&1'".format(
@@ -281,7 +272,7 @@ class IotlabSerial:
             )
             p.command(cmd, task_name="Killing serial_aggregator")
 
-    def __enter__(self):
+    def __enter__(self) -> "IotlabSerial":
         if self.interactive:
             self.open_serial_conn()
         else:
@@ -295,7 +286,7 @@ class IotlabSerial:
         else:
             self.disable_logging_serial()
 
-    def write(self, content: str) -> None:
+    def write(self, content: str):
         """
         Sends string on serial interface
 
@@ -400,13 +391,13 @@ class IotlabSniffer:
         Kills sniffer_aggregator tool running in the frontend.
         """
         with play_on(
-            roles=[Host(self.sensor.site + ".iot-lab.info", user=self.sensor.user)],
+            roles=[Host(f"{self.sensor.site}.iot-lab.info", user=self.sensor.user)],
             on_error_continue=True,
         ) as p:
-            cmd = 'pkill -f "%s"' % self._filename
+            cmd = f'pkill -f "{self._filename}"'
             p.command(cmd, task_name="Killing sniffer_aggregator")
 
-    def __enter__(self):
+    def __enter__(self) -> "IotlabSniffer":
         self.start_sniffer()
         return self
 

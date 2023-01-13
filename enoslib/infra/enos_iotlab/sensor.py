@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
+from typing import Dict
 
-from enoslib.objects import BaseHost
 from enoslib.html import html_from_dict, repr_html_check
+from enoslib.objects import BaseHost
 
 
 @dataclass(unsafe_hash=True, order=True)
@@ -20,18 +21,14 @@ class Sensor(BaseHost):
         if self.alias == "":
             self.alias = self.address
 
-    def __str__(self):
-        args = (
-            self.alias,
-            "address=%s" % self.address,
-        )
-        return "Sensor(%s)" % ", ".join(args)
+    def __str__(self) -> str:
+        return f"Sensor({self.alias}, address={self.address})"
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {"alias": self.alias}
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only=False) -> str:
         d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         return html_from_dict(name_class, d, content_only=content_only)
