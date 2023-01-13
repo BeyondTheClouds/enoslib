@@ -1,13 +1,13 @@
 import warnings
-from typing import MutableMapping, Type, MutableSequence, Optional
+from typing import Type, MutableSequence, Optional, Dict, Mapping
 
-from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_JOB_NAME,
     DEFAULT_WALLTIME,
     DEFAULT_NUMBER_BOARDS,
 )
 from .schema import SCHEMA, IotlabValidator
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -20,13 +20,13 @@ class Configuration(BaseConfiguration):
         super().__init__()
         self.job_name = DEFAULT_JOB_NAME
         self.walltime = DEFAULT_WALLTIME
-        self.profiles: Optional[MutableSequence] = None
+        self.profiles: MutableSequence[ProfileConfiguration] = []
         self.start_time = None
 
         self._machine_cls: Type[GroupConfiguration] = GroupConfiguration
         self._network_cls: Type[NetworkConfiguration] = NetworkConfiguration
 
-    def add_machine(self, *args, **kwargs):
+    def add_machine(self, *args, **kwargs) -> "Configuration":
         # we need to discriminate between phys node and board
         if kwargs.get("archi") is not None:
             self.add_machine_conf(BoardConfiguration(*args, **kwargs))
@@ -37,7 +37,7 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary: Mapping, validate=True) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
@@ -64,8 +64,8 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
-        d = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
                 "machines",
@@ -82,7 +82,7 @@ class Configuration(BaseConfiguration):
                 "networks": [n.to_dict() for n in self.networks],
             },
         )
-        if self.profiles is not None:
+        if self.profiles:
             d.update(
                 monitoring={
                     "profiles": [p.to_dict() for p in self.profiles],
@@ -91,14 +91,12 @@ class Configuration(BaseConfiguration):
 
         return d
 
-    def add_profile(self, *args, **kwargs):
-        if self.profiles is None:
-            self.profiles = []
+    def add_profile(self, *args, **kwargs) -> "Configuration":
         self.profiles.append(ProfileConfiguration(*args, **kwargs))
         return self
 
     @property
-    def walltime_s(self):
+    def walltime_s(self) -> int:
         """Returns the walltime of a configuration in seconds"""
         split = self.walltime.split(":")
         return int(split[0]) * 3600 + int(split[1]) * 60
@@ -118,7 +116,7 @@ class GroupConfiguration:
         self.image = image
         self.profile = profile
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None:
@@ -136,7 +134,7 @@ class GroupConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "GroupConfiguration":
 
         roles = dictionary["roles"]
         image = dictionary.get("image")
@@ -186,7 +184,7 @@ class PhysNodeConfiguration(GroupConfiguration):
         super().__init__(**kwargs)
         self.hostname = hostname
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(hostname=self.hostname)
         return d
@@ -205,7 +203,7 @@ class BoardConfiguration(GroupConfiguration):
         self.site = site
         self.number = number
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         for k, v in self.__dict__.items():
             if v is None:
@@ -220,7 +218,7 @@ class ProfileConfiguration:
     def __init__(
         self,
         *,
-        name=None,
+        name: Optional[str] = None,
         archi=None,
         consumption=None,
         radio=None,
@@ -230,7 +228,7 @@ class ProfileConfiguration:
         self.consumption = consumption
         self.radio = radio
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
@@ -256,7 +254,7 @@ class ProfileConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "ProfileConfiguration":
         self = ProfileConfiguration(
             name=dictionary["name"],
             archi=dictionary["archi"],
@@ -287,7 +285,7 @@ class RadioConfiguration:
         self.period = period
         self.channels = channels
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None:
@@ -305,7 +303,7 @@ class RadioConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "RadioConfiguration":
         self = cls()
 
         for k in self.__dict__.keys():
@@ -334,7 +332,7 @@ class ConsumptionConfiguration:
         self.period = period
         self.average = average
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None:
@@ -352,7 +350,7 @@ class ConsumptionConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "ConsumptionConfiguration":
         self = cls()
 
         for k in self.__dict__.keys():
@@ -374,7 +372,7 @@ class NetworkConfiguration:
         self.site = site
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "NetworkConfiguration":
         my_id = dictionary["id"]
         my_type = dictionary["type"]
         roles = dictionary["roles"]
@@ -382,7 +380,7 @@ class NetworkConfiguration:
 
         return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d
