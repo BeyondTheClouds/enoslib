@@ -24,11 +24,22 @@ import os
 import re
 import time
 from operator import itemgetter
-from typing import MutableMapping
+from typing import (
+    MutableMapping,
+    List,
+    Tuple,
+    Dict,
+    Collection,
+    Union,
+    Mapping,
+    Any,
+    Optional,
+    Iterable,
+)
 
 from glanceclient import client as glance
-from keystoneauth1 import session
 from keystoneauth1.identity import v2, v3
+from keystoneauth1.session import Session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
 
@@ -36,6 +47,7 @@ from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 from enoslib.infra.provider import Provider
 from enoslib.infra.utils import pick_things, mk_pools
 from enoslib.objects import Host, Networks, Roles
+from .configuration import Configuration, MachineConfiguration
 from .constants import (
     NOVA_VERSION,
     GLANCE_VERSION,
@@ -50,7 +62,7 @@ logger = logging.getLogger(__name__)
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_session():
+def get_session() -> Session:
     """Build the session object."""
     # NOTE(msimonin): We provide only a basic support which focus
     # Chameleon cloud and its rc files
@@ -94,10 +106,10 @@ def get_session():
             tenant_id=os.environ["OS_TENANT_ID"],
         )
 
-    return session.Session(auth=auth)
+    return Session(auth=auth)
 
 
-def check_glance(session, image_name):
+def check_glance(session: Session, image_name):
     """Check that the base image is available.
 
     Fails if the base image isn't added.
@@ -109,16 +121,16 @@ def check_glance(session, image_name):
     images = gclient.images.list()
     name_ids = [{"name": i["name"], "id": i["id"]} for i in images]
     if image_name not in list(map(itemgetter("name"), name_ids)):
-        logger.error("[glance]: Image %s is missing" % image_name)
-        raise Exception("Image %s is missing" % image_name)
+        logger.error("[glance]: Image %s is missing", image_name)
+        raise Exception(f"Image {image_name} is missing")
     else:
         image = [i for i in name_ids if i["name"] == image_name]
         image_id = image[0]["id"]
-        logger.info(f"[glance]: Using image {image_name}:{image_id}")
+        logger.info("[glance]: Using image %s:%s", image_name, image_id)
     return image_id
 
 
-def check_flavors(session):
+def check_flavors(session: Session) -> Tuple[Dict, Dict]:
     """Build the flavors mapping
 
     returns the mappings id <-> flavor
@@ -133,13 +145,13 @@ def check_flavors(session):
 
 
 def check_network(
-    session,
+    session: Session,
     configure_network,
-    network,
-    subnet,
+    network: Mapping,
+    subnet: Mapping,
     dns_nameservers=None,
     allocation_pool=None,
-):
+) -> Tuple[Any, Mapping, Mapping]:
     """Check the network status for the deployment.
 
     If needed, it creates a dedicated :
@@ -157,7 +169,7 @@ def check_network(
         secgroup = {"name": secgroup_name, "description": "Enos Security Group"}
         res = nclient.create_security_group({"security_group": secgroup})
         secgroup = res["security_group"]
-        logger.info("[neutron]: %s security group created" % secgroup_name)
+        logger.info("[neutron]: %s security group created", secgroup_name)
         # create the rules
         tcp = {
             "protocol": "tcp",
@@ -172,11 +184,11 @@ def check_network(
             "security_group_id": secgroup["id"],
         }
         nclient.create_security_group_rule({"security_group_rule": tcp})
-        logger.info("[neutron]: %s rule (all tcp) created" % secgroup_name)
+        logger.info("[neutron]: %s rule (all tcp) created", secgroup_name)
         nclient.create_security_group_rule({"security_group_rule": icmp})
-        logger.info("[neutron]: %s rule (all icmp) created" % secgroup_name)
+        logger.info("[neutron]: %s rule (all icmp) created", secgroup_name)
     else:
-        logger.info("[neutron]: Reusing security-groups %s " % secgroup_name)
+        logger.info("[neutron]: Reusing security-groups %s ", secgroup_name)
 
     networks = nclient.list_networks()["networks"]
     network_name = network["name"]
@@ -184,7 +196,7 @@ def check_network(
         network = {"name": network_name}
         res = nclient.create_network({"network": network})
         network = res["network"]
-        logger.info("[neutron]: %s network created" % network_name)
+        logger.info("[neutron]: %s network created", network_name)
     else:
         network = [n for n in networks if n["name"] == network_name][0]
         logger.info("[neutron]: Reusing existing %s network", network)
@@ -215,7 +227,7 @@ def check_network(
         s = nclient.create_subnet({"subnet": subnet})
         logger.debug(s)
         subnet = s["subnet"]
-        logger.info("[neutron]: %s subnet created" % subnet_name)
+        logger.info("[neutron]: %s subnet created", subnet_name)
     else:
         subnet = [s for s in subnets if s["name"] == subnet_name][0]
         logger.info("[neutron]: Reusing %s subnet", subnet)
@@ -231,7 +243,7 @@ def check_network(
             "external_gateway_info": {"network_id": first_ext_net["id"]},
         }
         r = nclient.create_router({"router": router})
-        logger.info("[neutron]  %s router created" % router_name)
+        logger.info("[neutron]  %s router created", router_name)
         # NOTE(msimonin): We should check the interface outside this block
         # in case the router is created but the interface is not added
         interface = {"subnet_id": subnet["id"]}
@@ -240,7 +252,7 @@ def check_network(
     return first_ext_net, network, subnet
 
 
-def set_free_floating_ip(env, server_id):
+def set_free_floating_ip(env: Mapping, server_id):
     nclient = neutron.Client(
         "2", session=env["session"], region_name=os.environ["OS_REGION_NAME"]
     )
@@ -258,15 +270,15 @@ def set_free_floating_ip(env, server_id):
     # Getting the port fior server_id
     ports = nclient.list_ports(device_id=server_id).get("ports")
     port_id = ports[0]["id"]
-    logger.info("[neutron]: Associate floating ip with the port %s" % ports)
+    logger.info("[neutron]: Associate floating ip with the port %s", ports)
     nclient.update_floatingip(fip["id"], {"floatingip": {"port_id": port_id}})
     return fip["floating_ip_address"]
 
 
-def wait_for_servers(session, servers):
+def wait_for_servers(session, servers: Collection) -> Tuple[List, List]:
     """Wait for the servers to be ready.
 
-    Note(msimonin): we don't garantee the SSH connection to be ready.
+    Note(msimonin): we don't guarantee the SSH connection to be ready.
     """
     nclient = nova.Client(
         NOVA_VERSION, session=session, region_name=os.environ["OS_REGION_NAME"]
@@ -281,31 +293,31 @@ def wait_for_servers(session, servers):
             if c.status == "ERROR":
                 undeployed.append(server)
         logger.info("[nova]: Polling the Deployment")
-        logger.info("[nova]: %s deployed servers" % len(deployed))
-        logger.info("[nova]: %s undeployed servers" % len(undeployed))
+        logger.info("[nova]: %s deployed servers", len(deployed))
+        logger.info("[nova]: %s undeployed servers", len(undeployed))
         if len(deployed) + len(undeployed) >= len(servers):
             break
         time.sleep(3)
     return deployed, undeployed
 
 
-def _get_total_wanted_machines(machines):
+def _get_total_wanted_machines(machines: Iterable[MachineConfiguration]) -> int:
     total = sum(machine.number for machine in machines)
     return total
 
 
 def check_servers(
-    session,
-    machines,
+    session: Session,
+    machines: Iterable[MachineConfiguration],
     extra_prefix="",
-    force_deploy=False,
+    force_deploy: bool = False,
     key_name=None,
     image_id=None,
-    flavors="m1.medium",
-    network=None,
+    flavors: Union[str, Tuple] = "m1.medium",
+    network: Optional[Mapping] = None,
     ext_net=None,
     scheduler_hints=None,
-):
+) -> List:
     """Checks the servers status for the deployment.
 
     If needed, it creates new servers and add a floating ip to one of them.
@@ -328,7 +340,7 @@ def check_servers(
     if len(servers) == wanted:
         logger.info("[nova]: Reusing existing servers : %s", servers)
         return servers
-    elif len(servers) > 0 and len(servers) < wanted:
+    elif 0 < len(servers) < wanted:
         raise Exception(f"Only {len(servers)}/{wanted} servers found")
 
     # starting the servers
@@ -336,9 +348,9 @@ def check_servers(
     for machine in machines:
         number = machine.number
         roles = machine.roles
-        logger.info("[nova]: Starting %s servers" % number)
-        logger.info("[nova]: for roles %s" % roles)
-        logger.info("[nova]: with extra hints %s" % scheduler_hints)
+        logger.info("[nova]: Starting %s servers", number)
+        logger.info("[nova]: for roles %s", roles)
+        logger.info("[nova]: with extra hints %s", scheduler_hints)
         for _ in range(number):
             flavor = machine.flavour
             if isinstance(flavors, str):
@@ -356,7 +368,7 @@ def check_servers(
                 name="-".join([DEFAULT_PREFIX, extra_prefix, str(total)]),
                 image=image_id,
                 flavor=nclient.flavors.find(name=flavor),
-                nics=[{"net-id": network["id"]}],
+                nics=[{"net-id": network["id"]}] if network is not None else None,
                 key_name=key_name,
                 security_groups=[SECGROUP_NAME],
                 scheduler_hints=_scheduler_hints,
@@ -366,7 +378,7 @@ def check_servers(
     return servers
 
 
-def check_gateway(env, with_gateway, servers):
+def check_gateway(env: Mapping, with_gateway: bool, servers: Iterable) -> Tuple:
     gateway = sorted(servers, key=lambda s: s.id)[0]
     if with_gateway:
         nclient = nova.Client(
@@ -386,10 +398,11 @@ def check_gateway(env, with_gateway, servers):
             gateway_ip = gw_floating_ips[0]["addr"]
 
         logger.info("[nova]: Reusing %s as gateway with ip %s", gateway, gateway_ip)
-    return gateway_ip, gateway
+        return gateway_ip, gateway
+    return None, gateway
 
 
-def is_in_current_deployment(server, extra_prefix=""):
+def is_in_current_deployment(server, extra_prefix="") -> bool:
     """Check if an existing server in the system take part to
     the current deployment
     """
@@ -399,7 +412,7 @@ def is_in_current_deployment(server, extra_prefix=""):
     )
 
 
-def allow_address_pairs(session, network, subnet):
+def allow_address_pairs(session: Session, network: Mapping, subnet):
     """Allow several interfaces to be added and accessed from the other machines.
 
     This is particularly useful when working with virtual ips.
@@ -410,8 +423,8 @@ def allow_address_pairs(session, network, subnet):
     ports = nclient.list_ports()
     ports_to_update = filter(lambda p: p["network_id"] == network["id"], ports["ports"])
     logger.info(
-        "[nova]: Allowing address pairs for ports %s"
-        % list(map(lambda p: p["fixed_ips"], ports_to_update))
+        "[nova]: Allowing address pairs for ports %s",
+        list(map(lambda p: p["fixed_ips"], ports_to_update)),
     )
     for port in ports_to_update:
         try:
@@ -424,10 +437,10 @@ def allow_address_pairs(session, network, subnet):
             # seems to have enabled_sec_groups = False which
             # prevent them to be updated, just throw a warning
             # a skip them
-            logger.warning("Can't update port %s" % port)
+            logger.warning("Can't update port %s", port)
 
 
-def check_environment(provider_conf):
+def check_environment(provider_conf: Configuration) -> Dict:
     """Check all resources needed by Enos."""
     session = get_session()
     image_id = check_glance(session, provider_conf.image)
@@ -452,8 +465,15 @@ def check_environment(provider_conf):
     }
 
 
-def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
-    def build_roles(provider_conf, env, servers, keyfnc):
+def finalize(
+    env: Mapping,
+    provider_conf: Configuration,
+    gateway_ip,
+    servers: Iterable,
+    keyfnc,
+    extra_ips=None,
+) -> Tuple[Roles, Networks]:
+    def build_roles(provider_conf: Configuration, servers: Iterable, keyfnc):
         result: MutableMapping = {}
         pools = mk_pools(servers, keyfnc)
         machines = provider_conf.machines
@@ -469,7 +489,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
 
     # Distribute the machines according to the resource/topology
     # specifications
-    os_roles = build_roles(provider_conf, env, servers, keyfnc)
+    os_roles = build_roles(provider_conf, servers, keyfnc)
 
     extra = {}
     network_name = provider_conf.network["name"]
@@ -499,7 +519,7 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
             ]
 
     # build the network
-    extra_ips = extra_ips or []
+    extra_ips = extra_ips or []  # unused
     net = ipaddress.ip_network(env["subnet"]["cidr"])
 
     networks = Networks()
@@ -520,9 +540,11 @@ def finalize(env, provider_conf, gateway_ip, servers, keyfnc, extra_ips=None):
 
 
 class Openstack(Provider):
-    def init(self, force_deploy=False, **kwargs):
+    def init(
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
+    ) -> Tuple[Roles, Networks]:
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f" Using {_site}.")
+            logger.info(" Using %s.", _site)
             logger.info("Checking the existing environment")
 
             env = check_environment(self.provider_conf)
@@ -561,9 +583,9 @@ class Openstack(Provider):
             lambda s: env["id_to_flavor"][s.flavor["id"]],
         )
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False, **kwargs):
         with source_credentials_from_rc_file(self.provider_conf.rc_file) as _site:
-            logger.info(f" Using {_site}.")
+            logger.info(" Using %s.", _site)
             session = get_session()
             nclient = nova.Client(
                 NOVA_VERSION, session=session, region_name=os.environ["OS_REGION_NAME"]
@@ -571,7 +593,7 @@ class Openstack(Provider):
             servers = nclient.servers.list()
             for server in servers:
                 if is_in_current_deployment(server):
-                    logger.info("Deleting %s" % server)
+                    logger.info("Deleting %s", server)
                     server.delete()
 
     def offset_walltime(self, difference: int):

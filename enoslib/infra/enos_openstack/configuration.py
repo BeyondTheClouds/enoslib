@@ -1,8 +1,5 @@
-from typing import MutableMapping
+from typing import Mapping, Dict
 
-from ..configuration import BaseConfiguration
-
-from .schema import SCHEMA
 from .constants import (
     DEFAULT_ALLOCATION_POOL,
     DEFAULT_CONFIGURE_NETWORK,
@@ -12,6 +9,8 @@ from .constants import (
     DEFAULT_PREFIX,
     DEFAULT_SUBNET,
 )
+from .schema import SCHEMA
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -38,12 +37,14 @@ class Configuration(BaseConfiguration):
         self._network_cls = str
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
         self = cls()
-        for k in self.__dict__.keys():
+        for k in self.__dict__:
             v = dictionary.get(k)
             if v is not None:
                 setattr(self, k, v)
@@ -55,8 +56,8 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(
             key_name=self.key_name,
             image=self.image,
@@ -77,13 +78,13 @@ class MachineConfiguration:
         self.number = number
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
         roles = dictionary["roles"]
         flavour = dictionary["flavour"]
         number = dictionary["number"]
         return cls(roles=roles, flavour=flavour, number=number)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(roles=self.roles, flavour=self.flavour, number=self.number)
         return d
