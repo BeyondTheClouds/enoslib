@@ -1,16 +1,14 @@
-from ipaddress import ip_interface
 import logging
 import os
-from typing import List, Dict
+from ipaddress import ip_interface
+from typing import List, Dict, Optional, Tuple
 
+import vagrant
 from jinja2 import Environment, FileSystemLoader
 from netaddr import IPNetwork
 
-import vagrant
-
-from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.infra.provider import Provider
-
+from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from .constants import DEFAULT_NAME_PREFIX
 
 logger = logging.getLogger(__name__)
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 TEMPLATE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-def check():
+def check() -> List[Tuple[str, bool, str]]:
     # At this point this should be ok
     if vagrant.get_vagrant_executable() is None:
         return [("access", False, "Vagrant executable not found")]
@@ -34,7 +32,9 @@ class VagrantNetwork(DefaultNetwork):
 class Enos_vagrant(Provider):
     """The provider to use when working with vagrant (local machine)."""
 
-    def init(self, force_deploy=False, **kwargs):
+    def init(
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
+    ) -> Tuple[Roles, Networks]:
         """Reserve and deploys the vagrant boxes.
 
         Args:
@@ -131,7 +131,7 @@ class Enos_vagrant(Provider):
 
         return roles, networks
 
-    def destroy(self, wait=False, **kwargs):
+    def destroy(self, wait: bool = False, **kwargs):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()
