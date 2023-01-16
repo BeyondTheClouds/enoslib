@@ -1,6 +1,5 @@
-from typing import MutableMapping, Type
+from typing import MutableMapping, Type, Mapping, Dict, Optional
 
-from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_BACKEND,
     DEFAULT_BOX,
@@ -10,6 +9,7 @@ from .constants import (
     FLAVOURS,
 )
 from .schema import SCHEMA
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -30,7 +30,9 @@ class Configuration(BaseConfiguration):
         self._network_cls: Type[NetworkConfiguration] = NetworkConfiguration
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
@@ -48,8 +50,8 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(
             backend=self.backend,
             user=self.user,
@@ -66,7 +68,13 @@ class Configuration(BaseConfiguration):
 
 class MachineConfiguration:
     def __init__(
-        self, *, roles=None, flavour=None, flavour_desc=None, number=1, name_prefix=""
+        self,
+        *,
+        roles=None,
+        flavour: Optional[str] = None,
+        flavour_desc: Optional[Dict] = None,
+        number: int = 1,
+        name_prefix: str = ""
     ):
 
         self.roles = roles
@@ -87,7 +95,7 @@ class MachineConfiguration:
         self.number = number
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
         kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
@@ -105,8 +113,8 @@ class MachineConfiguration:
 
         return cls(**kwargs)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(
             roles=self.roles,
             flavour_desc=self.flavour_desc,
@@ -122,7 +130,7 @@ class NetworkConfiguration:
         self.cidr = cidr
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary) -> "NetworkConfiguration":
         kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         cidr = dictionary["cidr"]
@@ -130,7 +138,7 @@ class NetworkConfiguration:
 
         return cls(**kwargs)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(roles=self.roles, cidr=self.cidr)
         return d
