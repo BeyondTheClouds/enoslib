@@ -36,29 +36,16 @@ and from your local machine as well.
 External access (from your laptop)
 ----------------------------------
 
-If you want to control your experiments from outside Grid'5000 (e.g from
-your local machine) you can refer to the following.  Jump this section if
-you only plan to work from inside Grid'5000.
-
-- Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
-- Solution 2: configure your ``~/.ssh/config`` properly:
-
-::
-
-
-   Host !access.grid5000.fr *.grid5000.fr
-      User <login>
-      ProxyJump <login>@access.grid5000.fr
-      StrictHostKeyChecking no
-      UserKnownHostsFile /dev/null
-      ForwardAgent yes
+If you are running your experiment from outside Grid'5000 (e.g. from your local
+machine), `using a SSH jump host is required <https://www.grid5000.fr/w/Getting_Started#Recommended_tips_and_tricks_for_an_efficient_use_of_Grid.275000>`.
+Enoslib (version 8.1.0 and above) will automatically setup such a SSH jump
+host connection through ``access.grid5000.fr``.
 
 .. hint::
 
-   This SSH configuration might not work properly if you want to control a
+   This SSH setup might not work properly if you want to control a
    larger number of nodes (around 14 or more), because it generates too
    many SSH connections on the Grid'5000 jump host.  Please report any
    issue you face `on the dedicated bug report
    <https://gitlab.inria.fr/discovery/enoslib/-/issues/147>`_.  In the
-   meantime, the workaround is to use the Grid'5000 VPN or to work
-   directly inside Grid'5000.
+   meantime, the workaround is to work directly inside Grid'5000.

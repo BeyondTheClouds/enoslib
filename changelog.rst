@@ -1,6 +1,31 @@
 ⚒️ Changelog
 ============
 
+.. _v8.1.0:
+
+8.1.0 (unreleased)
+------------------
+
+Added
++++++
+
+- **G5K:** automatically use ``access.grid5000.fr`` to avoid needing a local SSH config
+- **G5K:** allow to deploy a :ref:`specific version of an environment <grid5000-schema>`
+- **Docker:** allow to :doc:`login to Docker hub </apidoc/docker>` (to access private images or to bypass rate-limiting)
+- **K3S:** allow to :doc:`specify which version to install </apidoc/k3s>`
+
+Fixed
++++++
+
+- **K3S:** fix setup for K3S >= 1.24
+
+Changed
++++++++
+
+- Big typing improvements
+- Advertise support for Ansible 7
+
+
 .. _v8.0.0:
 
 8.0.0
@@ -76,7 +101,6 @@ Services
 - **Netem:** Introduce ``fping_stats`` static method to read from the backuped
   file easily after a call to ``validate``.
 - **k3s:** refresh service (deploy the dashboard automatically)
-- **Docker:** allow to login to Docker hub (to access private images or to bypass rate-limiting)
 
 Library
 +++++++
