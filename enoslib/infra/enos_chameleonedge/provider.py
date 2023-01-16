@@ -1,10 +1,13 @@
-import os
 import logging
-from typing import List, Tuple
-from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
-from enoslib.objects import Networks, Roles
+import os
+from typing import List, Tuple, Optional, Dict, Mapping, Iterable
+
+from zunclient.v1.containers import Container
+
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
+from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.infra.provider import Provider
+from enoslib.objects import Networks, Roles
 from .chi_api_utils import (
     get_node_address,
     get_node_roles,
@@ -30,7 +33,9 @@ class ChameleonEdge(Provider):
         self.devices: List[ChameleonDevice] = []
         self.networks: List[ChameleonNetwork] = []
 
-    def init(self, force_deploy=False, **kwargs):
+    def init(
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
+    ) -> Tuple[Roles, Networks]:
         """
         Take ownership over CHI@Edge resources
         Return inventory of resources allocated.
@@ -48,7 +53,7 @@ class ChameleonEdge(Provider):
             "Please Implement me to enjoy the power of multi platforms experiments."
         )
 
-    def _reserve(self):
+    def _reserve(self) -> Dict:
         """Reserve resources on platform"""
         return self.client.get_resources(
             self.provider_conf.lease_name,
@@ -57,7 +62,7 @@ class ChameleonEdge(Provider):
             self.provider_conf.machines,
         )
 
-    def _deploy(self, leased_resources):
+    def _deploy(self, leased_resources: Mapping):
         """
         Deploy container on devices.
         """
@@ -70,7 +75,7 @@ class ChameleonEdge(Provider):
 
         logger.info("Deployment finished: %s", str(self.devices))
 
-    def _to_enoslib(self):
+    def _to_enoslib(self) -> Tuple[Roles, Networks]:
         """Transform from provider specific resources to library-level resources"""
         roles = Roles()
         for device in self.devices:
@@ -83,22 +88,25 @@ class ChameleonEdge(Provider):
         return roles, networks
 
     def from_api_resources_to_enoslib_chameleon_device(
-        self, concrete_resources, rc_file
-    ):
+        self, concrete_resources: Iterable[Container], rc_file: str
+    ) -> List[ChameleonDevice]:
         devices = []
         for node in concrete_resources:
             node = self.client.get_container(node.uuid)
-            devices.append(
-                ChameleonDevice(
-                    address=get_node_address(node)[0],
-                    roles=get_node_roles(node),
-                    uuid=get_node_uuid(node),
-                    rc_file=rc_file,
+            roles = get_node_roles(node)
+            uuid = get_node_uuid(node)
+            if roles is not None and uuid is not None:
+                devices.append(
+                    ChameleonDevice(
+                        address=get_node_address(node)[0],
+                        roles=roles,
+                        uuid=uuid,
+                        rc_file=rc_file,
+                    )
                 )
-            )
         return devices
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False, **kwargs):
         """Release testbed resources."""
         self.client.release_resources(
             self.provider_conf.lease_name,
@@ -132,7 +140,7 @@ def check() -> List[Tuple[str, bool, str]]:
     return statuses
 
 
-def is_chameleon_openrc_file(_file):
+def is_chameleon_openrc_file(_file: str) -> bool:
     with open(_file) as file:
         lines = file.readlines()
         for line in lines:

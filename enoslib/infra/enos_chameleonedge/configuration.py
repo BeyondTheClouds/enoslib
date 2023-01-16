@@ -1,13 +1,13 @@
 import warnings
-from typing import Optional, MutableMapping
+from typing import Optional, Dict, Union, Mapping
 
-from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_JOB_NAME,
     DEFAULT_WALLTIME,
     DEFAULT_NUMBER,
 )
 from .schema import SCHEMA, ChameleonValidator
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -25,7 +25,7 @@ class Configuration(BaseConfiguration):
         self._machine_cls = DeviceGroupConfiguration
         self._network_cls = NetworkConfiguration
 
-    def add_machine(self, *args, **kwargs):
+    def add_machine(self, *args, **kwargs) -> "Configuration":
         # we need to discriminate between Device and DeviceCluster
         if kwargs.get("device_name") is not None:
             self.add_machine_conf(DeviceConfiguration(*args, **kwargs))
@@ -39,7 +39,9 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
@@ -62,7 +64,7 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
@@ -104,7 +106,7 @@ class Container:
         self.device_profiles = device_profiles
         self.kwargs = kwargs
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None:
@@ -131,8 +133,8 @@ class DeviceGroupConfiguration:
         self.count = count
         self.container = container
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         for k, v in self.__dict__.items():
             if v is None:
                 continue
@@ -152,7 +154,9 @@ class DeviceGroupConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(
+        cls, dictionary: Mapping
+    ) -> Union["DeviceConfiguration", "DeviceClusterConfiguration"]:
         roles = dictionary["roles"]
         device_model = dictionary.get("device_model")
         _container = dictionary["container"].copy()
@@ -200,7 +204,7 @@ class DeviceClusterConfiguration(DeviceGroupConfiguration):
         super().__init__(**kwargs)
         self.machine_name = machine_name
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(machine_name=self.machine_name)
         return d
@@ -211,7 +215,7 @@ class DeviceConfiguration(DeviceGroupConfiguration):
         super().__init__(**kwargs)
         self.device_name = device_name
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(device_name=self.device_name)
         return d
@@ -228,7 +232,7 @@ class NetworkConfiguration:
         self.site = site
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "NetworkConfiguration":
         my_id = dictionary["id"]
         my_type = dictionary["type"]
         roles = dictionary["roles"]
@@ -236,7 +240,7 @@ class NetworkConfiguration:
 
         return cls(net_id=my_id, roles=roles, net_type=my_type, site=site)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(id=self.id, type=self.type, roles=self.roles, site=self.site)
         return d

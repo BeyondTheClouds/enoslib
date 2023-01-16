@@ -1,7 +1,8 @@
-from typing import List
 import logging
-from enoslib.objects import DefaultNetwork
+from typing import List
+
 from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
+from enoslib.objects import DefaultNetwork
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class ChameleonDevice:
         self.rc_file = rc_file
         self.client = ChameleonAPI()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<ChameleonDevice("
             f"address={self.address}, "
