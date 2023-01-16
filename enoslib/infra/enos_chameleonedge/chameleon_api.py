@@ -1,10 +1,11 @@
-import time
-from typing import List, Set
 import logging
+import time
+from typing import List, Set, Dict, Mapping, Optional, Tuple, Iterable
+
 import zunclient.v1.containers
-from chi import lease
-from chi import container
+from chi import container, lease
 from zunclient.v1.containers import Container
+
 from enoslib.infra.enos_chameleonedge.configuration import (
     DeviceGroupConfiguration,
     DeviceClusterConfiguration,
@@ -40,7 +41,7 @@ class ChameleonAPI:
         walltime: str,
         rc_file: str,
         resources: List[DeviceGroupConfiguration],
-    ):
+    ) -> Dict:
         """Get resources from Chameleon platform.
 
         Convert from node Configuration to resources acceptable by Chameleon.
@@ -59,11 +60,12 @@ class ChameleonAPI:
             _lease = ChameleonAPI._get_lease(lease_name)
             if _lease is not None:
                 if ChameleonAPI.lease_is_reusable(_lease):
-                    logger.info(f"Reusing lease: {_lease['name']}/{_lease['id']}")
+                    logger.info("Reusing lease: %s/%s", _lease["name"], _lease["id"])
                 else:
                     logger.warning(
-                        f"Lease is OVER, destroying lease: "
-                        f"{_lease['name']}/{_lease['id']}"
+                        "Lease is OVER, destroying lease: %s/%s",
+                        _lease["name"],
+                        _lease["id"],
                     )
                     ChameleonAPI._delete_lease(_lease["name"])
                     _lease = ChameleonAPI._create_lease(resources, lease_name, walltime)
@@ -76,19 +78,21 @@ class ChameleonAPI:
         self,
         rc_file: str,
         resources: List[DeviceGroupConfiguration],
-        leased_resources: dict,
+        leased_resources: Mapping,
     ) -> List[Container]:
         with source_credentials_from_rc_file(rc_file) as _site:
             self.concrete_resources = ChameleonAPI.get_containers_by_lease_id(
                 leased_resources["id"]
             )
             if self.concrete_resources:
-                logger.info(f" Getting existing containers: {self.concrete_resources}.")
+                logger.info(
+                    " Getting existing containers: %s.", self.concrete_resources
+                )
             else:
                 logger.info("Creating new containers.")
                 self._create_container_from_config(resources, leased_resources)
 
-            logger.info(f"[{_site}]: Waiting for resources to be ready...")
+            logger.info("[%s]: Waiting for resources to be ready...", _site)
             for concrete_resource in self.concrete_resources:
                 if isinstance(concrete_resource, Container):
                     logger.info(
@@ -98,11 +102,11 @@ class ChameleonAPI:
         return self.concrete_resources
 
     @staticmethod
-    def get_container(container_ref):
+    def get_container(container_ref: str):
         return container.get_container(container_ref)
 
     @staticmethod
-    def get_containers_by_lease_id(lease_id: str):
+    def get_containers_by_lease_id(lease_id: str) -> List:
         filtered_containers = []
         for _container in container.list_containers():
             # filter containers by status: "Running" or "Creating"
@@ -118,12 +122,12 @@ class ChameleonAPI:
         return filtered_containers
 
     @staticmethod
-    def lease_is_reusable(_lease):
+    def lease_is_reusable(_lease: Mapping) -> bool:
         statuses = ["CREATING", "STARTING, UPDATING", "ACTIVE", "PENDING"]
         return _lease["status"] in statuses
 
     @staticmethod
-    def _get_lease(lease_name):
+    def _get_lease(lease_name: str) -> Optional[Dict]:
         try:
             return lease.get_lease(lease_name)
         except Exception as e:
@@ -131,7 +135,7 @@ class ChameleonAPI:
             return None
 
     @staticmethod
-    def _create_lease(resources, lease_name, walltime):
+    def _create_lease(resources: Iterable, lease_name: str, walltime: str) -> Dict:
         logger.info("Creating a new lease!")
         reservations: List[dict] = []
         for cfg in resources:
@@ -149,7 +153,7 @@ class ChameleonAPI:
                     f"neither a DevicesConfiguration"
                 )
         logger.info(
-            " Submitting Chameleon: lease name: %s, " "duration: %s, resources: %s",
+            " Submitting Chameleon: lease name: %s, duration: %s, resources: %s",
             lease_name,
             walltime,
             str(reservations),
@@ -162,7 +166,7 @@ class ChameleonAPI:
         )
 
     @staticmethod
-    def _try_create_lease(lease_name, reservations, walltime):
+    def _try_create_lease(lease_name: str, reservations: List, walltime: str) -> Dict:
         start_date, end_date = ChameleonAPI._get_lease_start_end_duration(walltime)
         retry_time = 60
         while True:
@@ -174,23 +178,23 @@ class ChameleonAPI:
                     end_date=end_date,
                 )
             except Exception:
-                logger.info(f"Retrying to create lease every {retry_time} secs...")
+                logger.info("Retrying to create lease every %s secs...", retry_time)
                 time.sleep(retry_time)
                 start_date, end_date = ChameleonAPI._get_lease_start_end_duration(
                     walltime
                 )
 
     @staticmethod
-    def _get_lease_start_end_duration(walltime):
+    def _get_lease_start_end_duration(walltime: str) -> Tuple[str, str]:
         return lease.lease_duration(
             days=0, hours=ChameleonAPI._walltime_to_hours(walltime)
         )
 
     @staticmethod
-    def _lease_wait_for_active(leased_resources, _site):
+    def _lease_wait_for_active(leased_resources: Mapping, _site):
         lease_id = leased_resources["id"]
         logger.info(
-            f"[{_site}]:wait for the lease " f"[lease_id={lease_id}] to be active..."
+            "[%s]:wait for the lease [lease_id=%s] to be active...", _site, lease_id
         )
         retry_time = 10
         while True:
@@ -200,10 +204,12 @@ class ChameleonAPI:
                 break
             except Exception as e:
                 logger.error(e)
-                logger.info(f"Retrying every {retry_time} secs...")
+                logger.info("Retrying every %s secs...", retry_time)
                 time.sleep(retry_time)
 
-    def _create_container_from_config(self, resources, leased_resources):
+    def _create_container_from_config(
+        self, resources: Iterable, leased_resources: Mapping
+    ):
         for cfg in resources:
             if isinstance(cfg, DeviceClusterConfiguration):
                 self._create_container(
@@ -212,7 +218,7 @@ class ChameleonAPI:
             elif isinstance(cfg, DeviceConfiguration):
                 self._create_container(leased_resources, "$name", cfg.device_name, cfg)
 
-    def _create_container(self, leased_resources, _group, _name, cfg):
+    def _create_container(self, leased_resources: Mapping, _group, _name, cfg):
         reservation_id = lease.get_device_reservation(
             lease_ref=leased_resources["id"],
             count=cfg.count,
@@ -245,7 +251,7 @@ class ChameleonAPI:
             logger.info("Deleting containers...")
             for _container in ChameleonAPI.get_containers_by_lease_id(_lease["id"]):
                 container.destroy_container(_container.uuid)
-                logger.info(f"Container {_container.uuid} deleted!")
+                logger.info("Container %s deleted!", _container.uuid)
 
     @staticmethod
     def _delete_lease(lease_name: str):
@@ -254,10 +260,11 @@ class ChameleonAPI:
             lease.delete_lease(lease_name)
 
     @staticmethod
-    def get_container_kwargs(cfg, lease_id: str):
+    def get_container_kwargs(cfg, lease_id: str) -> Dict:
         kwargs = zunclient.v1.containers.CREATION_ATTRIBUTES.copy()
         for attr in ["name", "image", "exposed_ports", CONTAINER_LABELS]:
-            kwargs.remove(attr) if attr in kwargs else None
+            if attr in kwargs:
+                kwargs.remove(attr)
         extra_attr = {
             "interactive": True,
             CONTAINER_LABELS: {
@@ -271,7 +278,7 @@ class ChameleonAPI:
         return extra_attr
 
     @staticmethod
-    def add_roles_in_container(roles):
+    def add_roles_in_container(roles: Iterable) -> str:
         return ROLES_SEPARATOR.join(roles)
 
     @staticmethod
@@ -296,7 +303,7 @@ class ChameleonAPI:
         return result
 
     @staticmethod
-    def associate_floating_ip(uuid: str, rc_file: str):
+    def associate_floating_ip(uuid: str, rc_file: str) -> Optional[str]:
         with source_credentials_from_rc_file(rc_file):
             result = container.associate_floating_ip(uuid)
         return result
@@ -308,7 +315,9 @@ class ChameleonAPI:
         return result
 
     @staticmethod
-    def get_logs(uuid: str, rc_file: str, stdout: bool = True, stderr: bool = True):
+    def get_logs(
+        uuid: str, rc_file: str, stdout: bool = True, stderr: bool = True
+    ) -> str:
         with source_credentials_from_rc_file(rc_file):
             result = container.get_logs(uuid, stdout, stderr)
         return result
@@ -316,7 +325,7 @@ class ChameleonAPI:
     @staticmethod
     def snapshot_container(
         uuid: str, rc_file: str, repository: str, tag: str = "latest"
-    ):
+    ) -> str:
         with source_credentials_from_rc_file(rc_file):
             result = container.snapshot_container(uuid, repository, tag)
         return result

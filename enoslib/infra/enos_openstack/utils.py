@@ -2,13 +2,15 @@ import contextlib
 import logging
 import os
 from pathlib import Path
-from typing import Union
+from typing import Union, Generator
 
 logger = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
-def source_credentials_from_rc_file(rc_file: Union[Path, str]):
+def source_credentials_from_rc_file(
+    rc_file: Union[Path, str]
+) -> Generator[str, None, None]:
     initial_env = os.environ.copy()
     with open(rc_file) as file:
         lines = file.readlines()

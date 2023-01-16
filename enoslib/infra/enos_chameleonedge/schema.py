@@ -1,6 +1,6 @@
 from jsonschema import Draft7Validator, FormatChecker
-from .error import EnosChameleonWalltimeFormatError
 
+from .error import EnosChameleonWalltimeFormatError
 
 SCHEMA = {
     "type": "object",
@@ -87,7 +87,7 @@ ChameleonFormatChecker = FormatChecker()
 
 
 @ChameleonFormatChecker.checks("walltime", raises=EnosChameleonWalltimeFormatError)
-def is_valid_walltime(instance):
+def is_valid_walltime(instance) -> bool:
     """Auxiliary function to check walltime format"""
     if not isinstance(instance, str):
         return False
@@ -97,9 +97,9 @@ def is_valid_walltime(instance):
         int(wt_str[0])
         int(wt_str[1])
         return True
-    except Exception:
-        raise EnosChameleonWalltimeFormatError()
+    except Exception as err:
+        raise EnosChameleonWalltimeFormatError() from err
 
 
-def ChameleonValidator(schema):
+def ChameleonValidator(schema) -> Draft7Validator:
     return Draft7Validator(schema, format_checker=ChameleonFormatChecker)
