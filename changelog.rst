@@ -9,7 +9,7 @@
 Added
 +++++
 
-- **G5K:** automatically use ``access.grid5000.fr`` to avoid needing a local SSH config
+- **G5K:** automatically use ``access.grid5000.fr`` to avoid needing a local SSH config (can be disabled using the config)
 - **G5K:** allow to deploy a :ref:`specific version of an environment <grid5000-schema>`
 - **Docker:** allow to :doc:`login to Docker hub </apidoc/docker>` (to access private images or to bypass rate-limiting)
 - **K3S:** allow to :doc:`specify which version to install </apidoc/k3s>`
