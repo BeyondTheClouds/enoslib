@@ -326,8 +326,7 @@ def wait_for_jobs(jobs):
     all_running = False
     while not all_running:
         all_running = True
-        # see https://gitlab.inria.fr/discovery/enoslib/-/issues/170
-        time.sleep(3)
+        time.sleep(5)
         for job in jobs:
             job.refresh()
             scheduled = getattr(job, "scheduled_at", None)
