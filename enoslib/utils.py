@@ -1,9 +1,9 @@
-from collections import defaultdict
-from typing import Iterable, Optional
-from enoslib.objects import Host, Network, RolesLike, Roles
 import os
+from collections import defaultdict
+from typing import Iterable, Optional, Dict, Mapping
 
 from enoslib.errors import EnosFilePathError
+from enoslib.objects import Host, Network, RolesLike, Roles
 
 
 def _check_tmpdir(tmpdir):
@@ -11,12 +11,12 @@ def _check_tmpdir(tmpdir):
         os.mkdir(tmpdir)
     else:
         if not os.path.isdir(tmpdir):
-            raise EnosFilePathError("%s is not a directory" % tmpdir)
+            raise EnosFilePathError(f"{tmpdir} is not a directory")
         else:
             pass
 
 
-def remove_hosts(roles, hosts_to_keep):
+def remove_hosts(roles: Mapping, hosts_to_keep: Iterable) -> Optional[Dict]:
     if roles is None:
         return None
     updated_roles = defaultdict(list)

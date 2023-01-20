@@ -50,7 +50,7 @@ class EnosSSHNotReady(EnosError):
 
 
 class EnosFilePathError(EnosError):
-    def __init__(self, filepath, msg=""):
+    def __init__(self, filepath, msg: str = ""):
         super().__init__(msg)
         self.filepath = filepath
 
@@ -59,7 +59,7 @@ class EnosFilePathError(EnosError):
 class EnosProviderMissingConfigurationKeys(EnosError):
     def __init__(self, missing_overridden):
         super().__init__(
-            "Keys %s have to be overridden in the provider "
-            "section of the reservation file." % missing_overridden
+            f"Keys {missing_overridden} have to be overridden in the provider "
+            "section of the reservation file."
         )
         self.missing_overridden = missing_overridden

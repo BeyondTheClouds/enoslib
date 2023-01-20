@@ -1,14 +1,14 @@
 import logging
-from typing import List, Optional
+from typing import Optional, Tuple, MutableMapping, Sequence
 
 
 class TagsAdapter(logging.LoggerAdapter):
-    def process(self, msg, kwargs):
+    def process(self, msg, kwargs) -> Tuple[str, MutableMapping]:
         prefix = ",".join(self.extra["tags"])  # type: ignore
         return f"[{prefix}] {msg}", kwargs
 
 
-def getLogger(name: str, tags: Optional[List[str]] = None) -> TagsAdapter:
+def getLogger(name: str, tags: Optional[Sequence[str]] = None) -> TagsAdapter:
     if tags is None:
         tags = None
     logger = TagsAdapter(logging.getLogger(__name__), dict(tags=tags))
@@ -16,7 +16,7 @@ def getLogger(name: str, tags: Optional[List[str]] = None) -> TagsAdapter:
 
 
 class DisableLogging:
-    def __init__(self, level=None):
+    def __init__(self, level: Optional[int] = None):
         self.level = level
 
     def __enter__(self):

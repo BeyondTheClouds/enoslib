@@ -14,18 +14,18 @@ saved) at the beginning of a task (resp. at the end of a task).
 
 These operations rely on pickling the object stored in the environment.
 """
+import logging
+import pickle
 from collections import UserDict
 from datetime import datetime
 from functools import wraps
-import logging
-from typing import Optional, Union
 from pathlib import Path
-import pickle
+from typing import Optional, Union
+
 import yaml
 
 from enoslib.constants import SYMLINK_NAME, ENV_FILENAME
 from enoslib.errors import EnosFilePathError
-
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +36,11 @@ def _symlink_to(env_dir: Path):
             # in 3.8 we'd like to use missing_ok
             SYMLINK_NAME.unlink()
         SYMLINK_NAME.symlink_to(env_dir.resolve())
-        logger.info(f"Symlink {env_dir} to {SYMLINK_NAME}")
+        logger.info("Symlink %s to %s", env_dir, SYMLINK_NAME)
     except OSError:
         # A harmless error can occur due to a race condition when
         # multiple regions are simultaneously deployed
-        logger.info(f"Symlink {env_dir} to {SYMLINK_NAME} failed")
+        logger.info("Symlink %s to %s failed", env_dir, SYMLINK_NAME)
 
 
 def _create_env_dir(env_dir: Path):
@@ -59,7 +59,7 @@ def _create_env_dir(env_dir: Path):
     # Create the result directory if it does not exist
     if not env_dir.is_dir():
         env_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Generate environment directory {env_dir}")
+        logger.info("Generate environment directory %s", env_dir)
 
 
 class Environment(UserDict):
@@ -106,7 +106,7 @@ class Environment(UserDict):
             self = pickle.load(f)
             # fix path to the environment
             self.env_name = env_file.parent.resolve()
-            logger.debug(f"Loaded environment {env_file}")
+            logger.debug("Loaded environment %s", env_file)
         return self
 
     def dumps(self):
@@ -132,8 +132,8 @@ class Environment(UserDict):
 
 
 def get_or_create_env(
-    new: bool, env_name: Optional[Union[Environment, Path, str]], symlink=True
-):
+    new: bool, env_name: Optional[Union[Environment, Path, str]], symlink: bool = True
+) -> Environment:
     """Loads an environment in various situations.
 
     Args:
@@ -146,7 +146,7 @@ def get_or_create_env(
             symlink=True.
     """
 
-    def _create_new_env(env_file):
+    def _create_new_env(env_file: Path) -> Environment:
         _create_env_dir(env_file.parent)
         # Create a new env
         env = Environment(env_file.parent)
@@ -221,9 +221,9 @@ def enostask(new: bool = False, symlink: bool = True):
             kwargs["env"] = env
             try:
                 # Proceeds with the function execution
-                logger.info("- Task %s started -" % fn.__name__)
+                logger.info("- Task %s started -", fn.__name__)
                 r = fn(*args, **kwargs)
-                logger.info("- Task %s finished -" % fn.__name__)
+                logger.info("- Task %s finished -", fn.__name__)
                 return r
             finally:
                 # Save the environment

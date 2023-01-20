@@ -30,7 +30,18 @@ from ipaddress import (
 )
 from itertools import islice
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    Mapping,
+    Generator,
+    MutableMapping,
+)
 
 from netaddr import EUI
 
@@ -55,12 +66,13 @@ RolesNetworks = Tuple["Roles", "Networks"]
 # Iterable[Host] (e.g. coming from Roles filtering)
 # in order to make those actions more convenient to use we'd like to allow
 # some flexible inputs to be used.
-# TODO RolesLike = Union["Roles", Sequence["Host"], Mapping[str, "Host"], "Host"]
 RolesLike = Union["Roles", Iterable["Host"], "Host"]
 PathLike = Union[Path, str]
 
 
-def _build_devices(facts, networks):
+def _build_devices(
+    facts: Mapping, networks: "Networks"
+) -> Set[Union["NetDevice", "BridgeDevice"]]:
     """Extract the network devices information from the facts."""
     devices = set()
     for interface in facts["ansible_interfaces"]:
@@ -102,7 +114,7 @@ class Network(ABC):
             other.network
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.network)
 
     @property
@@ -226,7 +238,7 @@ class DefaultNetwork(Network):
         )
 
     @property
-    def free_macs(self) -> Iterable[EUI]:
+    def free_macs(self) -> Generator[EUI, None, None]:
         if self.has_free_macs:
             assert self.pool_mac_start is not None
             assert self.pool_mac_end is not None
@@ -235,7 +247,7 @@ class DefaultNetwork(Network):
         yield from ()
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         """
         content_only == True  => html_object == <div class=enoslib>...</div>
         content_only == False => html_base(html_object) == css +
@@ -280,7 +292,7 @@ class Networks(RolesDict):
     # TODO(msimonin): This is still duplicated code between Roles and Networks
     # but should be de-deduplicated using a common ancestor for networks and roles
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
         for role, networks in self.data.items():
@@ -320,7 +332,7 @@ class IPAddress:
         self.ip = ip_interface(address)
 
     @classmethod
-    def from_ansible(cls, d: Dict, network: Optional[Network]):
+    def from_ansible(cls, d: Mapping, network: Optional[Network]):
         """Build an IPAddress from ansible fact.
 
         Ansible fact corresponding section can be:
@@ -340,7 +352,7 @@ class IPAddress:
         else:
             raise ValueError(f"Nor {keys_1} not {keys_2} found in the dictionary")
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return dict(ip=str(self.ip))
 
 
@@ -356,7 +368,9 @@ class NetDevice:
     addresses: Set[IPAddress] = field(default_factory=set, compare=True, hash=False)
 
     @classmethod
-    def sync_from_ansible(cls, device: Dict, networks: Networks):
+    def sync_from_ansible(
+        cls, device: Mapping, networks: Networks
+    ) -> Union["NetDevice", "BridgeDevice"]:
         """
 
         "ansible_br0": {
@@ -448,7 +462,7 @@ class NetDevice:
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return dict(
             device=self.name,
             addresses=[address.to_dict() for address in self.addresses],
@@ -456,7 +470,7 @@ class NetDevice:
         )
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         d = self.to_dict()
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         return html_from_dict(name_class, d, content_only=content_only)
@@ -471,7 +485,7 @@ class BridgeDevice(NetDevice):
         """Get all the interfaces that are bridged here."""
         return self.bridged
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(type="bridge", interfaces=self.interfaces)
         return d
@@ -486,7 +500,7 @@ class Processor:
     def __post_init__(self):
         self.vcpus = self.cores * self.count * self.threads_per_core
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {
             "cores": self.cores,
             "count": self.count,
@@ -494,7 +508,7 @@ class Processor:
         }
 
     @repr_html_check
-    def _repr_html_(self, content_only: bool = False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         d = self.to_dict()
         return dict_to_html_foldable_sections(d)
 
@@ -590,7 +604,7 @@ class Host(BaseHost):
         """Get a copy of the extra vars of this host."""
         return copy.deepcopy(self.extra)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         p = None
         if self.processor is not None:
             p = self.processor.to_dict()
@@ -608,7 +622,7 @@ class Host(BaseHost):
 
     def sync_from_ansible(
         self, networks: Networks, host_facts: Dict, clear: bool = True
-    ):
+    ) -> "Host":
         """Set the devices based on ansible fact.s
 
         Mutate self, since it add/update the list of network devices
@@ -621,7 +635,9 @@ class Host(BaseHost):
         return self
 
     def filter_addresses(
-        self, networks: Optional[Iterable[Network]] = None, include_unknown=False
+        self,
+        networks: Optional[Iterable[Network]] = None,
+        include_unknown: bool = False,
     ) -> List[IPAddress]:
         """Get some addresses assigned to this host.
 
@@ -645,7 +661,9 @@ class Host(BaseHost):
         return addresses
 
     def filter_interfaces(
-        self, networks: Optional[Iterable[Network]] = None, include_unknown=False
+        self,
+        networks: Optional[Iterable[Network]] = None,
+        include_unknown: bool = False,
     ) -> List[str]:
         """Get some device interfaces.
 
@@ -679,12 +697,12 @@ class Host(BaseHost):
         return None
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: MutableMapping) -> "Host":
         _d = copy.deepcopy(d)
         address = _d.pop("address")
         return cls(address, **_d)
 
-    def to_host(self):
+    def to_host(self) -> "Host":
         """Copy or coerce to a Host."""
         return Host(
             self.address,
@@ -695,21 +713,21 @@ class Host(BaseHost):
             extra=self.extra,
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         alias = self.alias if self.alias is not None else self.address
         args = [
             alias,
-            "address=%s" % self.address,
-            "user=%s" % self.user,
-            "keyfile=%s" % self.keyfile,
-            "port=%s" % self.port,
-            "extra=%s" % self.extra,
-            "net_devices=%s" % self.net_devices,
+            f"address={self.address}",
+            f"user={self.user}",
+            f"keyfile={self.keyfile}",
+            f"port={self.port}",
+            f"extra={self.extra}",
+            f"net_devices={self.net_devices}",
         ]
-        return "Host(%s)" % ", ".join(args)
+        return f"Host({', '.join(args)})"
 
     @repr_html_check
-    def _repr_html_(self, content_only=False) -> str:
+    def _repr_html_(self, content_only: bool = False) -> str:
         name_class = f"{str(self.__class__)}@{hex(id(self))}"
         d = self.to_dict()
         # trick to not nest dictionary
@@ -754,7 +772,7 @@ class Roles(RolesDict):
     inner = HostsView
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         repr_title = f"{str(self.__class__)}@{hex(id(self))}"
         role_contents = []
         for role, hosts in self.data.items():

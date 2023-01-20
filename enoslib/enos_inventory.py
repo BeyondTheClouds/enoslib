@@ -1,8 +1,9 @@
-from packaging import version
+from typing import Mapping, Optional, Union, List
 
 import ansible
 from ansible.inventory.manager import InventoryManager as Inventory
 from ansible.parsing.dataloader import DataLoader
+from packaging import version
 
 from enoslib.objects import Host
 
@@ -10,7 +11,12 @@ ANSIBLE_VERSION = version.parse(ansible.__version__)
 
 
 class EnosInventory(Inventory):
-    def __init__(self, loader=None, sources=None, roles=None):
+    def __init__(
+        self,
+        loader: Optional[DataLoader] = None,
+        sources: Optional[Union[List, str]] = None,
+        roles: Optional[Mapping] = None,
+    ):
         """Inventory can be built from a role list or regular inventory files.
 
         Roles or Sources must be given. If both are set, roles have precedence
@@ -39,7 +45,7 @@ class EnosInventory(Inventory):
 
         self._populate_with_roles(roles)
 
-    def _populate_with_roles(self, roles):
+    def _populate_with_roles(self, roles: Mapping):
 
         for role, machines in roles.items():
             self.add_group(role)
@@ -79,11 +85,11 @@ class EnosInventory(Inventory):
                     # Disabling also hostkey checking for the gateway
                     gateway_user = machine.extra.get("gateway_user", machine.user)
                     if gateway_user is not None:
-                        proxy_cmd.append("-l %s" % gateway_user)
+                        proxy_cmd.append(f"-l {gateway_user}")
 
                     proxy_cmd.append(gateway)
                     final_proxy_cmd = " ".join(proxy_cmd)
-                    common_args.append('-o ProxyCommand="%s"' % final_proxy_cmd)
+                    common_args.append(f'-o ProxyCommand="{final_proxy_cmd}"')
 
                 final_common_args = " ".join(common_args)
                 host.set_variable("ansible_ssh_common_args", f"{final_common_args}")
@@ -94,12 +100,12 @@ class EnosInventory(Inventory):
 
                 self.reconcile_inventory()
 
-    def to_ini_string(self):
+    def to_ini_string(self) -> str:
         def to_inventory_string(v) -> str:
             """Handle the cas of List[String]."""
             if isinstance(v, list):
                 # [a, b, c] -> "['a','b','c']"
-                return '"[%s]"' % ",".join(map(lambda x: "'%s'" % x, v))
+                return '"[%s]"' % ",".join(map(lambda x: f"'{x}'", v))
             return f"'{v}'"
 
         s = []

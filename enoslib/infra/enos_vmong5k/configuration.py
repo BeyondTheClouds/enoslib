@@ -180,8 +180,8 @@ class MachineConfiguration:
         d: Dict = {}
         undercloud = self.undercloud
         if undercloud is not None:
-            undercloud = [h.to_dict() for h in undercloud]
-            d.update(undercloud=undercloud)
+            list_undercloud = [h.to_dict() for h in undercloud]
+            d.update(undercloud=list_undercloud)
         cluster = self.cluster
         if cluster is not None:
             d.update(cluster=cluster)

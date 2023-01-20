@@ -100,7 +100,7 @@ class DockerHost(Host):
         )
 
     @classmethod
-    def from_state(cls, state: Mapping, host: Host):
+    def from_state(cls, state: Mapping, host: Host) -> "DockerHost":
         """Build a DockerHost from a state json as returned by docker inspect."""
         container_name = state["Name"]
         alias = f"{container_name}-{host.alias}"

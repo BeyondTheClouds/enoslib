@@ -1,12 +1,11 @@
 """
 Manage a configuration for EnOSlib.
 """
-from contextlib import contextmanager
 import copy
+import logging
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-
-import logging
 
 logger = logging.getLogger(__name__)
 

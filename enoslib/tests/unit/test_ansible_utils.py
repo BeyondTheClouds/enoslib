@@ -1,3 +1,4 @@
+from enoslib.enos_inventory import EnosInventory
 from enoslib.objects import (
     BridgeDevice,
     Host,
@@ -5,8 +6,8 @@ from enoslib.objects import (
     DefaultNetwork,
     NetDevice,
     _build_devices,
+    Networks,
 )
-from enoslib.enos_inventory import EnosInventory
 from enoslib.tests.unit import EnosTest
 
 
@@ -84,7 +85,7 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(address="1.2.3.0/24"),
             DefaultNetwork(address="4.5.6.0/24"),
         ]
-        networks = dict(role1=[n1, n2])
+        networks = Networks(dict(role1=[n1, n2]))
         # from ansible
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
@@ -110,7 +111,7 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(address="1.2.3.0/24"),
             DefaultNetwork(address="4.5.6.0/24"),
         ]
-        networks = dict(role1=[n1, n2])
+        networks = Networks(dict(role1=[n1, n2]))
         # from ansible
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
@@ -135,7 +136,7 @@ class TestGetHostNet(EnosTest):
     def test__map_devices_all_match_multiple(self):
         n1 = DefaultNetwork(address="1.2.3.0/24")
         n2 = DefaultNetwork(address="4.5.6.0/24")
-        networks = dict(role1=[n1, n2])
+        networks = Networks(dict(role1=[n1, n2]))
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {
@@ -161,7 +162,7 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(address="1.2.3.0/24"),
             DefaultNetwork(address="4.5.6.0/24"),
         ]
-        networks = dict(role1=[n1, n2])
+        networks = Networks(dict(role1=[n1, n2]))
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {
@@ -187,7 +188,7 @@ class TestGetHostNet(EnosTest):
             DefaultNetwork(address="1.2.3.0/24"),
             DefaultNetwork(address="4.5.6.0/24"),
         ]
-        networks = dict(role1=[n1, n2])
+        networks = Networks(dict(role1=[n1, n2]))
         facts = {
             "ansible_interfaces": ["eth0", "eth1"],
             "ansible_eth0": {

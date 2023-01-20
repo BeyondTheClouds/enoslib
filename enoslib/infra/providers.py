@@ -1,7 +1,8 @@
 import copy
 from datetime import datetime, timezone
 from math import ceil
-from typing import List, Optional
+from typing import List, Optional, Sequence, Tuple
+
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
@@ -9,7 +10,6 @@ from enoslib.errors import (
     NegativeWalltime,
     NoSlotError,
 )
-
 from enoslib.infra.provider import Provider
 from enoslib.log import getLogger
 from enoslib.objects import Roles, Networks
@@ -19,7 +19,7 @@ logger = getLogger(__name__, ["ProviderS"])
 TIME_INCREMENT = 300
 
 
-def find_slot(providers: List[Provider], time_window: int, start_time: int) -> int:
+def find_slot(providers: Sequence[Provider], time_window: int, start_time: int) -> int:
     """
     Search for a time slot at which all of the provider in "providers" are able to
     reserve their configurations
@@ -58,8 +58,8 @@ def find_slot(providers: List[Provider], time_window: int, start_time: int) -> i
     if ko:
         raise NoSlotError()
     logger.info(
-        "Common reservation_date=%s (local time) [%s providers]"
-        % (datetime.fromtimestamp(start_time).isoformat(), len(providers))
+        "Common reservation_date=%s (local time) [%s providers]",
+        (datetime.fromtimestamp(start_time).isoformat(), len(providers)),
     )
     return start_time
 
@@ -112,10 +112,10 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
                 start_time=candidate_start_time, time_window=0, **kwargs
             )
             return
-        except NegativeWalltime:
+        except NegativeWalltime as err:
             logger.info(f"Negative walltime occurred with {str(provider)}")
             # we did our best but the walltime is too short
-            raise NoSlotError
+            raise NoSlotError from err
         except InvalidReservationTooOld:
             logger.info(f"Invalid reservation too old occurred with {str(provider)}")
 
@@ -128,8 +128,8 @@ def start_provider_within_bounds(provider: Provider, start_time: int, **kwargs):
 
 
 def find_slot_and_start(
-    providers: List[Provider], start_time: int, time_window: int, **kwargs
-) -> None:
+    providers: Sequence[Provider], start_time: int, time_window: int, **kwargs
+):
     """Try to find a common time slot for all the Provider in providers to start and
     then start them
 
@@ -159,22 +159,27 @@ def find_slot_and_start(
     reservation = find_slot(_providers, time_window, start_time)
     try:
         logger.debug(
-            "Attempt to start at %s"
-            % (datetime.fromtimestamp(reservation).strftime("%Y-%m-%d %H:%M:%S"))
+            "Attempt to start at %s",
+            (datetime.fromtimestamp(reservation).strftime("%Y-%m-%d %H:%M:%S")),
         )
         for provider in _providers:
             start_provider_within_bounds(provider, reservation, **kwargs)
         return
-    except NoSlotError:
+    except NoSlotError as err:
         # we transform to an InvalidReservationTime with a time hint
         # set to the next increment.
         slot_found = datetime.fromtimestamp(reservation, tz=timezone.utc).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
-        logger.debug(f"Found slot {slot_found} turned out to be invalid")
+        logger.debug("Found slot %s turned out to be invalid", slot_found)
         raise InvalidReservationTime(
             datetime.fromtimestamp(start_time + TIME_INCREMENT, tz=timezone.utc)
-        )
+        ) from err
+
+
+class NoneConfiguration:
+    def finalize(self):
+        pass
 
 
 class Providers(Provider):
@@ -186,6 +191,7 @@ class Providers(Provider):
         """
         # super is finalizing the conf we can't send None here
         # super().__init__(None)
+        super().__init__(NoneConfiguration())
         self.providers = providers
         self.name = "-".join([str(p) for p in self.providers])
 
@@ -195,7 +201,7 @@ class Providers(Provider):
         start_time: Optional[int] = None,
         time_window: Optional[int] = None,
         **kwargs,
-    ):
+    ) -> Tuple[Roles, Networks]:
         """The provider to use when you want to sync multiple providers.
 
         This will call init on each provider after finding a common possible
@@ -279,11 +285,11 @@ class Providers(Provider):
                 time_window = time_window + (start_time - _start_time)
                 start_time = _start_time
                 continue
-            except NoSlotError:
+            except NoSlotError as err:
                 self.destroy()
                 raise InvalidReservationCritical(
                     "Unable to start the providers within given time window"
-                )
+                ) from err
 
     def async_init(
         self,
@@ -294,11 +300,11 @@ class Providers(Provider):
     ):
         self._reserve(time_window=time_window, start_time=start_time)
 
-    def destroy(self):
+    def destroy(self, wait: bool = True, **kwargs):
         for provider in self.providers:
             provider.destroy(wait=True)
 
-    def test_slot(self, start_time: int, end_time: int):
+    def test_slot(self, start_time: int, end_time: int) -> bool:
         ok = True
         for provider in self.providers:
             ok = ok and provider.test_slot(start_time, end_time)

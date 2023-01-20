@@ -194,7 +194,7 @@ class Chameleonbaremetal(cc.Chameleonkvm):
                     _machines,
                     # NOTE(msimonin): we should be able to deduce the flavour from
                     # the name
-                    extra_prefix="-o-{}-o-".format(flavor.replace("_", "-")),
+                    extra_prefix=f'-o-{flavor.replace("_", "-")}-o-',
                     force_deploy=force_deploy,
                     key_name=conf.key_name,
                     image_id=env["image_id"],

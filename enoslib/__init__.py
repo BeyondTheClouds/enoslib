@@ -1,7 +1,6 @@
 # flake8: noqa
-from dataclasses import dataclass
+import logging
 from typing import List, Optional, Tuple, Any, Dict
-from enoslib.config import set_config, config_context
 
 from enoslib.api import (
     ensure_python3,
@@ -22,26 +21,18 @@ from enoslib.api import (
     STATUS_SKIPPED,
     DEFAULT_ERROR_STATUSES,
 )
-
-from enoslib.objects import Host, Network, Roles, Networks, DefaultNetwork
+from enoslib.config import set_config, config_context
 from enoslib.docker import DockerHost, get_dockers
+
+# Multi providers
+from enoslib.infra.providers import Providers
 from enoslib.local import LocalHost
+from enoslib.objects import Host, Network, Roles, Networks, DefaultNetwork
 
 # Services
 from enoslib.service.conda.conda import Dask, in_conda_cmd, conda_from_env
-
 from enoslib.service.docker.docker import Docker
 from enoslib.service.dstat.dstat import Dstat
-from enoslib.service.locust.locust import Locust
-from enoslib.service.k3s.k3s import K3s
-from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
-from enoslib.service.emul.netem import (
-    Netem,
-    netem,
-    NetemOutConstraint,
-    NetemInOutSource,
-    NetemInConstraint,
-)
 from enoslib.service.emul.htb import (
     netem_htb,
     AccurateNetemHTB,
@@ -49,17 +40,23 @@ from enoslib.service.emul.htb import (
     HTBConstraint,
     HTBSource,
 )
-from enoslib.service.tcpdump import TCPDump
+from enoslib.service.emul.netem import (
+    Netem,
+    netem,
+    NetemOutConstraint,
+    NetemInOutSource,
+    NetemInConstraint,
+)
+from enoslib.service.k3s.k3s import K3s
+from enoslib.service.locust.locust import Locust
+from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
 from enoslib.service.skydive.skydive import Skydive
-
-
-# Multi providers
-from enoslib.infra.providers import Providers
+from enoslib.service.tcpdump import TCPDump
 
 # Providers
 try:
     from enoslib.infra.enos_g5k.provider import G5k, G5kTunnel
-    import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
+    from enoslib.infra.enos_g5k import g5k_api_utils
     from enoslib.infra.enos_g5k.configuration import Configuration as G5kConf
     from enoslib.infra.enos_g5k.configuration import (
         NetworkConfiguration as G5kNetworkConf,
@@ -166,7 +163,6 @@ from enoslib.task import enostask, Environment
 
 
 # Some util functions
-import logging
 from .version import __chat__, __source__, __documentation__, __version__
 
 MOTD = f"""
@@ -201,8 +197,8 @@ def _check_deps() -> List[Tuple[str, Optional[bool], str, str]]:
     ]
     deps: List[Tuple[str, Optional[bool], str, str]] = []
     for shortname, provider, hint in providers:
+        mod = f"{prefix}.{provider}.provider"
         try:
-            mod = f"{prefix}.{provider}.provider"
             importlib.import_module(mod)
             deps.append((shortname, True, "", mod))
         except ImportError:
@@ -229,6 +225,7 @@ def _print_deps_table(deps: List[Tuple[str, Optional[bool], str, str]], console)
 
 def _print_conn_table(deps: List[Tuple[str, Optional[bool], str, str]], console):
     import importlib
+    from rich.table import Table
 
     filtered: List[Tuple[str, str]] = [
         (shortname, mod) for (shortname, deps_ok, _, mod) in deps if deps_ok
@@ -253,8 +250,6 @@ def _print_conn_table(deps: List[Tuple[str, Optional[bool], str, str]], console)
                 statuses.append((shortname, "❔", False, str(e)))
         else:
             statuses.append((shortname, "❔", None, "no info available"))
-
-    from rich.table import Table
 
     table = Table(title="Connectivity check")
     table.add_column("Provider")
@@ -292,19 +287,14 @@ def check():
     deps = _check_deps()
 
     from rich.console import Console
+    from rich.text import Text
+    from rich.markdown import Markdown
 
     console = Console()
 
-    from rich.text import Text
-    from .version import __version__
-
     text = Text(MOTD, justify="left")
-
     console.print(text)
-    from rich.markdown import Markdown
-
     console.print(Markdown(INFO))
-
     _print_deps_table(deps, console)
 
     with config_context(ansible_stdout="noop"):
