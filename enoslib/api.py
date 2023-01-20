@@ -14,24 +14,23 @@ These function can be fed with library-level objects (see :ref:`objects
     .. [#a1] https://docs.ansible.com/ansible/latest/index.html
 
 """
-from abc import ABCMeta, abstractmethod
 import copy
-from dataclasses import dataclass, field
-from enum import Enum
 import json
 import logging
 import os
 import signal
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+import sys
 import time
 import warnings
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict, namedtuple
+from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-import sys
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import (
     Any,
     Dict,
-    Sequence,
     List,
     Mapping,
     Optional,
@@ -40,7 +39,10 @@ from typing import (
     Union,
     overload,
     Iterable,
+    MutableMapping,
 )
+
+from ansible import context
 
 # These two imports are 2.9
 from ansible.executor.playbook_executor import PlaybookExecutor
@@ -58,8 +60,6 @@ from cryptography.hazmat.backends import default_backend as crypto_default_backe
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from rich.status import Console, Status
-
-from ansible import context
 
 from enoslib.config import get_config
 from enoslib.constants import ANSIBLE_DIR
@@ -112,7 +112,7 @@ ANSIBLE_TOP_LEVEL = {
 }
 
 
-def _split_args(**kwargs):
+def _split_args(**kwargs) -> Tuple[Dict, Dict]:
     """Splits top level kwargs and module specific kwargs."""
     top_args = {}
     module_args = {}
@@ -131,8 +131,12 @@ def _split_args(**kwargs):
 
 
 def _load_defaults(
-    inventory_path=None, roles=None, extra_vars=None, tags=None, basedir=False
-):
+    inventory_path: Optional[Union[List, str]] = None,
+    roles: Optional[Mapping] = None,
+    extra_vars: Optional[MutableMapping] = None,
+    tags=None,
+    basedir: Optional[str] = None,
+) -> Tuple[EnosInventory, VariableManager, DataLoader]:
     """Load common defaults data structures.
 
     For factorization purpose."""
@@ -142,7 +146,7 @@ def _load_defaults(
     if extra_vars.get("ansible_python_interpreter") is None:
         extra_vars.update(ansible_python_interpreter="python3")
 
-    logger.debug(f"Using extra_vars = {extra_vars}")
+    logger.debug("Using extra_vars = %s", extra_vars)
     tags = tags or []
     loader = DataLoader()
     if basedir:
@@ -262,7 +266,7 @@ class SpinnerCallback(CallbackBase):
         self.running_tasks[task_name][host.name] = HostStatus.NEUTRAL
         self.update(task_name)
 
-    def update(self, task_name):
+    def update(self, task_name: str):
         # fire a new spinner if it doesn't exist
         if self.status is None:
             self.status = Status("", console=self.console)
@@ -271,13 +275,13 @@ class SpinnerCallback(CallbackBase):
         status_str = " ".join(
             [status.value % host for (host, status) in hosts_status.items()]
         )
-        self.hosts_set = self.hosts_set.union([h for h in hosts_status.keys()])
+        self.hosts_set = self.hosts_set.union(list(hosts_status.keys()))
         self.status.update(
             f"[bold blue]Running[/bold blue] [magenta]{task_name}[/magenta] "
             f"on {status_str}"
         )
 
-    def v2_runner_on_failed(self, result, ignore_errors=False):
+    def v2_runner_on_failed(self, result, ignore_errors: bool = False):
         if not ignore_errors:
             status = HostStatus.FAILED
         else:
@@ -285,7 +289,7 @@ class SpinnerCallback(CallbackBase):
         self.running_tasks[result.task_name][result._host.name] = status
         self.update(result.task_name)
 
-    def v2_runner_on_ok(self, result, ignore_errors=False):
+    def v2_runner_on_ok(self, result, ignore_errors: bool = False):
         self.running_tasks[result.task_name][result._host.name] = HostStatus.OK
         self.update(result.task_name)
 
@@ -370,10 +374,10 @@ class BaseCommandResult:
     def _payload_keys(self):
         ...
 
-    def ok(self):
+    def ok(self) -> bool:
         return self.status == STATUS_OK
 
-    def match(self, **kwargs):
+    def match(self, **kwargs) -> bool:
         for k, v in kwargs.items():
             attr_value = getattr(self, k)
             if attr_value != v:
@@ -381,12 +385,12 @@ class BaseCommandResult:
         return True
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         return html_from_dict(
             str(self.__class__), self.__dict__, content_only=content_only
         )
 
-    def _summarize(self):
+    def _summarize(self) -> Dict:
         p: Union[Dict, str] = {
             k: self.payload[k]
             for k in self._payload_keys()
@@ -434,17 +438,17 @@ class BaseCommandResult:
 
 
 class CommandResult(BaseCommandResult):
-    def _payload_keys(self):
+    def _payload_keys(self) -> List[str]:
         return ["stdout", "stderr", "rc"]
 
 
 class AsyncCommandResult(BaseCommandResult):
-    def _payload_keys(self):
+    def _payload_keys(self) -> List[str]:
         return ["results_file", "ansible_job_id"]
 
 
 class CustomCommandResult(BaseCommandResult):
-    def _payload_keys(self):
+    def _payload_keys(self) -> List:
         return []
 
 
@@ -490,7 +494,7 @@ class Results(list):
         return Results([c for c in self if c.ok()])
 
     @repr_html_check
-    def _repr_html_(self, content_only=False):
+    def _repr_html_(self, content_only: bool = False) -> str:
         return html_from_sections(
             str(self.__class__),
             convert_to_html_table([d._summarize() for d in self]),
@@ -516,7 +520,7 @@ class Results(list):
 
 
 def populate_keys(
-    roles: RolesLike, local_dir: Path, key_name="id_rsa_enoslib"
+    roles: RolesLike, local_dir: Path, key_name: str = "id_rsa_enoslib"
 ) -> Tuple[Path, Path]:
     """Generate and push a new pair of keys to all hosts.
 
@@ -569,15 +573,15 @@ def populate_keys(
             state="present",
         )
 
-    return (priv_path, pub_path)
+    return priv_path, pub_path
 
 
 def run_play(
     play_source: Dict,
     *,
-    inventory_path: Optional[str] = None,
+    inventory_path: Optional[Union[str, List]] = None,
     roles: Optional[RolesLike] = None,
-    extra_vars: Optional[Mapping] = None,
+    extra_vars: Optional[MutableMapping] = None,
     on_error_continue: bool = False,
 ) -> Results:
     """Run a play.
@@ -636,7 +640,7 @@ class _Phantom:
         self.current = current
         self.prefix = prefix
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return _Phantom(self.parent, name, f"{self.prefix}.{name}")
 
     def __call__(self, *args, **kwds):
@@ -823,7 +827,7 @@ __docker__ = actions()
 __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 
-def ensure_python3(make_default=False, **kwargs):
+def ensure_python3(make_default: bool = False, **kwargs):
     """Make sure python3 is installed on the remote nodes, and optionally make
     it the default.
 
@@ -846,7 +850,7 @@ def run_command(
     inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
     gather_facts: bool = False,
-    extra_vars: Optional[Mapping] = None,
+    extra_vars: Optional[MutableMapping] = None,
     on_error_continue: bool = False,
     run_as: Optional[str] = None,
     background: bool = False,
@@ -946,7 +950,7 @@ def run_command(
         # don't inject if background is False
         kwargs.update(background=True)
 
-    task = dict(name=command)
+    task: Dict = dict(name=command)
     if task_name is not None:
         task.update(name=task_name)
     if raw:
@@ -996,11 +1000,11 @@ def gather_facts(
     *,
     pattern_hosts="all",
     gather_subset="all",
-    inventory_path=None,
+    inventory_path: Optional[str] = None,
     roles: Optional[RolesLike] = None,
-    extra_vars: Optional[Mapping] = None,
+    extra_vars: Optional[MutableMapping] = None,
     on_error_continue=False,
-):
+) -> Dict:
     """Gather facts about hosts.
 
 
@@ -1064,7 +1068,7 @@ def gather_facts(
 
     """
 
-    def filter_results(results, status):
+    def filter_results(results: Results, status: str) -> Dict:
         _r = [r for r in results if r.status == status and r.task == COMMAND_NAME]
         s = {r.host: r.payload.get("ansible_facts") for r in _r}
         return s
@@ -1092,26 +1096,28 @@ def _dump_obj(obj):
     Args:
         obj: anything that is json serializable
     """
-    try:
-        dump_result = get_config()["dump_results"]
-        if dump_result is not None:
+    dump_result = get_config().get("dump_results")
+    if dump_result is not None:
+        try:
             with dump_result.open("a") as f:
                 json.dump(obj, f)
 
-    except Exception as e:
-        logger.error(
-            "Error while saving results" "dump_result=%s, exception=%s", dump_result, e
-        )
+        except (TypeError, RecursionError, ValueError, OSError) as err:
+            logger.error(
+                "Error while saving results dump_result=%s, exception=%s",
+                dump_result,
+                err,
+            )
 
 
 def run_ansible(
     playbooks: List[str],
-    inventory_path: Optional[str] = None,
+    inventory_path: Optional[Union[str, List]] = None,
     roles: Optional[RolesLike] = None,
     tags: Optional[List[str]] = None,
     on_error_continue: bool = False,
     basedir: Optional[str] = ".",
-    extra_vars: Optional[Mapping] = None,
+    extra_vars: Optional[MutableMapping] = None,
 ) -> Results:
     """Run Ansible.
 
@@ -1134,7 +1140,7 @@ def run_ansible(
         :py:class:`enoslib.errors.EnosUnreachableHostsError`: if a host is
             unreachable (through ssh) and ``on_error_continue==False``
     """
-    if not extra_vars:
+    if extra_vars is None:
         extra_vars = {}
     roles = _hostslike_to_roles(roles)
     inventory, variable_manager, loader = _load_defaults(
@@ -1147,7 +1153,7 @@ def run_ansible(
     results: List[_AnsibleExecutionRecord] = []
     passwords: Dict = {}
     for path in playbooks:
-        logger.debug(f"Running playbook {path} with vars:\n{extra_vars}")
+        logger.debug("Running playbook %s with vars:\n%s", path, extra_vars)
         _results: List[_AnsibleExecutionRecord] = []
         callback = _MyCallback(_results)
         pbex = PlaybookExecutor(
@@ -1181,11 +1187,11 @@ def run_ansible(
                 failed_hosts.append(r)
 
         if len(failed_hosts) > 0:
-            logger.error("Failed hosts: %s" % failed_hosts)
+            logger.error("Failed hosts: %s", failed_hosts)
             if not on_error_continue:
                 raise EnosFailedHostsError(failed_hosts)
         if len(unreachable_hosts) > 0:
-            logger.error("Unreachable hosts: %s" % unreachable_hosts)
+            logger.error("Unreachable hosts: %s", unreachable_hosts)
             if not on_error_continue:
                 raise EnosUnreachableHostsError(unreachable_hosts)
 
@@ -1302,7 +1308,7 @@ def generate_inventory(
     roles: Roles,
     networks: Networks,
     inventory_path: str,
-    check_networks=False,
+    check_networks: bool = False,
 ):
     """Generate an inventory file in the ini format.
 
@@ -1329,7 +1335,7 @@ def generate_inventory(
             f.write(_generate_inventory(_roles))
 
 
-def get_hosts(roles: Roles, pattern_hosts: str = "all") -> Sequence[Host]:
+def get_hosts(roles: Roles, pattern_hosts: str = "all") -> List[Host]:
     """Get all the hosts matching the pattern.
 
     Args:
@@ -1350,9 +1356,7 @@ def get_hosts(roles: Roles, pattern_hosts: str = "all") -> Sequence[Host]:
     return [h for h in all_hosts if h.address in ansible_addresses]
 
 
-def wait_for(
-    roles: RolesLike, retries: int = 100, interval: int = 30, **kwargs
-) -> None:
+def wait_for(roles: RolesLike, retries: int = 100, interval: int = 30, **kwargs):
     """Wait for all the machines to be ready to run some commands.
 
     Let Ansible initiates a communication and retries if needed.
@@ -1377,7 +1381,7 @@ def wait_for(
                 p.raw("hostname", task_name="Waiting for connection")
             break
         except EnosUnreachableHostsError:
-            logger.info(f"Retrying... {i + 1}/{retries}")
+            logger.info("Retrying... %s/%s", i + 1, retries)
             time.sleep(interval)
     else:
         raise EnosSSHNotReady("Maximum retries reached")
@@ -1421,14 +1425,12 @@ def bg_stop(key: str, num: int = signal.SIGINT) -> str:
         return f"tmux kill-session -t {key} || true"
     else:
         # We prefer send a sigint to all the encapsulated processes
-        cmd = (
-            "(tmux list-panes -t %s -F '#{pane_pid}' | " "xargs -n1 kill -%s) || true"
-        ) % (key, int(num))
+        cmd = f"(tmux list-panes -t {key} -F '#{{pane_pid}}' | xargs -n1 kill -{int(num)}) || true"  # noqa
         return cmd
 
 
 # Private zone
-def _generate_inventory(roles):
+def _generate_inventory(roles: Optional[Mapping]) -> str:
     """Generates an inventory files from roles
 
     roles: dict of roles (roles -> list of Host)

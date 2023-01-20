@@ -121,7 +121,7 @@ class Provider:
         return False
 
     @abstractmethod
-    def destroy(self, wait=False, **kwargs):
+    def destroy(self, wait: bool = False, **kwargs):
         """Abstract. Destroy the resources used for the deployment."""
         pass
 
@@ -155,7 +155,7 @@ class Provider:
         """
         pass
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     def __enter__(self):

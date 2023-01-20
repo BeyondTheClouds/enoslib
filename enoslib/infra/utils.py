@@ -1,23 +1,22 @@
+import logging
 from itertools import groupby
-from typing import MutableMapping
+from typing import Dict, Iterable, Mapping
 
 from enoslib.errors import NegativeWalltime
-import logging
-
 
 logger = logging.getLogger(__name__)
 
 
-def mk_pools(things, keyfnc=lambda x: x):
+def mk_pools(things: Iterable, keyfnc=lambda x: x) -> Dict:
     """Indexes a thing by the keyfnc to construct pools of things."""
-    pools: MutableMapping = {}
+    pools: Dict = {}
     sthings = sorted(things, key=keyfnc)
     for key, thingz in groupby(sthings, key=keyfnc):
         pools.setdefault(key, []).extend(list(thingz))
     return pools
 
 
-def pick_things(pools, key, n):
+def pick_things(pools: Mapping, key, n: int):
     """Picks a maximum of n things in a dict of indexed pool of things."""
     pool = pools.get(key)
     if not pool:
@@ -27,7 +26,7 @@ def pick_things(pools, key, n):
     return things
 
 
-def offset_from_format(date_str: str, offset: int, fmt: str):
+def offset_from_format(date_str: str, offset: int, fmt: str) -> str:
     import datetime as dt
 
     as_dt = dt.datetime.strptime(date_str, fmt)
@@ -39,7 +38,7 @@ def offset_from_format(date_str: str, offset: int, fmt: str):
     return new_as_dt.strftime(fmt)
 
 
-def _date2h(timestamp):
+def _date2h(timestamp) -> str:
     # TODO(msimonin) use isoformat
     import time
 
@@ -47,10 +46,10 @@ def _date2h(timestamp):
     return t
 
 
-def merge_dict(original: dict, diff: dict) -> dict:
+def merge_dict(original: Dict, diff: Dict) -> Dict:
     """Merge original dict with a diff dict."""
 
-    def _merge_dict(original, diff):
+    def _merge_dict(original: Dict, diff: Dict) -> Dict:
         """Merge inplace diff dict into original dict."""
         for k, v in diff.items():
             if k not in original:

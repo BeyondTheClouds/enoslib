@@ -1,7 +1,7 @@
 import json
 import logging
 import warnings
-from typing import Callable, Dict, Optional, Any, Type, MutableSequence
+from typing import Callable, Dict, Optional, Any, Type, MutableSequence, Mapping
 
 import jsonschema
 
@@ -19,7 +19,7 @@ class BaseConfiguration:
 
     # Setting this is deferred to the inherited classes
     _SCHEMA: Optional[Dict[Any, Any]] = None
-    _VALIDATOR_FUNC: Optional[Callable[[Dict], Any]] = None
+    _VALIDATOR_FUNC: Optional[Callable] = None
 
     def __init__(self):
         # A configuration has the least these two
@@ -32,7 +32,7 @@ class BaseConfiguration:
         self._network_cls: Optional[Type] = None
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(cls, dictionary: Mapping, validate: bool = True):
         """Alternative constructor. Build the configuration from a
         dictionary."""
         pass
@@ -55,7 +55,7 @@ class BaseConfiguration:
         return self
 
     @classmethod
-    def validate(cls, dictionary, schema=None):
+    def validate(cls, dictionary: Mapping, schema: Optional[Dict] = None):
         if schema is None:
             schema = cls._SCHEMA
         if cls._VALIDATOR_FUNC is None:
@@ -64,13 +64,11 @@ class BaseConfiguration:
             # pylint: disable-next=not-callable
             cls._VALIDATOR_FUNC(schema).validate(dictionary)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {}
 
     def finalize(self):
         d = self.to_dict()
-        import json
-
         logger.debug(json.dumps(d, indent=4))
         self.validate(d)
         return self
@@ -100,7 +98,7 @@ class BaseConfiguration:
             )
         return self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = f"Conf@{hex(id(self))}\n"
         r += json.dumps(self.to_dict(), indent=4)
         return r

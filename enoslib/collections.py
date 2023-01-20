@@ -1,7 +1,6 @@
-from typing import Iterable, Optional
-
 from collections import UserDict
 from collections.abc import MutableSet
+from typing import Iterable, Optional, Mapping
 
 
 class ResourcesSet(MutableSet):
@@ -20,16 +19,16 @@ class ResourcesSet(MutableSet):
         if iterable is not None:
             self.data = set(iterable)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.data.__repr__()
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return key in self.data
 
     def __iter__(self):
         yield from self.data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def add(self, value):
@@ -132,7 +131,7 @@ class RolesDict(UserDict):
             all_hosts += hosts
         return all_hosts
 
-    def __add__(self, other):
+    def __add__(self, other: Mapping):
         result = RolesDict()
         for role, hosts in self.items():
             result[role] += hosts
@@ -140,7 +139,7 @@ class RolesDict(UserDict):
             result[role] += hosts
         return result
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: Mapping):
         for role, hosts in other.items():
             self[role] += hosts
         return self
@@ -148,6 +147,6 @@ class RolesDict(UserDict):
     def extend(self, roles):
         self += roles
 
-    def add_one(self, elem, keys):
+    def add_one(self, elem, keys: Iterable):
         for key in keys:
             self[key] += [elem]
