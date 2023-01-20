@@ -1,7 +1,7 @@
-from typing import MutableMapping
+from typing import Mapping, Dict
 
-from ..configuration import BaseConfiguration
 from .schema import SCHEMA
+from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):
@@ -14,7 +14,9 @@ class Configuration(BaseConfiguration):
         self._machine_cls = MachineConfiguration
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
         self = cls()
@@ -27,7 +29,7 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return {
             "resources": {
                 "machines": [m.to_dict() for m in self.machines],
@@ -57,7 +59,7 @@ class MachineConfiguration:
         self.extra = extra if extra is not None else {}
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
 
         return cls(
             address=dictionary["address"],
@@ -69,8 +71,8 @@ class MachineConfiguration:
             extra=dictionary.get("extra"),
         )
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(address=self.address, roles=self.roles)
         if self.alias:
             d.update(alias=self.alias)
@@ -98,7 +100,7 @@ class NetworkConfiguration:
         self.dns = dns
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "NetworkConfiguration":
 
         return cls(
             roles=dictionary["roles"],
@@ -109,8 +111,8 @@ class NetworkConfiguration:
             dns=dictionary["dns"],
         )
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         d.update(
             roles=self.roles,
             cidr=self.cidr,
