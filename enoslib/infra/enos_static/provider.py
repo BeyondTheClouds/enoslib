@@ -1,7 +1,7 @@
 from typing import Tuple, Optional
 
-from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.infra.provider import Provider
+from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 
 
 class Static(Provider):
@@ -14,7 +14,7 @@ class Static(Provider):
     """
 
     def init(
-        self, force_deploy=False, start_time: Optional[int] = None, **kwargs
+        self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
     ) -> Tuple[Roles, Networks]:
         machines = self.provider_conf.machines
         roles = Roles()
@@ -46,7 +46,7 @@ class Static(Provider):
 
         return roles, networks
 
-    def destroy(self, wait=False, **kwargs):
+    def destroy(self, wait: bool = False, **kwargs):
         pass
 
     def offset_walltime(self, difference: int):
