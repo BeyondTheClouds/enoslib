@@ -7,6 +7,7 @@ from grid5000.objects import Vlan, Node
 from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
+from enoslib.config import get_config
 from enoslib.infra.enos_g5k.constants import G5KMACPREFIX, KAVLAN_LOCAL_IDS
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_api_username,
@@ -717,7 +718,9 @@ class G5kHost:
         all_extra: Dict[str, str] = {}
         if extra:
             all_extra.update(extra)
-        if not inside_g5k():
+
+        g5k_auto_jump = get_config()["g5k_auto_jump"]
+        if g5k_auto_jump or (g5k_auto_jump is None and not inside_g5k()):
             all_extra["gateway"] = "access.grid5000.fr"
             all_extra["gateway_user"] = get_api_username()
         h = Host(address=address, user=user, extra=all_extra)

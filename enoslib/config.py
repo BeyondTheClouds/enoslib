@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 _config = dict(
     g5k_cache="lru",
+    g5k_auto_jump=None,
     display="html",
     dump_results=None,
     ansible_stdout="spinner",
@@ -54,6 +55,7 @@ def _set_dump_results(dump_results: Optional[Union[Path, str]]):
 
 def set_config(
     g5k_cache: Optional[str] = None,
+    g5k_auto_jump: Optional[bool] = None,
     display: Optional[str] = None,
     dump_results: Optional[Union[Path, str]] = None,
     ansible_stdout: Optional[str] = None,
@@ -64,9 +66,16 @@ def set_config(
         g5k_cache: True iff a cache must be used for HTTP request to the API
             Reasons to disable the cache is to workaround issues with concurrent
             access on NFS.
-        g5k_cache_dir: location of the g5k cache directory
+        g5k_auto_jump: control auto-jump configuration
+            None: auto-detect if the jump over the access machine is necessary
+            True: force jump over the access machine
+            False: disable the jump over the access machine (e.g when using the VPN)
+        display: In a Jupyter environment, display objects using an HTML representation
+        dump_results: dump the command result in a file
+        ansible_stdout: stdout Ansible callback to use
     """
     _set("g5k_cache", g5k_cache)
+    _set("g5k_auto_jump", g5k_auto_jump)
     _set("display", display)
     _set("ansible_stdout", ansible_stdout)
     _set_dump_results(dump_results)
