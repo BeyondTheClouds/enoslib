@@ -1,8 +1,9 @@
 import logging
 import re
 
-import enoslib as en
 import iotlabcli.auth
+
+import enoslib as en
 
 en.init_logging(level=logging.INFO)
 en.check()

@@ -1,13 +1,9 @@
 import warnings
-from typing import Optional, Dict, Union, Mapping
+from typing import Dict, Mapping, Optional, Union
 
-from .constants import (
-    DEFAULT_JOB_NAME,
-    DEFAULT_WALLTIME,
-    DEFAULT_NUMBER,
-)
-from .schema import SCHEMA, ChameleonValidator
 from ..configuration import BaseConfiguration
+from .constants import DEFAULT_JOB_NAME, DEFAULT_NUMBER, DEFAULT_WALLTIME
+from .schema import SCHEMA, ChameleonValidator
 
 
 class Configuration(BaseConfiguration):

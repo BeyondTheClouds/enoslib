@@ -12,7 +12,7 @@ from enoslib.errors import (
 )
 from enoslib.infra.provider import Provider
 from enoslib.log import getLogger
-from enoslib.objects import Roles, Networks
+from enoslib.objects import Networks, Roles
 
 logger = getLogger(__name__, ["ProviderS"])
 

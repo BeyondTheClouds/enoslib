@@ -1,4 +1,5 @@
 import enoslib.infra.enos_openstack.configuration as OSConfiguration
+
 from ..enos_chameleonkvm.schema import SCHEMA
 from .constants import DEFAULT_IMAGE, DEFAULT_NAMESERVERS, DEFAULT_USER
 

@@ -1,9 +1,9 @@
 import ipaddress
-from typing import Dict, Optional, List
+from collections import namedtuple
+from typing import Dict, List, Optional
 from unittest import mock
 
-from collections import namedtuple
-from enoslib.api import Results, CommandResult, STATUS_OK, STATUS_FAILED
+from enoslib.api import STATUS_FAILED, STATUS_OK, CommandResult, Results
 from enoslib.errors import NegativeWalltime
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
@@ -11,32 +11,30 @@ from enoslib.infra.enos_g5k.configuration import (
     NetworkConfiguration,
 )
 from enoslib.infra.enos_g5k.constants import (
-    NETWORK_ROLE_PROD,
     DEFAULT_SSH_KEYFILE,
     KAVLAN,
+    NETWORK_ROLE_PROD,
     PROD,
 )
 from enoslib.infra.enos_g5k.error import (
     EnosG5kInvalidArgumentsError,
     EnosG5kKavlanNodesError,
 )
-from enoslib.infra.enos_g5k.g5k_api_utils import (
-    set_nodes_vlan,
-)
+from enoslib.infra.enos_g5k.g5k_api_utils import set_nodes_vlan
 from enoslib.infra.enos_g5k.objects import (
     G5kEnosProd4Network,
     G5kEnosProd6Network,
+    G5kEnosSubnetNetwork,
     G5kEnosVlan4Network,
     G5kEnosVlan6Network,
-    G5kEnosSubnetNetwork,
 )
 from enoslib.infra.enos_g5k.provider import (
-    _check_deployed_nodes,
     G5k,
     G5kHost,
     G5kProdNetwork,
-    G5kVlanNetwork,
     G5kSubnetNetwork,
+    G5kVlanNetwork,
+    _check_deployed_nodes,
 )
 from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
@@ -47,9 +45,10 @@ def get_offline_client():
 
     Allow to run (network isolated) tests against the reference API.
     """
-    from grid5000 import Grid5000Offline
     import json
     from pathlib import Path
+
+    from grid5000 import Grid5000Offline
 
     data = json.loads((Path(__file__).parent / "reference.json").read_text())
     api = Grid5000Offline(data)

@@ -2,8 +2,9 @@ import logging
 import tarfile
 from pathlib import Path
 
-import enoslib as en
 from scapy.all import rdpcap
+
+import enoslib as en
 
 en.init_logging(level=logging.INFO)
 en.check()

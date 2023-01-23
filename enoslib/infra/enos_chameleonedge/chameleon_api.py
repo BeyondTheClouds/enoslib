@@ -1,26 +1,24 @@
 import logging
 import time
-from typing import List, Set, Dict, Mapping, Optional, Tuple, Iterable
+from typing import Dict, Iterable, List, Mapping, Optional, Set, Tuple
 
 import zunclient.v1.containers
 from chi import container, lease
 from zunclient.v1.containers import Container
 
 from enoslib.infra.enos_chameleonedge.configuration import (
-    DeviceGroupConfiguration,
     DeviceClusterConfiguration,
     DeviceConfiguration,
+    DeviceGroupConfiguration,
 )
-from .chi_api_utils import (
-    source_credentials_from_rc_file,
-    wait_for_addresses,
-)
+
+from .chi_api_utils import source_credentials_from_rc_file, wait_for_addresses
 from .constants import (
-    ROLES,
-    ROLES_SEPARATOR,
     CONTAINER_LABELS,
     CONTAINER_STATUS,
     LEASE_ID,
+    ROLES,
+    ROLES_SEPARATOR,
 )
 
 logger = logging.getLogger(__name__)

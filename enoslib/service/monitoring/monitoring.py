@@ -4,6 +4,7 @@ from typing import Dict, Iterable, Optional
 
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Network, Roles
+
 from ..service import Service
 from ..utils import _set_dir, _to_abs
 

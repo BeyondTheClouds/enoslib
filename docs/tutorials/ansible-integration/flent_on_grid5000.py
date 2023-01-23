@@ -1,6 +1,6 @@
-import enoslib as en
 from pathlib import Path
 
+import enoslib as en
 
 logging = en.init_logging()
 

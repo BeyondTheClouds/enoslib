@@ -1,6 +1,7 @@
-import random
-import paho.mqtt.client as mqtt
 import argparse
+import random
+
+import paho.mqtt.client as mqtt
 
 parser = argparse.ArgumentParser(description="mosquitto-sub")
 parser.add_argument(

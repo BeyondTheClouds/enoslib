@@ -3,7 +3,7 @@ import logging
 import os
 import time
 from itertools import groupby
-from typing import Mapping, Optional, List, Dict
+from typing import Dict, List, Mapping, Optional
 
 from blazarclient import client as blazar_client
 from keystoneauth1.session import Session

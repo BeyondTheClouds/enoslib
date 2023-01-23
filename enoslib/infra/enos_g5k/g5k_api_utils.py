@@ -18,29 +18,30 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Mapping,
     MutableMapping,
+    MutableSequence,
     Optional,
     Tuple,
-    MutableSequence,
-    Mapping,
 )
 
 import pytz
 from grid5000 import Grid5000
 from grid5000.exceptions import Grid5000DeleteError
-from grid5000.objects import Job, Node, Vlan, Site, Cluster
+from grid5000.objects import Cluster, Job, Node, Site, Vlan
 
 from enoslib.infra.utils import _date2h
 from enoslib.log import getLogger
+
 from .constants import (
+    KAVLAN,
     KAVLAN_GLOBAL,
     KAVLAN_IDS,
     KAVLAN_LOCAL,
-    KAVLAN,
     KAVLAN_LOCAL_IDS,
-    PROD_VLAN_ID,
-    NATURE_PROD,
     MAX_DEPLOY,
+    NATURE_PROD,
+    PROD_VLAN_ID,
 )
 from .error import (
     EnosG5kDuplicateJobsError,

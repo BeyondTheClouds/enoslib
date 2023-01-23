@@ -1,8 +1,8 @@
 # flake8: noqa
-from .conda import (
-    _Conda,
+from .conda import (  # noqa
     Dask,
-    _conda_run_command,
+    _Conda,
     _conda_play_on,
+    _conda_run_command,
     conda_from_env,
-)  # noqa
+)

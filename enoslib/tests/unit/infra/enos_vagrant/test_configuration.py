@@ -3,13 +3,14 @@ from typing import Dict
 import jsonschema
 from jsonschema.exceptions import ValidationError
 
+import enoslib.infra.enos_vagrant.constants as constants
 from enoslib.infra.enos_vagrant.configuration import (
     Configuration,
     MachineConfiguration,
     NetworkConfiguration,
 )
 from enoslib.infra.enos_vagrant.constants import FLAVOURS
-import enoslib.infra.enos_vagrant.constants as constants
+
 from ... import EnosTest
 
 

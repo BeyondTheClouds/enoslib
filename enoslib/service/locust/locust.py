@@ -1,17 +1,18 @@
 import os
 import time
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, MutableMapping
+from typing import Dict, Iterable, List, MutableMapping, Optional
 
 from enoslib.api import __python3__, actions
 from enoslib.html import (
     dict_to_html_foldable_sections,
-    html_to_foldable_section,
     html_from_sections,
+    html_to_foldable_section,
     repr_html_check,
 )
 from enoslib.objects import Host, Network, Roles
 from enoslib.utils import get_address
+
 from ..service import Service
 from ..utils import _set_dir
 

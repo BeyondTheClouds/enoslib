@@ -4,6 +4,7 @@ from packaging.version import Version
 
 from enoslib.api import actions, run
 from enoslib.objects import Host, Roles
+
 from ..service import Service
 
 GUARD_DASHBOARD = "k3s kubectl get service -n kubernetes-dashboard kubernetes-dashboard"

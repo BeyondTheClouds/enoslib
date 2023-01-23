@@ -1,18 +1,19 @@
 import uuid
 from typing import MutableMapping
 
+from enoslib.objects import Host
+
 from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_FLAVOUR,
+    DEFAULT_FORCE_DEPLOY,
     DEFAULT_JOB_NAME,
     DEFAULT_NETWORKS,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
-    DEFAULT_FORCE_DEPLOY,
     FLAVOURS,
 )
-from enoslib.objects import Host
 from .schema import SCHEMA
 
 

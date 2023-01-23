@@ -1,15 +1,15 @@
-from typing import MutableMapping, Type, Mapping, Dict, Optional
+from typing import Dict, Mapping, MutableMapping, Optional, Type
 
+from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_BACKEND,
     DEFAULT_BOX,
     DEFAULT_FLAVOUR,
-    DEFAULT_USER,
     DEFAULT_NAME_PREFIX,
+    DEFAULT_USER,
     FLAVOURS,
 )
 from .schema import SCHEMA
-from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):

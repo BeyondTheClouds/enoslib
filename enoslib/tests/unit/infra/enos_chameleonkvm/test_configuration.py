@@ -1,8 +1,8 @@
+import enoslib.infra.enos_chameleonkvm.constants as constants
 from enoslib.infra.enos_chameleonkvm.configuration import (
     Configuration,
     MachineConfiguration,
 )
-import enoslib.infra.enos_chameleonkvm.constants as constants
 
 from ... import EnosTest
 

@@ -1,6 +1,7 @@
 from abc import ABC
 from pathlib import Path
 from typing import List, Tuple
+
 from enoslib.objects import PathLike
 from enoslib.service.emul.utils import FPING_FILE_SUFFIX, _fping_stats
 from enoslib.service.service import Service

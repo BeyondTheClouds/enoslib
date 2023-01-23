@@ -1,22 +1,23 @@
 import warnings
-from typing import List, Optional, MutableMapping, Tuple, Dict, Collection
+from typing import Collection, Dict, List, MutableMapping, Optional, Tuple
 from uuid import uuid4
 
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
+
+from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_ENV_NAME_COMPAT,
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
-    DEFAULT_WALLTIME,
     DEFAULT_SSH_KEYFILE,
+    DEFAULT_WALLTIME,
     JOB_TYPE_DEPLOY,
-    NETWORK_ROLE_PROD,
     KAVLAN_TYPE,
+    NETWORK_ROLE_PROD,
     SUBNET_TYPES,
 )
-from .schema import SCHEMA_USER, SCHEMA_INTERNAL, G5kValidator
-from ..configuration import BaseConfiguration
+from .schema import SCHEMA_INTERNAL, SCHEMA_USER, G5kValidator
 
 
 class Configuration(BaseConfiguration):

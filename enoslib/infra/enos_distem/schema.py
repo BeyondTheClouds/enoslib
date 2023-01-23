@@ -1,16 +1,14 @@
-from .constants import FLAVOURS
-
-
-from .constants import (
-    DEFAULT_JOB_NAME,
-    DEFAULT_WALLTIME,
-    DEFAULT_ENV_NAME,
-    DEFAULT_NUMBER,
-    DEFAULT_QUEUE,
-    DEFAULT_FLAVOUR,
-)
 from enoslib.infra.enos_g5k.constants import QUEUE_TYPES
 
+from .constants import (
+    DEFAULT_ENV_NAME,
+    DEFAULT_FLAVOUR,
+    DEFAULT_JOB_NAME,
+    DEFAULT_NUMBER,
+    DEFAULT_QUEUE,
+    DEFAULT_WALLTIME,
+    FLAVOURS,
+)
 
 STRATEGY = ["copy", "cow"]
 

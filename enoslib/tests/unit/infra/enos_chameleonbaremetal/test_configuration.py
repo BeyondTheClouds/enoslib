@@ -1,8 +1,8 @@
+import enoslib.infra.enos_chameleonbaremetal.constants as constants
 from enoslib.infra.enos_chameleonbaremetal.configuration import (
     Configuration,
     MachineConfiguration,
 )
-import enoslib.infra.enos_chameleonbaremetal.constants as constants
 
 from ... import EnosTest
 

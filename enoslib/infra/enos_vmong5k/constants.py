@@ -2,7 +2,6 @@ import os
 
 from enoslib.infra.enos_g5k.constants import SLASH_22
 
-
 DEFAULT_JOB_NAME = "EnOslib-vmong5k"
 DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"

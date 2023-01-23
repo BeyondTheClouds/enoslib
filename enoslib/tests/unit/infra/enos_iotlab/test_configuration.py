@@ -1,17 +1,16 @@
 from typing import Dict
 
-from jsonschema.exceptions import ValidationError
 import pytest
+from jsonschema.exceptions import ValidationError
 
+import enoslib.infra.enos_iotlab.constants as constants
 from enoslib.infra.enos_iotlab.configuration import (
-    Configuration,
     BoardConfiguration,
+    Configuration,
+    ConsumptionConfiguration,
     PhysNodeConfiguration,
     RadioConfiguration,
-    ConsumptionConfiguration,
 )
-import enoslib.infra.enos_iotlab.constants as constants
-
 from enoslib.tests.unit import EnosTest
 
 

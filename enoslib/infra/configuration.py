@@ -1,7 +1,7 @@
 import json
 import logging
 import warnings
-from typing import Callable, Dict, Optional, Any, Type, MutableSequence, Mapping
+from typing import Any, Callable, Dict, Mapping, MutableSequence, Optional, Type
 
 import jsonschema
 

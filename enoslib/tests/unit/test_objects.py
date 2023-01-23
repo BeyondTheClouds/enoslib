@@ -1,6 +1,6 @@
-from enoslib.objects import Host, NetDevice, IPAddress, DefaultNetwork, Roles, HostsView
-from enoslib.local import LocalHost
 from enoslib.docker import DockerHost
+from enoslib.local import LocalHost
+from enoslib.objects import DefaultNetwork, Host, HostsView, IPAddress, NetDevice, Roles
 
 from . import EnosTest
 

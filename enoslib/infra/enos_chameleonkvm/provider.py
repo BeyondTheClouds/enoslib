@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 import enoslib.infra.enos_openstack.provider as openstack
-from enoslib.objects import Roles, Networks
+from enoslib.objects import Networks, Roles
 
 
 class Chameleonkvm(openstack.Openstack):

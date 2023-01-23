@@ -1,5 +1,5 @@
-from itertools import islice
 import logging
+from itertools import islice
 from pathlib import Path
 
 import enoslib as en

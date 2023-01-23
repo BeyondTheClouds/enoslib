@@ -1,5 +1,6 @@
-from typing import Mapping, Dict
+from typing import Dict, Mapping
 
+from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_ALLOCATION_POOL,
     DEFAULT_CONFIGURE_NETWORK,
@@ -10,7 +11,6 @@ from .constants import (
     DEFAULT_SUBNET,
 )
 from .schema import SCHEMA
-from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):

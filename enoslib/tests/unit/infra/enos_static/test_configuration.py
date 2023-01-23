@@ -4,9 +4,10 @@ import jsonschema
 
 from enoslib.infra.enos_static.configuration import (
     Configuration,
-    NetworkConfiguration,
     MachineConfiguration,
+    NetworkConfiguration,
 )
+
 from ... import EnosTest
 
 

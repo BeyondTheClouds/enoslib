@@ -42,7 +42,7 @@ Example:
 import json
 from typing import List, Mapping, Optional
 
-from enoslib.api import run_command, get_hosts
+from enoslib.api import get_hosts, run_command
 from enoslib.objects import Host, Roles
 
 

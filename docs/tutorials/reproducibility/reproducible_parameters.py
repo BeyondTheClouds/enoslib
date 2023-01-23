@@ -1,6 +1,7 @@
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import yaml
 
 import enoslib as en

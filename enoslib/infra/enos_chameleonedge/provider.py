@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Tuple, Optional, Dict, Mapping, Iterable
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple
 
 from zunclient.v1.containers import Container
 
@@ -8,11 +8,12 @@ from enoslib.infra.enos_chameleonedge.chameleon_api import ChameleonAPI
 from enoslib.infra.enos_chameleonedge.objects import ChameleonDevice, ChameleonNetwork
 from enoslib.infra.provider import Provider
 from enoslib.objects import Networks, Roles
+
 from .chi_api_utils import (
+    check_connection_to_api,
     get_node_address,
     get_node_roles,
     get_node_uuid,
-    check_connection_to_api,
 )
 
 logger = logging.getLogger(__name__)

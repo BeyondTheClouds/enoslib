@@ -1,6 +1,6 @@
+import json
 import logging
 import sys
-import json
 
 import enoslib as en
 

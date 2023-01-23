@@ -1,7 +1,6 @@
 from ..schema import JSON_SCHEMA
 from .constants import BACKENDS, DEFAULT_BACKEND, DEFAULT_BOX, DEFAULT_USER, FLAVOURS
 
-
 SCHEMA = {
     "type": "object",
     "title": "Vagrant Configuration Schema",

@@ -1,9 +1,9 @@
 import os
 from collections import defaultdict
-from typing import Iterable, Optional, Dict, Mapping
+from typing import Dict, Iterable, Mapping, Optional
 
 from enoslib.errors import EnosFilePathError
-from enoslib.objects import Host, Network, RolesLike, Roles
+from enoslib.objects import Host, Network, Roles, RolesLike
 
 
 def _check_tmpdir(tmpdir):

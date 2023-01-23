@@ -1,13 +1,9 @@
 import warnings
-from typing import Type, MutableSequence, Optional, Dict, Mapping
+from typing import Dict, Mapping, MutableSequence, Optional, Type
 
-from .constants import (
-    DEFAULT_JOB_NAME,
-    DEFAULT_WALLTIME,
-    DEFAULT_NUMBER_BOARDS,
-)
-from .schema import SCHEMA, IotlabValidator
 from ..configuration import BaseConfiguration
+from .constants import DEFAULT_JOB_NAME, DEFAULT_NUMBER_BOARDS, DEFAULT_WALLTIME
+from .schema import SCHEMA, IotlabValidator
 
 
 class Configuration(BaseConfiguration):

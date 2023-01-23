@@ -1,5 +1,5 @@
-from typing import Dict
 from datetime import timezone
+from typing import Dict
 
 from enoslib.infra.enos_iotlab import iotlab_api
 from enoslib.infra.enos_iotlab.configuration import (

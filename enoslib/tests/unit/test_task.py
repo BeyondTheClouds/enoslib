@@ -1,16 +1,17 @@
+import os
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
-import tempfile
-import os
+
 import yaml
+from ddt import data, ddt
 
-from ddt import ddt, data
-
-from . import EnosTest
-from enoslib.task import Environment, _symlink_to, get_or_create_env, enostask
 from enoslib.constants import ENV_FILENAME, SYMLINK_NAME
 from enoslib.errors import EnosFilePathError
+from enoslib.task import Environment, _symlink_to, enostask, get_or_create_env
+
+from . import EnosTest
 
 
 @contextmanager

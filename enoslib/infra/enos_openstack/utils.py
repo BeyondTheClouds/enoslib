@@ -2,7 +2,7 @@ import contextlib
 import logging
 import os
 from pathlib import Path
-from typing import Union, Generator
+from typing import Generator, Union
 
 logger = logging.getLogger(__name__)
 

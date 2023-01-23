@@ -1,5 +1,5 @@
 import socket
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 import iotlabcli.auth
 import sshtunnel
@@ -8,7 +8,7 @@ from enoslib.api import play_on
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
 from enoslib.infra.enos_iotlab.sensor import Sensor
 from enoslib.log import getLogger
-from enoslib.objects import Host, DefaultNetwork
+from enoslib.objects import DefaultNetwork, Host
 
 logger = getLogger(__name__, ["IOTlab"])
 

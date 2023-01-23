@@ -3,7 +3,7 @@ from pathlib import Path
 from time import time_ns
 from typing import Dict, Iterable, Optional
 
-from enoslib.api import play_on, bg_start, bg_stop
+from enoslib.api import bg_start, bg_stop, play_on
 from enoslib.html import (
     dict_to_html_foldable_sections,
     html_from_sections,
@@ -11,6 +11,7 @@ from enoslib.html import (
     repr_html_check,
 )
 from enoslib.objects import Host, PathLike
+
 from ..service import Service
 from ..utils import _set_dir
 

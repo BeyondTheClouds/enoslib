@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional, Set, Tuple
 
-from enoslib.api import play_on, Results
+from enoslib.api import Results, play_on
 from enoslib.constants import TMP_DIRNAME
 from enoslib.html import (
     convert_list_to_html_table,
