@@ -1,30 +1,30 @@
 import copy
 from typing import List, MutableSequence
 
-from ddt import ddt, data
+from ddt import data, ddt
 
 from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
-    ServersConfiguration,
     NetworkConfiguration,
+    ServersConfiguration,
 )
 from enoslib.infra.enos_g5k.constants import (
     NATURE_PROD,
     PROD,
     PROD_VLAN_ID,
-    SLASH_22,
     SLASH_16,
+    SLASH_22,
 )
 from enoslib.infra.enos_g5k.error import MissingNetworkError, NotEnoughNodesError
 from enoslib.infra.enos_g5k.g5k_api_utils import OarNetwork
+from enoslib.infra.enos_g5k.objects import G5kNetwork, G5kSubnetNetwork
 from enoslib.infra.enos_g5k.provider import (
     _concretize_networks,
     _concretize_nodes,
     _join,
 )
 from enoslib.tests.unit import EnosTest
-from enoslib.infra.enos_g5k.objects import G5kSubnetNetwork, G5kNetwork
 
 
 class TestConcretizeNetwork(EnosTest):

@@ -1,16 +1,10 @@
-from typing import Union, List
+from typing import List, Union
 from unittest import mock
 
-from enoslib.api import (
-    CommandResult,
-    actions,
-    get_hosts,
-    wait_for,
-    STATUS_OK,
-    Results,
-)
-from enoslib.errors import EnosUnreachableHostsError, EnosSSHNotReady
+from enoslib.api import STATUS_OK, CommandResult, Results, actions, get_hosts, wait_for
+from enoslib.errors import EnosSSHNotReady, EnosUnreachableHostsError
 from enoslib.objects import Host, Roles
+
 from . import EnosTest
 
 

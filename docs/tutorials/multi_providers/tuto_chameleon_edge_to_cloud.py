@@ -3,9 +3,10 @@
 # https://www.chameleoncloud.org/experiment/share/37991779-fd7b-4ab0-8d6f-e726a9204946
 
 import logging
-import time
-import enoslib as en
 import os
+import time
+
+import enoslib as en
 
 en.init_logging(level=logging.INFO)
 logging.basicConfig(level=logging.INFO)

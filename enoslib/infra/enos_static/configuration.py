@@ -1,7 +1,7 @@
-from typing import Mapping, Dict
+from typing import Dict, Mapping
 
-from .schema import SCHEMA
 from ..configuration import BaseConfiguration
+from .schema import SCHEMA
 
 
 class Configuration(BaseConfiguration):

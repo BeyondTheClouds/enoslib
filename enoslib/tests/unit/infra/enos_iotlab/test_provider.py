@@ -4,6 +4,8 @@ from unittest import mock
 from unittest.mock import patch
 
 import ddt
+from iotlabcli.experiment import AliasNodes, exp_resources
+from iotlabcli.profile import ProfileA8, ProfileCustom, ProfileM3
 
 from enoslib.errors import NegativeWalltime
 from enoslib.infra.enos_iotlab.configuration import (
@@ -16,8 +18,6 @@ from enoslib.infra.enos_iotlab.constants import DEFAULT_JOB_NAME, PROD
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 from enoslib.infra.enos_iotlab.provider import Iotlab
 from enoslib.tests.unit import EnosTest
-from iotlabcli.experiment import AliasNodes, exp_resources
-from iotlabcli.profile import ProfileA8, ProfileCustom, ProfileM3
 
 
 class TestAuthProvider(EnosTest):

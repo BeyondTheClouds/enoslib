@@ -1,6 +1,6 @@
 import logging
-import time
 import threading
+import time
 
 import enoslib as en
 

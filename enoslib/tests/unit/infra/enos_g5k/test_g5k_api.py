@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-
 from enoslib.infra.enos_g5k.g5k_api_utils import _deploy, _do_grid_make_reservation
 from enoslib.tests.unit import EnosTest
 

@@ -1,5 +1,5 @@
-from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
+from enoslib.infra.enos_static.provider import Static
 from enoslib.tests.unit import EnosTest
 
 

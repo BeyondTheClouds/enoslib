@@ -1,7 +1,7 @@
 import re
 import sys
 import time
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Set, Tuple
 from urllib.error import HTTPError
 
 import iotlabcli
@@ -12,16 +12,14 @@ import iotlabsshcli.open_linux
 import pytz
 
 from enoslib.infra.enos_iotlab.configuration import (
-    Configuration,
-    GroupConfiguration,
     BoardConfiguration,
+    Configuration,
+    ConsumptionConfiguration,
+    GroupConfiguration,
     PhysNodeConfiguration,
     RadioConfiguration,
-    ConsumptionConfiguration,
 )
-from enoslib.infra.enos_iotlab.constants import (
-    PROFILE_POWER_DEFAULT,
-)
+from enoslib.infra.enos_iotlab.constants import PROFILE_POWER_DEFAULT
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 from enoslib.log import getLogger
 
@@ -491,8 +489,8 @@ def get_free_nodes(
 
     """
     experiments = experiments_status.get("items")
-    from datetime import datetime
     import copy
+    from datetime import datetime
 
     # at start every node is considered as free
     # and we'll remove from them the nodes with conflicting reservation

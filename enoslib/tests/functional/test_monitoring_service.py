@@ -2,10 +2,9 @@ import logging
 import os
 
 from enoslib.api import sync_info
-from enoslib.service import TIGMonitoring, TPGMonitoring
-from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
-
+from enoslib.infra.enos_static.provider import Static
+from enoslib.service import TIGMonitoring, TPGMonitoring
 
 logging.basicConfig(level=logging.DEBUG)
 provider_conf = {

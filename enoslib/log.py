@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Tuple, MutableMapping, Sequence
+from typing import MutableMapping, Optional, Sequence, Tuple
 
 
 class TagsAdapter(logging.LoggerAdapter):

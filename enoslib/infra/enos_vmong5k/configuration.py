@@ -1,8 +1,10 @@
 import uuid
-from typing import Iterable, Optional, Type, MutableMapping, Dict, Mapping, List
+from typing import Dict, Iterable, List, Mapping, MutableMapping, Optional, Type
 
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
 from enoslib.objects import Host
+
+from ..configuration import BaseConfiguration
 from .constants import (
     DEFAULT_DOMAIN_TYPE,
     DEFAULT_FLAVOUR,
@@ -18,7 +20,6 @@ from .constants import (
     FLAVOURS,
 )
 from .schema import SCHEMA, VMonG5kValidator
-from ..configuration import BaseConfiguration
 
 
 class Configuration(BaseConfiguration):

@@ -21,37 +21,38 @@ from dataclasses import InitVar, dataclass, field
 from ipaddress import (
     IPv4Address,
     IPv4Interface,
+    IPv4Network,
     IPv6Address,
     IPv6Interface,
+    IPv6Network,
     ip_address,
     ip_interface,
-    IPv4Network,
-    IPv6Network,
 )
 from itertools import islice
 from pathlib import Path
 from typing import (
     Dict,
+    Generator,
     Iterable,
     List,
+    Mapping,
+    MutableMapping,
     Optional,
     Set,
     Tuple,
     Union,
-    Mapping,
-    Generator,
-    MutableMapping,
 )
 
 from netaddr import EUI
 
 from enoslib.html import (
     dict_to_html_foldable_sections,
-    html_to_foldable_section,
     html_from_dict,
     html_from_sections,
+    html_to_foldable_section,
     repr_html_check,
 )
+
 from .collections import ResourcesSet, RolesDict
 
 AddressInterfaceType = Union[IPv4Address, IPv6Address]

@@ -1,21 +1,21 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Union, Tuple, MutableSequence, Optional
+from typing import List, MutableSequence, Optional, Tuple, Union
 
 from grid5000.objects import Job
 
 from enoslib.infra.enos_g5k.configuration import Configuration
 from enoslib.infra.enos_g5k.g5k_api_utils import (
+    OarNetwork,
     build_resources,
     get_api_username,
     grid_deploy,
-    grid_destroy_from_name,
     grid_destroy_from_ids,
+    grid_destroy_from_name,
     grid_get_or_create_job,
     grid_reload_from_ids,
     grid_reload_jobs_from_ids,
     grid_reload_jobs_from_name,
     wait_for_jobs,
-    OarNetwork,
 )
 from enoslib.log import getLogger
 

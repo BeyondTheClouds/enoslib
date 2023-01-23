@@ -1,10 +1,10 @@
-from enoslib.api import sync_info
-from enoslib.infra.enos_openstack.provider import Openstack
-from enoslib.infra.enos_openstack.configuration import Configuration
-from enoslib.service.emul.netem import Netem
-
 import logging
 import os
+
+from enoslib.api import sync_info
+from enoslib.infra.enos_openstack.configuration import Configuration
+from enoslib.infra.enos_openstack.provider import Openstack
+from enoslib.service.emul.netem import Netem
 
 logging.basicConfig(level=logging.INFO)
 

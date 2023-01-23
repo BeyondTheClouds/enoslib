@@ -1,17 +1,17 @@
 import warnings
 from typing import MutableMapping
-
-from jsonschema.exceptions import ValidationError
-import pytest
 from unittest.mock import patch
 
+import pytest
+from jsonschema.exceptions import ValidationError
+
+import enoslib.infra.enos_g5k.constants as constants
 from enoslib.infra.enos_g5k.configuration import (
     ClusterConfiguration,
     Configuration,
     NetworkConfiguration,
     ServersConfiguration,
 )
-import enoslib.infra.enos_g5k.constants as constants
 
 from ... import EnosTest
 

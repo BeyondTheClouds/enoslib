@@ -1,10 +1,7 @@
 from unittest import mock
 
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
-from enoslib.infra.enos_vmong5k.provider import (
-    _do_build_g5k_conf,
-    _distribute,
-)
+from enoslib.infra.enos_vmong5k.provider import _distribute, _do_build_g5k_conf
 from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 

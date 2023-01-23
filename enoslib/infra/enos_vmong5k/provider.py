@@ -3,9 +3,9 @@ import itertools
 import logging
 import operator
 from collections import defaultdict
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional, Generator, Mapping, Tuple, Set, Iterable
+from typing import Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple
 
 import pytz
 from netaddr import EUI, mac_unix_expanded
@@ -17,10 +17,11 @@ from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.objects import Host, Roles
-from .configuration import Configuration, MachineConfiguration
-from .constants import DESTROY_PLAYBOOK_PATH, PLAYBOOK_PATH, LIBVIRT_DIR
+
 from ..provider import Provider
 from ..utils import offset_from_format
+from .configuration import Configuration, MachineConfiguration
+from .constants import DESTROY_PLAYBOOK_PATH, LIBVIRT_DIR, PLAYBOOK_PATH
 
 logger = logging.getLogger(__name__)
 

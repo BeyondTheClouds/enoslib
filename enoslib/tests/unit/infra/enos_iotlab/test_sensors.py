@@ -1,13 +1,8 @@
 from unittest import mock
 from unittest.mock import patch
 
-from enoslib.infra.enos_iotlab.objects import (
-    IotlabSensor,
-    IotlabSerial,
-    IotlabSniffer,
-)
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI
-
+from enoslib.infra.enos_iotlab.objects import IotlabSensor, IotlabSerial, IotlabSniffer
 from enoslib.tests.unit import EnosTest
 
 

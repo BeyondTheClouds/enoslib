@@ -12,19 +12,19 @@ from typing import (
     Iterable,
     List,
     MutableMapping,
+    MutableSequence,
     Optional,
+    Sequence,
     Tuple,
     Union,
     cast,
-    Sequence,
-    MutableSequence,
 )
 
 import pytz
 from grid5000.exceptions import Grid5000CreateError
 from sshtunnel import SSHTunnelForwarder
 
-from enoslib.api import run, CommandResult, CustomCommandResult
+from enoslib.api import CommandResult, CustomCommandResult, run
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
@@ -44,14 +44,14 @@ from enoslib.infra.enos_g5k.constants import (
     SLASH_16,
     SLASH_22,
 )
-from enoslib.infra.enos_g5k.driver import get_driver, Job
+from enoslib.infra.enos_g5k.driver import Job, get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
+    _test_slot,
     get_api_client,
     get_api_username,
     get_clusters_status,
-    _test_slot,
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -63,8 +63,9 @@ from enoslib.infra.enos_g5k.objects import (
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
 from enoslib.infra.utils import mk_pools, pick_things
-from enoslib.log import getLogger, DisableLogging
+from enoslib.log import DisableLogging, getLogger
 from enoslib.objects import Host, Networks, Roles
+
 from .configuration import (
     ClusterConfiguration,
     GroupConfiguration,

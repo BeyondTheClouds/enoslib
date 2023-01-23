@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Iterable, List, Optional, Union
 
-from enoslib.api import play_on, bg_start, bg_stop
+from enoslib.api import bg_start, bg_stop, play_on
 from enoslib.objects import Host, Network, Roles
+
 from ..service import Service
 from ..utils import _set_dir
 

@@ -1,13 +1,14 @@
-import torchvision
+import functools
+import io
+import logging
+from threading import Lock
+from time import sleep
+
+import paho.mqtt.client as mqtt
 import torch
+import torchvision
 from PIL import Image
 from torchvision import transforms
-import paho.mqtt.client as mqtt
-from time import sleep
-from threading import Lock
-import io
-import functools
-import logging
 
 logging.basicConfig(filename="/tmp/predict.log", level=logging.DEBUG)
 # The MQTT topic to subscribe to

@@ -24,7 +24,7 @@ from typing import Optional, Union
 
 import yaml
 
-from enoslib.constants import SYMLINK_NAME, ENV_FILENAME
+from enoslib.constants import ENV_FILENAME, SYMLINK_NAME
 from enoslib.errors import EnosFilePathError
 
 logger = logging.getLogger(__name__)

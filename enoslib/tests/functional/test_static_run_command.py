@@ -5,7 +5,6 @@ import enoslib as en
 from enoslib.api import AsyncCommandResult, CommandResult
 from enoslib.config import config_context
 
-
 logging = en.init_logging()
 
 

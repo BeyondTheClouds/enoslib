@@ -1,18 +1,19 @@
 import copy
-from datetime import datetime, timezone
 import itertools
 import logging
 import os
-from typing import Sequence, Optional
+from datetime import datetime, timezone
+from typing import Optional, Sequence
 
 import distem as d
 import pytz
-import enoslib.infra.enos_g5k.configuration as g5kconf
-import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
-import enoslib.infra.enos_g5k.provider as g5kprovider
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+
+import enoslib.infra.enos_g5k.configuration as g5kconf
+import enoslib.infra.enos_g5k.g5k_api_utils as g5k_api_utils
+import enoslib.infra.enos_g5k.provider as g5kprovider
 from enoslib.api import play_on
 from enoslib.infra.enos_distem.configuration import Configuration
 from enoslib.infra.enos_g5k.constants import SLASH_22
@@ -20,7 +21,7 @@ from enoslib.objects import Host, Network, Networks, Roles
 
 from ..provider import Provider
 from ..utils import offset_from_format
-from .constants import PATH_DISTEMD_LOGS, SUBNET_NAME, DEFAULT_ENV_NAME
+from .constants import DEFAULT_ENV_NAME, PATH_DISTEMD_LOGS, SUBNET_NAME
 
 logger = logging.getLogger(__name__)
 

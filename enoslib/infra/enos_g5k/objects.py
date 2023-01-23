@@ -1,9 +1,9 @@
 import ipaddress
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Generator
+from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
 
 from grid5000.base import RESTObject
-from grid5000.objects import Vlan, Node
+from grid5000.objects import Node, Vlan
 from netaddr.ip import IPNetwork
 from netaddr.ip.sets import IPSet
 
@@ -21,7 +21,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
 )
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.log import getLogger
-from enoslib.objects import DefaultNetwork, Host, NetworkType, AddressInterfaceType
+from enoslib.objects import AddressInterfaceType, DefaultNetwork, Host, NetworkType
 
 logger = getLogger(__name__, ["G5k"])
 

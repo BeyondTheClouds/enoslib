@@ -1,8 +1,7 @@
-import enoslib as en
-from enoslib.api import CommandResult, AsyncCommandResult
-
 from pathlib import Path
 
+import enoslib as en
+from enoslib.api import AsyncCommandResult, CommandResult
 
 # Dummy functional test running inside a docker container
 

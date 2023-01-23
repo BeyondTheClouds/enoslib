@@ -3,21 +3,21 @@ from typing import Dict
 
 from jsonschema import Draft7Validator, FormatChecker
 
+from ..utils import merge_dict
 from .constants import (
-    JOB_TYPES_REGEXP,
-    QUEUE_TYPES,
-    NETWORK_TYPES,
     DEFAULT_JOB_NAME,
+    DEFAULT_NUMBER,
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
-    DEFAULT_NUMBER,
+    JOB_TYPES_REGEXP,
+    NETWORK_TYPES,
+    QUEUE_TYPES,
 )
 from .error import (
     EnosG5kInvalidJobTypesError,
     EnosG5kReservationDateFormatError,
     EnosG5kWalltimeFormatError,
 )
-from ..utils import merge_dict
 
 SCHEMA_USER = {
     "type": "object",

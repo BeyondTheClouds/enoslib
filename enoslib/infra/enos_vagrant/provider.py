@@ -1,7 +1,7 @@
 import logging
 import os
 from ipaddress import ip_interface
-from typing import List, Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import vagrant
 from jinja2 import Environment, FileSystemLoader
@@ -9,6 +9,7 @@ from netaddr import IPNetwork
 
 from enoslib.infra.provider import Provider
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
+
 from .constants import DEFAULT_NAME_PREFIX
 
 logger = logging.getLogger(__name__)

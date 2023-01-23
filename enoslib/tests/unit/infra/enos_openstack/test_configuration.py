@@ -2,8 +2,9 @@ from typing import Dict
 
 import jsonschema
 
-from enoslib.infra.enos_openstack.configuration import Configuration
 import enoslib.infra.enos_openstack.constants as constants
+from enoslib.infra.enos_openstack.configuration import Configuration
+
 from ... import EnosTest
 
 

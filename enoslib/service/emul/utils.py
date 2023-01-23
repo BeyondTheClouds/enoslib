@@ -5,19 +5,9 @@ from ipaddress import ip_interface
 from itertools import groupby
 from operator import attrgetter
 from pathlib import Path
-from typing import (
-    Iterable,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
-    Dict,
-    Generator,
-    Mapping,
-)
+from typing import Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple, Union
 
-from enoslib.api import actions, Results, run_command
+from enoslib.api import Results, actions, run_command
 from enoslib.objects import Host, Network
 from enoslib.utils import _check_tmpdir
 

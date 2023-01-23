@@ -1,6 +1,6 @@
 from collections import UserDict
 from collections.abc import MutableSet
-from typing import Iterable, Optional, Mapping
+from typing import Iterable, Mapping, Optional
 
 
 class ResourcesSet(MutableSet):

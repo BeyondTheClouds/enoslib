@@ -1,5 +1,6 @@
 import time
-from locust import User, task, between, events
+
+from locust import User, between, events, task
 
 
 class QuickstartUser(User):

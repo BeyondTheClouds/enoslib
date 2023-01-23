@@ -25,16 +25,16 @@ import re
 import time
 from operator import itemgetter
 from typing import (
-    MutableMapping,
-    List,
-    Tuple,
-    Dict,
-    Collection,
-    Union,
-    Mapping,
     Any,
-    Optional,
+    Collection,
+    Dict,
     Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Union,
 )
 
 from glanceclient import client as glance
@@ -45,15 +45,16 @@ from novaclient import client as nova
 
 from enoslib.infra.enos_openstack.utils import source_credentials_from_rc_file
 from enoslib.infra.provider import Provider
-from enoslib.infra.utils import pick_things, mk_pools
+from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.objects import Host, Networks, Roles
+
 from .configuration import Configuration, MachineConfiguration
 from .constants import (
-    NOVA_VERSION,
-    GLANCE_VERSION,
     DEFAULT_PREFIX,
-    SECGROUP_NAME,
+    GLANCE_VERSION,
+    NOVA_VERSION,
     ROUTER_NAME,
+    SECGROUP_NAME,
 )
 from .objects import OSNetwork
 

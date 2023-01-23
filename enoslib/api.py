@@ -31,15 +31,15 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory
 from typing import (
     Any,
     Dict,
+    Iterable,
     List,
     Mapping,
+    MutableMapping,
     Optional,
     Set,
     Tuple,
     Union,
     overload,
-    Iterable,
-    MutableMapping,
 )
 
 from ansible import context

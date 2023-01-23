@@ -1,4 +1,4 @@
-from typing import Mapping, Optional, Union, List
+from typing import List, Mapping, Optional, Union
 
 import ansible
 from ansible.inventory.manager import InventoryManager as Inventory

@@ -1,5 +1,6 @@
 import logging
 import os
+
 import enoslib as en
 
 en.init_logging(level=logging.INFO)

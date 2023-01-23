@@ -2,12 +2,13 @@ import copy
 import os
 from itertools import chain
 from textwrap import dedent as _d
-from typing import Iterable, List, Optional, Any, Tuple
+from typing import Any, Iterable, List, Optional, Tuple
 
 import yaml
 
-from enoslib.api import actions, run, Results
+from enoslib.api import Results, actions, run
 from enoslib.objects import Host, Roles
+
 from ..service import Service
 
 INSTALLER_URL = "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"

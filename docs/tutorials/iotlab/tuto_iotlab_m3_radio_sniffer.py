@@ -1,6 +1,6 @@
+import contextlib
 import logging
 import time
-import contextlib
 
 import enoslib as en
 

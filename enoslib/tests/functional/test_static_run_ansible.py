@@ -1,8 +1,7 @@
-import enoslib as en
-from enoslib.api import CommandResult
-
 import os
 
+import enoslib as en
+from enoslib.api import CommandResult
 
 logging = en.init_logging()
 

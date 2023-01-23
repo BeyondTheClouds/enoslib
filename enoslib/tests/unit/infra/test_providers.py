@@ -1,5 +1,8 @@
 from datetime import datetime
-from unittest.mock import Mock, patch, call
+from unittest.mock import Mock, call, patch
+
+import pytz
+from freezegun import freeze_time
 
 from enoslib.errors import (
     InvalidReservationCritical,
@@ -9,8 +12,6 @@ from enoslib.errors import (
 from enoslib.infra.providers import Providers
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
-from freezegun import freeze_time
-import pytz
 
 
 class TestFindSlot(EnosTest):

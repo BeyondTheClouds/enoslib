@@ -1,11 +1,12 @@
+import logging
+
 from enoslib.api import play_on
-from enoslib.infra.enos_static.provider import Static
 from enoslib.infra.enos_static.configuration import Configuration
+from enoslib.infra.enos_static.provider import Static
 from enoslib.task import enostask
 
 # Dummy functional test running inside a docker container
 
-import logging
 
 logging.basicConfig(level=logging.DEBUG)
 

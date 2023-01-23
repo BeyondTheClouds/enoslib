@@ -1,12 +1,12 @@
 from enoslib.enos_inventory import EnosInventory
 from enoslib.objects import (
     BridgeDevice,
+    DefaultNetwork,
     Host,
     IPAddress,
-    DefaultNetwork,
     NetDevice,
-    _build_devices,
     Networks,
+    _build_devices,
 )
 from enoslib.tests.unit import EnosTest
 

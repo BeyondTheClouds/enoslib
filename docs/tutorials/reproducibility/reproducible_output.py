@@ -1,8 +1,9 @@
-from datetime import datetime
 import logging
 import os
-from pathlib import Path
 import sys
+from datetime import datetime
+from pathlib import Path
+
 import yaml
 
 import enoslib as en

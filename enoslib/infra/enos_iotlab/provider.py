@@ -1,27 +1,25 @@
 import pathlib
 import re
 from datetime import datetime, time, timezone
-from typing import List, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError
 
 import iotlabcli.auth
 
-from enoslib.api import play_on, run, CommandResult, CustomCommandResult
+from enoslib.api import CommandResult, CustomCommandResult, play_on, run
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
     InvalidReservationTooOld,
     NegativeWalltime,
 )
-from enoslib.infra.enos_iotlab.configuration import (
-    PhysNodeConfiguration,
-)
+from enoslib.infra.enos_iotlab.configuration import PhysNodeConfiguration
 from enoslib.infra.enos_iotlab.constants import PROD
 from enoslib.infra.enos_iotlab.iotlab_api import IotlabAPI, test_slot
 from enoslib.infra.enos_iotlab.objects import (
     IotlabHost,
-    IotlabSensor,
     IotlabNetwork,
+    IotlabSensor,
     ssh_enabled,
 )
 from enoslib.infra.provider import Provider

@@ -1,17 +1,14 @@
 import contextlib
 import logging
 import time
-from typing import List, Optional, Any, Generator
+from typing import Any, Generator, List, Optional
 
 import chi
 from chi import container
 
 from enoslib.infra.enos_openstack import utils
-from .constants import (
-    ROLES,
-    ROLES_SEPARATOR,
-    CONTAINER_LABELS,
-)
+
+from .constants import CONTAINER_LABELS, ROLES, ROLES_SEPARATOR
 
 logger = logging.getLogger(__name__)
 

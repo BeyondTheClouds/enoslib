@@ -1,10 +1,11 @@
 import os
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from jsonschema import validate
 
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Roles
+
 from ..service import Service
 
 REGISTRY_OPTS: Dict = {"type": "none"}

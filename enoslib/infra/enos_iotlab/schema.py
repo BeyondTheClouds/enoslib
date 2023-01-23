@@ -3,17 +3,20 @@ from typing import Dict
 from jsonschema import Draft7Validator, FormatChecker
 
 from .constants import (
-    PROFILE_ARCHI_TYPES,
-    RADIO_MODE_TYPES,
-    CONSUMPTION_PERIOD_TYPES,
     CONSUMPTION_AVERAGE_TYPES,
-    NETWORK_TYPES,
-    DEFAULT_WALLTIME,
+    CONSUMPTION_PERIOD_TYPES,
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER_BOARDS,
+    DEFAULT_WALLTIME,
+    NETWORK_TYPES,
+    PROFILE_ARCHI_TYPES,
+    RADIO_MODE_TYPES,
 )
-from .error import EnosIotLabPhysicalNodesError, EnosIotlabStartTimeFormatError
-from .error import EnosIotlabWalltimeFormatError
+from .error import (
+    EnosIotLabPhysicalNodesError,
+    EnosIotlabStartTimeFormatError,
+    EnosIotlabWalltimeFormatError,
+)
 
 SCHEMA: Dict = {
     "type": "object",

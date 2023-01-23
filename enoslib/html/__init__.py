@@ -1,7 +1,7 @@
 import logging
 import uuid
 from html import escape as html_escape
-from typing import List, Union, Optional, Collection, Callable
+from typing import Callable, Collection, List, Optional, Union
 
 import pkg_resources
 

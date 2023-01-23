@@ -1,13 +1,13 @@
-from enoslib import Netem
-from enoslib.api import sync_info
-from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
-from enoslib.infra.enos_static.provider import Static
-from enoslib.infra.enos_static.configuration import Configuration as StaticConf
-from typing import Dict
 import logging
 import os
+from typing import Dict
 
+from enoslib import Netem
+from enoslib.api import sync_info
+from enoslib.infra.enos_static.configuration import Configuration as StaticConf
+from enoslib.infra.enos_static.provider import Static
+from enoslib.infra.enos_vagrant.configuration import Configuration as VagrantConf
+from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,14 +1,18 @@
+from collections import namedtuple
 from datetime import datetime, timezone
 from typing import Dict
-from unittest.mock import patch, Mock, call
-from collections import namedtuple
+from unittest.mock import Mock, call, patch
 
 import ddt
 import yaml
 from freezegun import freeze_time
 
-from enoslib.errors import InvalidReservationTime, InvalidReservationTooOld
-from enoslib.errors import NegativeWalltime, NoSlotError
+from enoslib.errors import (
+    InvalidReservationTime,
+    InvalidReservationTooOld,
+    NegativeWalltime,
+    NoSlotError,
+)
 from enoslib.infra.enos_g5k.configuration import ClusterConfiguration
 from enoslib.infra.enos_g5k.configuration import Configuration as G5k_Configuration
 from enoslib.infra.enos_g5k.configuration import (
@@ -25,7 +29,7 @@ from enoslib.infra.providers import (
     find_slot_and_start,
     start_provider_within_bounds,
 )
-from enoslib.infra.utils import offset_from_format, merge_dict
+from enoslib.infra.utils import merge_dict, offset_from_format
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 
