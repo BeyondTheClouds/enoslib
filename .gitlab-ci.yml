@@ -342,6 +342,7 @@ pypi:
 
 ########### G5K #############
 test_invivo_g5k_deploy$debian11$:
+  # stick to the distribution we'll found on g5k frontends
   image: debian:11
   stage: invivog5k
   tags: [ci.inria.fr]
@@ -354,26 +355,10 @@ test_invivo_g5k_deploy$debian11$:
     - python3 -m pip install -e .
     - mkdir -p ~/.ssh
     - rm -f ~/.ssh/*
-    - |
-      cat << EOF > ~/.ssh/config
-      Host access.grid5000.fr
-        User $LOGIN
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        ForwardAgent yes
-        IdentityFile ~/.ssh/id_rsa
-
-      Host !access.grid5000.fr *.grid5000.fr *.g5k
-        User $LOGIN
-        ProxyJump $LOGIN@access.grid5000.fr
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
-        ForwardAgent yes
-        IdentityFile ~/.ssh/id_rsa
-      EOF
-    - cat "$PRIVATE_KEY" > ~/.ssh/id_rsa
-    - cat "$PUBLIC_KEY" > ~/.ssh/id_rsa.pub
+    - cat $PRIVATE_KEY > ~/.ssh/id_rsa
+    - cat $PUBLIC_KEY > ~/.ssh/id_rsa.pub
     - chmod 600 ~/.ssh/id_rsa
-    - cat "$PYTHON_G5K" > ~/.python-grid5000.yaml
+    - cat $PYTHON_G5K > ~/.python-grid5000.yaml
     - cd docs/tutorials/
+    - python3 grid5000/tuto_grid5000_commands.py || python3 cleanup_g5k_job.py tuto_grid5000_commands.py
     - python3 grid5000/tuto_grid5000_deploy.py || python3 cleanup_g5k_job.py tuto_grid5000_deploy.py
