@@ -1,7 +1,7 @@
 import logging
 import sys
-import enoslib as en
 
+import enoslib as en
 
 en.init_logging(level=logging.DEBUG)
 
