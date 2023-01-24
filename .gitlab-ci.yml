@@ -13,6 +13,7 @@ stages:
   - precheck
   - test
   - functional
+  - invivog5k
   - package
   - publish
 
@@ -338,3 +339,41 @@ pypi:
     - pip install twine
       # credentials are set in the env by gitlab
     - twine upload dist/* --verbose
+
+########### G5K #############
+test_invivo_g5k_deploy$debian11$:
+  image: debian:11
+  stage: invivog5k
+  tags: [ci.inria.fr]
+  when: manual
+  script:
+    - env
+    - apt update
+    - apt install -y python3 python3-pip iproute2 cmake zlib1g-dev libssl-dev libffi-dev ssh
+    - ip a
+    - python3 -m pip install -e .
+    - mkdir -p ~/.ssh
+    - rm -f ~/.ssh/*
+    - |
+      cat << EOF > ~/.ssh/config
+      Host access.grid5000.fr
+        User $LOGIN
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ForwardAgent yes
+        IdentityFile ~/.ssh/id_rsa
+
+      Host !access.grid5000.fr *.grid5000.fr *.g5k
+        User $LOGIN
+        ProxyJump $LOGIN@access.grid5000.fr
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ForwardAgent yes
+        IdentityFile ~/.ssh/id_rsa
+      EOF
+    - cat "$PRIVATE_KEY" > ~/.ssh/id_rsa
+    - cat "$PUBLIC_KEY" > ~/.ssh/id_rsa.pub
+    - chmod 600 ~/.ssh/id_rsa
+    - cat "$PYTHON_G5K" > ~/.python-grid5000.yaml
+    - cd docs/tutorials/
+    - python3 grid5000/tuto_grid5000_deploy.py || python3 cleanup_g5k_job.py tuto_grid5000_deploy.py
