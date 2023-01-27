@@ -8,6 +8,13 @@
 
 TODO
 
+.. _v8.1.1:
+
+8.1.1
+-----
+
+Fix: multisites deployment
+
 .. _v8.1.0:
 
 8.1.0
@@ -32,7 +39,6 @@ Changed
 - Big typing improvements
 - Enforce ``isort`` pre-commit hook
 - Advertise support for Ansible 7
-
 
 .. _v8.0.0:
 
