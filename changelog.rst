@@ -1,10 +1,17 @@
 ⚒️ Changelog
 ============
 
+.. _v8.2.0:
+
+8.2.0 (unreleased)
+------------------
+
+TODO
+
 .. _v8.1.0:
 
-8.1.0 (unreleased)
-------------------
+8.1.0
+-----
 
 Added
 +++++
@@ -23,6 +30,7 @@ Changed
 +++++++
 
 - Big typing improvements
+- Enforce ``isort`` pre-commit hook
 - Advertise support for Ansible 7
 
 
