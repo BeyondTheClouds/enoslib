@@ -134,7 +134,7 @@ def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
 
 def _concretize_nodes(
     group_configs: Sequence[GroupConfiguration], g5k_nodes: MutableSequence[str]
-) -> MutableSequence[ConcreteGroup]:
+) -> List[ConcreteGroup]:
     """Create a mapping between the configuration and the nodes given by OAR.
 
     The mapping *must* be fully deterministic.
@@ -211,7 +211,7 @@ def _concretize_nodes(
 
 def _concretize_networks(
     network_configs: Iterable[NetworkConfiguration], oar_networks: Iterable[OarNetwork]
-) -> MutableSequence[G5kNetwork]:
+) -> List[G5kNetwork]:
     """Create a mapping between the network configuration and the networks given by OAR.
 
     The mapping *must* be fully deterministic.
@@ -230,7 +230,7 @@ def _concretize_networks(
         oar_networks, key=lambda n: (n.site, n.nature, n.descriptor)
     )
     pools = mk_pools(s_api_networks, lambda n: (n.site, n.nature))
-    g5k_networks: MutableSequence[G5kNetwork] = []
+    g5k_networks: List[G5kNetwork] = []
     for network_config in network_configs:
         site = network_config.site
         n_type = network_config.type
@@ -274,9 +274,9 @@ def _concretize_networks(
 
 def _join(
     machines: MutableSequence[ConcreteGroup], networks: MutableSequence[G5kNetwork]
-) -> MutableSequence[G5kHost]:
+) -> List[G5kHost]:
     """Actually create a list of host."""
-    hosts: MutableSequence[G5kHost] = []
+    hosts: List[G5kHost] = []
     for concrete_machine in machines:
         roles = concrete_machine.config.roles
         network_id = concrete_machine.config.primary_network.id
@@ -449,17 +449,17 @@ class G5kBase(Provider):
         # make sure we are dealing with a single site
         self.driver = get_driver(self.provider_conf)
         # will hold the concrete version of the hosts
-        self.hosts: MutableSequence[G5kHost] = []
+        self.hosts: List[G5kHost] = []
         # will hold the concrete version of the networks
-        self.networks: MutableSequence = []
+        self.networks: List = []
         # will hold the concrete hosts deployed/undeployed after calling (ka)deploy3
-        self.deployed: MutableSequence[G5kHost] = []
-        self.undeployed: MutableSequence[G5kHost] = []
+        self.deployed: List[G5kHost] = []
+        self.undeployed: List[G5kHost] = []
 
         # will hold the hosts reachable through ssh
         # - if no deployment has been performed, this will be self.hosts
         # - if a deployment has been performed, this will be self.deployed
-        self.sshable_hosts: MutableSequence[G5kHost] = []
+        self.sshable_hosts: List[G5kHost] = []
 
         # will hold the status of the cluster
         self.clusters_status = None
@@ -544,7 +544,7 @@ class G5kBase(Provider):
     def ensure_reserved(self):
         self.reserve()
 
-    def destroy(self, wait=False, **kwargs):
+    def destroy(self, wait: bool = False, **kwargs):
         """Destroys the jobs."""
         self.driver.destroy(wait=wait)
 
@@ -924,9 +924,7 @@ class G5k(G5kBase):
             providers.async_init()
 
 
-def _lookup_networks(
-    network_id: str, networks: MutableSequence[G5kNetwork]
-) -> G5kNetwork:
+def _lookup_networks(network_id: str, networks: Iterable[G5kNetwork]) -> G5kNetwork:
     """What is the concrete network corresponding the network declared in the conf.
 
     We'll need to review that, later.

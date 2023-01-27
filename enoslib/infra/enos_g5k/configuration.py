@@ -1,5 +1,14 @@
 import warnings
-from typing import Collection, Dict, List, MutableMapping, Optional, Tuple
+from typing import (
+    Collection,
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Tuple,
+)
 from uuid import uuid4
 
 from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
@@ -87,7 +96,9 @@ class Configuration(BaseConfiguration):
         return self
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True) -> "Configuration":
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary, SCHEMA_USER)
 
@@ -247,7 +258,9 @@ class GroupConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary, networks=None) -> "GroupConfiguration":
+    def from_dictionary(
+        cls, dictionary: Mapping, networks: Optional[Iterable] = None
+    ) -> "GroupConfiguration":
         roles = dictionary["roles"]
         # cluster and servers are no individually optional
         # nevertheless the schema validates that at least one is set
@@ -258,18 +271,22 @@ class GroupConfiguration:
 
         secondary_networks_ids = dictionary.get("secondary_networks", [])
 
-        primary_network = None
-        if primary_network_id is not None:
+        if primary_network_id is not None and networks is not None:
             primary_networks = [n for n in networks if n.id == primary_network_id]
             if len(primary_networks) < 1:
                 raise ValueError(
                     f"Primary network with id={primary_network_id} not found"
                 )
             primary_network = primary_networks[0]
+        else:
+            primary_network = None
 
-        secondary_networks = [n for n in networks if n.id in secondary_networks_ids]
-        if len(secondary_networks_ids) != len(secondary_networks):
-            raise ValueError("Secondary network resolution fails")
+        if secondary_networks_ids is not None and networks is not None:
+            secondary_networks = [n for n in networks if n.id in secondary_networks_ids]
+            if len(secondary_networks_ids) != len(secondary_networks):
+                raise ValueError("Secondary network resolution fails")
+        else:
+            secondary_networks = None
 
         if servers is not None:
             return ServersConfiguration(
@@ -296,7 +313,7 @@ class GroupConfiguration:
 
 
 class ClusterConfiguration(GroupConfiguration):
-    def __init__(self, *, nodes=DEFAULT_NUMBER, **kwargs):
+    def __init__(self, *, nodes: int = DEFAULT_NUMBER, **kwargs):
         super().__init__(**kwargs)
         self.nodes = nodes
 
@@ -330,7 +347,7 @@ class ServersConfiguration(GroupConfiguration):
         # be a risk to fail at network configuration time (think about
         # secondary interfaces)
 
-        def extract_site_cluster(s) -> Tuple[str, str]:
+        def extract_site_cluster(s: str) -> Tuple[str, str]:
             r = s.split(".")
             c = r[0].split("-")
             return c[0], r[1]
@@ -369,7 +386,7 @@ class NetworkConfiguration:
         *,
         id: Optional[str] = None,
         roles: Optional[List] = None,
-        type=None,
+        type: Optional[str] = None,
         site=None,
     ):
         # NOTE(msimonin): mandatory keys will be captured by the finalize
@@ -395,7 +412,7 @@ class NetworkConfiguration:
         return cls.from_dictionary(*args, **kwargs)
 
     @classmethod
-    def from_dictionary(cls, dictionary) -> "NetworkConfiguration":
+    def from_dictionary(cls, dictionary: Mapping) -> "NetworkConfiguration":
         id = dictionary["id"]
         type = dictionary["type"]
         roles = dictionary["roles"]

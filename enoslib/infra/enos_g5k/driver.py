@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, MutableSequence, Optional, Tuple, Union
+from typing import Dict, Iterable, List, MutableSequence, Optional, Tuple, Union
 
 from grid5000.objects import Job
 
@@ -50,7 +50,7 @@ class Driver:
         ...
 
     @abstractmethod
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False):
         ...
 
     @abstractmethod
@@ -83,7 +83,7 @@ class OargridStaticDriver(Driver):
     - destroy will destroy the oargrid job given all the (site, id)s
     """
 
-    def __init__(self, oargrid_jobids):
+    def __init__(self, oargrid_jobids: Iterable[Tuple]):
         super().__init__()
         self.oargrid_jobids = oargrid_jobids
         self.reservation_date: Optional[str] = None
@@ -91,10 +91,12 @@ class OargridStaticDriver(Driver):
     def reserve(self, **kwargs):
         self._jobs = grid_reload_from_ids(self.oargrid_jobids)
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
 
-    def deploy(self, site, nodes, options) -> Tuple[List[str], List[str]]:
+    def deploy(
+        self, site: str, nodes: List[str], options: Dict
+    ) -> Tuple[List[str], List[str]]:
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
@@ -143,10 +145,12 @@ class OargridDynamicDriver(Driver):
             restrict_to=self.sites,
         )
 
-    def destroy(self, wait=False):
+    def destroy(self, wait: bool = False):
         grid_destroy_from_name(self.job_name, wait=wait, restrict_to=self.sites)
 
-    def deploy(self, site, nodes, options) -> Tuple[List[str], List[str]]:
+    def deploy(
+        self, site: str, nodes: List[str], options: Dict
+    ) -> Tuple[List[str], List[str]]:
         return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:

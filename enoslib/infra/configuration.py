@@ -1,7 +1,7 @@
 import json
 import logging
 import warnings
-from typing import Any, Callable, Dict, Mapping, MutableSequence, Optional, Type
+from typing import Any, Callable, Dict, List, Mapping, Optional, Type
 
 import jsonschema
 
@@ -23,8 +23,8 @@ class BaseConfiguration:
 
     def __init__(self):
         # A configuration has the least these two
-        self.machines: MutableSequence = []
-        self.networks: MutableSequence = []
+        self.machines: List = []
+        self.networks: List = []
 
         # Filling up with the right machine and network
         # constructor is deferred to the subclasses.
