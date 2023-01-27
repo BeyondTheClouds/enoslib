@@ -59,7 +59,8 @@ def find_slot(providers: Sequence[Provider], time_window: int, start_time: int) 
         raise NoSlotError()
     logger.info(
         "Common reservation_date=%s (local time) [%s providers]",
-        (datetime.fromtimestamp(start_time).isoformat(), len(providers)),
+        datetime.fromtimestamp(start_time).isoformat(),
+        len(providers),
     )
     return start_time
 
