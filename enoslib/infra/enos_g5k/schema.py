@@ -1,5 +1,5 @@
 import re
-from typing import Dict
+from typing import Dict, Iterable
 
 from jsonschema import Draft7Validator, FormatChecker
 
@@ -280,7 +280,7 @@ def is_valid_hostname(instance) -> bool:
 
 
 @G5kFormatChecker.checks("job_type", raises=EnosG5kInvalidJobTypesError)
-def is_valid_job_type(instance) -> bool:
+def is_valid_job_type(instance: Iterable) -> bool:
     if isinstance(instance, str):
         instance = [instance]
 

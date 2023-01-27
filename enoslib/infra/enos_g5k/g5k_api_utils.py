@@ -19,10 +19,10 @@ from typing import (
     Iterable,
     List,
     Mapping,
-    MutableMapping,
     MutableSequence,
     Optional,
     Tuple,
+    Union,
 )
 
 import pytz
@@ -64,7 +64,7 @@ class Client(Grid5000):
     It accepts extra parameters to be set in the configuration file.
     """
 
-    def __init__(self, excluded_sites=None, **kwargs):
+    def __init__(self, excluded_sites: Optional[List] = None, **kwargs):
         """Constructor.
 
         Args:
@@ -73,9 +73,7 @@ class Client(Grid5000):
                 allow the program to go on.
         """
         super().__init__(**kwargs)
-        self.excluded_site = excluded_sites
-        if excluded_sites is None:
-            self.excluded_site = []
+        self.excluded_site = excluded_sites if excluded_sites is not None else []
 
 
 # Lightweight representation of a network returned by OAR
@@ -111,7 +109,7 @@ def get_api_client() -> Client:
         return _api_client
 
 
-def grid_reload_jobs_from_ids(oargrid_jobids) -> List[Job]:
+def grid_reload_jobs_from_ids(oargrid_jobids: Iterable[Tuple]) -> List[Job]:
     """Reload jobs of Grid'5000 from their ids
 
     Args:
@@ -129,7 +127,7 @@ def grid_reload_jobs_from_ids(oargrid_jobids) -> List[Job]:
 
 
 def grid_reload_jobs_from_name(
-    job_name, restrict_to: Optional[MutableSequence[str]] = None
+    job_name: str, restrict_to: Optional[Iterable[str]] = None
 ) -> List[Job]:
     """Reload all running or pending jobs of Grid'5000 with a given name.
 
@@ -157,7 +155,8 @@ def grid_reload_jobs_from_name(
     sites = get_all_sites_obj()
     if restrict_to is None:
         restrict_to = [s.uid for s in sites]
-    jobs = []
+
+    jobs: List[Job] = []
     for site in [
         s for s in sites if s.uid not in gk.excluded_site and s.uid in restrict_to
     ]:
@@ -177,7 +176,7 @@ def grid_reload_jobs_from_name(
     return jobs
 
 
-def grid_reload_from_ids(oargrid_jobids) -> List[Job]:
+def grid_reload_from_ids(oargrid_jobids: Iterable[Tuple]) -> List[Job]:
     """Reload all running or pending jobs of Grid'5000 from their ids
 
     Args:
@@ -192,8 +191,8 @@ def grid_reload_from_ids(oargrid_jobids) -> List[Job]:
 
 
 def build_resources(
-    jobs: MutableSequence[Job],
-) -> Tuple[MutableSequence[str], MutableSequence[OarNetwork]]:
+    jobs: Iterable[Job],
+) -> Tuple[List[str], List[OarNetwork]]:
     """Build the resources from the list of jobs.
 
     Args:
@@ -238,7 +237,7 @@ def build_resources(
     return nodes, networks
 
 
-def job_delete(job, wait=False):
+def job_delete(job: Job, wait: bool = False):
     # In the event that a job has already been killed when we try to kill it,
     # we ignore the error raised by Grid5000 to warn us
     try:
@@ -260,7 +259,9 @@ def job_delete(job, wait=False):
 
 
 def grid_destroy_from_name(
-    job_name, wait=False, restrict_to: Optional[List[str]] = None
+    job_name: str,
+    wait: bool = False,
+    restrict_to: Optional[Iterable[str]] = None,
 ):
     """Destroy all the jobs with a given name.
 
@@ -277,7 +278,7 @@ def grid_destroy_from_name(
         job_delete(job, wait=wait)
 
 
-def grid_destroy_from_ids(oargrid_jobids, wait=False):
+def grid_destroy_from_ids(oargrid_jobids: Iterable[Tuple], wait: bool = False):
     """Destroy all the jobs with corresponding ids
 
     Args:
@@ -313,7 +314,7 @@ def submit_jobs(job_specs: List[Tuple]) -> List[Job]:
     return jobs
 
 
-def wait_for_jobs(jobs):
+def wait_for_jobs(jobs: Iterable):
     """Waits for all the jobs to be runnning.
 
     Args:
@@ -477,13 +478,13 @@ def clusters_sites_obj(clusters: Iterable) -> Dict[str, Site]:
 
 
 @lru_cache(maxsize=32)
-def get_all_clusters_sites() -> MutableMapping[str, str]:
+def get_all_clusters_sites() -> Dict[str, str]:
     """Get all the cluster of all the sites.
 
     Returns:
         dict corresponding to the mapping cluster uid to python-grid5000 site
     """
-    result = {}
+    result: Dict = {}
     gk = get_api_client()
     sites = gk.sites.list()
     for site in sites:
@@ -493,7 +494,7 @@ def get_all_clusters_sites() -> MutableMapping[str, str]:
     return result
 
 
-def get_clusters_sites(clusters) -> Mapping[str, str]:
+def get_clusters_sites(clusters: Iterable[str]) -> Dict[str, str]:
     """Get the corresponding sites of given clusters.
 
     Args:
@@ -506,7 +507,7 @@ def get_clusters_sites(clusters) -> Mapping[str, str]:
     return {c: clusters_sites[c] for c in clusters}
 
 
-def get_cluster_site(cluster) -> str:
+def get_cluster_site(cluster: str) -> str:
     """Get the site of a given cluster.
 
     Args:
@@ -519,7 +520,7 @@ def get_cluster_site(cluster) -> str:
     return match[cluster]
 
 
-def get_nodes(cluster) -> List[Node]:
+def get_nodes(cluster: str) -> List[Node]:
     """Get all the nodes of a given cluster.
 
     Args:
@@ -535,7 +536,7 @@ def get_node(site, cluster, uid) -> Node:
     return gk.sites[site].clusters[cluster].nodes[uid]
 
 
-def get_nics(cluster):
+def get_nics(cluster: str):
     """Get the network cards information
 
     Args:
@@ -549,7 +550,7 @@ def get_nics(cluster):
     return nics
 
 
-def get_cluster_interfaces(cluster, extra_cond=lambda nic: True) -> List:
+def get_cluster_interfaces(cluster: str, extra_cond=lambda nic: True) -> List[Tuple]:
     """Get the network interfaces names corresponding to a criteria.
 
     Note that the cluster is passed (not the individual node names), thus it is
@@ -581,7 +582,7 @@ def get_cluster_interfaces(cluster, extra_cond=lambda nic: True) -> List:
     return nics
 
 
-def get_clusters_interfaces(clusters, extra_cond=lambda nic: True) -> MutableMapping:
+def get_clusters_interfaces(clusters: Iterable, extra_cond=lambda nic: True) -> Dict:
     """Returns for each cluster the available cluster interfaces
 
     Args:
@@ -603,7 +604,7 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True) -> MutableMap
 
     """
 
-    interfaces: MutableMapping = {}
+    interfaces: Dict = {}
     for cluster in clusters:
         nics = get_cluster_interfaces(cluster, extra_cond=extra_cond)
         interfaces.setdefault(cluster, nics)
@@ -612,7 +613,11 @@ def get_clusters_interfaces(clusters, extra_cond=lambda nic: True) -> MutableMap
 
 
 def can_start_on_cluster(
-    nodes_status: Dict, number: int, exact_nodes: List[str], start: float, walltime: int
+    nodes_status: Mapping,
+    number: int,
+    exact_nodes: List[str],
+    start: float,
+    walltime: int,
 ) -> bool:
     """Check if #nodes can be started on a given cluster.
 
@@ -668,8 +673,8 @@ def can_start_on_cluster(
 def _test_slot(
     start: int,
     walltime: str,
-    machines: Dict,
-    clusters_status: Dict,
+    machines: Iterable,
+    clusters_status: Mapping,
 ) -> bool:
     """
     This function test if it is possible at a specified start time to
@@ -692,7 +697,7 @@ def _test_slot(
     _walltime = int(_t[0]) * 3600 + int(_t[1]) * 60 + int(_t[2])
 
     # Compute the demand for each cluster
-    demands: MutableMapping[str, int] = defaultdict(int)
+    demands: Dict[str, int] = defaultdict(int)
     # Keeps track of
     exact_nodes = defaultdict(list)
     for machine in machines:
@@ -749,10 +754,10 @@ def get_vlan(site, vlan_id) -> Vlan:
     return site_info.vlans[vlan_id]
 
 
-def get_clusters_status(clusters: Iterable[str]) -> MutableMapping:
+def get_clusters_status(clusters: Iterable[str]) -> Dict:
     """Get the status of the clusters (current and future reservations)."""
     # mapping cluster -> site
-    clusters_sites: MutableMapping = clusters_sites_obj(clusters)
+    clusters_sites: Dict = clusters_sites_obj(clusters)
     clusters_status = {}
     for cluster in clusters_sites:
         clusters_status[cluster] = (
@@ -792,7 +797,7 @@ def grid_get_or_create_job(
     machines,
     networks,
     wait=True,
-    restrict_to: Optional[List[str]] = None,
+    restrict_to: Optional[Iterable[str]] = None,
 ) -> List[Job]:
     jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
     if len(jobs) == 0:
@@ -810,8 +815,8 @@ def grid_get_or_create_job(
     return jobs
 
 
-def _build_reservation_criteria(machines, networks) -> MutableMapping:
-    criteria: MutableMapping = {}
+def _build_reservation_criteria(machines: Iterable, networks: Iterable) -> Dict:
+    criteria: Dict = {}
     # machines reservations
     # FIXME(msimonin): this should be refactor like this
     # for machine in machines
@@ -838,7 +843,14 @@ def _build_reservation_criteria(machines, networks) -> MutableMapping:
 
 
 def _do_grid_make_reservation(
-    criterias, job_name, walltime, reservation_date, queue, job_type, monitor, project
+    criterias: Mapping,
+    job_name: str,
+    walltime,
+    reservation_date,
+    queue,
+    job_type: Union[str, MutableSequence[str]],
+    monitor,
+    project,
 ) -> List[Job]:
     job_specs: List[Tuple] = []
     if isinstance(job_type, str):
@@ -866,15 +878,15 @@ def _do_grid_make_reservation(
 
 
 def grid_make_reservation(
-    job_name,
+    job_name: str,
     walltime,
     reservation_date,
     queue,
-    job_type,
+    job_type: Union[str, MutableSequence[str]],
     monitor,
     project,
-    machines,
-    networks,
+    machines: Iterable,
+    networks: Iterable,
 ) -> List[Job]:
     # Build the OAR criteria
     criteria = _build_reservation_criteria(machines, networks)

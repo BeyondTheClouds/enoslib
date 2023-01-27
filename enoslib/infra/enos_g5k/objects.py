@@ -143,7 +143,9 @@ class G5kNetwork(ABC):
         ...
 
     @abstractmethod
-    def translate(self, fqdns: Iterable[str], reverse=False) -> List[Tuple[str, str]]:
+    def translate(
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         """Gets the DNS names of the passed fqdns in these networks and vice versa.
 
         Args:
@@ -156,7 +158,9 @@ class G5kNetwork(ABC):
         ...
 
     @abstractmethod
-    def translate6(self, fqdns: Iterable[str], reverse=False) -> List[Tuple[str, str]]:
+    def translate6(
+        self, fqdns: Iterable[str], reverse: bool = False
+    ) -> List[Tuple[str, str]]:
         """Gets the DNS names (resolved as ipv6) of the passed fqdns in these networks.
 
         Args:
@@ -277,7 +281,9 @@ class G5kVlanNetwork(G5kNetwork):
         self._check_apinetwork()
         return self._apinetwork
 
-    def _translate(self, uid, vlan_id=None, reverse=False, ipv6=False) -> str:
+    def _translate(
+        self, uid: str, vlan_id=None, reverse: bool = False, ipv6: bool = False
+    ) -> str:
         direct_descriptor = "%s"
         if vlan_id:
             direct_descriptor += f"-kavlan-{vlan_id}"
