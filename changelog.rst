@@ -8,6 +8,16 @@
 
 TODO
 
+.. _v8.1.2:
+
+8.1.2
+-----
+
+Fixed
++++++
+
+- **Docker**: support Docker v23 deployment
+
 .. _v8.1.1:
 
 8.1.1
