@@ -1,3 +1,8 @@
+- name: Create docker config directory
+  file:
+    path: /etc/docker/
+    state: directory
+
 - name: Allow Docker to use an insecure registry
   template:
     src: daemon.json.j2
