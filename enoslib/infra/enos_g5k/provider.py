@@ -313,10 +313,11 @@ class G5kTunnel:
         port: The port of the targetted service
     """
 
-    def __init__(self, address: str, port: int):
+    def __init__(self, address: str, port: int, local_port: int = 0):
         """"""
         self.address = address
         self.port = port
+        self.local_port = local_port
 
         # computed
         self.tunnel: Optional[SSHTunnelForwarder] = None
@@ -336,6 +337,7 @@ class G5kTunnel:
                 "access.grid5000.fr",
                 ssh_username=get_api_username(),
                 remote_bind_address=(self.address, self.port),
+                local_bind_address=("127.0.0.1", self.local_port),
             )
             if self.tunnel is not None:
                 self.tunnel.start()
