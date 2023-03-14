@@ -6,7 +6,19 @@
 8.2.0 (unreleased)
 ------------------
 
-TODO
+- TODO
+
+.. _v8.1.3:
+
+8.1.3
+-----
+
+Fixed
++++++
+
+- **G5k**: ``G5KTunnel`` can be given a local port
+- **VMonG5K**: Fix time in the VM
+
 
 .. _v8.1.2:
 
