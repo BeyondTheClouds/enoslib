@@ -25,6 +25,7 @@ from grid5000.exceptions import Grid5000CreateError
 from sshtunnel import SSHTunnelForwarder
 
 from enoslib.api import CommandResult, CustomCommandResult, run
+from enoslib.config import config_context
 from enoslib.errors import (
     InvalidReservationCritical,
     InvalidReservationTime,
@@ -98,18 +99,21 @@ def _check_deployed_nodes(
     # Don't display expected 'unreachable hosts' errors that may be scary
     # to the end-users.
     with DisableLogging(level=logging.ERROR):
-        deployed_results = run(
-            cmd,
-            roles=hosts,
-            raw=True,
-            gather_facts=False,
-            task_name="Check deployment",
-            # Make sure we don't wait too long
-            extra_vars=dict(ansible_timeout=10),
-            # Errors are expected
-            # e.g the first time all hosts are unreachable
-            on_error_continue=True,
-        )
+        # Also make sure we display no output (useful if the enoslib user
+        # selected a non-default callback class)
+        with config_context(ansible_stdout="noop"):
+            deployed_results = run(
+                cmd,
+                roles=hosts,
+                raw=True,
+                gather_facts=False,
+                task_name="Check deployment",
+                # Make sure we don't wait too long
+                extra_vars=dict(ansible_timeout=10),
+                # Errors are expected
+                # e.g the first time all hosts are unreachable
+                on_error_continue=True,
+            )
     for r in deployed_results.filter(task="Check deployment"):
         if r.ok():
             deployed.append(r.host)
