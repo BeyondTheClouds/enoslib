@@ -6,8 +6,10 @@ from .constants import (
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
+    DEFAULT_VCORE_TYPE,
     DEFAULT_WALLTIME,
     FLAVOURS,
+    VCORE_TYPES,
 )
 
 STRATEGY = ["copy", "cow"]
@@ -77,6 +79,11 @@ SCHEMA = {
                     "enum": list(FLAVOURS.keys()),
                 },
                 "flavour_desc": {"$ref": "#/definitions/flavour_desc"},
+                "vcore_type": {
+                    "type": "string",
+                    "description": f"Type of vcore (default: {DEFAULT_VCORE_TYPE})",
+                    "enum": VCORE_TYPES,
+                },
                 "cluster": {"type": "string"},
                 "undercloud": {"type": "array", "items": {"type": "object"}},
             },

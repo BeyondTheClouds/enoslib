@@ -524,11 +524,29 @@ def get_nodes(cluster: str) -> List[Node]:
     """Get all the nodes of a given cluster.
 
     Args:
-        cluster (str): uid of the cluster (e.g 'rennes')
+        cluster (str): uid of the cluster (e.g 'paravance' for rennes)
     """
     gk = get_api_client()
     site = get_cluster_site(cluster)
     return gk.sites[site].clusters[cluster].nodes.list()
+
+
+def get_cores(cluster: str) -> int:
+    """Get the total number of cores in each machine for a given cluster
+
+    Args:
+        cluster (str): uid of the cluster (e.g 'paravance' for rennes)
+    """
+    return get_nodes(cluster)[-1].architecture["nb_cores"]
+
+
+def get_threads(cluster: str) -> int:
+    """Get the total number of threads in each machine for a given cluster
+
+    Args:
+        cluster (str): uid of the cluster (e.g 'paravance' for rennes)
+    """
+    return get_nodes(cluster)[-1].architecture["nb_threads"]
 
 
 def get_node(site, cluster, uid) -> Node:

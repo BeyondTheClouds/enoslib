@@ -89,3 +89,115 @@ class TestMachineConfiguration(EnosTest):
         conf = MachineConfiguration.from_dictionary(d)
         self.assertEqual(flavour_desc, conf.flavour_desc)
         self.assertEqual(2, conf.number)
+
+    def test_vcore_type_wrong_vcore(self):
+        # first from dict validates internally
+        m: Dict = {"roles": ["r1"], "cluster": "test-cluster", "vcore_type": "corez"}
+        d: Dict = {
+            "job_name": "test-job",
+            "walltime": "12:34:56",
+            "resources": {"machines": [m], "networks": []},
+        }
+
+        with self.assertRaises(jsonschema.exceptions.ValidationError) as _:
+            Configuration.from_dictionary(d)
+
+        # second, programmatically we need to call finalize
+        conf = Configuration()
+        conf.add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"],
+                flavour="large",
+                number=10,
+                cluster="test-cluster",
+                vcore_type="corez",
+            )
+        )
+        with self.assertRaises(jsonschema.exceptions.ValidationError) as _:
+            conf.finalize()
+
+    def test_vcore_type_vcore_thread(self):
+        # first from dict validates internally
+        m: Dict = {"roles": ["r1"], "cluster": "test-cluster", "vcore_type": "thread"}
+        d: Dict = {
+            "job_name": "test-job",
+            "walltime": "12:34:56",
+            "resources": {"machines": [m], "networks": []},
+        }
+
+        conf = Configuration.from_dictionary(d)
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "thread")
+        confdict = conf.to_dict()
+        self.assertEqual(confdict["resources"]["machines"][-1]["vcore_type"], "thread")
+
+        # second, programmatically we need to call finalize
+        conf = Configuration()
+        conf.add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"],
+                flavour="large",
+                number=10,
+                cluster="test-cluster",
+                vcore_type="thread",
+            )
+        )
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "thread")
+
+    def test_vcore_type_vcore_core(self):
+        # first from dict validates internally
+        m: Dict = {"roles": ["r1"], "cluster": "test-cluster", "vcore_type": "core"}
+        d: Dict = {
+            "job_name": "test-job",
+            "walltime": "12:34:56",
+            "resources": {"machines": [m], "networks": []},
+        }
+
+        conf = Configuration.from_dictionary(d)
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "core")
+        confdict = conf.to_dict()
+        self.assertEqual(confdict["resources"]["machines"][-1]["vcore_type"], "core")
+
+        # second, programmatically we need to call finalize
+        conf = Configuration()
+        conf.add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"],
+                flavour="large",
+                number=10,
+                cluster="test-cluster",
+                vcore_type="core",
+            )
+        )
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "core")
+
+    def test_vcore_type_vcore_default(self):
+        # first from dict validates internally
+        m: Dict = {"roles": ["r1"], "cluster": "test-cluster"}
+        d: Dict = {
+            "job_name": "test-job",
+            "walltime": "12:34:56",
+            "resources": {"machines": [m], "networks": []},
+        }
+
+        conf = Configuration.from_dictionary(d)
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "thread")
+        confdict = conf.to_dict()
+        self.assertEqual(confdict["resources"]["machines"][-1]["vcore_type"], "thread")
+
+        # second, programmatically we need to call finalize
+        conf = Configuration()
+        conf.add_machine_conf(
+            MachineConfiguration(
+                roles=["r1"],
+                flavour="large",
+                number=10,
+                cluster="test-cluster",
+            )
+        )
+        conf = conf.finalize()
+        self.assertEqual(conf.machines[-1].vcore_type, "thread")

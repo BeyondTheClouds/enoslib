@@ -9,6 +9,8 @@ DEFAULT_QUEUE = "default"
 DEFAULT_WALLTIME = "02:00:00"
 PLAYBOOK_PATH = os.path.join(PROVIDER_PATH, "ansible", "site.yml")
 
+DEFAULT_VCORE_TYPE = "thread"
+VCORE_TYPES = ["thread", "core"]
 
 #: Sizes of the machines available for the configuration
 FLAVOURS = {

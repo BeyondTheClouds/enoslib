@@ -10,9 +10,11 @@ from .constants import (
     DEFAULT_QUEUE,
     DEFAULT_STRATEGY,
     DEFAULT_SUBNET_TYPE,
+    DEFAULT_VCORE_TYPE,
     DEFAULT_WALLTIME,
     DEFAULT_WORKING_DIR,
     FLAVOURS,
+    VCORE_TYPES,
 )
 
 STRATEGY = ["copy", "cow"]
@@ -112,6 +114,11 @@ SCHEMA = {
                 "flavour_desc": {
                     "description": "Custom flavour description",
                     "$ref": "#/definitions/flavour_desc",
+                },
+                "vcore_type": {
+                    "type": "string",
+                    "description": f"Type of vcore (default: {DEFAULT_VCORE_TYPE})",
+                    "enum": VCORE_TYPES,
                 },
                 "cluster": {
                     "description": "Grid'5000 cluster for the undercloud",

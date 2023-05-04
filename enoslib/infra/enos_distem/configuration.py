@@ -11,6 +11,7 @@ from .constants import (
     DEFAULT_NETWORKS,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
+    DEFAULT_VCORE_TYPE,
     DEFAULT_WALLTIME,
     FLAVOURS,
 )
@@ -84,6 +85,7 @@ class MachineConfiguration:
         cluster=None,
         flavour=None,
         flavour_desc=None,
+        vcore_type=DEFAULT_VCORE_TYPE,
         number=DEFAULT_NUMBER,
         undercloud=None
     ):
@@ -102,8 +104,8 @@ class MachineConfiguration:
             self.flavour_desc = FLAVOURS[self.flavour]
 
         self.number = number
-        self.number = number
         self.cluster = cluster
+        self.vcore_type = vcore_type
 
         # a cookie to identify uniquely the group of machine this is used when
         # redistributing the vms to pms in the provider. I've the feeling that
