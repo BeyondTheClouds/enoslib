@@ -15,6 +15,7 @@ from .constants import (
     DEFAULT_QUEUE,
     DEFAULT_STRATEGY,
     DEFAULT_SUBNET_TYPE,
+    DEFAULT_VCORE_TYPE,
     DEFAULT_WALLTIME,
     DEFAULT_WORKING_DIR,
     FLAVOURS,
@@ -99,6 +100,7 @@ class MachineConfiguration:
         cluster=None,
         flavour: Optional[str] = None,
         flavour_desc: Optional[Dict[str, int]] = None,
+        vcore_type=DEFAULT_VCORE_TYPE,
         number=DEFAULT_NUMBER,
         undercloud: Optional[Iterable[Host]] = None,
         macs: Optional[Iterable[str]] = None,
@@ -123,6 +125,7 @@ class MachineConfiguration:
 
         self.number = number
         self.cluster = cluster
+        self.vcore_type = vcore_type
 
         # a cookie to identify uniquely the group of machine this is used when
         # redistributing the vms to pms in the provider. I've the feeling that
@@ -175,6 +178,10 @@ class MachineConfiguration:
         if extra_devices is not None:
             kwargs.update(extra_devices=extra_devices)
 
+        vcore_type = dictionary.get("vcore_type")
+        if vcore_type is not None:
+            kwargs.update(vcore_type=vcore_type)
+
         return cls(**kwargs)
 
     def to_dict(self) -> Dict:
@@ -192,5 +199,6 @@ class MachineConfiguration:
             number=self.number,
             extra_devices=self.extra_devices,
             macs=self.macs,
+            vcore_type=self.vcore_type,
         )
         return d

@@ -113,18 +113,17 @@ def mac_range(
     return
 
 
-def _get_host_cores(cluster: str) -> int:
-    nodes = g5k_api_utils.get_nodes(cluster)
-    attributes = nodes[-1]
-    processors = attributes.architecture["nb_procs"]
-    cores = attributes.architecture["nb_cores"]
-
-    # number of cores as reported in the Website
-    return cores * processors
-
-
 def _find_nodes_number(machine: MachineConfiguration) -> int:
-    cores = _get_host_cores(machine.cluster)
+    cores = None
+
+    if machine.vcore_type == "thread":
+        cores = g5k_api_utils.get_threads(machine.cluster)
+    elif machine.vcore_type == "core":
+        cores = g5k_api_utils.get_cores(machine.cluster)
+
+    if cores is None:
+        raise NotImplementedError()
+
     return -((-1 * machine.number * machine.flavour_desc["core"]) // cores)
 
 
