@@ -1,5 +1,5 @@
 import uuid
-from typing import MutableMapping
+from typing import Dict, Mapping, MutableMapping
 
 from enoslib.objects import Host
 
@@ -33,11 +33,14 @@ class Configuration(BaseConfiguration):
 
         self._machine_cls = MachineConfiguration
         self._network_cls = str
+        self.image = str
 
         self.networks = DEFAULT_NETWORKS
 
     @classmethod
-    def from_dictionary(cls, dictionary, validate=True):
+    def from_dictionary(
+        cls, dictionary: Mapping, validate: bool = True
+    ) -> "Configuration":
         if validate:
             cls.validate(dictionary)
 
@@ -56,7 +59,7 @@ class Configuration(BaseConfiguration):
         self.finalize()
         return self
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         d = {}
         for k, v in self.__dict__.items():
             if v is None or k in [
@@ -116,7 +119,7 @@ class MachineConfiguration:
         self.undercloud = undercloud if undercloud else []
 
     @classmethod
-    def from_dictionary(cls, dictionary):
+    def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
         kwargs: MutableMapping = {}
         roles = dictionary["roles"]
         kwargs.update(roles=roles)
@@ -141,10 +144,14 @@ class MachineConfiguration:
             undercloud = [Host.from_dict(h) for h in undercloud]
             kwargs.update(undercloud=undercloud)
 
+        vcore_type = dictionary.get("vcore_type")
+        if vcore_type is not None:
+            kwargs.update(vcore_type=vcore_type)
+
         return cls(**kwargs)
 
-    def to_dict(self):
-        d: MutableMapping = {}
+    def to_dict(self) -> Dict:
+        d: Dict = {}
         undercloud = self.undercloud
         if undercloud is not None:
             undercloud = [h.to_dict() for h in undercloud]
@@ -152,5 +159,10 @@ class MachineConfiguration:
         cluster = self.cluster
         if cluster is not None:
             d.update(cluster=cluster)
-        d.update(roles=self.roles, flavour_desc=self.flavour_desc, number=self.number)
+        d.update(
+            roles=self.roles,
+            flavour_desc=self.flavour_desc,
+            number=self.number,
+            vcore_type=self.vcore_type,
+        )
         return d
