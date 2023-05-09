@@ -1,7 +1,6 @@
 from enoslib.infra.enos_g5k.constants import QUEUE_TYPES
 
 from .constants import (
-    DEFAULT_ENV_NAME,
     DEFAULT_FLAVOUR,
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER,
@@ -31,7 +30,7 @@ SCHEMA = {
             "type": "string",
         },
         "image": {
-            "description": f"Default base image to use (default: {DEFAULT_ENV_NAME})",
+            "description": "Default base image to use",
             "type": "string",
         },
         "reservation": {
