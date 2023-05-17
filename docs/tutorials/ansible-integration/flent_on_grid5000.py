@@ -28,7 +28,7 @@ with en.actions(roles=roles) as p:
     p.apt(
         name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
         state="present",
-        update_cache = "yes"
+        update_cache="yes",
     )
 
 with en.actions(pattern_hosts="server", roles=roles) as p:
