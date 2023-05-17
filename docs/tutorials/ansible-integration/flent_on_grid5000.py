@@ -22,12 +22,13 @@ with en.actions(roles=roles) as p:
     # flent requires python3, so we default python to python3
     p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
     p.apt_repository(
-        repo="deb http://deb.debian.org/debian stretch main contrib non-free",
+        repo="deb http://deb.debian.org/debian bullseye main contrib non-free",
         state="present",
     )
     p.apt(
         name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
         state="present",
+        update_cache="yes",
     )
 
 with en.actions(pattern_hosts="server", roles=roles) as p:
