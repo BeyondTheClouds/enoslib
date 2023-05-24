@@ -11,9 +11,9 @@ workflow:
 
 stages:
   - precheck
+  - invivog5k
   - test
   - functional
-  - invivog5k
   - package
   - publish
 
