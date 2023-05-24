@@ -133,7 +133,13 @@ def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
         h.to_enoslib(extra=dict(cmd=h.dhcp_networks_command())) for h in sshable_hosts
     ]
     # cmd might be empty
-    run("echo '' ; {{ cmd }}", hosts, task_name="Run dhcp on the nodes")
+    run(
+        "echo '' ; {{ cmd }}",
+        hosts,
+        raw=True,
+        gather_facts=False,
+        task_name="Run dhcp on the nodes",
+    )
 
 
 def _concretize_nodes(
