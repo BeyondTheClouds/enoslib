@@ -142,9 +142,6 @@ def _load_defaults(
     For factorization purpose."""
 
     extra_vars = extra_vars or {}
-    # inject python3
-    if extra_vars.get("ansible_python_interpreter") is None:
-        extra_vars.update(ansible_python_interpreter="python3")
 
     logger.debug("Using extra_vars = %s", extra_vars)
     tags = tags or []
