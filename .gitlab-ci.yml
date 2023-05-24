@@ -353,7 +353,7 @@ test_invivo_g5k_deploy$debian11$:
     - apt install -y python3 python3-pip python3-venv iproute2 cmake zlib1g-dev libssl-dev libffi-dev ssh
     - ip a
     - python3 -m venv /venv
-    - /venv/python3 -m pip install -e .
+    - /venv/bin/python3 -m pip install -e .
     - mkdir -p ~/.ssh
     - rm -f ~/.ssh/*
     - cat $PRIVATE_KEY > ~/.ssh/id_rsa
@@ -361,8 +361,8 @@ test_invivo_g5k_deploy$debian11$:
     - chmod 600 ~/.ssh/id_rsa
     - cat $PYTHON_G5K > ~/.python-grid5000.yaml
     - cd docs/tutorials/
-    - /venv/python3 grid5000/tuto_grid5000_commands.py || /venv/python3 cleanup_g5k_job.py tuto_grid5000_commands.py
-    - /venv/python3 grid5000/tuto_grid5000_deploy.py || /venv/python3 cleanup_g5k_job.py tuto_grid5000_deploy.py
-    - /venv/python3 grid5000/tuto_grid5000_deploy_centos.py || /venv/python3 cleanup_g5k_job.py tuto_grid5000_deploy_centos.py
-    - /venv/python3 grid5000/tuto_grid5000_multisites.py || /venv/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
-    - /venv/python3 grid5000/tuto_grid5000_docker.py || /venv/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_commands.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_commands.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_deploy.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_deploy.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_deploy_centos.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_deploy_centos.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_multisites.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_docker.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
