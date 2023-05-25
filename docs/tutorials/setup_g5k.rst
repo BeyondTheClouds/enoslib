@@ -37,7 +37,7 @@ External access (from your laptop)
 ----------------------------------
 
 If you are running your experiment from outside Grid'5000 (e.g. from your local
-machine), `using a SSH jump host is required <https://www.grid5000.fr/w/Getting_Started#Recommended_tips_and_tricks_for_an_efficient_use_of_Grid.275000>`.
+machine), `using a SSH jump host is required <https://www.grid5000.fr/w/Getting_Started#Recommended_tips_and_tricks_for_an_efficient_use_of_Grid.275000>`_.
 Enoslib (version 8.1.0 and above) will automatically setup such a SSH jump
 host connection through ``access.grid5000.fr``.
 
