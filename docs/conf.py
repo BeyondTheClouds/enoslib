@@ -18,7 +18,7 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import pkg_resources
+import importlib_metadata
 
 from enoslib.version import __chat__
 
@@ -65,7 +65,7 @@ author = "Ronan-Alexandre Cherrueau, Matthieu Simonin"
 # built documents.
 #
 # The short X.Y version.
-version = pkg_resources.require("enoslib")[0].version
+version = importlib_metadata.version("enoslib")
 # The full version, including alpha/beta/rc tags.
 release = version
 

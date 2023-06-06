@@ -3,7 +3,7 @@ import uuid
 from html import escape as html_escape
 from typing import Callable, Collection, List, Optional, Union
 
-import pkg_resources
+import importlib_resources
 
 from enoslib.config import get_config
 
@@ -39,7 +39,8 @@ def _html_escape(value, limit=50) -> str:
 
 
 def _load_css() -> str:
-    return pkg_resources.resource_string("enoslib", STATIC_FILES).decode("utf8")
+    path = importlib_resources.files("enoslib").joinpath(STATIC_FILES)
+    return path.read_text(encoding="utf-8")
 
 
 def html_to_foldable_section(
