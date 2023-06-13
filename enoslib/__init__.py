@@ -28,6 +28,7 @@ from enoslib.docker import DockerHost, get_dockers
 from enoslib.infra.providers import Providers
 from enoslib.local import LocalHost
 from enoslib.objects import DefaultNetwork, Host, Network, Networks, Roles
+from enoslib.registry.process import ProcessGroup, ProcessRegistry
 
 # Services
 from enoslib.service.conda.conda import Dask, conda_from_env, in_conda_cmd
@@ -50,6 +51,13 @@ from enoslib.service.emul.netem import (
 from enoslib.service.k3s.k3s import K3s
 from enoslib.service.locust.locust import Locust
 from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
+from enoslib.service.planning.planning import (
+    CGroupEvent,
+    KillEvent,
+    Planning,
+    PlanningService,
+    StartEvent,
+)
 from enoslib.service.skydive.skydive import Skydive
 from enoslib.service.tcpdump import TCPDump
 

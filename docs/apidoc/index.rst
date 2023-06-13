@@ -18,6 +18,7 @@
    netem.rst
    monitoring.rst
    tcpdump.rst
+   planning.rst
    skydive.rst
    locust.rst
    k3s.rst

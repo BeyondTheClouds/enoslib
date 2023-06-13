@@ -10,3 +10,5 @@ ANSIBLE_DIR = os.path.join(ENOS_PATH, "ansible")
 SYMLINK_NAME = Path("current")
 ENV_FILENAME = "env"
 TMP_DIRNAME = "_tmp_enos_"
+
+CGROUP_PREFIX = "/sys/fs/cgroup"

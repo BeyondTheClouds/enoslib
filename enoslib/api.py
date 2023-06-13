@@ -62,7 +62,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from rich.status import Console, Status
 
 from enoslib.config import get_config
-from enoslib.constants import ANSIBLE_DIR
+from enoslib.constants import ANSIBLE_DIR, CGROUP_PREFIX
 from enoslib.enos_inventory import EnosInventory
 from enoslib.errors import (
     EnosFailedHostsError,
@@ -80,6 +80,7 @@ from enoslib.utils import _hostslike_to_roles
 
 logger = logging.getLogger(__name__)
 
+NAMESPACE_WRAPPER = "__"
 COMMAND_NAME = "enoslib_adhoc_command"
 STATUS_OK = "OK"
 STATUS_FAILED = "FAILED"
@@ -854,6 +855,9 @@ def run_command(
     background: bool = False,
     task_name: Optional[str] = None,
     raw: bool = False,
+    ns: Optional[str] = None,
+    cgroup: Optional[str] = None,
+    cgroup_prefix="/sys/fs/cgroup",
     **kwargs: Any,
 ) -> Results:
     """Run a shell command on some remote hosts.
@@ -878,6 +882,9 @@ def run_command(
         task_name: name of the command to display, can be used for further
             filtering once the results is retrieved.
         raw: Whether to use a raw connection (no python requires at the destination)
+        ns: start the command in a pid namespace with that identifier
+        cgroup: start the command in the given cgroup (v2)
+        cgroup_prefix: where to find the cgroup filesystem (v2)
         kwargs: keywords argument to pass to the shell module or as top level
             args.
 
@@ -947,6 +954,12 @@ def run_command(
     if background:
         # don't inject if background is False
         kwargs.update(background=True)
+
+    if ns is not None:
+        command = in_ns(cmd=command, ns=ns)
+
+    if cgroup is not None:
+        command = cg_start(cmd=command, cgroup=cgroup, cgroup_prefix=cgroup_prefix)
 
     task: Dict = dict(name=command)
     if task_name is not None:
@@ -1434,3 +1447,131 @@ def _generate_inventory(roles: Optional[Mapping]) -> str:
     """
     inventory = EnosInventory(roles=roles)
     return inventory.to_ini_string()
+
+
+def in_ns(cmd: str, ns: str) -> str:
+    """Put a command in a namespace.
+
+    Generate the command that will run cmd into ns.
+
+    Args:
+        cmd: the command to run into the namespace
+        ns: the "name" of the namespace
+    """
+    command = " ".join(
+        [
+            f"if ( lsns -t pid | grep {wrap_ns(ns)} );",
+            f"then ( pidns=$(lsns -t pid | grep {wrap_ns(ns)}  | awk '{{print $4}}') ;"
+            f"nsenter -t $pidns -p {cmd} );",
+            f"else ( unshare --pid --fork --mount-proc bash -c '{cmd} && "
+            f"echo {wrap_ns(ns)}' );",
+            "fi",
+        ]
+    )
+    return command
+
+
+def _enoslib_cgroup(cgroup: str) -> str:
+    return f"__enoslib__{cgroup}"
+
+
+def cg_start(cmd: str, cgroup: str, cgroup_prefix="/sys/fs/cgroup") -> str:
+    """Generate the command to start a process in a cgroup.
+
+    the cgroup will be created on the fly if it doesn't exist yet.
+    The command will be exec'd in the cgroup
+    (and thus become the old wise man)
+
+    Args:
+        cmd: the command to run
+    """
+    cg_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
+    command = " ".join(
+        [
+            (
+                f"mkdir -p {cgroup_prefix} && mount -t cgroup2 none {cgroup_prefix} "
+                "|| true;"
+            ),
+            f"mkdir -p {cg_path} && echo $$ >> {cg_path}/cgroup.procs && exec {cmd}",
+        ]
+    )
+    return command
+
+
+def cg_stop(cgroup: str, cgroup_prefix=CGROUP_PREFIX) -> str:
+    """Generate a command to stop all processes in a cgroup.
+
+    A newest version of cgroup v2 this can be done be writing 1 in cgroup.kill
+    but for now we stick to a legacy version that consists in freezing + killing
+    """
+    cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
+    command = (
+        f"echo 1 > {cgroup_path}/cgroup.freeze && "
+        f"cat {cgroup_path}/cgroup.procs | xargs -r -n1 kill; "
+        f"echo 0 > {cgroup_path}/cgroup.freeze"
+    )
+    return command
+
+
+def cg_status(cgroup: str, cgroup_prefix=CGROUP_PREFIX) -> str:
+    """Generate a command that checks if processes exist in the cgroup
+
+    This checks if there's at least one remaining processes in the cgroup
+    """
+    cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
+    # check if there's some processes left in the cgroup
+    command = f"test $(wc -l {cgroup_path}/cgroup.procs | cut -d' ' -f1) -gt 0"
+    return command
+
+
+def cg_list(cgroup: str, cgroup_prefix=CGROUP_PREFIX) -> str:
+    cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
+    # check if there's some processes left in the cgroup
+    command = (
+        f"for i in $(ls -d {cgroup_path}); "
+        f"do echo $i; echo '#'; cat $i/cgroup.procs; echo '##'; "
+        "done"
+    )
+    return command
+
+
+def cg_write(cgroup: str, cpath: str, value: str, cgroup_prefix=CGROUP_PREFIX):
+    """write a value in a controller."""
+
+    def activate(ctr):
+        return f"echo '+{ctr}' > {cgroup_prefix}/cgroup.subtree_control"
+
+    cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
+    controller_path = f"{cgroup_path}/{cpath}"
+    prefix = ""
+    if "cpuset" in cpath:
+        prefix = activate("cpuset")
+    elif "cpu" in cpath:
+        # note that the string cpu is included in cpuset
+        prefix = activate("cpu")
+    elif "memory" in cpath:
+        prefix = activate("memory")
+    elif "io" in cpath:
+        prefix = activate("io")
+    elif "pids" in cpath:
+        prefix = activate("pids")
+    elif "rdma" in cpath:
+        prefix = activate("rdma")
+    elif "hugetlb" in cpath:
+        prefix = activate("hugetlb")
+    else:
+        raise ValueError(f"{cpath} doesn't correspond to a known controller")
+    command = f"{prefix}" f" && echo {value} > {controller_path}"
+    return command
+
+
+def wrap_ns(ns: str) -> str:
+    """Format a namespace name to be found.
+
+    Args:
+        ns: the namespace name to wrap
+    """
+    return f"{NAMESPACE_WRAPPER}{ns}{NAMESPACE_WRAPPER}"
+
+
+3
