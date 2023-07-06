@@ -8,6 +8,21 @@
 
 - TODO
 
+.. _v8.1.4:
+
+8.1.4
+-----
+
+Fixed
++++++
+
+- **G5k**: Fix number of cores for multi-CPU nodes
+- **G5K**: Fix DHCP at end of deployment when python interpreter is not found
+- **All**: Remove python3 interpreter override. This allows to support CentOS nodes.
+  It might change the python interpreter to python2 for old Ansible versions (2.9, 2.10, 3, 4)
+- **Packaging**: Remove runtime dependency on setuptools
+
+
 .. _v8.1.3:
 
 8.1.3
