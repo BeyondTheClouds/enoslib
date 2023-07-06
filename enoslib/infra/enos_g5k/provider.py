@@ -556,7 +556,7 @@ class G5kBase(Provider):
     def ensure_reserved(self):
         self.reserve()
 
-    def destroy(self, wait: bool = False, **kwargs):
+    def destroy(self, wait: bool = True, **kwargs):
         """Destroys the jobs."""
         self.driver.destroy(wait=wait)
 
