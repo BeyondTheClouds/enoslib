@@ -15,7 +15,7 @@ _config = dict(
     display="html",
     dump_results=None,
     ansible_stdout="spinner",
-    ansible_forks=100,
+    ansible_forks=5,
 )
 
 
