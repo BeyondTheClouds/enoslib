@@ -10,6 +10,12 @@ Root module
 .. automodule:: enoslib
     :members: init_logging, check
 
+Config module
+=============
+
+.. automodule:: enoslib.config
+    :members: set_config
+
 API module
 ==========
 
