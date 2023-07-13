@@ -2,13 +2,12 @@ import logging
 from pathlib import Path
 
 import enoslib as en
-from enoslib.config import set_config
 
 en.init_logging(level=logging.INFO)
 en.check()
 
 # Disabling the cache
-set_config(g5k_cache=False)
+en.set_config(g5k_cache=False)
 
 job_name = Path(__file__).name
 
