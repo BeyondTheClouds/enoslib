@@ -42,6 +42,7 @@ from typing import (
     overload,
 )
 
+from ansible import __version__ as ANSIBLE_VERSION
 from ansible import context
 
 # These two imports are 2.9
@@ -59,6 +60,7 @@ from ansible.vars.manager import VariableManager
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from packaging import version
 from rich.status import Console, Status
 
 from enoslib.config import get_config
@@ -79,6 +81,13 @@ from enoslib.objects import Host, Networks, Roles, RolesLike
 from enoslib.utils import _hostslike_to_roles
 
 logger = logging.getLogger(__name__)
+
+
+# https://gitlab.inria.fr/discovery/enoslib/-/issues/177
+if version.parse(ANSIBLE_VERSION) >= version.parse("2.15"):
+    from ansible.plugins.loader import init_plugin_loader
+
+    init_plugin_loader()
 
 NAMESPACE_WRAPPER = "__"
 COMMAND_NAME = "enoslib_adhoc_command"

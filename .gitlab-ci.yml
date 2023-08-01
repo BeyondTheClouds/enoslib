@@ -292,6 +292,11 @@ test_enoslib-ansible_4:
   variables:
     ENOSLIB_ANSIBLE_VERSION: ">=4,<5"
 
+test_enoslib-ansible_8:
+  <<: *enoslib-ansible
+  variables:
+    ENOSLIB_ANSIBLE_VERSION: ">=8,<9"
+
 ## TEST AGAINST DIFFERENT DISTROS
 #-----------------------------------------------
 test_functional$debian12$: &debian-base
