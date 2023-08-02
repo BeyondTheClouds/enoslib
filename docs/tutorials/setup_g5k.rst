@@ -38,14 +38,16 @@ External access (from your laptop)
 
 If you are running your experiment from outside Grid'5000 (e.g. from your local
 machine), `using a SSH jump host is required <https://www.grid5000.fr/w/Getting_Started#Recommended_tips_and_tricks_for_an_efficient_use_of_Grid.275000>`_.
+
 Enoslib (version 8.1.0 and above) will automatically setup such a SSH jump
-host connection through ``access.grid5000.fr``.
+host connection through ``access.grid5000.fr`` when it detects you are
+working outside of the Grid'5000 network.  See :ref:`global_config` if you
+need to configure this behaviour.
 
 .. hint::
 
-   This SSH setup might not work properly if you want to control a
-   larger number of nodes (around 14 or more), because it generates too
-   many SSH connections on the Grid'5000 jump host.  Please report any
-   issue you face `on the dedicated bug report
-   <https://gitlab.inria.fr/discovery/enoslib/-/issues/147>`_.  In the
-   meantime, the workaround is to work directly inside Grid'5000.
+   Using a SSH jump host does not provide the best performance when
+   controlling a large number of nodes.  This is because the number of
+   simultaneous SSH connection is limited on the jump host.  See
+   :ref:`performance_tuning` for many tips and tricks to improve
+   performance.
