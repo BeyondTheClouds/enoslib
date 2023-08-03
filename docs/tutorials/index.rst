@@ -21,4 +21,5 @@
     network_emulation
     parameters_exploration
     quickstart
+    global_config
     performance_tuning

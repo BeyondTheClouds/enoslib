@@ -131,6 +131,7 @@ def _split_args(**kwargs) -> Tuple[Dict, Dict]:
 
 
 def _load_defaults(
+    forks: int,
     inventory_path: Optional[Union[List, str]] = None,
     roles: Optional[Mapping] = None,
     extra_vars: Optional[MutableMapping] = None,
@@ -175,7 +176,7 @@ def _load_defaults(
         syntax=False,
         connection="ssh",
         module_path=None,
-        forks=100,
+        forks=forks,
         private_key_file=None,
         ssh_common_args=None,
         ssh_extra_args=None,
@@ -1140,12 +1141,14 @@ def run_ansible(
     if extra_vars is None:
         extra_vars = {}
     roles = _hostslike_to_roles(roles)
+    forks = get_config()["ansible_forks"]
     inventory, variable_manager, loader = _load_defaults(
         inventory_path=inventory_path,
         roles=roles,
         extra_vars=extra_vars,
         tags=tags,
         basedir=basedir,
+        forks=forks,
     )
     results: List[_AnsibleExecutionRecord] = []
     passwords: Dict = {}

@@ -15,6 +15,7 @@ _config = dict(
     display="html",
     dump_results=None,
     ansible_stdout="spinner",
+    ansible_forks=5,
 )
 
 
@@ -59,6 +60,7 @@ def set_config(
     display: Optional[str] = None,
     dump_results: Optional[Union[Path, str]] = None,
     ansible_stdout: Optional[str] = None,
+    ansible_forks: Optional[int] = None,
 ):
     """Set a specific config value.
 
@@ -73,11 +75,13 @@ def set_config(
         display: In a Jupyter environment, display objects using an HTML representation
         dump_results: dump the command result in a file
         ansible_stdout: stdout Ansible callback to use
+        ansible_forks: change Ansible's "forks" parameter (level of parallelization)
     """
     _set("g5k_cache", g5k_cache)
     _set("g5k_auto_jump", g5k_auto_jump)
     _set("display", display)
     _set("ansible_stdout", ansible_stdout)
+    _set("ansible_forks", ansible_forks)
     _set_dump_results(dump_results)
 
     logger.debug("config = %s", get_config())
