@@ -598,14 +598,20 @@ class AccurateNetemHTB(NetemHTB):
             #
             # Let's fix all the constraints (assuming symmetric rtt...)
             for constraint in constraints_candidates:
+                new_delay = float(constraint.delay.replace("ms", "")) - obs / 2
                 c = HTBConstraint(
                     device=constraint.device,
                     target=constraint.target,
                     # FIXME(msimonin): use delay(int) + delay unit(str)
-                    delay=f"{(float(constraint.delay.replace('ms', '')) - obs / 2)}ms",
+                    delay=f"{new_delay}ms",
                     rate=constraint.rate,
                     loss=constraint.loss,
                 )
+                if new_delay < 0:
+                    raise Exception(
+                        f"Delay is negative {alias} -> {dst} (observed is {obs:.2f})"
+                    )
+
                 logger.debug("Fixing constraint: %s -> %s", constraint, c)
                 new_sources.setdefault(host, HTBSource(host))
                 new_sources[host].add_constraints([c])
