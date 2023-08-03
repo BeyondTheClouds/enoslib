@@ -13,6 +13,7 @@ from netaddr import EUI, mac_unix_expanded
 import enoslib.infra.enos_g5k.configuration as g5kconf
 import enoslib.infra.enos_g5k.provider as g5kprovider
 from enoslib.api import run_ansible
+from enoslib.config import get_config
 from enoslib.infra.enos_g5k import g5k_api_utils
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from enoslib.infra.enos_g5k.utils import inside_g5k
@@ -60,14 +61,11 @@ def start_virtualmachines(
             :linenos:
 
     """
-
     extra: Dict = {}
-    if provider_conf.gateway or not inside_g5k():
-        gateway = "access.grid5000.fr"
-        username = g5k_api_utils.get_api_username()
-        logger.debug("SSH to the VM requires a jump through %s@%s", username, gateway)
-        extra.update(gateway=gateway)
-        extra.update(gateway_user=username)
+    g5k_auto_jump = get_config()["g5k_auto_jump"]
+    if g5k_auto_jump or (g5k_auto_jump is None and not inside_g5k()):
+        extra["gateway"] = "access.grid5000.fr"
+        extra["gateway_user"] = g5k_api_utils.get_api_username()
 
     vmong5k_roles = _distribute(provider_conf.machines, extra=extra)
 

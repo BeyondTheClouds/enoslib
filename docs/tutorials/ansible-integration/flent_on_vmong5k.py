@@ -9,7 +9,7 @@ job_name = Path(__file__).name
 
 conf = (
     en.VMonG5kConf()
-    .from_settings(job_name=job_name, gateway=True)
+    .from_settings(job_name=job_name)
     .add_machine(roles=["server"], cluster="paravance", number=1)
     .add_machine(roles=["client"], cluster="paravance", number=1)
 )

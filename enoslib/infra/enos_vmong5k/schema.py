@@ -31,10 +31,6 @@ SCHEMA = {
             "description": "Remove and restart all virtual machines",
             "type": "boolean",
         },
-        "gateway": {
-            "description": "Enable access to virtual machines from outside Grid'5000",
-            "type": "boolean",
-        },
         "job_name": {
             "description": f"Name of the job (default: {DEFAULT_JOB_NAME})",
             "type": "string",
