@@ -33,7 +33,6 @@ class Configuration(BaseConfiguration):
         self.domain_type = DEFAULT_DOMAIN_TYPE
         self.enable_taktuk = False
         self.force_deploy = False
-        self.gateway = False
         self.job_name = DEFAULT_JOB_NAME
         self.queue = DEFAULT_QUEUE
         self.reservation = None

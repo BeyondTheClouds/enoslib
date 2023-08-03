@@ -18,9 +18,6 @@ virtual machines for you on Grid'5000.
 .. include:: ./setup_g5k.rst
 
 
-To accesss your virtual machines from your local machine, see below.
-
-
 Basic example
 =============
 
@@ -157,22 +154,6 @@ available to the Virtual Machine. In the current implementation, the disk is nei
    :language: python
    :linenos:
 
-
-SSH external access to the virtual machines
-===========================================
-
-This is mandatory if you deployed from your local machine.
-
-- Solution 1: use the `Grid'5000 VPN <https://www.grid5000.fr/w/VPN>`_
-- Solution 2: Add the following in your configuration force Ansible to
-  jump through a gateway (``access.grid5000.fr``):
-
-  .. code-block:: python
-
-    Configuration.from_settings(...
-                                gateway=True
-                                ...
-                               )
 
 Controlling the virtual machines placement
 ==========================================
