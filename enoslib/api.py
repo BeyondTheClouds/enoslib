@@ -1128,9 +1128,6 @@ def run_ansible(
         on_error_continue (bool): Don't throw any exception in case a host is
             unreachable or the playbooks run with errors
         basedir: Ansible basedir
-        ansible_retries: a generic retry mechanism. Set this to a positive
-                         value if the connection plugin doesn't have this retry
-                         mechanism (ssh does have one)
 
     Raises:
         :py:class:`enoslib.errors.EnosFailedHostsError`: if a task returns an
