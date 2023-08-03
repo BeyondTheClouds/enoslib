@@ -189,7 +189,7 @@ def _distribute(
 ) -> Roles:
     vmong5k_roles = Roles()
     for machine in machines:
-        pms = machine.undercloud
+        pms = sorted(machine.undercloud)
         macs = machine.macs
         pms_it = itertools.cycle(pms)
         euis = itertools.islice(macs, 0, None)
