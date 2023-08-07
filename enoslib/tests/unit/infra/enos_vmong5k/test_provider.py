@@ -111,3 +111,35 @@ class TestDistribute(EnosTest):
 
         vm = vmong5k_roles["r1"][1]
         self.assertEqual(host1, vm.pm)
+
+    def test_distribute_determinism(self):
+        host0 = Host("paravance-1")
+        host1 = Host("paravance-2")
+        macs = [
+            "00:00:00:00:00:01",
+            "00:00:00:00:00:02",
+        ]
+        machine = MachineConfiguration(
+            roles=["r1"], flavour="tiny", undercloud=[host0, host1], number=2, macs=macs
+        )
+        machines = [machine]
+
+        vmong5k_roles = _distribute(machines, None)
+        mapping1 = []
+        for h in vmong5k_roles["r1"]:
+            mapping1.append((h.alias, h.pm))
+
+        # changing the order in the undercloud
+        machine = MachineConfiguration(
+            roles=["r1"], flavour="tiny", undercloud=[host1, host0], number=2, macs=macs
+        )
+        machines = [machine]
+
+        vmong5k_roles = _distribute(machines, None)
+        mapping2 = []
+        for h in vmong5k_roles["r1"]:
+            mapping2.append((h.alias, h.pm))
+
+        # the vm to pm mapping should remain the same regardless
+        # the order in the undercloud
+        self.assertCountEqual(mapping1, mapping2)
