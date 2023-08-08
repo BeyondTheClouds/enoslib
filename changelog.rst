@@ -1,6 +1,31 @@
 ⚒️ Changelog
 ============
 
+.. _v9.0.0:
+
+9.0.0 (unreleased)
+------------------
+
+Breaking
+++++++++
+
+- **All:** Change default Ansible fork level from 100 to 5
+- **VMonG5K:** Remove the :ref:`gateway <vmong5k-schema>` provider parameter (replaced by ``g5k_auto_jump``)
+
+Added
++++++
+
+- **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
+- **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
+
+Documentation
++++++++++++++
+
+- Add :ref:`many performance tips for large-scale experiments <performance_tuning>`
+- Add :ref:`documentation on global configuration <global_config>`
+- VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
+
+
 .. _v8.1.5:
 
 8.1.5 (unreleased)
