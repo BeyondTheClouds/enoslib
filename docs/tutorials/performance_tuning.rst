@@ -12,7 +12,7 @@ Increase Ansible parallelism
 
 .. note::
 
-  This is only supported since Enoslib 8.2.0.  Previous versions had a
+  This is only supported since Enoslib 9.0.0.  Previous versions had a
   fixed parallelism level of 100.
 
 By default, Enoslib only configures 5 nodes at a time using parallel

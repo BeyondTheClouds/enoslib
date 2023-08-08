@@ -12,7 +12,7 @@ Number of Ansible forks
 
 .. note::
 
-  This is only supported since Enoslib 8.2.0.  Previous versions had a
+  This is only supported since Enoslib 9.0.0.  Previous versions had a
   fixed number of forks set to 100.
 
 This controls the `forks`_ parameter of Ansible, i.e. the level of

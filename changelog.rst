@@ -1,17 +1,60 @@
 ⚒️ Changelog
 ============
 
-.. _v8.2.0:
+.. _v9.0.0:
 
-8.2.0 (unreleased)
+9.0.0 (unreleased)
 ------------------
 
-- TODO
+Breaking
+++++++++
+
+- **All:** Change default Ansible fork level from 100 to 5
+- **VMonG5K:** Remove the :ref:`gateway <vmong5k-schema>` provider parameter (replaced by ``g5k_auto_jump``)
+
+Added
++++++
+
+- **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
+- **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
+
+Documentation
++++++++++++++
+
+- Add :ref:`many performance tips for large-scale experiments <performance_tuning>`
+- Add :ref:`documentation on global configuration <global_config>`
+- VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
+
+
+.. _v8.1.5:
+
+8.1.5 (unreleased)
+------------------
+
+Added
++++++
+
+- **Dependencies:** Allow minor version updates of Ansible
+
+Fixed
++++++
+
+- **G5k:** Fix race condition when destroying and reloading jobs
+- **VMonG5K:** Make VM to host allocation deterministic
+- **AccurateNetemHTB:** Improve error message when the computed latency is negative
+
 
 .. _v8.1.4:
 
 8.1.4
 -----
+
+Added
++++++
+
+- **VMonG5K:** Add new parameter :ref:`vcore_type <vmong5k-schema>` to give more
+  control on the VM allocation algorithm. By default, it allocates vCPUs based on
+  the number of physical hyper-threads.
 
 Fixed
 +++++
