@@ -1,17 +1,35 @@
 ⚒️ Changelog
 ============
 
-.. _v8.2.0:
+.. _v8.1.5:
 
-8.2.0 (unreleased)
+8.1.5 (unreleased)
 ------------------
 
-- TODO
+Added
++++++
+
+- **Dependencies:** Allow minor version updates of Ansible
+
+Fixed
++++++
+
+- **G5k:** Fix race condition when destroying and reloading jobs
+- **VMonG5K:** Make VM to host allocation deterministic
+- **AccurateNetemHTB:** Improve error message when the computed latency is negative
+
 
 .. _v8.1.4:
 
 8.1.4
 -----
+
+Added
++++++
+
+- **VMonG5K:** Add new parameter :ref:`vcore_type <vmong5k-schema>` to give more
+  control on the VM allocation algorithm. By default, it allocates vCPUs based on
+  the number of physical hyper-threads.
 
 Fixed
 +++++
