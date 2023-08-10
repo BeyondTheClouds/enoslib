@@ -309,14 +309,13 @@ class TestDeploy(EnosTest):
         conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
         p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
-        deployed: List = [h.fqdn for h in p.hosts]
-        undeployed: List = []
+        deployed: List[str] = [h.fqdn for h in p.hosts]
         # no nodes has been deployed initially
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (undeployed, deployed)
-            p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+            mock_check_deployed_nodes.return_value = ([], deployed)
+            p.driver.deploy = mock.Mock(return_value=(deployed, []))
             p.deploy()
 
         p.driver.deploy.assert_called_with(
@@ -332,14 +331,13 @@ class TestDeploy(EnosTest):
         conf = {"env_name": "debian11-nfs", "job_type": ["deploy"], "key": "test_key"}
         p, site, oar_nodes = self.build_provider(conf=conf)
         # mimic a successful deployment
-        deployed: List = [h.fqdn for h in p.hosts]
-        undeployed: List = []
+        deployed: List[str] = [h.fqdn for h in p.hosts]
         # no nodes has been deployed initially
-        p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (undeployed, deployed)
+            mock_check_deployed_nodes.return_value = ([], deployed)
+            p.driver.deploy = mock.Mock(return_value=(deployed, []))
             p.deploy()
 
         p.driver.deploy.assert_called_with(
@@ -352,14 +350,13 @@ class TestDeploy(EnosTest):
     def test_dont_deploy_if_check_deployed_pass(self):
         p, site, oar_nodes = self.build_provider()
         # mimic a successful deployment
-        deployed: List = [h.fqdn for h in p.hosts]
-        undeployed: List = []
+        deployed: List[str] = [h.fqdn for h in p.hosts]
         # all nodes are already deployed
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (deployed, undeployed)
-            p.driver.deploy = mock.Mock(return_value=(deployed, undeployed))
+            mock_check_deployed_nodes.return_value = (deployed, [])
+            p.driver.deploy = mock.Mock(return_value=(deployed, []))
             actual_deployed, _ = p.deploy()
 
         p.driver.deploy.assert_not_called()
@@ -367,17 +364,40 @@ class TestDeploy(EnosTest):
         self.assertCountEqual([], p.undeployed)
         self.assertCountEqual(actual_deployed, p.sshable_hosts)
 
+    def test_both_deployed_undeployed(self):
+        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
+        p, site, oar_nodes = self.build_provider(conf=conf)
+        to_deploy: List[str] = [h.fqdn for h in p.hosts]
+        # One host is already deployed
+        already_deployed: List[str] = to_deploy[:1]
+        undeployed: List[str] = to_deploy[1:]
+        with mock.patch(
+            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
+        ) as mock_check_deployed_nodes:
+            mock_check_deployed_nodes.return_value = (already_deployed, undeployed)
+            # mimic a successful deployment
+            p.driver.deploy = mock.Mock(return_value=(to_deploy[1:], []))
+            actual_deployed, _ = p.deploy()
+
+        p.driver.deploy.assert_called_with(
+            site,
+            to_deploy[1:],
+            {"environment": "debian11-nfs", "key": DEFAULT_SSH_KEYFILE},
+        )
+        # self.assertCountEqual(p.hosts, p.deployed)
+        self.assertCountEqual([], p.undeployed)
+        self.assertEqual(len(to_deploy), len(p.deployed))
+
     def test_1_deployments_with_undeployed(self):
         p, site, oar_nodes = self.build_provider()
         # mimic a unsuccessful deployment
-        deployed: List = []
-        undeployed: List = [h.fqdn for h in p.hosts]
+        undeployed: List[str] = [h.fqdn for h in p.hosts]
 
         with mock.patch(
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (deployed, undeployed)
-            p.driver.deploy = mock.Mock(side_effect=[(deployed, undeployed)])
+            mock_check_deployed_nodes.return_value = ([], undeployed)
+            p.driver.deploy = mock.Mock(side_effect=[([], undeployed)])
             p.deploy()
 
         self.assertEqual(1, p.driver.deploy.call_count)
@@ -392,11 +412,11 @@ class TestDeploy(EnosTest):
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as patch_check_deployed_nodes:
             patch_check_deployed_nodes.side_effect = [
-                (set(), oar_nodes_1),
-                (set(), oar_nodes_2),
+                ([], oar_nodes_1),
+                ([], oar_nodes_2),
             ]
             p.driver.deploy = mock.Mock(
-                side_effect=[(set(), oar_nodes_1), (set(), oar_nodes_2)]
+                side_effect=[([], oar_nodes_1), ([], oar_nodes_2)]
             )
             p.deploy()
 
@@ -409,11 +429,11 @@ class TestDeploy(EnosTest):
             "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
         ) as patch_check_deployed_nodes:
             patch_check_deployed_nodes.side_effect = [
-                (set(), oar_nodes_1),
-                (set(), oar_nodes_2),
+                ([], oar_nodes_1),
+                ([], oar_nodes_2),
             ]
             p.driver.deploy = mock.Mock(
-                side_effect=[(oar_nodes_1, set()), (oar_nodes_2, set())]
+                side_effect=[(oar_nodes_1, []), (oar_nodes_2, [])]
             )
             p.deploy()
 
