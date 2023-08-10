@@ -692,7 +692,8 @@ class G5kBase(Provider):
                 h.ssh_address = t_fqdn
             self.deployed += [h for h in _hosts if h.fqdn in deployed]
             self.undeployed += [h for h in _hosts if h.fqdn in undeployed]
-            self.sshable_hosts += self.deployed
+
+        self.sshable_hosts += self.deployed
         return self.deployed, self.undeployed
 
     def dhcp_networks(self):
