@@ -679,7 +679,8 @@ class G5kBase(Provider):
                 deployed, undeployed = _check_deployed_nodes(net, _hosts)
 
             if force_deploy or undeployed:
-                deployed, undeployed = self.driver.deploy(site, undeployed, options)
+                new_deployed, undeployed = self.driver.deploy(site, undeployed, options)
+                deployed.extend(new_deployed)
 
             if undeployed:
                 logger.warning(f"Undeployed nodes: {undeployed}")
