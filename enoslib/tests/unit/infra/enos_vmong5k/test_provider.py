@@ -119,6 +119,15 @@ class TestNodesNumber(EnosTest):
         )
         self.assertEqual(1, _find_nodes_number(machine))
 
+        # A really big VM should still take one physical node
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 64, "mem": 4096},
+            cluster="paravance",
+            number=1,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_memory_allocation(self, mock_api):
         mock_api.return_value = get_offline_client()
@@ -174,6 +183,15 @@ class TestNodesNumber(EnosTest):
             number=2,
         )
         self.assertEqual(2, _find_nodes_number(machine))
+
+        # A really big VM should still take one physical node
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 768 * 1024},
+            cluster="neowise",
+            number=1,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
 
 
 class TestDistribute(EnosTest):

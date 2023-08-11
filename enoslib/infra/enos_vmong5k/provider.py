@@ -139,7 +139,14 @@ def _find_nodes_number(machine: MachineConfiguration) -> int:
         (-1 * total_vm_mem) // (phys_mem_bytes - reserved_mem_bytes)
     )
 
-    return max(nodes_number_cores, nodes_number_memory)
+    res = max(nodes_number_cores, nodes_number_memory)
+    if res > machine.number:
+        # This happens when asking for VMs that are bigger than the
+        # physical hosts. It can work, but there's no returning more
+        # physical hosts than the number of VMs (a single VM cannot be
+        # split over multiple hosts)
+        res = machine.number
+    return res
 
 
 def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
