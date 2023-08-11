@@ -17,6 +17,12 @@ Added
 
 - **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
 - **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
+- **VMonG5K:** Consider memory when allocating VMs on physical hosts
+
+Fixed
++++++
+
+- **VMonG5K:** Fix VM allocation algorithm for very large VM sizes
 
 Documentation
 +++++++++++++
