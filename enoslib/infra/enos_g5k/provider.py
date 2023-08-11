@@ -660,10 +660,7 @@ class G5kBase(Provider):
                 environment=self.provider_conf.env_name, key=self.provider_conf.key
             )
 
-            if (
-                self.provider_conf.env_version is not None
-                and self.provider_conf.force_deploy
-            ):
+            if self.provider_conf.env_version is not None:
                 options.update(version=self.provider_conf.env_version)
 
             # We remove the vlan id for the production
