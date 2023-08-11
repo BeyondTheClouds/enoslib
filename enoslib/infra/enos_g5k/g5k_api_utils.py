@@ -549,6 +549,15 @@ def get_threads(cluster: str) -> int:
     return get_nodes(cluster)[-1].architecture["nb_threads"]
 
 
+def get_memory(cluster: str) -> int:
+    """Get the memory (in bytes) in each machine for a given cluster
+
+    Args:
+        cluster (str): uid of the cluster (e.g 'paravance' for rennes)
+    """
+    return get_nodes(cluster)[-1].main_memory["ram_size"]
+
+
 def get_node(site, cluster, uid) -> Node:
     gk = get_api_client()
     return gk.sites[site].clusters[cluster].nodes[uid]

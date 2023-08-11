@@ -122,7 +122,24 @@ def _find_nodes_number(machine: MachineConfiguration) -> int:
     if cores is None:
         raise NotImplementedError()
 
-    return -((-1 * machine.number * machine.flavour_desc["core"]) // cores)
+    # Take into account CPU cores
+    total_vm_cores = machine.number * machine.flavour_desc["core"]
+    nodes_number_cores = -((-1 * total_vm_cores) // cores)
+
+    # Reserve 2% of memory for the system, capped between 256 MB and 4 GB.
+    phys_mem_bytes = g5k_api_utils.get_memory(machine.cluster)
+    reserved_mem_bytes = 0.02 * phys_mem_bytes
+    if reserved_mem_bytes < 256 * 1024 * 1024:
+        reserved_mem_bytes = 256 * 1024 * 1024
+    if reserved_mem_bytes > 4 * 1024 * 1024 * 1024:
+        reserved_mem_bytes = 4 * 1024 * 1024 * 1024
+    # Take into account memory
+    total_vm_mem = machine.number * machine.flavour_desc["mem"] * 1024 * 1024
+    nodes_number_memory = -(
+        (-1 * total_vm_mem) // (phys_mem_bytes - reserved_mem_bytes)
+    )
+
+    return max(nodes_number_cores, nodes_number_memory)
 
 
 def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
