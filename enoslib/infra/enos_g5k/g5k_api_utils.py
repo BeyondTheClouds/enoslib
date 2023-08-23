@@ -488,8 +488,9 @@ def get_all_clusters_sites() -> Dict[str, str]:
     gk = get_api_client()
     sites = gk.sites.list()
     for site in sites:
-        clusters: List[Cluster] = site.clusters.list()
-        result.update({c.uid: site.uid for c in clusters})
+        if site.uid not in gk.excluded_site:
+            clusters: List[Cluster] = site.clusters.list()
+            result.update({c.uid: site.uid for c in clusters})
     logger.debug(result)
     return result
 
