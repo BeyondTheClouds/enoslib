@@ -25,11 +25,18 @@ Documentation
 - Add :ref:`documentation on global configuration <global_config>`
 - VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
 
+Fixed
++++++
+
+- **G5K:** Fix missing nodes in deploy edge case
+- **G5K:** Fix env_version handling, it was only applied when force_deploy is true
+- **G5K:** Fix reservable_disks missing from from_dictionary / to_dict
+
 
 .. _v8.1.5:
 
-8.1.5 (unreleased)
-------------------
+8.1.5
+-----
 
 Added
 +++++
