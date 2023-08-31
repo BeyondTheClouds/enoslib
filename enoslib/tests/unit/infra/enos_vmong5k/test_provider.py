@@ -1,9 +1,14 @@
 from unittest import mock
 
 from enoslib.infra.enos_vmong5k.configuration import Configuration, MachineConfiguration
-from enoslib.infra.enos_vmong5k.provider import _distribute, _do_build_g5k_conf
+from enoslib.infra.enos_vmong5k.provider import (
+    _distribute,
+    _do_build_g5k_conf,
+    _find_nodes_number,
+)
 from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
+from enoslib.tests.unit.infra.enos_g5k.test_provider import get_offline_client
 
 
 class TestBuildG5kConf(EnosTest):
@@ -42,6 +47,151 @@ class TestBuildG5kConf(EnosTest):
         self.assertEqual(2, len(g5k_conf.networks))
         self.assertTrue(g5k_conf.networks[0].type in ["prod", "slash_22"])
         self.assertTrue(g5k_conf.networks[1].type in ["prod", "slash_22"])
+
+
+class TestNodesNumber(EnosTest):
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_cores_allocation(self, mock_api):
+        mock_api.return_value = get_offline_client()
+
+        # Single small VM should require a single physical node
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 512},
+            cluster="paravance",
+            number=1,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        # paravance has 16 cores, 32 threads
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 2, "mem": 512},
+            cluster="paravance",
+            vcore_type="thread",
+            number=16,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 2, "mem": 512},
+            cluster="paravance",
+            vcore_type="core",
+            number=16,
+        )
+        self.assertEqual(2, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 2, "mem": 512},
+            cluster="paravance",
+            vcore_type="thread",
+            number=17,
+        )
+        self.assertEqual(2, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 2, "mem": 512},
+            cluster="paravance",
+            vcore_type="core",
+            number=17,
+        )
+        self.assertEqual(3, _find_nodes_number(machine))
+
+        # sagittaire has 2 cores, 2 threads
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 512},
+            cluster="sagittaire",
+            vcore_type="thread",
+            number=2,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 512},
+            cluster="sagittaire",
+            vcore_type="core",
+            number=2,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        # A really big VM should still take one physical node
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 64, "mem": 4096},
+            cluster="paravance",
+            number=1,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
+    def test_memory_allocation(self, mock_api):
+        mock_api.return_value = get_offline_client()
+
+        # 31 * 4 GiB should fit, but 32 * 4 GiB will not because of
+        # reserved system memory.
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 4096},
+            cluster="paravance",
+            number=31,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 4096},
+            cluster="paravance",
+            number=32,
+        )
+        self.assertEqual(2, _find_nodes_number(machine))
+
+        # neowise has 512 GiB of memory, 63 * 8 GiB should fit.
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 8192},
+            cluster="neowise",
+            number=63,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 8192},
+            cluster="neowise",
+            number=64,
+        )
+        self.assertEqual(2, _find_nodes_number(machine))
+
+        # sagittaire only has 2 GiB of memory
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 512},
+            cluster="sagittaire",
+            number=2,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
+
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 1024},
+            cluster="sagittaire",
+            number=2,
+        )
+        self.assertEqual(2, _find_nodes_number(machine))
+
+        # A really big VM should still take one physical node
+        machine = MachineConfiguration(
+            roles=["r1"],
+            flavour_desc={"core": 1, "mem": 768 * 1024},
+            cluster="neowise",
+            number=1,
+        )
+        self.assertEqual(1, _find_nodes_number(machine))
 
 
 class TestDistribute(EnosTest):
