@@ -6,4 +6,4 @@ logger = getLogger(__name__, ["G5k"])
 def inside_g5k() -> bool:
     import socket
 
-    return socket.gethostname().endswith("grid5000.fr")
+    return socket.getfqdn().endswith("grid5000.fr")
