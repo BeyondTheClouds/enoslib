@@ -3,6 +3,8 @@ from collections import namedtuple
 from typing import Dict, List, Optional
 from unittest import mock
 
+from grid5000 import Grid5000Offline
+
 from enoslib.api import STATUS_FAILED, STATUS_OK, CommandResult, Results
 from enoslib.errors import NegativeWalltime
 from enoslib.infra.enos_g5k.configuration import (
@@ -40,6 +42,21 @@ from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 
 
+class OfflineClient(Grid5000Offline):
+    """Wrapper of the python-grid5000 offline client."""
+
+    def __init__(self, data, excluded_sites: Optional[List] = None, **kwargs):
+        """Constructor.
+
+        Args:
+            excluded_sites (list): sites to forget about when reloading the
+                jobs. The primary use case was to exclude unreachable sites and
+                allow the program to go on.
+        """
+        super().__init__(data, **kwargs)
+        self.excluded_site = excluded_sites if excluded_sites is not None else []
+
+
 def get_offline_client():
     """Build on offline client.
 
@@ -48,10 +65,8 @@ def get_offline_client():
     import json
     from pathlib import Path
 
-    from grid5000 import Grid5000Offline
-
     data = json.loads((Path(__file__).parent / "reference.json").read_text())
-    api = Grid5000Offline(data)
+    api = OfflineClient(data)
     # Allows the use of get_api_username()
     api.username = "dummy"
     return api
