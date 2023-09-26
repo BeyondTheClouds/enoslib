@@ -42,14 +42,6 @@ precheck:
 #                             TEST STAGE
 #
 ###############################################################################
-python3.7:
-  image: python:3.7
-  stage: test
-  tags: [ci.inria.fr]
-  script:
-    - pip install $TOX_PACKAGE
-    - tox -e py37
-
 python3.8:
   image: python:3.8
   stage: test
