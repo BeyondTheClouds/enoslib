@@ -73,7 +73,7 @@ class Client(Grid5000):
                 allow the program to go on.
         """
         super().__init__(**kwargs)
-        self.excluded_site = excluded_sites if excluded_sites is not None else []
+        self.excluded_sites = excluded_sites if excluded_sites is not None else []
 
 
 # Lightweight representation of a network returned by OAR
@@ -158,7 +158,7 @@ def grid_reload_jobs_from_name(
 
     jobs: List[Job] = []
     for site in [
-        s for s in sites if s.uid not in gk.excluded_site and s.uid in restrict_to
+        s for s in sites if s.uid not in gk.excluded_sites and s.uid in restrict_to
     ]:
         logger.debug("Reloading %s from %s", job_name, site.uid)
         _jobs = site.jobs.list(
@@ -488,7 +488,7 @@ def get_all_clusters_sites() -> Dict[str, str]:
     gk = get_api_client()
     sites = gk.sites.list()
     for site in sites:
-        if site.uid not in gk.excluded_site:
+        if site.uid not in gk.excluded_sites:
             clusters: List[Cluster] = site.clusters.list()
             result.update({c.uid: site.uid for c in clusters})
     logger.debug(result)

@@ -54,7 +54,7 @@ class OfflineClient(Grid5000Offline):
                 allow the program to go on.
         """
         super().__init__(data, **kwargs)
-        self.excluded_site = excluded_sites if excluded_sites is not None else []
+        self.excluded_sites = excluded_sites if excluded_sites is not None else []
 
 
 def get_offline_client():
