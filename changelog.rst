@@ -15,14 +15,17 @@ Breaking
 Added
 +++++
 
+- **Services:** 🚀 Add a new service :py:class:`~enoslib.service.planning.planning.PlanningService` that allows to schedule events on different machines
 - **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
 - **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
 - **VMonG5K:** Consider memory when allocating VMs on physical hosts
+- **G5K:** Allow "day" and "night" as job types
 
 Fixed
 +++++
 
 - **VMonG5K:** Fix VM allocation algorithm for very large VM sizes
+- **G5K:** Fix ``inside_g5k`` method to detect usage from a machine inside G5K network.
 
 Documentation
 +++++++++++++
