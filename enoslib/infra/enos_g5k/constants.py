@@ -44,6 +44,8 @@ JOB_TYPES_REGEXP = [
     "^container$",
     "^noop$",
     r"^inner=\d+$",
+    "^day$",
+    "^night$",
 ]
 QUEUE_TYPES = ["default", "production", "testing", "besteffort"]
 

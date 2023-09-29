@@ -83,6 +83,10 @@ class TestConfiguration(EnosTest):
         self.assertIn("job_type", cm.exception.message)
         self.assertIn("inner=bla", cm.exception.cause.args[0])
 
+        d["job_type"] = ["day"]
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual(["day"], conf.job_type)
+
     def test_from_dictionary_deploy_job(self):
         d: MutableMapping = {
             "job_name": "test",
