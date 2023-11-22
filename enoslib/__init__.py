@@ -135,7 +135,6 @@ except ImportError:
     pass
 
 try:
-
     from enoslib.infra.enos_chameleonbaremetal.configuration import (
         Configuration as CBMConf,
     )
@@ -187,30 +186,46 @@ INFO = f"""
 - Chat: [{__chat__}]({__chat__})
 """
 
+_PIP_CHAMELON = r"pip install enoslib\[chameleon]"
 
-def _check_deps() -> List[Tuple[str, Optional[bool], str, str]]:
+PROVIDERS = [
+    ("Chameleon", "enos_chameleonbaremetal", _PIP_CHAMELON),
+    ("ChameleonKVM", "enos_chameleonkvm", _PIP_CHAMELON),
+    ("ChameleonEdge", "enos_chameleonedge", _PIP_CHAMELON),
+    ("Distem", "enos_distem", r"pip install enoslib\[distem]"),
+    ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iotlab]"),
+    ("Grid'5000", "enos_g5k", ""),
+    ("Openstack", "enos_openstack", _PIP_CHAMELON),
+    ("Vagrant", "enos_vagrant", r"pip install enoslib\[vagrant]"),
+    ("VMonG5k", "enos_vmong5k", ""),
+]
+
+
+def _check_deps(
+    platform_filter: Optional[List[str]] = None,
+) -> List[Tuple[str, Optional[bool], str, str]]:
+    if platform_filter is None:
+        platform_filter = []
     import importlib
 
     prefix = "enoslib.infra"
-    providers = [
-        ("Chameleon", "enos_chameleonbaremetal", r"pip install enoslib\[chameleon]"),
-        ("ChameleonKVM", "enos_chameleonkvm", r"pip install enoslib\[chameleon]"),
-        ("ChameleonEdge", "enos_chameleonedge", r"pip install enoslib\[chameleon]"),
-        ("Distem", "enos_distem", r"pip install enoslib\[distem]"),
-        ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iotlab]"),
-        ("Grid'5000", "enos_g5k", ""),
-        ("Openstack", "enos_openstack", r"pip install enoslib\[chameleon]"),
-        ("Vagrant", "enos_vagrant", r"pip install enoslib\[vagrant]"),
-        ("VMonG5k", "enos_vmong5k", ""),
-    ]
+
     deps: List[Tuple[str, Optional[bool], str, str]] = []
-    for shortname, provider, hint in providers:
+    for shortname, provider, hint in PROVIDERS:
+        if platform_filter and shortname not in platform_filter:
+            continue
         mod = f"{prefix}.{provider}.provider"
         try:
             importlib.import_module(mod)
             deps.append((shortname, True, "", mod))
         except ImportError:
             deps.append((shortname, False, hint, mod))
+    if platform_filter and len(deps) != len(platform_filter):
+        # check in case of wrong input
+        valid_plateform = [one_provider[0] for one_provider in PROVIDERS]
+        for one_input_plateform in platform_filter:
+            if one_input_plateform not in valid_plateform:
+                logging.info("The plateform %s is not valid", one_input_plateform)
     return deps
 
 
@@ -221,7 +236,7 @@ def _print_deps_table(deps: List[Tuple[str, Optional[bool], str, str]], console)
     table.add_column("Provider")
     table.add_column("Status", justify="center")
     table.add_column("Hint", no_wrap=True, width=30)
-    for (shortname, deps_ok, hint, _) in deps:
+    for shortname, deps_ok, hint, _ in deps:
         table.add_row(
             shortname,
             "[green]INSTALLED[/green]" if deps_ok else "[blue]NOT INSTALLED[/blue]",
@@ -266,7 +281,7 @@ def _print_conn_table(deps: List[Tuple[str, Optional[bool], str, str]], console)
     table.add_column("Connectivity", justify="center")
     table.add_column("Hint", no_wrap=True, width=30)
 
-    for (shortname, key, status_ok, hint) in statuses:
+    for shortname, key, status_ok, hint in statuses:
         if status_ok is None:
             status_str = "❔"
         elif status_ok:
@@ -278,7 +293,7 @@ def _print_conn_table(deps: List[Tuple[str, Optional[bool], str, str]], console)
     console.print(table)
 
 
-def check():
+def check(platform_filter: Optional[List[str]] = None):
     """Check the status of EnOSlib.
 
     This gives you a synthetic view of
@@ -287,13 +302,27 @@ def check():
     - the connectivity to the various providers (connectivity check)
 
     The dependency check test which optional dependencies are installed with
-    your EnOSlib version.
+    your EnOSlib version. But you can specify the providers you want to check if you want to
     The connectivity check if connection to the various providers'
     infrastructure can be initiated. Since each provider setup is specific, this
     gives you a quick feedback on your local configuration.
+
+    Args
+        platform_filter: A list of specific checks to perform.
+
+    Example:
+        ```python
+        # Perform all checks
+        check()
+
+        # Perform specific checks
+        check(['check1', 'check2'])
+        ```
     """
+    if platform_filter is None:
+        platform_filter = []
     _ = init_logging()
-    deps = _check_deps()
+    deps = _check_deps(platform_filter)
 
     from rich.console import Console
     from rich.markdown import Markdown
