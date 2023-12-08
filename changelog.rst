@@ -18,14 +18,6 @@ Added
 - **Services:** 🚀 Add a new service :py:class:`~enoslib.service.planning.planning.PlanningService` that allows to schedule events on different machines
 - **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
 - **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
-- **VMonG5K:** Consider memory when allocating VMs on physical hosts
-- **G5K:** Allow "day" and "night" as job types
-
-Fixed
-+++++
-
-- **VMonG5K:** Fix VM allocation algorithm for very large VM sizes
-- **G5K:** Fix ``inside_g5k`` method to detect usage from a machine inside G5K network.
 
 Documentation
 +++++++++++++
@@ -34,12 +26,38 @@ Documentation
 - Add :ref:`documentation on global configuration <global_config>`
 - VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
 
+
+.. _v8.2.0:
+
+8.2.0
+-----
+
+Added
++++++
+
+- **VMonG5K:** Consider memory when allocating VMs on physical hosts
+- **G5K:** Allow "day" and "night" as job types
+
 Fixed
 +++++
 
+- **VMonG5K:** Fix VM allocation algorithm for very large VM sizes
+
+
+.. _v8.1.6:
+
+8.1.6
+-----
+
+Fixed
++++++
+
+- **Chameleon:** Constrain OpenStack dependencies to maintain Python 3.7 compatibility
 - **G5K:** Fix missing nodes in deploy edge case
 - **G5K:** Fix env_version handling, it was only applied when force_deploy is true
-- **G5K:** Fix reservable_disks missing from from_dictionary / to_dict
+- **G5K:** Fix ``inside_g5k`` method to detect usage from a machine inside G5K network.
+- **G5K:** Make site listing aware of excluded sites
+- **Monitoring service:** Fix crash when nodes have multiple IPv6 addresses
 
 
 .. _v8.1.5:
