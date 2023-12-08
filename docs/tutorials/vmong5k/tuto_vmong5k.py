@@ -44,3 +44,7 @@ with en.actions(roles=roles) as a:
         ports=["80:80"],
         state="started",
     )
+
+
+# Release all Grid'5000 resources
+provider.destroy()
