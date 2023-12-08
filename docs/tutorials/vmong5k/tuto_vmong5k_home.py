@@ -11,8 +11,8 @@ job_name = Path(__file__).name
 # claim the resources
 conf = en.VMonG5kConf.from_settings(job_name=job_name).add_machine(
     roles=["vms"],
-    cluster="paravance",
-    number=5,
+    cluster="ecotype",
+    number=2,
     flavour_desc={"core": 1, "mem": 1024},
 )
 
@@ -33,7 +33,7 @@ ips = [vm.address for vm in roles["vms"]]
 # add ips to the white list for the job duration
 en.g5k_api_utils.enable_home_for_job(job, ips)
 
-# mount the home dir
+# mount the home dir and try writing a file
 username = en.g5k_api_utils.get_api_username()
 with en.actions(roles=roles) as a:
     a.mount(
@@ -42,3 +42,11 @@ with en.actions(roles=roles) as a:
         fstype="nfs",
         state="mounted",
     )
+    a.file(
+        path=f"/home/{username}/enoslib-was-here.txt",
+        state="touch",
+    )
+
+
+# Release all Grid'5000 resources
+provider.destroy()

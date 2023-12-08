@@ -368,3 +368,4 @@ test_invivo_g5k_deploy$debian11$:
     - /venv/bin/python3 grid5000/tuto_grid5000_destroy.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_destroy.py
     - /venv/bin/python3 grid5000/tuto_grid5000_multisites.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
     - /venv/bin/python3 grid5000/tuto_grid5000_docker.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
+    - /venv/bin/python3 vmong5k/tuto_vmong5k_home.py || /venv/bin/python3 cleanup_g5k_job.py tuto_vmong5k_home.py
