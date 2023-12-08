@@ -10,6 +10,10 @@ Fixed
 +++++
 
 - **Chameleon:** Constraint OpenStack dependencies to maintain Python 3.7 compatibility
+- **G5K:** Fix missing nodes in deploy edge case
+- **G5K:** Fix env_version handling, it was only applied when force_deploy is true
+- **G5K:** Fix ``inside_g5k`` method to detect usage from a machine inside G5K network.
+- **G5K:** Make site listing aware of excluded sites
 
 
 .. _v8.1.5:
