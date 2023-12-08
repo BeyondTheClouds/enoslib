@@ -1,10 +1,21 @@
 ⚒️ Changelog
 ============
 
+.. _v8.1.6:
+
+8.1.6
+-----
+
+Fixed
++++++
+
+- **Chameleon:** Constraint OpenStack dependencies to maintain Python 3.7 compatibility
+
+
 .. _v8.1.5:
 
-8.1.5 (unreleased)
-------------------
+8.1.5
+-----
 
 Added
 +++++
