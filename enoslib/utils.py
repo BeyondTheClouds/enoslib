@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from ipaddress import IPv6Interface
 from typing import Dict, Iterable, Mapping, Optional
 
 from enoslib.errors import EnosFilePathError
@@ -56,14 +57,23 @@ def get_address(host: Host, networks: Optional[Iterable[Network]] = None) -> str
     if networks is None:
         return host.address
 
-    address = host.filter_addresses(networks, include_unknown=False)
+    addresses = host.filter_addresses(networks, include_unknown=False)
 
-    if not address or not address[0].ip:
+    # Filter out empty addresses and get IPs
+    ips = [addr.ip for addr in addresses if addr.ip is not None]
+
+    if len(ips) == 0:
         raise ValueError(f"IP address not found. Host: {host}, Networks: {networks}")
 
-    if len(address) > 1:
+    # For IPv6, we may have multiple IPv6 addresses.  Select the one with
+    # the largest prefix size (e.g. /128 instead of /64)
+    # See https://gitlab.inria.fr/discovery/enoslib/-/issues/183
+    if all([isinstance(ip, IPv6Interface) for ip in ips]):
+        ips = sorted(ips, key=lambda ip: ip.network.prefixlen)[-1:]
+
+    if len(ips) > 1:
         raise ValueError(
-            f"Cannot determine single IP address."
-            f"Options: {address} Host: {host}, Networks: {networks}"
+            f"Cannot determine single IP address. "
+            f"Options: {addresses} Host: {host}, Networks: {networks}"
         )
-    return str(address[0].ip.ip)
+    return str(ips[0].ip)
