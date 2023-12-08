@@ -1,6 +1,23 @@
 ⚒️ Changelog
 ============
 
+.. _v8.2.0:
+
+8.2.0
+-----
+
+Added
++++++
+
+- **VMonG5K:** Consider memory when allocating VMs on physical hosts
+- **G5K:** Allow "day" and "night" as job types
+
+Fixed
++++++
+
+- **VMonG5K:** Fix VM allocation algorithm for very large VM sizes
+
+
 .. _v8.1.6:
 
 8.1.6
