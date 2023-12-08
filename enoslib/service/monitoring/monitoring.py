@@ -4,6 +4,7 @@ from typing import Dict, Iterable, Optional
 
 from enoslib.api import run_ansible
 from enoslib.objects import Host, Network, Roles
+from enoslib.utils import get_address
 
 from ..service import Service
 from ..utils import _set_dir, _to_abs
@@ -18,32 +19,6 @@ SERVICE_PATH: str = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 LOCAL_OUTPUT_DIR_TIG: Path = Path("__enoslib_tig__")
 LOCAL_OUTPUT_DIR_TPG: Path = Path("__enoslib_tpg__")
-
-
-def _get_address(host: Host, networks: Optional[Iterable[Network]]) -> str:
-    """Auxiliary function to get the IP address for the Host
-
-    Args:
-        host: Host information
-        networks: List of networks
-
-    Returns:
-        str: IP address from host
-    """
-    if networks is None:
-        return host.address
-
-    address = host.filter_addresses(networks, include_unknown=False)
-
-    if not address or not address[0].ip:
-        raise ValueError(f"IP address not found. Host: {host}, Networks: {networks}")
-
-    if len(address) > 1:
-        raise ValueError(
-            f"Cannot determine single IP address."
-            f"Options: {address} Host: {host}, Networks: {networks}"
-        )
-    return str(address[0].ip.ip)
 
 
 class TIGMonitoring(Service):
@@ -160,11 +135,11 @@ class TIGMonitoring(Service):
         _, collector_port = self.collector_env["INFLUXDB_HTTP_BIND_ADDRESS"].split(":")
         ui_address = ""
         if self.ui:
-            ui_address = _get_address(self.ui, self.networks)
+            ui_address = get_address(self.ui, self.networks)
 
         extra_vars = {
             "enos_action": "deploy",
-            "collector_address": _get_address(self.collector, self.networks),
+            "collector_address": get_address(self.collector, self.networks),
             "collector_port": collector_port,
             "collector_env": self.collector_env,
             "collector_type": "influxdb",
@@ -294,16 +269,16 @@ class TPGMonitoring(Service):
         """Deploy the monitoring stack"""
         ui_address = ""
         if self.ui:
-            ui_address = _get_address(self.ui, self.networks)
+            ui_address = get_address(self.ui, self.networks)
 
         extra_vars = {
             "enos_action": "deploy",
             "collector_type": "prometheus",
             "remote_working_dir": self.remote_working_dir,
-            "collector_address": _get_address(self.collector, self.networks),
+            "collector_address": get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
             "ui_address": ui_address,
-            "telegraf_targets": [_get_address(h, self.networks) for h in self.agent],
+            "telegraf_targets": [get_address(h, self.networks) for h in self.agent],
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
@@ -334,7 +309,7 @@ class TPGMonitoring(Service):
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
-            "collector_address": _get_address(self.collector, self.networks),
+            "collector_address": get_address(self.collector, self.networks),
             "collector_port": self.prometheus_port,
             "backup_dir": str(_backup_dir),
         }
