@@ -1,6 +1,17 @@
 ⚒️ Changelog
 ============
 
+.. _v8.2.1:
+
+8.2.1
+-----
+
+Fixed
++++++
+
+- Fixed tests failure due to an incomplete backport
+
+
 .. _v8.2.0:
 
 8.2.0
