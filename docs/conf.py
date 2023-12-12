@@ -57,8 +57,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-copyright = "2017, Ronan-Alexandre Cherrueau, Matthieu Simonin"
-author = "Ronan-Alexandre Cherrueau, Matthieu Simonin"
+author = "Ronan-Alexandre Cherrueau, Matthieu Simonin, Baptiste Jonglez & contributors"
+copyright = f"2017-2023, {author}"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
