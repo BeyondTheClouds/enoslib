@@ -1,6 +1,6 @@
-*********************************
-✂️ Patterns for the experimenters
-*********************************
+***********
+✂️ Tutorials
+***********
 
 .. toctree::
     :maxdepth: 2
