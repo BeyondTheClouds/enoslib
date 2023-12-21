@@ -26,6 +26,7 @@ Documentation
 
 - Add :ref:`many performance tips for large-scale experiments <performance_tuning>`
 - Add :ref:`documentation on global configuration <global_config>`
+- Add :ref:`source reference for jupyter tutorials <jupyter>`
 - VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
 
 
