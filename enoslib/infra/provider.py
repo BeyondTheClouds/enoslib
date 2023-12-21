@@ -27,6 +27,9 @@ class Provider:
         provider_conf (BaseConfiguration): configuration of the provider.
             The configuration object is specific to each provider and must follow
             the provider's schema
+        name: a provider can be named. This is used in the context of a
+            multiprovider and all the resources from this provider using this
+            name in roles an networks.
 
     Example:
 
