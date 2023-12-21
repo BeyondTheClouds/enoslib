@@ -9,14 +9,16 @@
 Breaking
 ++++++++
 
-- **All:** Change default Ansible fork level from 100 to 5
+- **Core:** Limit the number of installed Ansible Collections:
+  EnOSlib is now shipped only with ``ansible.posix``, ``community.docker``, ``community.libvirt``
+- **All Providers:** Change default Ansible fork level from 100 to 5
 - **VMonG5K:** Remove the :ref:`gateway <vmong5k-schema>` provider parameter (replaced by ``g5k_auto_jump``)
 
 Added
 +++++
 
 - **Services:** 🚀 Add a new service :py:class:`~enoslib.service.planning.planning.PlanningService` that allows to schedule events on different machines
-- **All:** Allow to :ref:`configure the fork level of Ansible <global_config>`
+- **All Providers:** Allow to :ref:`configure the fork level of Ansible <global_config>`
 - **VMonG5K:** Use the :ref:`global g5k_auto_jump setting <global_config>` to setup SSH jump host for VMs
 
 Documentation
