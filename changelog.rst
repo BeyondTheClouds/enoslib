@@ -1,6 +1,14 @@
 ⚒️ Changelog
 ============
 
+.. _v9.0.2:
+
+9.0.2
+-----
+
+- Don't constrain upper version of ``packaging`` dependency
+
+
 .. _v9.0.0:
 
 9.0.0
