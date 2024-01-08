@@ -1,6 +1,17 @@
 ⚒️ Changelog
 ============
 
+.. _v8.3.1:
+
+8.3.1
+-----
+
+Fixed
++++++
+
+- Don't constrain upper version of ``packaging`` dependency
+
+
 .. _v8.3.0:
 
 8.3.0
