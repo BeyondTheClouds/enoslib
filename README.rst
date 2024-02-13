@@ -23,7 +23,7 @@ basis.
 In this context, EnOSlib smoothes the experimental code and can
 
 - deal with various platforms (e.g. local machine, scientific testbed, virtualized environments)
-- interact programmatically with different your remote resources: compute
+- interact programmatically with different remote resources: compute
   (servers, containers) and networks (ipv4, ipv6)
 - deploy *ready-to-use* experimentation services (e.g instrumentation, observability tools).
 - emulate complex network topologies (e.g for your FOG experiments)
