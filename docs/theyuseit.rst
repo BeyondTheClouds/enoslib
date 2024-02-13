@@ -14,6 +14,36 @@ Main Publication
 Other Publications (using or citing EnOSlib)
 ============================================
 
+- Daniel Rosendo, Kate Keahey, Alexandru Costan, Matthieu Simonin, Patrick
+  Valduriez, and Gabriel Antoniu. 2023. KheOps: Cost-effective Repeatability,
+  Reproducibility, and Replicability of Edge-to-Cloud Experiments. In Proceedings
+  of the 2023 ACM Conference on Reproducibility and Replicability (ACM REP '23).
+  Association for Computing Machinery, New York, NY, USA, 62–73.
+  https://doi.org/10.1145/3589806.3600032
+
+
+- Volodia Parol-Guarino and Nikos Parlavantzas. 2023. GIRAFF: Reverse
+  Auction-based Placement for Fog Functions. In Proceedings of the 9th
+  International Workshop on Serverless Computing (WoSC '23). Association for
+  Computing Machinery, New York, NY, USA, 53–58.
+  https://doi.org/10.1145/3631295.3631402
+
+
+- G. Kp, G. Pierre and R. Rouvoy, "Studying the Energy Consumption of Stream
+  Processing Engines in the Cloud," 2023 IEEE International Conference on Cloud
+  Engineering (IC2E), Boston, MA, USA, 2023, pp. 99-106, doi:
+  10.1109/IC2E59103.2023.00019.
+
+- Marie Delavergne. Cheops, a service-mesh to geo-distribute micro-service
+  applications at the Edge. Distributed, Parallel, and Cluster Computing [cs.DC].
+  Ecole nationale supérieure Mines-Télécom Atlantique, 2023. English. ⟨NNT :
+  2023IMTA0347⟩. ⟨tel-04081084⟩
+
+- D. Rosendo et al., "ProvLight: Efficient Workflow Provenance Capture on the
+  Edge-to-Cloud Continuum," 2023 IEEE International Conference on Cluster
+  Computing (CLUSTER), Santa Fe, NM, USA, 2023, pp. 221-233, doi:
+  10.1109/CLUSTER52292.2023.00026.
+
 - Viet Hoang Tran, Bernard Lenssens, Ayham Kassab, Alexis Laks, Etienne Rivière,
   Guillaume Rosinosky, Ramin Sadre. Machine-as-a-Service: Blockchain-based
   management and maintenance of industrial appliances.
