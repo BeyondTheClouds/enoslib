@@ -2,7 +2,7 @@
 EnOSlib: Surviving the ☆homoterogeneous☆ world
 **************************************************
 
-|Build Status| |License| |Pypi| |Pepy| |Chat| |SW|
+|Code| |Doc| |Build Status| |License| |Pypi| |Pepy| |Chat| |SW|
 
 
 What the ☆homoterogeneous☆ ?
@@ -29,6 +29,12 @@ In this context, EnOSlib smoothes the experimental code and can
 - emulate complex network topologies (e.g for your FOG experiments)
 - integrate your code with interactive development environment like Jupyter.
 
+
+.. |Code| image:: https://img.shields.io/badge/code-gitlab-orange
+   :target: https://gitlab.inria.fr/discovery/enoslib
+
+.. |Doc| image:: https://img.shields.io/badge/documentation-enoslib-blue
+   :target: https://discovery.gitlabpages.inria.fr/enoslib/index.html
 
 .. |Build Status| image:: https://gitlab.inria.fr/discovery/enoslib/badges/main/pipeline.svg
    :target: https://gitlab.inria.fr/discovery/enoslib/pipelines
