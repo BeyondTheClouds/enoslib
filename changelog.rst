@@ -1,6 +1,14 @@
 ⚒️ Changelog
 ============
 
+.. _v9.1.0:
+
+9.1.0
+-----
+
+- **Docker:** allow to install a specific version of Docker daemon for reproducibility
+
+
 .. _v9.0.2:
 
 9.0.2
