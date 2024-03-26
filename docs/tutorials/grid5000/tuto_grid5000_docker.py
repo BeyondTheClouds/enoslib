@@ -22,6 +22,7 @@ registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
 
 d = en.Docker(
     agent=roles["control"],
+    docker_version="25.0",
     bind_var_docker="/tmp/docker",
     registry_opts=registry_opts,
     # Optional credentials for docker hub

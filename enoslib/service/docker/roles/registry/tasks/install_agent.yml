@@ -31,8 +31,15 @@
   when:
     - bind_var_docker is defined
 
-- name: Installing docker
+- name: Installing latest docker
   shell: which docker || (curl -sSL https://get.docker.com/ | sh)
+  when:
+    - docker_version is not defined
+
+- name: Installing specific docker version
+  shell: which docker || (curl -sSL https://get.docker.com/ | sh -s -- --version "{{ docker_version }}")
+  when:
+    - docker_version is defined
 
 - name: Login to docker hub
   command: docker login -u {{ dockerhub_credentials.login }} -p {{ dockerhub_credentials.password }}

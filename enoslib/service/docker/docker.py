@@ -56,6 +56,7 @@ class Docker(Service):
         self,
         *,
         agent: Optional[List[Host]] = None,
+        docker_version: Optional[str] = None,
         registry: Optional[List[Host]] = None,
         registry_opts: Optional[Dict] = None,
         bind_var_docker: Optional[str] = None,
@@ -75,8 +76,11 @@ class Docker(Service):
 
             .. code-block:: python
 
-                # Simply install the docker agent without any registry
+                # Simply install latest docker agent without any registry
                 docker = Docker(agent=roles["agent"])
+
+                # Install a specific version of docker agent (recommended)
+                docker = Docker(agent=roles["agent"], docker_version="25.0")
 
                 # Install and use an internal registry on the specified host
                 docker = Docker(agent=roles["agent"],
@@ -104,6 +108,8 @@ class Docker(Service):
         Args:
             agent (list): list of :py:class:`enoslib.Host` where the docker
                 agent will be installed
+            docker_version (str): major version of Docker to install. Defaults
+                to latest.
             registry (list): list of :py:class:`enoslib.Host` where the docker
                 registry will be installed.
             registry_opts (dict): registry options. The dictionary must comply
@@ -147,6 +153,7 @@ class Docker(Service):
             if self.registry_opts.get("port") is None:
                 self.registry_opts["port"] = 5000
 
+        self.docker_version = docker_version
         self.bind_var_docker = bind_var_docker
         self.swarm = swarm
         self.credentials = credentials
@@ -167,6 +174,9 @@ class Docker(Service):
             "enos_action": "deploy",
             "swarm": self.swarm,
         }
+        if self.docker_version:
+            # In the Ansible playbook, undefined means latest version
+            extra_vars.update(docker_version=self.docker_version)
         if self.bind_var_docker:
             # In the Ansible playbook, undefined means no binding
             extra_vars.update(bind_var_docker=self.bind_var_docker)
