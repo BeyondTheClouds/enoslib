@@ -1,6 +1,17 @@
 ⚒️ Changelog
 ============
 
+.. _v8.3.0:
+
+8.3.0
+-----
+
+Added
++++++
+
+- **Docker:** allow to install a specific version of Docker daemon for reproducibility
+
+
 .. _v8.2.1:
 
 8.2.1
