@@ -142,7 +142,9 @@ characteristics across nodes of a cluster even though they share the same
 vendor and model.  For this reason, experimenters may need to reproduce an
 experiment several times using the exact same hardware.
 
-This is possible by specifying nodes with their exact name:
+This is possible by specifying nodes with their exact name. By default all the
+servers specified this way will get reserved unless you specify a target number
+of nodes using the ``nodes`` parameter.
 
 .. literalinclude:: grid5000/tuto_grid5000_specific_servers.py
     :language: python

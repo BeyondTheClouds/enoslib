@@ -13,16 +13,12 @@ conf = (
     .from_settings(job_name=job_name, walltime="0:10:00")
     .add_machine(
         roles=["compute"],
-        servers=["paravance-19.rennes.grid5000.fr"],
+        servers=["paravance-19.rennes.grid5000.fr", "paravance-20.rennes.grid5000.fr"],
     )
     .add_machine(
         roles=["compute"],
-        servers=["parasilo-28.rennes.grid5000.fr"],
-    )
-    .add_machine(
-        roles=["control"],
-        cluster="paravance",
-        nodes=1,
+        servers=[f"parasilo-{i}.rennes.grid5000.fr" for i in range(10, 20)],
+        nodes=3,
     )
 )
 
