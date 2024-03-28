@@ -176,6 +176,10 @@ SCHEMA_USER = {
                     "items": {"type": "string", "format": "hostname"},
                     "minItems": 1,
                 },
+                "nodes": {
+                    "description": "Number of nodes to get (default: #servers)",
+                    "type": "number",
+                },
                 "min": {
                     "description": "Minimal number of nodes to get (default to nodes)",
                     "type": "number",

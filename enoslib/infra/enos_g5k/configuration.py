@@ -334,7 +334,13 @@ class ClusterConfiguration(GroupConfiguration):
 
 
 class ServersConfiguration(GroupConfiguration):
-    def __init__(self, *, servers: Optional[Collection] = None, **kwargs):
+    def __init__(
+        self,
+        *,
+        servers: Optional[Collection] = None,
+        nodes: Optional[int] = None,
+        **kwargs,
+    ):
 
         super().__init__(**kwargs)
         if servers is None:
@@ -359,6 +365,11 @@ class ServersConfiguration(GroupConfiguration):
         # We force the corresponding cluster name
         self.cluster, self.site = cluster_site.pop()
         self.servers = servers
+        if nodes is None:
+            # by default reserve as many nodes as listed servers
+            self.nodes = len(self.servers)
+        else:
+            self.nodes = nodes
 
     def to_dict(self) -> Dict:
         d = super().to_dict()
@@ -375,8 +386,7 @@ class ServersConfiguration(GroupConfiguration):
             return self.site, None
         disks = "(type='default' or type='disk') AND " if self.reservable_disks else ""
         server_list = ", ".join([f"'{s}'" for s in self.servers])
-        nb_servers = len(self.servers)
-        criterion = f"{{{disks}network_address in ({server_list})}}/nodes={nb_servers}"
+        criterion = f"{{{disks}network_address in ({server_list})}}/nodes={self.nodes}"
         return self.site, criterion
 
 

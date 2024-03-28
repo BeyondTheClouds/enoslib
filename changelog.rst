@@ -4,6 +4,15 @@
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v9.1.1:
+
+9.1.1(unreleased)
+-----------------
+
+- **G5k**: When specifying a list of servers in the configuration, allow to get
+  nodes on only a subset of them.
+
+
 .. _v9.1.0:
 
 9.1.0
