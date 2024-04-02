@@ -51,13 +51,19 @@
   apt:
     name: pciutils
     state: present
+  when:
+    - nvidia_toolkit is not defined
 
 # test if we can find an nvidia device
 - shell: lspci| grep -i nvidia
   register: stdout
   ignore_errors: yes
+  when:
+    - nvidia_toolkit is not defined
 
-# Install the nvidia container runtime
+# Install the nvidia container runtime if either
+# - nvidia_toolkit is set to True
+# - nvidia_toolkit is not defined (auto-detect) and auto-detection found a GPU
 # from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit
 - name: Installing nvidia-container-toolkit
   shell: >
@@ -70,6 +76,4 @@
     apt update &&
     apt install -y nvidia-docker2 &&
     service docker restart
-  when:
-    - stdout is defined
-    - stdout.rc == 0
+  when: (nvidia_toolkit | bool) or (nvidia_toolkit is not defined and stdout is defined and stdout.rc == 0)
