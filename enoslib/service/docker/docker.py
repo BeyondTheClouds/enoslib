@@ -61,7 +61,8 @@ class Docker(Service):
         registry_opts: Optional[Dict] = None,
         bind_var_docker: Optional[str] = None,
         swarm: bool = False,
-        credentials: Optional[Dict] = None
+        credentials: Optional[Dict] = None,
+        nvidia_toolkit: Optional[bool] = None
     ):
         """Deploy docker agents on the nodes and registry cache(optional)
 
@@ -70,7 +71,9 @@ class Docker(Service):
 
         If an NVidia GPU is detected on a node, the `nvidia-container-toolkit` will be
         also installed automatically.
-        see https://docs.nvidia.com/datacenter/cloud-native/
+        See https://docs.nvidia.com/datacenter/cloud-native/
+        Installation of the `nvidia-container-toolkit` can be forced with
+        `nvidia_toolkit=True`, or prevented with `nvidia_toolkit=False`.
 
         Examples:
 
@@ -81,6 +84,10 @@ class Docker(Service):
 
                 # Install a specific version of docker agent (recommended)
                 docker = Docker(agent=roles["agent"], docker_version="25.0")
+
+                # Don't install nvidia-container-toolkit even if a nvidia GPU
+                # is detected on the target hosts.
+                docker = Docker(agent=roles["agent"], nvidia_toolkit=False)
 
                 # Install and use an internal registry on the specified host
                 docker = Docker(agent=roles["agent"],
@@ -126,6 +133,12 @@ class Docker(Service):
                 in that case, it is recommended to use a token with the "Public Repo
                 Read-Only" permission as password, because it is stored in cleartext
                 on the nodes.
+            nvidia_toolkit (bool): Whether to install nvidia-container-toolkit.
+                If set to None (the default), Enoslib will try to auto-detect the
+                presence of a nvidia GPU and only install nvidia-container-toolkit
+                if it finds such a GPU.  Set to True to force nvidia-container-toolkit
+                installation in all cases, or set to False to prevent
+                nvidia-container-toolkit installation in all cases.
         """
         # TODO: use a decorator for this purpose
         if registry_opts:
@@ -157,6 +170,7 @@ class Docker(Service):
         self.bind_var_docker = bind_var_docker
         self.swarm = swarm
         self.credentials = credentials
+        self.nvidia_toolkit = nvidia_toolkit
         self._roles = Roles(
             {
                 "agent": self.agent,
@@ -183,6 +197,9 @@ class Docker(Service):
         if self.credentials:
             # In the Ansible playbook, undefined means no logging in
             extra_vars.update(dockerhub_credentials=self.credentials)
+        if self.nvidia_toolkit is not None:
+            # In the Ansible playbook, undefined means auto-detect
+            extra_vars.update(nvidia_toolkit=self.nvidia_toolkit)
         run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
