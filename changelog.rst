@@ -4,13 +4,15 @@
 Stable branch
 ~~~~~~~~~~~~~
 
-.. _v9.1.1:
+.. _v9.2.0:
 
-9.1.1(unreleased)
------------------
+9.2.0
+-----
 
-- **G5k**: When specifying a list of servers in the configuration, allow to get
+- **G5K:** When specifying a list of servers in the configuration, allow to get
   nodes on only a subset of them.
+- **Docker:** allow to force/prevent installation of nvidia-container-toolkit
+- **Docker:** don't use sudo to install nvidia-toolkit
 
 
 .. _v9.1.0:
@@ -61,6 +63,22 @@ Documentation
 
 Oldstable branch (supported)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _v8.4.0:
+
+8.4.0
+-----
+
+Added
++++++
+
+- **Docker:** allow to force/prevent installation of nvidia-container-toolkit
+- **G5K:** allow to reserve only a subset of a list of specific nodes
+
+Fixed
++++++
+
+- **Docker:** don't use sudo to install nvidia-toolkit
 
 
 .. _v8.3.1:
