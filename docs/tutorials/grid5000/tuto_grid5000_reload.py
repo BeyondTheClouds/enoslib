@@ -8,8 +8,7 @@ en.check()
 
 job_name = Path(__file__).name
 
-nancy_net = en.G5kNetworkConf(type="kavlan", roles=["nancy"], site="nancy")
-rennes_net = en.G5kNetworkConf(type="kavlan", roles=["rennes"], site="rennes")
+lille_net = en.G5kNetworkConf(type="kavlan", roles=["lille"], site="lille")
 
 conf = (
     en.G5kConf.from_settings(
@@ -18,13 +17,10 @@ conf = (
         job_name=job_name,
         walltime="0:30:00",
     )
-    .add_network_conf(nancy_net)
-    .add_network_conf(rennes_net)
+    .add_network_conf(lille_net)
+    .add_machine(roles=["nantes"], cluster="ecotype", nodes=1)
     .add_machine(
-        roles=["nancy"], cluster="gros", nodes=1, secondary_networks=[nancy_net]
-    )
-    .add_machine(
-        roles=["rennes"], cluster="paravance", nodes=1, secondary_networks=[rennes_net]
+        roles=["lille"], cluster="chiclet", nodes=1, secondary_networks=[lille_net]
     )
 )
 
