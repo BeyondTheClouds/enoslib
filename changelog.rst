@@ -1,6 +1,23 @@
 ⚒️ Changelog
 ============
 
+.. _v8.4.0:
+
+8.4.0
+-----
+
+Added
++++++
+
+- **Docker:** allow to force/prevent installation of nvidia-container-toolkit
+- **G5K:** allow to reserve only a subset of a list of specific nodes
+
+Fixed
++++++
+
+- **Docker:** don't use sudo to install nvidia-toolkit
+
+
 .. _v8.3.1:
 
 8.3.1
