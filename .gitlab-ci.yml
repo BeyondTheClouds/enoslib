@@ -279,8 +279,8 @@ test_enoslib-ansible_4:
 
 ## TEST AGAINST DIFFERENT DISTROS
 #-----------------------------------------------
-test_functional$debian11$: &debian11
-  image: debian:11
+test_functional$debian12$: &debian-base
+  image: debian:12
   stage: functional
   tags: [ci.inria.fr]
   script:
@@ -310,28 +310,35 @@ test_functional$debian11$: &debian11
 ## debian 10
 #-----------------------------------------------
 test_functional$debian10$: &debian10
-  <<: *debian11
+  <<: *debian-base
   image: debian:10
+
+
+## debian 11
+#-----------------------------------------------
+test_functional$debian11$: &debian11
+  <<: *debian-base
+  image: debian:11
 
 
 ## debian testing
 #-----------------------------------------------
 test_functional$debiantesting$: &debiantesting
-  <<: *debian11
+  <<: *debian-base
   image: debian:testing
 
 
 ## ubuntu 20.04
 #-----------------------------------------------
 test_functional$ubuntu2004$: &ubuntu2004
-  <<: *debian11
+  <<: *debian-base
   image: ubuntu:20.04
 
 
 ## ubuntu 22.04
 #-----------------------------------------------
 test_functional$ubuntu2204$: &ubuntu2204
-  <<: *debian11
+  <<: *debian-base
   image: ubuntu:22.04
 
 
