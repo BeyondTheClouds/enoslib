@@ -74,6 +74,7 @@ test_invivo_g5k_1$debian11$:
     - /venv/bin/python3 grid5000/tuto_grid5000_deploy_centos.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_deploy_centos.py
     - /venv/bin/python3 grid5000/tuto_grid5000_reload.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_reload.py
     - /venv/bin/python3 grid5000/tuto_grid5000_docker_nvidia.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker_nvidia.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_monitoring_service.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_monitoring_service.py
 
 # Second batch of tests to parallelize a bit
 test_invivo_g5k_2$debian11$:
