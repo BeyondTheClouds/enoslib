@@ -76,4 +76,4 @@
     apt update &&
     apt install -y nvidia-docker2 &&
     service docker restart
-  when: (nvidia_toolkit | bool) or (nvidia_toolkit is not defined and stdout is defined and stdout.rc == 0)
+  when: (nvidia_toolkit is defined and nvidia_toolkit | bool) or (nvidia_toolkit is not defined and stdout is defined and stdout.rc == 0)
