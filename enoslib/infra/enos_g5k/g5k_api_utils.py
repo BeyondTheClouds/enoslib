@@ -462,16 +462,15 @@ def clusters_sites_obj(clusters: Iterable) -> Dict[str, Site]:
     """Get all the corresponding sites of the passed clusters.
 
     Args:
-        clusters(list): list of string uid of sites (e.g 'rennes')
+        clusters (list): list of the clusters (str)
 
     Return:
-        dict corresponding to the mapping cluster uid to python-grid5000 site
+        dict corresponding to the mapping of cluster name to python-grid5000 site
     """
     result = {}
     all_clusters = get_all_clusters_sites()
     clusters_sites = {c: s for (c, s) in all_clusters.items() if c in clusters}
     for cluster, site in clusters_sites.items():
-
         # here we want the site python-grid5000 site object
         result.update({cluster: get_site_obj(site)})
     return result
