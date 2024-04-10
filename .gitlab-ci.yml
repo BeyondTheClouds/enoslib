@@ -43,11 +43,18 @@ precheck:
 #
 ###############################################################################
 test_invivo_g5k_1$debian11$:
-  # stick to the distribution we'll found on g5k frontends
+  # stick to the distribution we'll find on g5k frontends
   image: debian:11
   stage: invivog5k
   tags: [ci.inria.fr]
-  when: manual
+  # Always run on tagged commits, and also allow manual runs at any time.
+  # In all cases, don't fail the pipeline, this is mostly informative.
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: on_success
+      allow_failure: true
+    - when: manual
+      allow_failure: true
   script:
     - env
     - apt update
@@ -70,11 +77,18 @@ test_invivo_g5k_1$debian11$:
 
 # Second batch of tests to parallelize a bit
 test_invivo_g5k_2$debian11$:
-  # stick to the distribution we'll found on g5k frontends
+  # stick to the distribution we'll find on g5k frontends
   image: debian:11
   stage: invivog5k
   tags: [ci.inria.fr]
-  when: manual
+  # Always run on tagged commits, and also allow manual runs at any time.
+  # In all cases, don't fail the pipeline, this is mostly informative.
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: on_success
+      allow_failure: true
+    - when: manual
+      allow_failure: true
   script:
     - env
     - apt update
