@@ -1572,6 +1572,3 @@ def wrap_ns(ns: str) -> str:
         ns: the namespace name to wrap
     """
     return f"{NAMESPACE_WRAPPER}{ns}{NAMESPACE_WRAPPER}"
-
-
-3
