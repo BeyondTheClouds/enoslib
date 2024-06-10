@@ -8,7 +8,9 @@
 
 - name: Installing docker python bindings
   pip:
-    name: docker
+    name:
+      - "docker<7.1.0"
+      - "requests<2.32"
     state: present
 
 - name: Creating docker state directory
