@@ -109,10 +109,13 @@ class ProcessGroup:
             is_async=True,
         )
 
+        date = None
         if start_at is not None:
             date = start_at
         elif start_in is not None:
             date = datetime.now() + start_in
+        else:
+            raise ValueError("One of start_at or start_in must be provided")
 
         check_cron_date(date=date)
 
@@ -435,10 +438,13 @@ class ProcessRegistry:
             start_in=start_in,
             is_async=True,
         )
+        date = None
         if start_at is not None:
             date = start_at
         elif start_in is not None:
             date = datetime.now() + start_in
+        else:
+            raise ValueError("One of start_at or start_in must be provided")
 
         check_cron_date(date=date)
 
@@ -486,10 +492,13 @@ class ProcessRegistry:
             interval=interval,
             is_async=True,
         )
+        date = None
         if start_at is not None:
             date = start_at
         elif start_in is not None:
             date = datetime.now() + start_in
+        else:
+            raise ValueError("One of start_at or start_in must be provided")
 
         check_cron_date(date=date)
 
