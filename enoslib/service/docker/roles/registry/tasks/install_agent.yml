@@ -6,6 +6,7 @@
     state: present
     update_cache: yes
 
+# WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
 - name: Installing docker python bindings
   pip:
     name:

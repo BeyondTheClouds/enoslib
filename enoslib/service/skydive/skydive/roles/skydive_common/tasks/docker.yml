@@ -1,7 +1,10 @@
 ---
 - name: Install Docker
+  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
   package:
-    name: docker
+      name:
+      - "docker<7.1.0"
+      - "requests<2.32"
     state: present
 
 - name: Enable Docker service
