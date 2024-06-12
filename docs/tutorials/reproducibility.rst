@@ -127,7 +127,7 @@ that they will remain available in the future.
 
 Example for Grid'5000:
 
-* You need 25 identical nodes for your experiment
+* Let's assume you need 25 identical nodes for your experiment
 * You initially decide to use the `uvb cluster in Sophia
   <https://www.grid5000.fr/w/Sophia:Hardware#uvb>`_
 * However, there are several issues: there are 30 nodes in the cluster,
@@ -247,19 +247,7 @@ that your experiment will always use the same exact Debian packages.
 Experiment's shareability
 =========================
 
-Sharing experiment requires packaging it and share it somehow.
-A proof of concept using |enoslib| for a Multi-platform Edge-to-Cloud Experiment
-Workflow is available as an artifact of the `Trovi/Jupyter
-<https://www.chameleoncloud.org/experiment/share/347adbf3-7c14-4834-b802-b45fdd0d9564>`_
-platform of Chameleon. This work is part of `Daniel
-Rosendo <https://team.inria.fr/kerdata/daniel-rosendo/>`_ 's work on
-reproducibility of edge to cloud experiments.
-
-
-Experiment's shareability
-=========================
-
-Sharing experiment requires packaging it and share it somehow.
+Sharing experiment requires packaging it and sharing it somehow.
 A proof of concept using |enoslib| for a Multi-platform Edge-to-Cloud Experiment
 Workflow is available as an artifact of the `Trovi/Jupyter
 <https://www.chameleoncloud.org/experiment/share/347adbf3-7c14-4834-b802-b45fdd0d9564>`_
