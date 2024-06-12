@@ -5,7 +5,7 @@
     state: stopped
 
 - name: Archiving the data volume
-  archive:
+  community.general.archive:
     path: "{{ remote_working_dir }}/influxdb-data"
     dest: "{{ remote_working_dir }}/influxdb-data.tar.gz"
 

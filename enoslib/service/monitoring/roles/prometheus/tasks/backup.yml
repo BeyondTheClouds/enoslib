@@ -1,7 +1,7 @@
 ---
 - name: Snapshot Prometheus database
   uri:
-    url: "http://{{ collector_address | ipwrap }}:{{ collector_port }}/api/v1/admin/tsdb/snapshot"
+    url: "http://{{ collector_address | ansible.utils.ipwrap }}:{{ collector_port }}/api/v1/admin/tsdb/snapshot"
     method: POST
     status_code: [200]
   register: snapshot
@@ -10,7 +10,7 @@
     var: snapshot
 
 - name: Archiving the data volume
-  archive:
+  community.general.archive:
     path: "{{ remote_working_dir }}/snapshots/{{ snapshot.json.data.name }}/"
     dest: "{{ remote_working_dir }}/{{ snapshot.json.data.name }}.tar.gz"
 
