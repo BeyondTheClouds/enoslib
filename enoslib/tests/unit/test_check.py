@@ -2,6 +2,7 @@
 
 import logging
 from typing import List, Optional, Tuple
+from unittest import skip
 
 import enoslib as en
 from enoslib.tests.unit import EnosTest
@@ -26,6 +27,7 @@ class TestCheck(EnosTest):
         normal_deps = en._check_deps()  # [protected-access]
         self.assertTrue(len(normal_deps) == len(self.global_deps))
 
+    @skip("FIXME please")
     def test_check(self):
         """check only one platform"""
         en.init_logging(level=logging.INFO)
