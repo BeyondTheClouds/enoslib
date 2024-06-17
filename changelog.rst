@@ -4,6 +4,14 @@
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v9.2.1:
+
+9.2.1
+-----
+
+- Workaround `docker` python binding :ref:`issue <https://github.com/docker/docker-py/issues/3256>` with latest `requests`.
+
+
 .. _v9.2.0:
 
 9.2.0
