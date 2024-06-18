@@ -71,6 +71,10 @@ SCHEMA = {
             "description": "Reservation date %Y-%m-%d %H:%M:%S (Paris Timezone)",
             "type": "string",
         },
+        "project": {
+            "description": "Project / team to use",
+            "type": "string",
+        },
         "resources": {
             "title": "VMonG5k Resource",
             "type": "object",
