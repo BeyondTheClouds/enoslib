@@ -48,6 +48,41 @@ class TestBuildG5kConf(EnosTest):
         self.assertTrue(g5k_conf.networks[0].type in ["prod", "slash_22"])
         self.assertTrue(g5k_conf.networks[1].type in ["prod", "slash_22"])
 
+    @mock.patch(
+        "enoslib.infra.enos_vmong5k.provider._find_nodes_number", return_value=2
+    )
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site1"
+    )
+    @mock.patch(
+        "enoslib.infra.enos_vmong5k.configuration.get_cluster_site",
+        return_value="site1",
+    )
+    def test_do_build_g5k_conf_top_level(
+        self,
+        mock_get_cluster_site_vmong5k,
+        mock_get_cluster_site_g5k,
+        mock_find_node_number,
+    ):
+        conf = Configuration.from_settings(
+            job_name="test_name",
+            project="test_project",
+            walltime="00:10:00",
+            queue="testing",
+            reservation="2024-06-18 14:00:00",
+        ).add_machine(roles=["r1"], cluster="cluster1", number=10, flavour="tiny")
+        conf.finalize()
+        g5k_conf = _do_build_g5k_conf(conf)
+        # it's valid
+        g5k_conf.finalize()
+
+        # machines
+        self.assertEqual("test_name", g5k_conf.job_name)
+        self.assertEqual("test_project", g5k_conf.project)
+        self.assertEqual("testing", g5k_conf.queue)
+        self.assertEqual("00:10:00", g5k_conf.walltime)
+        self.assertEqual("2024-06-18 14:00:00", g5k_conf.reservation)
+
 
 class TestNodesNumber(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")

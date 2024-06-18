@@ -42,6 +42,7 @@ class Configuration(BaseConfiguration):
         self.strategy = DEFAULT_STRATEGY
         self.subnet_type = DEFAULT_SUBNET_TYPE
         self.working_dir = DEFAULT_WORKING_DIR
+        self.project = None
 
         self._machine_cls: Type[MachineConfiguration] = MachineConfiguration
         self._network_cls: Type[str] = str

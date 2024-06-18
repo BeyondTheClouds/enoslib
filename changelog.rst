@@ -1,6 +1,11 @@
 ⚒️ Changelog
 ============
 
+Next (in development)
+~~~~~~~~~~~~~~~~~~~~~
+
+- **VMonG5K**: Allow to pass ``project`` name in the configuration
+
 Stable branch
 ~~~~~~~~~~~~~
 
