@@ -932,7 +932,17 @@ class G5k(G5kBase):
             # they have been reserved by the temporary Providers instance.
             confs_per_site = [self.provider_conf.restrict_to(site) for site in sites]
             providers = Providers([G5kBase(conf) for conf in confs_per_site])
-            providers.async_init()
+
+            if self.provider_conf.reservation is not None:
+                date = datetime.strptime(
+                    self.provider_conf.reservation,
+                    "%Y-%m-%d %H:%M:%S",
+                ).astimezone(tz=timezone.utc)
+                start_time = int(date.timestamp())
+            else:
+                start_time = None
+
+            providers.async_init(start_time=start_time)
 
 
 def _lookup_networks(network_id: str, networks: Iterable[G5kNetwork]) -> G5kNetwork:
