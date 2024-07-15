@@ -305,12 +305,12 @@ class VirtualMachine(Host):
         self.eui = eui
         self.pm = pm
         self.user = "root"
-        self.net_devices: str = extra_devices  # type:ignore
+        self.extra_devices: str = extra_devices
         self.disk = flavour_desc.get("disk", None)
         if self.disk is not None:
             path = f"{LIBVIRT_DIR}/{self.alias}-extra.raw"
             self.disk = {"size": f"{self.disk}G", "path": path}
-            self.net_devices += f"""\n
+            self.extra_devices += f"""\n
 <disk type='file' device='disk'>
     <driver name='qemu' type='raw'/>
     <source file='{path}'/>
@@ -324,7 +324,7 @@ class VirtualMachine(Host):
             mem=self.mem,
             pm=self.pm.to_dict(),
             eui=str(self.eui),
-            extra_devices=self.net_devices,
+            extra_devices=self.extra_devices,
             disk=self.disk,
         )
         return d
