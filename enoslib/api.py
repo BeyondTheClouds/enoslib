@@ -1460,11 +1460,11 @@ def in_ns(cmd: str, ns: str) -> str:
     """
     command = " ".join(
         [
-            f"if ( lsns -t pid | grep {wrap_ns(ns)} );",
-            f"then ( pidns=$(lsns -t pid | grep {wrap_ns(ns)}  | awk '{{print $4}}') ;"
-            f"nsenter -t $pidns -p {cmd} );",
-            f"else ( unshare --pid --fork --mount-proc bash -c '{cmd} && "
-            f"echo {wrap_ns(ns)}' );",
+            f"if ( lsns -t pid | grep {wrap_ns(ns)} );",  # noqa: E201, E202, E702, E231, E501
+            f"then ( pidns=$(lsns -t pid | grep {wrap_ns(ns)} | awk '{{print $4}}') ;"  # noqa: E201, E202, E702, E231, E501
+            f"nsenter -t $pidns -p {cmd} );",  # noqa: E201, E202, E702, E231, E501
+            f"else ( unshare --pid --fork --mount-proc bash -c '{cmd} && "  # noqa: E201, E202, E702, E231, E501
+            f"echo {wrap_ns(ns)}' );",  # noqa: E201, E202, E702, E231, E501
             "fi",
         ]
     )
@@ -1506,9 +1506,9 @@ def cg_stop(cgroup: str, cgroup_prefix=CGROUP_PREFIX) -> str:
     """
     cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
     command = (
-        f"echo 1 > {cgroup_path}/cgroup.freeze && "
-        f"cat {cgroup_path}/cgroup.procs | xargs -r -n1 kill; "
-        f"echo 0 > {cgroup_path}/cgroup.freeze"
+        f"echo 1 > {cgroup_path}/cgroup.freeze && "  # noqa: E201, E202, E702, E231, E501
+        f"cat {cgroup_path}/cgroup.procs | xargs -r -n1 kill; "  # noqa: E201, E202, E702, E231, E501
+        f"echo 0 > {cgroup_path}/cgroup.freeze"  # noqa: E201, E202, E702, E231, E501
     )
     return command
 
@@ -1528,8 +1528,8 @@ def cg_list(cgroup: str, cgroup_prefix=CGROUP_PREFIX) -> str:
     cgroup_path = f"{cgroup_prefix}/{_enoslib_cgroup(cgroup)}"
     # check if there's some processes left in the cgroup
     command = (
-        f"for i in $(ls -d {cgroup_path}); "
-        f"do echo $i; echo '#'; cat $i/cgroup.procs; echo '##'; "
+        f"for i in $(ls -d {cgroup_path}); "  # noqa: E201, E202, E702, E231, E501
+        f"do echo $i; echo '#'; cat $i/cgroup.procs; echo '##'; "  # noqa: E201, E202, E702, E231, E501
         "done"
     )
     return command
