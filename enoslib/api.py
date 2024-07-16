@@ -337,8 +337,12 @@ class _MyCallback(CallbackBase):
         self.display_ok_hosts = True
         self.display_skipped_hosts = True
         self.display_failed_stderr = True
+        # NOTE(msimonin): this line trigger an access to cb._load_name which
+        # isn't set in our case (this seems to be set by the plugin loader in
+        # the usual case where plugins are loaded from directories)
+        # Commenting this out seems ok anyway  to support ansible-core 2.17 / ansible 10
         # since 2.9
-        self.set_option("show_per_host_start", True)
+        # self.set_option("show_per_host_start", True)
 
     def _store(self, result, status):
         record = _AnsibleExecutionRecord(

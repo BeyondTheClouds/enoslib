@@ -299,10 +299,17 @@ test_enoslib-ansible_8:
 
 test_enoslib-ansible_9:
   <<: *enoslib-ansible
-  # ansible 9 only work for python>=10
+  # ansible 9+ only work for python>=10
   image: debian:12
   variables:
     ENOSLIB_ANSIBLE_VERSION: ">=9,<10"
+
+test_enoslib-ansible_10:
+  <<: *enoslib-ansible
+  # ansible 9+ only work for python>=10
+  image: debian:12
+  variables:
+    ENOSLIB_ANSIBLE_VERSION: ">=10,<11"
 
 ## TEST AGAINST DIFFERENT DISTROS
 #-----------------------------------------------
