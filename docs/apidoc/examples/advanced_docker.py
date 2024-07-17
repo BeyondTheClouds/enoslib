@@ -19,7 +19,7 @@ job_name = Path(__file__).name
 
 conf = (
     en.G5kConf.from_settings(job_name=job_name, walltime="0:30:00", job_type=[])
-    .add_machine(roles=["control"], cluster="ecotype", nodes=2)
+    .add_machine(roles=["control"], cluster="econome", nodes=2)
     .finalize()
 )
 

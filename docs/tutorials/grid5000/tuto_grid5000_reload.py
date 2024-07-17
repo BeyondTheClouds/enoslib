@@ -18,7 +18,7 @@ conf = (
         walltime="0:30:00",
     )
     .add_network_conf(lille_net)
-    .add_machine(roles=["nantes"], cluster="ecotype", nodes=1)
+    .add_machine(roles=["nantes"], cluster="econome", nodes=1)
     .add_machine(
         roles=["lille"], cluster="chiclet", nodes=1, secondary_networks=[lille_net]
     )

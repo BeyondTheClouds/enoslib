@@ -11,7 +11,7 @@ job_name = Path(__file__).name
 # claim the resources
 conf = en.VMonG5kConf.from_settings(job_name=job_name).add_machine(
     roles=["vms"],
-    cluster="ecotype",
+    cluster="econome",
     number=2,
     flavour_desc={"core": 1, "mem": 1024},
 )

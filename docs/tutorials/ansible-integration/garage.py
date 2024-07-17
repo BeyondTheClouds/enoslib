@@ -15,7 +15,7 @@ job_name = Path(__file__).name
 conf = (
     en.G5kConf()
     .from_settings(job_name=job_name, walltime="0:40:00")
-    .add_machine(roles=["garage"], cluster="ecotype", nodes=2)
+    .add_machine(roles=["garage"], cluster="econome", nodes=2)
 )
 
 provider = en.G5k(conf)

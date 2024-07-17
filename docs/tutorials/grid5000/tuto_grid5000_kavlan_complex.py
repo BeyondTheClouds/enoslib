@@ -50,7 +50,7 @@ conf = (
     )
     .add_machine(
         roles=["nantes"],
-        cluster="ecotype",
+        cluster="econome",
         nodes=2,
         secondary_networks=[kavlan_global2],
     )

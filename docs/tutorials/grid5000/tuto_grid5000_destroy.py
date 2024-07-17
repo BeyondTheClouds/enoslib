@@ -13,7 +13,7 @@ conf = (
         job_name=job_name,
         walltime="0:20:00",
     )
-    .add_machine(roles=["nantes"], cluster="ecotype", nodes=1)
+    .add_machine(roles=["nancy"], cluster="gros", nodes=1)
     .add_machine(roles=["rennes"], cluster="paravance", nodes=1)
 )
 

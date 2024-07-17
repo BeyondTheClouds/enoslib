@@ -4,7 +4,7 @@ garage_metadata_dir: /dev/shm/meta
 g5k_env: debian11-min
 g5k_walltime: 0:50:00
 g5k:
-  - cluster: ecotype
+  - cluster: econome
     nodes: 2
     roles: [nantes]
   - cluster: paravance

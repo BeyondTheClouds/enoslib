@@ -26,10 +26,10 @@ DATABASE_FLAVOUR = {"core": 4, "mem": 8192}
 conf = (
     en.VMonG5kConf.from_settings(job_name=job_name, walltime="00:45:00")
     # Put as many client VMs as possible on the same physical nodes. They
-    # should fit on 2 ecotype nodes (each node has 40 hyper-threads).
+    # should fit on 2 paravance nodes (each node has 32 hyper-threads).
     .add_machine(
         roles=["clients"],
-        cluster="ecotype",
+        cluster="paravance",
         number=50,
         vcore_type="thread",
         flavour_desc=CLIENT_FLAVOUR,
@@ -47,13 +47,13 @@ conf = (
     # We ensure this by using multiple groups with the same role.  This
     # could be done in a loop if necessary.
     .add_machine(
-        roles=["database"], cluster="ecotype", number=1, flavour_desc=DATABASE_FLAVOUR
+        roles=["database"], cluster="econome", number=1, flavour_desc=DATABASE_FLAVOUR
     )
     .add_machine(
-        roles=["database"], cluster="ecotype", number=1, flavour_desc=DATABASE_FLAVOUR
+        roles=["database"], cluster="econome", number=1, flavour_desc=DATABASE_FLAVOUR
     )
     .add_machine(
-        roles=["database"], cluster="ecotype", number=1, flavour_desc=DATABASE_FLAVOUR
+        roles=["database"], cluster="econome", number=1, flavour_desc=DATABASE_FLAVOUR
     )
 )
 
