@@ -1,13 +1,17 @@
 ⚒️ Changelog
 ============
 
-Next (in development)
-~~~~~~~~~~~~~~~~~~~~~
-
-- **VMonG5K**: Allow to pass ``project`` name in the configuration
-
 Stable branch
 ~~~~~~~~~~~~~
+
+.. _v9.3.0:
+
+9.3.0
+-----
+
+- **VMonG5K**: Allow to pass ``project`` name in the configuration
+- **G5k**: Add support for multi-site reservation
+
 
 .. _v9.2.1:
 
