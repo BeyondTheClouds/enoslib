@@ -4,6 +4,18 @@
 Stable branch
 ~~~~~~~~~~~~~
 
+
+.. _v10.0.0:
+
+10.0.0
+------
+
+- TODO
+
+
+Oldstable branch (supported)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. _v9.3.0:
 
 9.3.0
@@ -78,8 +90,6 @@ Documentation
 - VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
 
 
-Oldstable branch (supported)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _v8.4.0:
 
