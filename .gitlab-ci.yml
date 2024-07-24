@@ -11,7 +11,8 @@ workflow:
 
 stages:
   - precheck
-  - invivog5k
+  - invivog5k-deb11
+  - invivog5k-deb12
   - test
   - functional
   - package
@@ -42,10 +43,10 @@ precheck:
 #                             G5K STAGE
 #
 ###############################################################################
-test_invivo_g5k_1$debian11$:
+test_invivo_g5k_1$debian11$: &test_invivo_g5k_1
   # stick to the distribution we'll find on g5k frontends
   image: debian:11
-  stage: invivog5k
+  stage: invivog5k-deb11
   tags: [ci.inria.fr]
   # Always run on tagged commits, and also allow manual runs at any time.
   # In all cases, don't fail the pipeline, this is mostly informative.
@@ -77,10 +78,10 @@ test_invivo_g5k_1$debian11$:
     - /venv/bin/python3 grid5000/tuto_grid5000_monitoring_service.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_monitoring_service.py
 
 # Second batch of tests to parallelize a bit
-test_invivo_g5k_2$debian11$:
+test_invivo_g5k_2$debian11$: &test_invivo_g5k_2
   # stick to the distribution we'll find on g5k frontends
   image: debian:11
-  stage: invivog5k
+  stage: invivog5k-deb11
   tags: [ci.inria.fr]
   # Always run on tagged commits, and also allow manual runs at any time.
   # In all cases, don't fail the pipeline, this is mostly informative.
@@ -108,6 +109,19 @@ test_invivo_g5k_2$debian11$:
     - /venv/bin/python3 grid5000/tuto_grid5000_multisites.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
     - /venv/bin/python3 grid5000/tuto_grid5000_docker.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
     - /venv/bin/python3 grid5000/tuto_grid5000_destroy.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_destroy.py
+
+# Run same tests on Debian 12 (newer Python version, allows newer Ansible versions)
+# We need to run them in a different stage, otherwise the common OAR job names cause interferences.
+test_invivo_g5k_1$debian12$:
+  <<: *test_invivo_g5k_1
+  stage: invivog5k-deb12
+  image: debian:12
+
+test_invivo_g5k_2$debian12$:
+  <<: *test_invivo_g5k_2
+  stage: invivog5k-deb12
+  image: debian:12
+
 
 ###############################################################################
 #

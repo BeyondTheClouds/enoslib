@@ -69,6 +69,8 @@
 
       ``pip install enoslib``
 
+      ``pip install enoslib[jupyter]``
+
       ``guix install python-enoslib``
 
    .. grid-item-card::
