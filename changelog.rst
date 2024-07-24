@@ -10,7 +10,16 @@ Stable branch
 10.0.0
 ------
 
-- TODO
+Breaking
+++++++++
+
+- **Packaging**: To reduce dependencies, the default pip package no longer includes Jupyter support.
+  - To use EnOSlib in a Jupyter notebook, you should install the new pip package extra: ``enoslib[jupyter]``.
+- **Ansible**: Add support for Ansible 8, 9 and 10 (:ref:`corresponding to <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs>`
+  ``ansible-core`` 2.15, 2.16 and 2.17).
+  - Be aware that Ansible now requires at least Python 3.10 on the control node, and Python 3.7 on the target nodes (see :ref:`Ansible support Matrix <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix>`).
+  - To support older versions of Python, you can install a specific version of Ansible.
+  - Example to force Ansible 8 / ``ansible-core`` 2.15: ``pip install 'enoslib>=10,<11' 'enoslib-ansible>=8,<9'``
 
 
 Oldstable branch (supported)
@@ -22,7 +31,8 @@ Oldstable branch (supported)
 -----
 
 - **VMonG5K**: Allow to pass ``project`` name in the configuration
-- **G5k**: Add support for multi-site reservation
+- **G5k**: Add support for multi-site reservation date
+- **VMonG5K**: Fix support for extra disk attached to VMs (#208)
 
 
 .. _v9.2.1:
@@ -30,7 +40,7 @@ Oldstable branch (supported)
 9.2.1
 -----
 
-- Workaround `docker` python binding :ref:`issue <https://github.com/docker/docker-py/issues/3256>` with latest `requests`.
+- Workaround ``docker`` python binding :ref:`issue <https://github.com/docker/docker-py/issues/3256>` with latest ``requests``.
 
 
 .. _v9.2.0:
