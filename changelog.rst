@@ -7,8 +7,10 @@ Stable branch
 
 .. _v10.0.0:
 
-10.0.0
-------
+10.0.0rc2 (release candidate)
+-----------------------------
+
+You can install this release candidate with ``pip install --pre enoslib``.
 
 Breaking
 ++++++++
@@ -16,10 +18,10 @@ Breaking
 - **Packaging**: To reduce dependencies, the default pip package no longer includes Jupyter support.
   - To use EnOSlib in a Jupyter notebook, you should install the new pip package extra: ``enoslib[jupyter]``.
 - **Ansible**: Add support for Ansible 8, 9 and 10 (:ref:`corresponding to <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs>`
-  ``ansible-core`` 2.15, 2.16 and 2.17).
+  ansible-core 2.15, 2.16 and 2.17).
   - Be aware that Ansible now requires at least Python 3.10 on the control node, and Python 3.7 on the target nodes (see :ref:`Ansible support Matrix <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix>`).
   - To support older versions of Python, you can install a specific version of Ansible.
-  - Example to force Ansible 8 / ``ansible-core`` 2.15: ``pip install 'enoslib>=10,<11' 'enoslib-ansible>=8,<9'``
+  - Example to force Ansible 8 (ansible-core 2.15): ``pip install 'enoslib>=10,<11' 'enoslib-ansible>=8,<9'``
 
 
 Oldstable branch (supported)
