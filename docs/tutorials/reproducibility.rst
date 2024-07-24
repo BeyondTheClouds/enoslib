@@ -25,14 +25,26 @@ version of Enoslib used for your experiment, for instance:
 
 .. code-block:: shell
 
-    pip install "enoslib>=8.0.0,<9.0.0"
+    pip install "enoslib>=10,<11"
+
+Use a specific version of Ansible
+---------------------------------
+
+Similarly, new versions of Ansible introduce constraints on Python versions
+(see :ref:`Ansible / ansible-core mapping <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs>`
+and :ref:`ansible-core support Matrix <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix>`)
+and this may affect experiments.
+To force a specific version of Ansible, here Ansible 8 for example:
+
+.. code-block:: shell
+
+    pip install "enoslib>=10,<11" "enoslib-ansible>=8,<9"
 
 Use a virtualenv and freeze dependencies
 ----------------------------------------
 
-Going further, you might want to use a fixed version of Enoslib **and**
-its dependencies (in particular, Ansible).  When setting up your
-experiment:
+Going further, you might want to use a fixed version of Enoslib, Ansible
+**and** all their dependencies.  When setting up your experiment:
 
 .. code-block:: shell
 
