@@ -7,10 +7,8 @@ Stable branch
 
 .. _v10.0.0:
 
-10.0.0rc2 (release candidate)
------------------------------
-
-You can install this release candidate with ``pip install --pre enoslib``.
+10.0.0
+-------
 
 Breaking
 ++++++++
