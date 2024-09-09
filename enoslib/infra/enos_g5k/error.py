@@ -24,7 +24,7 @@ class EnosG5kInvalidArgumentsError(EnosError):
 
 class EnosG5kDuplicateJobsError(EnosError):
     def __init__(self, site, job_name):
-        super().__init__(f"Duplicate jobs on {site} with the same name {job_name}")
+        super().__init__(f"Duplicate jobs on {site.name} with the same name {job_name}")
 
 
 class EnosG5kSynchronisationError(EnosError):
