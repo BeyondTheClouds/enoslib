@@ -125,7 +125,7 @@ class TIGMonitoring(Service):
             self.ui_env.update(ui_env)
 
         # backup_dir management
-        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TIG)
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TIG, mkdir=False)
 
         # We force python3
         self.extra_vars = extra_vars if extra_vars is not None else {}
@@ -175,7 +175,7 @@ class TIGMonitoring(Service):
             backup_dir (str): path of the backup directory to use.
                 Will be used instead of the one set in the constructor.
         """
-        _backup_dir = _set_dir(backup_dir, self.backup_dir)
+        _backup_dir = _set_dir(backup_dir, self.backup_dir, mkdir=True)
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
@@ -260,7 +260,7 @@ class TPGMonitoring(Service):
         self.networks = networks
 
         # backup_dir management
-        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TPG)
+        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR_TPG, mkdir=False)
 
         # We force python3
         self.extra_vars = {"ansible_python_interpreter": "/usr/bin/python3"}
@@ -305,7 +305,7 @@ class TPGMonitoring(Service):
             backup_dir (str): path of the backup directory to use.
                 Will be used instead of the one set in the constructor.
         """
-        _backup_dir = _set_dir(backup_dir, self.backup_dir)
+        _backup_dir = _set_dir(backup_dir, self.backup_dir, mkdir=True)
         extra_vars = {
             "enos_action": "backup",
             "remote_working_dir": self.remote_working_dir,
