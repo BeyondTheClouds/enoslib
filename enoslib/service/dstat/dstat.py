@@ -69,7 +69,9 @@ class Dstat(Service):
         self.remote_working_dir = Path(REMOTE_OUTPUT_DIR) / identifier
 
         # make it unique per instance
-        self.backup_dir = _set_dir(backup_dir, LOCAL_OUTPUT_DIR / identifier)
+        self.backup_dir = _set_dir(
+            backup_dir, LOCAL_OUTPUT_DIR / identifier, mkdir=False
+        )
 
         self.output_file = f"{identifier}-{OUTPUT_FILE}"
 
@@ -115,7 +117,7 @@ class Dstat(Service):
         Args:
             backup_dir (str): path of the backup directory to use.
         """
-        _backup_dir = _set_dir(backup_dir, self.backup_dir)
+        _backup_dir = _set_dir(backup_dir, self.backup_dir, mkdir=True)
         with play_on(roles=self.nodes, extra_vars=self.extra_vars) as p:
             backup_path = os.path.join(self.remote_working_dir, self.output_file)
             p.fetch(
