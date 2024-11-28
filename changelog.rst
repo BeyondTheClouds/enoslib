@@ -5,6 +5,15 @@ Stable branch
 ~~~~~~~~~~~~~
 
 
+.. _v10.0.1:
+
+10.0.1
+-------
+
+- **Monitoring services**: Create output dir at backup
+- Fix usage of 'symlink' within 'enostask' decorator which had no effects on function behavior before
+
+
 .. _v10.0.0:
 
 10.0.0
