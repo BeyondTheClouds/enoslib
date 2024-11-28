@@ -14,6 +14,7 @@ saved) at the beginning of a task (resp. at the end of a task).
 
 These operations rely on pickling the object stored in the environment.
 """
+
 import logging
 import pickle
 from collections import UserDict
@@ -182,7 +183,7 @@ def get_or_create_env(
     )
 
 
-def enostask(new: bool = False, symlink: bool = True):
+def enostask(new: bool = False, symlink: Optional[bool] = None):
     """Decorator for an EnOSlib Task.
 
     This decorator lets you define a new Enos task and helps you manage the
@@ -191,8 +192,8 @@ def enostask(new: bool = False, symlink: bool = True):
     Args:
         new (bool): indicates if a new environment must be created.
             Usually this is set on the first task of the workflow.
-        symlink (bool): indicates if the env in use must be symlinked
-            (ignored if new=False)
+        symlink (bool | None): indicates if the env in use must be symlinked
+            (ignored if new=False). If None, checks for "env_symlink" in kwargs
 
     Examples:
 
@@ -215,8 +216,11 @@ def enostask(new: bool = False, symlink: bool = True):
             # Constructs the environment
             # --env or env are reserved keyword to reuse existing env
             env_name = kwargs.get("--env") or kwargs.get("env")
-            symlink = kwargs.get("env_symlink", True)
-            env = get_or_create_env(new, env_name, symlink=symlink)
+            if symlink is None:
+                symlink_arg = kwargs.get("env_symlink", True)
+            else:
+                symlink_arg = symlink
+            env = get_or_create_env(new, env_name, symlink=symlink_arg)
             env.reload_config()
             kwargs["env"] = env
             try:
