@@ -49,6 +49,7 @@ from enoslib.service.emul.netem import (
     netem,
 )
 from enoslib.service.k3s.k3s import K3s
+from enoslib.service.kwollect.kwollect import Kwollect
 from enoslib.service.locust.locust import Locust
 from enoslib.service.monitoring.monitoring import TIGMonitoring, TPGMonitoring
 from enoslib.service.planning.planning import (
