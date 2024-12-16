@@ -60,8 +60,12 @@ def bench(parameter: Dict) -> None:
 
     delay = parameter["delay"]
     if delay is not None:
-        tc = dict(default_delay=delay, default_rate="10gbit", enabled=True)
-        netem = en.Netem(tc, roles=roles)
+        netem = en.Netem()
+        (
+            netem.add_constraints(
+                f"delay {delay}", roles["client"], symmetric=False
+            ).add_constraints(f"delay {delay}", roles["server"], symmetric=False)
+        )
         netem.deploy()
     output = f"tcp_upload_{nb_vms}_{delay}"
     with en.actions(pattern_hosts="client", roles=roles) as p:
