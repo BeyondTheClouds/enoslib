@@ -10,7 +10,7 @@ job_name = Path(__file__).name
 
 conf = (
     en.G5kConf.from_settings(job_name=job_name, walltime="0:10:00")
-    .add_machine(roles=["groupA"], cluster="paravance", nodes=1)
+    .add_machine(roles=["groupA"], cluster="paradoxe", nodes=1)
     .add_machine(roles=["groupB"], cluster="parasilo", nodes=1)
 )
 

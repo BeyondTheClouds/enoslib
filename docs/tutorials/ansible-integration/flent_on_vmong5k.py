@@ -10,8 +10,8 @@ job_name = Path(__file__).name
 conf = (
     en.VMonG5kConf()
     .from_settings(job_name=job_name)
-    .add_machine(roles=["server"], cluster="paravance", number=1)
-    .add_machine(roles=["client"], cluster="paravance", number=1)
+    .add_machine(roles=["server"], cluster="ecotype", number=1)
+    .add_machine(roles=["client"], cluster="ecotype", number=1)
 )
 
 provider = en.VMonG5k(conf)
@@ -20,12 +20,6 @@ roles, networks = provider.init()
 en.wait_for(roles)
 
 with en.actions(roles=roles) as p:
-    # flent requires python3, so we default python to python3
-    p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
-    p.apt_repository(
-        repo="deb http://deb.debian.org/debian stretch main contrib non-free",
-        state="present",
-    )
     p.apt(
         name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
         state="present",

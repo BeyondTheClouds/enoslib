@@ -13,12 +13,12 @@ conf = (
     en.VMonG5kConf.from_settings(job_name=job_name)
     .add_machine(
         roles=["docker", "compute"],
-        cluster="paravance",
+        cluster="paradoxe",
         number=5,
         flavour_desc={"core": 1, "mem": 1024},
     )
     .add_machine(
-        roles=["docker", "control"], cluster="paravance", number=1, flavour="large"
+        roles=["docker", "control"], cluster="paradoxe", number=1, flavour="large"
     )
 )
 
@@ -31,8 +31,11 @@ print(networks)
 en.wait_for(roles)
 
 # install docker on the nodes
-# bind /var/lib/docker to /tmp/docker to gain some places
-docker = en.Docker(agent=roles["docker"], bind_var_docker="/tmp/docker")
+registry_opts = dict(type="external", ip="docker-cache.grid5000.fr", port=80)
+# bind /var/lib/docker to /tmp/docker to gain some disk space
+docker = en.Docker(
+    agent=roles["docker"], bind_var_docker="/tmp/docker", registry_opts=registry_opts
+)
 docker.deploy()
 
 # start containers.

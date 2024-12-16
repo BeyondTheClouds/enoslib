@@ -12,17 +12,17 @@ conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[])
     .add_machine(
         roles=["city", "paris"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
     )
     .add_machine(
         roles=["city", "berlin"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
     )
     .add_machine(
         roles=["city", "londres"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
     )
 )

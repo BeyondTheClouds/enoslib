@@ -23,7 +23,7 @@ conf = (
         job_name=job_name,
         walltime="00:50:00",
     )
-    .add_machine(roles=["rennes"], cluster="paravance", nodes=1)
+    .add_machine(roles=["rennes"], cluster="parasilo", nodes=1)
 )
 
 provider = en.G5k(conf)

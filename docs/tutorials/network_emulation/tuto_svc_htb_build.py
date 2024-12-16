@@ -10,9 +10,9 @@ job_name = Path(__file__).name
 
 conf = (
     en.G5kConf.from_settings(job_name=job_name, job_type=[])
-    .add_machine(roles=["paris"], cluster="paravance", nodes=1)
-    .add_machine(roles=["berlin"], cluster="paravance", nodes=1)
-    .add_machine(roles=["londres"], cluster="paravance", nodes=1)
+    .add_machine(roles=["paris"], cluster="parasilo", nodes=1)
+    .add_machine(roles=["berlin"], cluster="parasilo", nodes=1)
+    .add_machine(roles=["londres"], cluster="parasilo", nodes=1)
 )
 provider = en.G5k(conf)
 roles, networks = provider.init()

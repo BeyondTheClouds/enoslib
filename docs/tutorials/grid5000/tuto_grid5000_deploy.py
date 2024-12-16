@@ -15,8 +15,8 @@ conf = (
         env_name="ubuntu2204-min",
         walltime="0:20:00",
     )
-    .add_machine(roles=["groupA"], cluster="paravance", nodes=1)
-    .add_machine(roles=["groupB"], cluster="parasilo", nodes=1)
+    .add_machine(roles=["groupA"], cluster="parasilo", nodes=1)
+    .add_machine(roles=["groupB"], cluster="paradoxe", nodes=1)
 )
 
 # This will validate the configuration, but not reserve resources yet

@@ -25,7 +25,7 @@ g5k_conf = {
         "machines": [
             {
                 "roles": ["server"],
-                "cluster": "paravance",
+                "cluster": "paradoxe",
                 "nodes": 1,
                 "primary_network": "n1",
                 "secondary_networks": [],
@@ -89,8 +89,8 @@ with g5k.firewall(hosts=roles["server"], port=[1883], src_addr=None, proto="tcp+
 
     # How to check execution?  firewall rule:
     # https://api.grid5000.fr/stable/sites/rennes/firewall/1909896 ssh to the
-    # Cloud server: ssh root@paravance-40.rennes.grid5000.fr
-    # root@paravance-40:~# tail -f /tmp/predict.log you may also check mosquitto
+    # Cloud server: ssh root@paradoxe-3.rennes.grid5000.fr
+    # root@paradoxe-3:~# tail -f /tmp/predict.log you may also check mosquitto
     # topic (mosquitto_sub_img.py downloads images received in running dir):
 
     # $ python mosquitto_sub_img.py --topic edge_data --mqtt_broker <IPv6>

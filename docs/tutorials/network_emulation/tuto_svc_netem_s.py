@@ -6,7 +6,7 @@ import enoslib as en
 en.init_logging(level=logging.INFO)
 en.check()
 
-CLUSTER = "paravance"
+CLUSTER = "parasilo"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 job_name = Path(__file__).name

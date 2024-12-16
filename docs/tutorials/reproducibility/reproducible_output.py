@@ -41,7 +41,7 @@ logger.info("Experiment parameters: %s", parameters)
 conf = (
     en.G5kConf()
     .from_settings(job_name=job_name, walltime="0:10:00")
-    .add_machine(roles=["dummy"], cluster="paravance", nodes=1)
+    .add_machine(roles=["dummy"], cluster="parasilo", nodes=1)
 )
 
 provider = en.G5k(conf)

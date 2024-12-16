@@ -20,13 +20,13 @@ conf = (
     .add_network_conf(private_net)
     .add_machine(
         roles=["server"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
         secondary_networks=[private_net],
     )
     .add_machine(
         roles=["client"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
         secondary_networks=[private_net],
     )
