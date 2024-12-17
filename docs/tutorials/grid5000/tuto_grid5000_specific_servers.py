@@ -13,7 +13,7 @@ conf = (
     .from_settings(job_name=job_name, walltime="0:10:00")
     .add_machine(
         roles=["compute"],
-        servers=["paravance-19.rennes.grid5000.fr", "paravance-20.rennes.grid5000.fr"],
+        servers=["paradoxe-10.rennes.grid5000.fr", "paradoxe-11.rennes.grid5000.fr"],
     )
     .add_machine(
         roles=["compute"],

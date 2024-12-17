@@ -15,7 +15,7 @@ provider_conf = {
         "machines": [
             {
                 "roles": ["control"],
-                "cluster": "paravance",
+                "cluster": "paradoxe",
                 "nodes": 1,
             }
         ],

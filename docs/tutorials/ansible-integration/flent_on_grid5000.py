@@ -4,7 +4,7 @@ import enoslib as en
 
 logging = en.init_logging()
 
-CLUSTER = "paravance"
+CLUSTER = "ecotype"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 job_name = Path(__file__).name
@@ -19,12 +19,6 @@ provider = en.G5k(conf)
 roles, networks = provider.init()
 
 with en.actions(roles=roles) as p:
-    # flent requires python3, so we default python to python3
-    p.shell("update-alternatives --install /usr/bin/python python /usr/bin/python3 1")
-    p.apt_repository(
-        repo="deb http://deb.debian.org/debian bullseye main contrib non-free",
-        state="present",
-    )
     p.apt(
         name=["flent", "netperf", "python3-setuptools", "python3-matplotlib"],
         state="present",
@@ -44,3 +38,7 @@ with en.actions(pattern_hosts="client", roles=roles) as p:
         + "-o result.png"
     )
     p.fetch(src="result.png", dest="result")
+
+
+# Release resources
+provider.destroy()

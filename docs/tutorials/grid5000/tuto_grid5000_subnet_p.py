@@ -16,7 +16,7 @@ conf = (
         roles=["my_subnet"],
         site="rennes",
     )
-    .add_machine(roles=["control"], cluster="paravance", nodes=1)
+    .add_machine(roles=["control"], cluster="paradoxe", nodes=1)
 )
 
 provider = en.G5k(conf)

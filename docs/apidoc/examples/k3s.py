@@ -11,8 +11,8 @@ job_name = Path(__file__).name
 # claim the resources
 conf = (
     en.G5kConf.from_settings(job_name=job_name, walltime="0:45:00", job_type=[])
-    .add_machine(roles=["master"], cluster="paravance", nodes=1)
-    .add_machine(roles=["agent"], cluster="paravance", nodes=10)
+    .add_machine(roles=["master"], cluster="paradoxe", nodes=1)
+    .add_machine(roles=["agent"], cluster="paradoxe", nodes=10)
     .finalize()
 )
 

@@ -26,10 +26,10 @@ DATABASE_FLAVOUR = {"core": 4, "mem": 8192}
 conf = (
     en.VMonG5kConf.from_settings(job_name=job_name, walltime="00:45:00")
     # Put as many client VMs as possible on the same physical nodes. They
-    # should fit on 2 paravance nodes (each node has 32 hyper-threads).
+    # should fit on 2 parasilo nodes (each node has 32 hyper-threads).
     .add_machine(
         roles=["clients"],
-        cluster="paravance",
+        cluster="parasilo",
         number=50,
         vcore_type="thread",
         flavour_desc=CLIENT_FLAVOUR,

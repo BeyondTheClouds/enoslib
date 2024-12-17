@@ -23,7 +23,7 @@ conf = (
     .add_network_conf(kavlan_global)
     .add_machine(
         roles=["rennes", "client"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=1,
         secondary_networks=[kavlan_global],
     )

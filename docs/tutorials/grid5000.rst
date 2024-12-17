@@ -376,9 +376,9 @@ There are several solutions depending on your requirements:
 
 
       # on one shell
-      ssh -NL 3000:paravance-42.rennes.grid5000.fr:3000 access.grid5000.fr
+      ssh -NL 3000:paradoxe-12.rennes.grid5000.fr:3000 access.grid5000.fr
 
-      # Now all traffic that goes on localhost:3000 is forwarded to paravance-42.rennes.grid5000.fr:3000
+      # Now all traffic that goes on localhost:3000 is forwarded to paradoxe-12.rennes.grid5000.fr:3000
 
 - **Programmatic SSH port forwarding**: the same method, but programmatically
   with :py:class:`~enoslib.infra.enos_g5k.provider.G5kTunnel`.  See also

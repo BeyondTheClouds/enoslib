@@ -7,6 +7,6 @@ g5k:
   - cluster: econome
     nodes: 2
     roles: [nantes]
-  - cluster: paravance
+  - cluster: parasilo
     nodes: 2
     roles: [rennes]

@@ -14,7 +14,7 @@ conf = (
         walltime="0:20:00",
     )
     .add_machine(roles=["nancy"], cluster="gros", nodes=1)
-    .add_machine(roles=["rennes"], cluster="paravance", nodes=1)
+    .add_machine(roles=["nantes"], cluster="ecotype", nodes=1)
 )
 
 # This will validate the configuration, but not reserve resources yet

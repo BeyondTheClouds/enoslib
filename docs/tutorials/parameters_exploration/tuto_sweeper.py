@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 from pathlib import Path
 from typing import Dict
@@ -10,7 +11,14 @@ import enoslib as en
 en.init_logging(level=logging.INFO)
 en.check()
 
-CLUSTER = "paranoia"
+CLUSTER = "paradoxe"
+
+# Set high parallelism to be able to handle a large number of VMs
+# efficiently.
+en.set_config(ansible_forks=64)
+
+# Enable Ansible pipelining for better performance
+os.environ["ANSIBLE_PIPELINING"] = "True"
 
 
 def bench(parameter: Dict) -> None:
@@ -40,10 +48,6 @@ def bench(parameter: Dict) -> None:
         c.extra.update(target=s.address)
 
     with en.actions(roles=roles) as p:
-        p.apt_repository(
-            repo="deb http://deb.debian.org/debian stretch main contrib non-free",
-            state="present",
-        )
         p.apt(
             name=[
                 "flent",
@@ -60,8 +64,12 @@ def bench(parameter: Dict) -> None:
 
     delay = parameter["delay"]
     if delay is not None:
-        tc = dict(default_delay=delay, default_rate="10gbit", enabled=True)
-        netem = en.Netem(tc, roles=roles)
+        netem = en.Netem()
+        (
+            netem.add_constraints(
+                f"delay {delay}", roles["client"], symmetric=False
+            ).add_constraints(f"delay {delay}", roles["server"], symmetric=False)
+        )
         netem.deploy()
     output = f"tcp_upload_{nb_vms}_{delay}"
     with en.actions(pattern_hosts="client", roles=roles) as p:
@@ -71,7 +79,7 @@ def bench(parameter: Dict) -> None:
             + "-H {{ target }} "
             + f"-t '{output}' "
             + f"-o {output}.png",
-            display_name=f"Benchmarkings with {output}",
+            task_name=f"Benchmarkings with {output}",
         )
         p.fetch(src=f"{output}.png", dest=f"result_{output}")
 

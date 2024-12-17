@@ -11,7 +11,7 @@ en.set_config(ansible_stdout="regular")
 
 job_name = Path(__file__).name
 
-CLUSTER = "paravance"
+CLUSTER = "paradoxe"
 
 conf = (
     en.G5kConf.from_settings(job_type=[], job_name=job_name, walltime="0:30:00")

@@ -44,7 +44,7 @@ conf = (
     .add_network_conf(nancy_prod)
     .add_machine(
         roles=["rennes"],
-        cluster="paravance",
+        cluster="parasilo",
         nodes=2,
         secondary_networks=[kavlan_global1],
     )

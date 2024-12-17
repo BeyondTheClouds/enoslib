@@ -9,7 +9,7 @@ en.check()
 job_name = Path(__file__).name
 
 WALLTIME = "0:30:00"
-NORMAL_CLUSTER = "paravance"
+NORMAL_CLUSTER = "paradoxe"
 # Specify the queue as second item: "default", "production" or "testing"
 GPU_CLUSTER = ("chifflot", "default")
 

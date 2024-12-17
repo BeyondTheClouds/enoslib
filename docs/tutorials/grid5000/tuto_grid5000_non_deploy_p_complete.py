@@ -15,11 +15,11 @@ conf = (
     en.G5kConf.from_settings(job_type=[], job_name=job_name, walltime="0:10:00")
     .add_network_conf(network)
     .add_machine(
-        roles=["control"], cluster="paravance", nodes=1, primary_network=network
+        roles=["control"], cluster="paradoxe", nodes=1, primary_network=network
     )
     .add_machine(
         roles=["control", "network"],
-        cluster="paravance",
+        cluster="paradoxe",
         nodes=1,
         primary_network=network,
     )

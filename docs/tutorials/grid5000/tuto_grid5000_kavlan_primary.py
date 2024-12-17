@@ -19,7 +19,7 @@ conf = (
     )
     .add_network_conf(private_net)
     .add_machine(
-        roles=["roleA"], cluster="paravance", nodes=2, primary_network=private_net
+        roles=["roleA"], cluster="parasilo", nodes=2, primary_network=private_net
     )
     .finalize()
 )

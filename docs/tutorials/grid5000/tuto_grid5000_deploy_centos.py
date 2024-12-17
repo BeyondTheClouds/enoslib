@@ -3,7 +3,7 @@ from pathlib import Path
 
 import enoslib as en
 
-CLUSTER = "paravance"
+CLUSTER = "parasilo"
 
 en.init_logging(level=logging.INFO)
 en.check()

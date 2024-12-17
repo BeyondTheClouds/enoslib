@@ -9,7 +9,7 @@ en.check()
 job_name = Path(__file__).name
 
 conf = en.G5kConf.from_settings(job_type=[], job_name=job_name).add_machine(
-    roles=["control"], cluster="paravance", nodes=1
+    roles=["control"], cluster="parasilo", nodes=1
 )
 
 provider = en.G5k(conf)
