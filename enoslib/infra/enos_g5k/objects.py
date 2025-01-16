@@ -632,7 +632,7 @@ class G5kHost:
         for _, (_, nic) in zip(self.secondary_networks, self._all_secondary_nics):
             ifconfig.append(f"ip link set {nic} up")
             dhcp.append(f"dhclient {nic}")
-        cmd = f"{';'.join(ifconfig)} ; { ';'.join(dhcp)}"
+        cmd = f"{';'.join(ifconfig)} ; {';'.join(dhcp)}"
         return cmd
 
     def grant_root_access_command(self) -> str:

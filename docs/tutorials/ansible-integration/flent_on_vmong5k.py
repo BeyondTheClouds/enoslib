@@ -33,7 +33,7 @@ with en.actions(pattern_hosts="client", roles=roles) as p:
     p.shell(
         "flent rrul -p all_scaled "
         + "-l 60 "
-        + f"-H { server_address } "
+        + f"-H {server_address} "
         + "-t 'bufferbloat test' "
         + "-o result.png"
     )
