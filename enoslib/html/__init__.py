@@ -1,9 +1,8 @@
+import importlib.resources
 import logging
 import uuid
 from html import escape as html_escape
 from typing import Callable, Collection, List, Optional, Union
-
-import importlib_resources
 
 from enoslib.config import get_config
 
@@ -39,7 +38,7 @@ def _html_escape(value, limit=50) -> str:
 
 
 def _load_css() -> str:
-    path = importlib_resources.files("enoslib").joinpath(STATIC_FILES)
+    path = importlib.resources.files("enoslib").joinpath(STATIC_FILES)
     return path.read_text(encoding="utf-8")
 
 

@@ -1,6 +1,15 @@
 ⚒️ Changelog
 ============
 
+.. _unreleased:
+
+Unreleased
+~~~~~~~~~~
+
+- Drop support for Python 3.7 and Python 3.8
+- Start testing with Python 3.12 and Python 3.13
+
+
 Stable branch
 ~~~~~~~~~~~~~
 

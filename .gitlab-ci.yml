@@ -368,15 +368,6 @@ test_functional$debian11$: &debian11
 test_functional$debiantesting$: &debiantesting
   <<: *debian-base
   image: debian:testing
-  # remove me on 10.x
-  allow_failure: true
-
-## ubuntu 20.04
-#-----------------------------------------------
-test_functional$ubuntu2004$: &ubuntu2004
-  <<: *debian-base
-  image: ubuntu:20.04
-
 
 ## ubuntu 22.04
 #-----------------------------------------------
