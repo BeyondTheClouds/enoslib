@@ -31,7 +31,7 @@ variables:
 #
 ###############################################################################
 precheck:
-  image: python:3.11
+  image: python:3.13
   stage: precheck
   tags: [ci.inria.fr]
   script:
@@ -128,21 +128,6 @@ test_invivo_g5k_2$debian12$:
 #                             TEST STAGE
 #
 ###############################################################################
-python3.7:
-  image: python:3.7
-  stage: test
-  tags: [ci.inria.fr]
-  script:
-    - pip install $TOX_PACKAGE
-    - tox -e py37
-
-python3.8:
-  image: python:3.8
-  stage: test
-  tags: [ci.inria.fr]
-  script:
-    - pip install $TOX_PACKAGE
-    - tox -e py38
 
 python3.9:
   image: python:3.9
@@ -167,6 +152,22 @@ python3.11:
   script:
     - pip install $TOX_PACKAGE
     - tox -e py311
+
+python3.12:
+  image: python:3.12
+  stage: test
+  tags: [ci.inria.fr]
+  script:
+    - pip install $TOX_PACKAGE
+    - tox -e py312
+
+python3.13:
+  image: python:3.13
+  stage: test
+  tags: [ci.inria.fr]
+  script:
+    - pip install $TOX_PACKAGE
+    - tox -e py313
   coverage: /^TOTAL\s+\d+\s+\d+\s+(\d+\%)$/
   artifacts:
     when: always
@@ -179,7 +180,7 @@ python3.11:
         path: cov.xml
 
 pep8:
-  image: python:3.11
+  image: python:3.13
   stage: test
   tags: [ci.inria.fr]
   script:
@@ -187,23 +188,23 @@ pep8:
     - tox -e pep8
 
 pylint:
-  image: python:3.11
+  image: python:3.13
   stage: test
   tags: [ci.inria.fr]
   script:
     - pip install $TOX_PACKAGE
     - tox -e pylint
 
-typecheck-3.7:
-  image: python:3.7
+typecheck-3.9:
+  image: python:3.9
   stage: test
   tags: [ci.inria.fr]
   script:
     - pip install $TOX_PACKAGE
     - tox -e typecheck
 
-typecheck-3.11:
-  image: python:3.11
+typecheck-3.13:
+  image: python:3.13
   stage: test
   tags: [ci.inria.fr]
   script:
@@ -355,13 +356,6 @@ test_functional$debian12$: &debian-base
       exit $retcode
 
 
-## debian 10
-#-----------------------------------------------
-test_functional$debian10$: &debian10
-  <<: *debian-base
-  image: debian:10
-
-
 ## debian 11
 #-----------------------------------------------
 test_functional$debian11$: &debian11
@@ -377,8 +371,6 @@ test_functional$debiantesting$: &debiantesting
   # remove me on 10.x
   allow_failure: true
 
-
-
 ## ubuntu 20.04
 #-----------------------------------------------
 test_functional$ubuntu2004$: &ubuntu2004
@@ -392,6 +384,11 @@ test_functional$ubuntu2204$: &ubuntu2204
   <<: *debian-base
   image: ubuntu:22.04
 
+## ubuntu 24.04
+#-----------------------------------------------
+test_functional$ubuntu2404$: &ubuntu2204
+  <<: *debian-base
+  image: ubuntu:24.04
 
 ###############################################################################
 #
@@ -401,7 +398,7 @@ test_functional$ubuntu2204$: &ubuntu2204
 
 #### Entering the release zone
 package:
-  image: python:3.7
+  image: python:3.9
   stage: package
   tags: [ci.inria.fr]
   only:
@@ -434,7 +431,7 @@ pages:
       - public
 
 pypi:
-  image: python:3.7
+  image: python:3.9
   stage: publish
   tags: [ci.inria.fr]
   only:
