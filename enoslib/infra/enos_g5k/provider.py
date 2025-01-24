@@ -20,7 +20,7 @@ from typing import (
     cast,
 )
 
-import pytz
+from zoneinfo import ZoneInfo
 from grid5000.exceptions import Grid5000CreateError
 from sshtunnel import SSHTunnelForwarder
 
@@ -589,7 +589,7 @@ class G5kBase(Provider):
 
     @staticmethod
     def timezone():
-        return pytz.timezone("Europe/Paris")
+        return ZoneInfo("Europe/Paris")
 
     def reserve(self):
         try:
@@ -607,7 +607,7 @@ class G5kBase(Provider):
             )
             if search is not None:
                 date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
-                date = self.timezone().localize(date)
+                date = date.replace(tzinfo=self.timezone())
                 raise InvalidReservationTime(date) from error
             search = re.search(
                 "Reservation too old",

@@ -9,7 +9,7 @@ import iotlabcli.experiment
 import iotlabcli.node
 import iotlabcli.profile
 import iotlabsshcli.open_linux
-import pytz
+from zoneinfo import ZoneInfo
 
 from enoslib.infra.enos_iotlab.configuration import (
     BoardConfiguration,
@@ -132,12 +132,11 @@ class IotlabAPI:
 
         start_time_timestamp = None
         if start_time:
-            timezone = pytz.timezone("Europe/Paris")
+            timezone = ZoneInfo("Europe/Paris")
             start_time_timestamp = str(
                 int(
-                    timezone.localize(
-                        datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
-                    ).timestamp()
+                    datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+                    .replace(tzinfo=timezone).timestamp()
                 )
             )
 
@@ -497,10 +496,10 @@ def get_free_nodes(
     copy_candidates = copy.deepcopy(candidates)
     if experiments is not None:
         for experiment_status in experiments:
-            timezone = pytz.timezone("UTC")
-            experiment_start_date = timezone.localize(
-                datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
-            ).timestamp()
+            timezone = ZoneInfo("UTC")
+            experiment_start_date = \
+                (datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
+                 .replace(tzinfo=timezone).timestamp())
             # submitted duration is given in minutes !
             exp_end_date = experiment_start_date + int(
                 experiment_status["submitted_duration"] * 60

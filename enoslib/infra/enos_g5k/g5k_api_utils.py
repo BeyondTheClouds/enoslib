@@ -25,7 +25,7 @@ from typing import (
     Union,
 )
 
-import pytz
+from zoneinfo import ZoneInfo
 from grid5000 import Grid5000
 from grid5000.exceptions import Grid5000DeleteError
 from grid5000.objects import Cluster, Job, Node, Site, Vlan
@@ -715,7 +715,7 @@ def _test_slot(
             - True: the proposed start date seems to be available
                 (at the time of probing the API)
     """
-    tz = pytz.timezone("Europe/Paris")
+    tz = ZoneInfo("Europe/Paris")
     date = datetime.fromtimestamp(start, timezone.utc)
     start = int(date.astimezone(tz=tz).timestamp())
     _t = walltime.split(":")
