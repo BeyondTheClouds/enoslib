@@ -6,8 +6,19 @@ from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime, time, timezone
 from itertools import groupby
-from typing import (Any, Dict, Iterable, List, MutableMapping, MutableSequence,
-                    Optional, Sequence, Tuple, Union, cast)
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    MutableMapping,
+    MutableSequence,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 from zoneinfo import ZoneInfo
 
 from grid5000.exceptions import Grid5000CreateError
@@ -15,31 +26,53 @@ from sshtunnel import SSHTunnelForwarder
 
 from enoslib.api import CommandResult, CustomCommandResult, run
 from enoslib.config import config_context
-from enoslib.errors import (InvalidReservationCritical, InvalidReservationTime,
-                            InvalidReservationTooOld, NegativeWalltime)
-from enoslib.infra.enos_g5k.concrete import (ConcreteClusterConf,
-                                             ConcreteGroup,
-                                             ConcreteServersConf)
-from enoslib.infra.enos_g5k.constants import (JOB_TYPE_DEPLOY, KAVLAN_TYPE,
-                                              PROD, PROD_VLAN_ID, SLASH_16,
-                                              SLASH_22)
+from enoslib.errors import (
+    InvalidReservationCritical,
+    InvalidReservationTime,
+    InvalidReservationTooOld,
+    NegativeWalltime,
+)
+from enoslib.infra.enos_g5k.concrete import (
+    ConcreteClusterConf,
+    ConcreteGroup,
+    ConcreteServersConf,
+)
+from enoslib.infra.enos_g5k.constants import (
+    JOB_TYPE_DEPLOY,
+    KAVLAN_TYPE,
+    PROD,
+    PROD_VLAN_ID,
+    SLASH_16,
+    SLASH_22,
+)
 from enoslib.infra.enos_g5k.driver import Job, get_driver
 from enoslib.infra.enos_g5k.error import MissingNetworkError
-from enoslib.infra.enos_g5k.g5k_api_utils import (OarNetwork, _test_slot,
-                                                  get_api_client,
-                                                  get_api_username,
-                                                  get_clusters_status)
-from enoslib.infra.enos_g5k.objects import (G5kHost, G5kNetwork,
-                                            G5kProdNetwork, G5kSubnetNetwork,
-                                            G5kVlanNetwork)
+from enoslib.infra.enos_g5k.g5k_api_utils import (
+    OarNetwork,
+    _test_slot,
+    get_api_client,
+    get_api_username,
+    get_clusters_status,
+)
+from enoslib.infra.enos_g5k.objects import (
+    G5kHost,
+    G5kNetwork,
+    G5kProdNetwork,
+    G5kSubnetNetwork,
+    G5kVlanNetwork,
+)
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
 from enoslib.infra.utils import mk_pools, pick_things
 from enoslib.log import DisableLogging, getLogger
 from enoslib.objects import Host, Networks, Roles
 
-from .configuration import (ClusterConfiguration, GroupConfiguration,
-                            NetworkConfiguration, ServersConfiguration)
+from .configuration import (
+    ClusterConfiguration,
+    GroupConfiguration,
+    NetworkConfiguration,
+    ServersConfiguration,
+)
 
 logger = getLogger(__name__, ["G5k"])
 

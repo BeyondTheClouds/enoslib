@@ -11,12 +11,14 @@ import iotlabcli.node
 import iotlabcli.profile
 import iotlabsshcli.open_linux
 
-from enoslib.infra.enos_iotlab.configuration import (BoardConfiguration,
-                                                     Configuration,
-                                                     ConsumptionConfiguration,
-                                                     GroupConfiguration,
-                                                     PhysNodeConfiguration,
-                                                     RadioConfiguration)
+from enoslib.infra.enos_iotlab.configuration import (
+    BoardConfiguration,
+    Configuration,
+    ConsumptionConfiguration,
+    GroupConfiguration,
+    PhysNodeConfiguration,
+    RadioConfiguration,
+)
 from enoslib.infra.enos_iotlab.constants import PROFILE_POWER_DEFAULT
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 from enoslib.log import getLogger
@@ -134,7 +136,8 @@ class IotlabAPI:
             start_time_timestamp = str(
                 int(
                     datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
-                    .replace(tzinfo=timezone).timestamp()
+                    .replace(tzinfo=timezone)
+                    .timestamp()
                 )
             )
 
@@ -495,9 +498,11 @@ def get_free_nodes(
     if experiments is not None:
         for experiment_status in experiments:
             timezone = ZoneInfo("UTC")
-            experiment_start_date = \
-                (datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
-                 .replace(tzinfo=timezone).timestamp())
+            experiment_start_date = (
+                datetime.strptime(experiment_status["start_date"], "%Y-%m-%dT%H:%M:%SZ")
+                .replace(tzinfo=timezone)
+                .timestamp()
+            )
             # submitted duration is given in minutes !
             exp_end_date = experiment_start_date + int(
                 experiment_status["submitted_duration"] * 60

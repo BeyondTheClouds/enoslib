@@ -14,8 +14,16 @@ from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
-from typing import (Dict, Iterable, List, Mapping, MutableSequence, Optional,
-                    Tuple, Union)
+from typing import (
+    Dict,
+    Iterable,
+    List,
+    Mapping,
+    MutableSequence,
+    Optional,
+    Tuple,
+    Union,
+)
 from zoneinfo import ZoneInfo
 
 from grid5000 import Grid5000
@@ -25,11 +33,22 @@ from grid5000.objects import Cluster, Job, Node, Site, Vlan
 from enoslib.infra.utils import _date2h
 from enoslib.log import getLogger
 
-from .constants import (KAVLAN, KAVLAN_GLOBAL, KAVLAN_IDS, KAVLAN_LOCAL,
-                        KAVLAN_LOCAL_IDS, MAX_DEPLOY, NATURE_PROD,
-                        PROD_VLAN_ID)
-from .error import (EnosG5kDuplicateJobsError, EnosG5kInvalidArgumentsError,
-                    EnosG5kKavlanNodesError, EnosG5kWalltimeFormatError)
+from .constants import (
+    KAVLAN,
+    KAVLAN_GLOBAL,
+    KAVLAN_IDS,
+    KAVLAN_LOCAL,
+    KAVLAN_LOCAL_IDS,
+    MAX_DEPLOY,
+    NATURE_PROD,
+    PROD_VLAN_ID,
+)
+from .error import (
+    EnosG5kDuplicateJobsError,
+    EnosG5kInvalidArgumentsError,
+    EnosG5kKavlanNodesError,
+    EnosG5kWalltimeFormatError,
+)
 
 logger = getLogger(__name__, ["G5k"])
 

@@ -7,10 +7,8 @@ from typing import Optional, Sequence
 from zoneinfo import ZoneInfo
 
 import distem as d
-from cryptography.hazmat.backends import \
-    default_backend as crypto_default_backend
-from cryptography.hazmat.primitives import \
-    serialization as crypto_serialization
+from cryptography.hazmat.backends import default_backend as crypto_default_backend
+from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 import enoslib.infra.enos_g5k.configuration as g5kconf
