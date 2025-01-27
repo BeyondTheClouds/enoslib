@@ -3,22 +3,20 @@ import sys
 import time
 from typing import Dict, List, Optional, Set, Tuple
 from urllib.error import HTTPError
+from zoneinfo import ZoneInfo
 
 import iotlabcli
 import iotlabcli.experiment
 import iotlabcli.node
 import iotlabcli.profile
 import iotlabsshcli.open_linux
-from zoneinfo import ZoneInfo
 
-from enoslib.infra.enos_iotlab.configuration import (
-    BoardConfiguration,
-    Configuration,
-    ConsumptionConfiguration,
-    GroupConfiguration,
-    PhysNodeConfiguration,
-    RadioConfiguration,
-)
+from enoslib.infra.enos_iotlab.configuration import (BoardConfiguration,
+                                                     Configuration,
+                                                     ConsumptionConfiguration,
+                                                     GroupConfiguration,
+                                                     PhysNodeConfiguration,
+                                                     RadioConfiguration)
 from enoslib.infra.enos_iotlab.constants import PROFILE_POWER_DEFAULT
 from enoslib.infra.enos_iotlab.error import EnosIotlabCfgError
 from enoslib.log import getLogger

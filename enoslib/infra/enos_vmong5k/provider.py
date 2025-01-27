@@ -5,9 +5,10 @@ import operator
 from collections import defaultdict
 from datetime import datetime, timezone
 from ipaddress import IPv4Address
-from typing import Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple
-
+from typing import (Dict, Generator, Iterable, List, Mapping, Optional, Set,
+                    Tuple)
 from zoneinfo import ZoneInfo
+
 from netaddr import EUI, mac_unix_expanded
 
 import enoslib.infra.enos_g5k.configuration as g5kconf
