@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import Mock, call, patch
+from zoneinfo import ZoneInfo
 
-import pytz
 from freezegun import freeze_time
 
 from enoslib.errors import (
@@ -69,8 +69,8 @@ class TestFindSlot(EnosTest):
         "enoslib.infra.providers.find_slot_and_start",
         side_effect=[
             InvalidReservationTime(
-                pytz.timezone("UTC").localize(
-                    datetime.fromisoformat("1970-01-01 00:01:00")
+                datetime.fromisoformat("1970-01-01 00:01:00").replace(
+                    tzinfo=ZoneInfo("UTC")
                 )
             ),
             (Roles(), Networks()),
@@ -91,8 +91,8 @@ class TestFindSlot(EnosTest):
         "enoslib.infra.providers.find_slot_and_start",
         side_effect=[
             InvalidReservationTime(
-                pytz.timezone("Europe/Paris").localize(
-                    datetime.fromisoformat("1970-01-01 01:01:00")
+                datetime.fromisoformat("1970-01-01 01:01:00").replace(
+                    tzinfo=ZoneInfo("Europe/Paris")
                 )
             ),
             (Roles(), Networks()),
@@ -121,13 +121,13 @@ class TestFindSlot(EnosTest):
         "enoslib.infra.providers.find_slot_and_start",
         side_effect=[
             InvalidReservationTime(
-                pytz.timezone("UTC").localize(
-                    datetime.fromisoformat("1970-01-01 00:01:00")
+                datetime.fromisoformat("1970-01-01 00:01:00").replace(
+                    tzinfo=ZoneInfo("UTC")
                 )
             ),
             InvalidReservationTime(
-                pytz.timezone("UTC").localize(
-                    datetime.fromisoformat("1970-01-01 00:01:00")
+                datetime.fromisoformat("1970-01-01 00:01:00").replace(
+                    tzinfo=ZoneInfo("UTC")
                 )
             ),
             (Roles(), Networks()),
