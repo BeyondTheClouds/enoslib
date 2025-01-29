@@ -27,11 +27,23 @@ beware of a few side-effects :
   there is a limit to the number of parallel connections you can open
   simultaneously on the SSH gateway, usually around 10-15.
 
+- for very high levels of parallelism (200 or more), you will need to
+  increase the number of file descriptors on the control node.
+
 See :ref:`global_config` for more details on configuration settings.
+
+The following example deploys 3000 virtual machines on 29 physical nodes
+from the paradoxe cluster.  It uses all performance tuning techniques
+described here as well as more scaling techniques (file descriptors,
+increased IP range).  This example takes around 30 minutes to deploy the
+VMs and run a command on all 3000 of them.
 
 .. literalinclude:: performance_tuning/vmong5k_forks.py
    :language: python
    :linenos:
+
+:download:`vmong5k_forks.py <performance_tuning/vmong5k_forks.py>`
+
 
 Using a dedicated control node on Grid'5000
 ===========================================
