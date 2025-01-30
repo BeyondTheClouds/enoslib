@@ -3,7 +3,7 @@ import itertools
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 from zoneinfo import ZoneInfo
 
 import distem as d
@@ -323,7 +323,7 @@ class Distem(Provider):
         g5k_conf = _build_g5k_conf(self.provider_conf)
         return g5kprovider.G5k(g5k_conf).is_created()
 
-    def destroy(self, wait=False):
+    def destroy(self, wait=False, **kwargs: Any):
         pass
 
     def test_slot(self, start_time: int, end_time: int) -> bool:
