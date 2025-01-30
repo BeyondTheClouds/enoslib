@@ -4,9 +4,9 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Optional, Sequence
+from zoneinfo import ZoneInfo
 
 import distem as d
-import pytz
 from cryptography.hazmat.backends import default_backend as crypto_default_backend
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -334,7 +334,7 @@ class Distem(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone("Europe/Paris")
+        tz = ZoneInfo("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
         date = date.astimezone(tz=tz)
         self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")

@@ -3,6 +3,7 @@ import re
 from datetime import datetime, time, timezone
 from typing import Dict, List, Optional, Tuple
 from urllib.error import HTTPError
+from zoneinfo import ZoneInfo
 
 import iotlabcli.auth
 
@@ -281,9 +282,7 @@ class Iotlab(Provider):
 
     @staticmethod
     def timezone():
-        import pytz
-
-        return pytz.timezone("Europe/Paris")
+        return ZoneInfo("Europe/Paris")
 
     def _reserve(self, wait: bool = True):
         """Reserve resources on platform"""
@@ -306,7 +305,7 @@ class Iotlab(Provider):
             )
             if search is not None:
                 date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
-                date = self.timezone().localize(date)
+                date = date.replace(tzinfo=self.timezone())
                 raise InvalidReservationTime(date)
             search = re.search(
                 "Reservation too old",
@@ -460,10 +459,7 @@ class Iotlab(Provider):
     def set_reservation(self, timestamp: int):
         # input timestamp is utc by design
         date = datetime.fromtimestamp(timestamp, timezone.utc)
-
-        import pytz
-
-        tz = pytz.timezone("Europe/Paris")
+        tz = ZoneInfo("Europe/Paris")
         date = date.astimezone(tz=tz)
         self.provider_conf.start_time = date.strftime("%Y-%m-%d %H:%M:%S")
 

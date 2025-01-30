@@ -6,8 +6,8 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from ipaddress import IPv4Address
 from typing import Dict, Generator, Iterable, List, Mapping, Optional, Set, Tuple
+from zoneinfo import ZoneInfo
 
-import pytz
 from netaddr import EUI, mac_unix_expanded
 
 import enoslib.infra.enos_g5k.configuration as g5kconf
@@ -423,7 +423,7 @@ class VMonG5k(Provider):
         return g5k_provider.test_slot(start_time, end_time)
 
     def set_reservation(self, timestamp: int):
-        tz = pytz.timezone("Europe/Paris")
+        tz = ZoneInfo("Europe/Paris")
         date = datetime.fromtimestamp(timestamp, timezone.utc)
         date = date.astimezone(tz=tz)
         self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
