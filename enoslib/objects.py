@@ -356,6 +356,12 @@ class IPAddress:
     def to_dict(self) -> Dict:
         return dict(ip=str(self.ip))
 
+    def same_as(self, address: Union[IPv4Address, IPv6Address]) -> bool:
+        if self.ip is not None:
+            return self.ip.ip == address
+        else:
+            return False
+
 
 @dataclass(unsafe_hash=True)
 class NetDevice:
@@ -466,7 +472,7 @@ class NetDevice:
     def has_address(self, address: Union[IPv4Address, IPv6Address]) -> bool:
         # get all addresses
         addresses = self.filter_addresses(include_unknown=True)
-        return any([a.ip.ip == address for a in addresses])
+        return any([a.same_as(address) for a in addresses])
 
     def to_dict(self) -> Dict:
         return dict(
