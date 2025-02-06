@@ -109,9 +109,8 @@ def _validate(
         output_dir = Path(output_dir)
         for result in results:
             # one per host
-            (output_dir / result.host).with_suffix(FPING_FILE_SUFFIX).write_text(
-                result.stdout
-            )
+            new_suffix = Path(result.host).suffix + FPING_FILE_SUFFIX
+            (output_dir / result.host).with_suffix(new_suffix).write_text(result.stdout)
     return results
 
 

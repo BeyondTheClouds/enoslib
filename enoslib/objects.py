@@ -463,6 +463,11 @@ class NetDevice:
             return addresses + [addr for addr in self.addresses if addr.network is None]
         return addresses
 
+    def has_address(self, address: Union[IPv4Address, IPv6Address]) -> bool:
+        # get all addresses
+        addresses = self.filter_addresses(include_unknown=True)
+        return any([a.ip.ip == address for a in addresses])
+
     def to_dict(self) -> Dict:
         return dict(
             device=self.name,
@@ -661,6 +666,9 @@ class Host(BaseHost):
             )
         return addresses
 
+    def has_address(self, address: Union[IPv4Address, IPv6Address]) -> bool:
+        return any([n.has_address(address) for n in self.net_devices])
+
     def filter_interfaces(
         self,
         networks: Optional[Iterable[Network]] = None,
@@ -771,6 +779,24 @@ class Roles(RolesDict):
     """
 
     inner = HostsView
+
+    def with_alias(self, alias: str):
+        # a host can belong to different roles
+        roles: Set[str] = set()
+        for (role, hosts) in self.data.items():
+            aliases = [h.alias for h in hosts]
+            if alias in aliases:
+                roles.add(role)
+        return roles
+
+    def with_ip(self, ip: Union[IPv4Address, IPv6Address, str, int]):
+        # a host can belong to different roles
+        roles: Set[str] = set()
+        _ip = ip_address(ip)
+        for (role, hosts) in self.data.items():
+            if any([h.has_address(_ip) for h in hosts]):
+                roles.add(role)
+        return roles
 
     @repr_html_check
     def _repr_html_(self, content_only: bool = False) -> str:

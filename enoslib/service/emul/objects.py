@@ -24,5 +24,5 @@ class BaseNetem(Service, ABC):
         results: List[Tuple[str, str, List[float]]] = []
         for fping in output_dir.glob(f"*{FPING_FILE_SUFFIX}"):
             stats = _fping_stats(fping.read_text().splitlines())
-            results.extend([(fping.stem, dst, s) for (dst, s) in stats])
+            results.extend([(fping.with_suffix("").name, dst, s) for (dst, s) in stats])
         return results

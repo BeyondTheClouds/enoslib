@@ -307,3 +307,59 @@ class TestFilterAddresses(EnosTest):
             "One device attached with two addresses on two known network"
             "One address to get (one filtered out)",
         )
+
+
+class RolesOf(EnosTest):
+    def test_roles_with_alias(self):
+        r = Roles()
+        h = Host("test")
+        r.add_one(h, ["r1"])
+        self.assertCountEqual(["r1"], r.with_alias("test"))
+        self.assertCountEqual([], r.with_alias("test-not-found"))
+
+    def test_roles_with_ip_not_synced_info(self):
+        r = Roles()
+        h = Host("test")
+        # not attached to a EnOSlib's network
+        r.add_one(h, ["r1"])
+        self.assertCountEqual([], r.with_ip("1.2.3.4"))
+
+    def test_roles_with_ip_synced_info(self):
+        r = Roles()
+        h = Host("test")
+        # not attached to a EnOSlib's network
+        address = IPAddress("1.2.3.4", None)
+        h.net_devices = {NetDevice(name="eth0", addresses={address})}
+        r.add_one(h, ["r1"])
+        self.assertCountEqual(["r1"], r.with_ip("1.2.3.4"))
+        self.assertCountEqual([], r.with_ip("1.2.3.3"))
+
+    def test_roles_with_ip_synced_info_several_devices(self):
+        r = Roles()
+        h = Host("test")
+        # not attached to a EnOSlib's network
+        h.net_devices = {
+            NetDevice(name="eth0", addresses={IPAddress("1.2.3.4", None)}),
+            NetDevice(name="br0", addresses={IPAddress("1.3.2.4", None)}),
+        }
+        r.add_one(h, ["r1"])
+
+        self.assertCountEqual(["r1"], r.with_ip("1.2.3.4"))
+        self.assertCountEqual(["r1"], r.with_ip("1.3.2.4"))
+
+    def test_roles_with_ip_synced_info_several_hosts(self):
+        r = Roles()
+        h1 = Host("test")
+        h1.net_devices = {
+            NetDevice(name="eth0", addresses={IPAddress("1.2.3.4", None)})
+        }
+        r.add_one(h1, ["r1"])
+
+        h2 = Host("test")
+        h2.net_devices = {
+            NetDevice(name="eth0", addresses={IPAddress("1.2.3.5", None)})
+        }
+        r.add_one(h2, ["r2"])
+
+        self.assertCountEqual(["r1"], r.with_ip("1.2.3.4"))
+        self.assertCountEqual(["r2"], r.with_ip("1.2.3.5"))
