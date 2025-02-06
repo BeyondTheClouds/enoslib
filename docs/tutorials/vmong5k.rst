@@ -165,7 +165,8 @@ Large-scale VM deployments
 
 When deploying a large number of VMs, you should follow the guide at
 :ref:`performance_tuning` to make it work and ensure it is reasonably
-efficient.  Enoslib has been reported to be able to deploy 3000 VMs.
+efficient.  Enoslib is able to deploy and manage 3000 VMs in a relatively
+short amount of time.
 
 .. literalinclude:: ./performance_tuning/vmong5k_forks.py
    :language: python
