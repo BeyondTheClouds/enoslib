@@ -5,14 +5,63 @@
 Main Publication
 ================
 
-- Ronan-Alexandre Cherrueau, Marie Delavergne, Alexandre van Kempen, Adrien
-  Lebre, Dimitri Pertin, et al.. EnosLib: A Library for Experiment-Driven Research
-  in Distributed Computing. IEEE Transactions on Parallel and Distributed Systems,
-  Institute of Electrical and Electronics Engineers, In press. ⟨hal-03324177⟩
+- Ronan-Alexandre Cherrueau, Marie Delavergne, Alexandre van Kempen,
+  Adrien Lebre, Dimitri Pertin, et al.. EnosLib: A Library for
+  Experiment-Driven Research in Distributed Computing. IEEE Transactions
+  on Parallel and Distributed Systems, 2022, 33 (6),
+  pp.1464-1477. `⟨10.1109/TPDS.2021.3111159⟩`_. `⟨hal-03324177⟩`_
 
+.. _⟨10.1109/TPDS.2021.3111159⟩: https://dx.doi.org/10.1109/TPDS.2021.3111159
+
+.. _⟨hal-03324177⟩: https://hal.science/hal-03324177/
 
 Other Publications (using or citing EnOSlib)
 ============================================
+
+- Mathieu Bacou, David Beserra, Eugen Dedu, Loïc Desgeorges, Didier
+  Donsez, et al.. Journée thématique du GDR RSD : Pratiques expérimentales
+  de la communauté systèmes et réseaux. 2025. ⟨hal-04924273⟩
+  https://hal.science/hal-04924273/
+
+- Anas Mokhtari, Baptiste Jonglez, Thomas Ledoux. Towards Digital
+  Sustainability: Involving Cloud Users as Key Players. IC2E 2024 - 12th
+  IEEE International Conference on Cloud Engineering, Sep 2024, Paphos,
+  Cyprus. pp.126-132, ⟨10.1109/IC2E61754.2024.00021⟩. ⟨hal-04633237⟩
+  https://hal.science/hal-04633237/
+
+- Daniel Balouek. Performance-cost trade-offs in service orchestration for
+  edge computing. SSDBM 2024 - 36th International Conference on Scientific
+  and Statistical Database Management, Edge Computing; Resource
+  Management; Computing Continuum; Trade-offs; Urgent Computing, Jul 2024,
+  Rennes, France. pp.1-4, ⟨10.1145/3676288.3676307⟩. ⟨hal-04775133⟩
+  https://hal.science/hal-04775133/
+
+- Clément Courageux-Sudan, Anne-Cécile Orgerie, Martin Quinson. Studying
+  the end-to-end performance, energy consumption and carbon footprint of
+  fog applications. ISCC 2024 - 29th IEEE Symposium on Computers and
+  Communications, Jun 2024, Paris, France. pp.1-7. ⟨hal-04581677⟩
+  https://hal.science/hal-04581677
+
+- Jolan Philippe, Antoine Omond, Hélène Coullon, Charles Prud'Homme, Issam
+  Raïs. Fast Choreography of Cross-DevOps Reconfiguration with Ballet: A
+  Multi-Site OpenStack Case Study. SANER 2024 - IEEE International
+  Conference on Software Analysis, Evolution and Reengineering, Mar 2024,
+  Rovaniemi, Finland. pp.1-11,
+  ⟨10.1109/SANER60148.2024.00007⟩. ⟨hal-04457484⟩
+  https://hal.science/hal-04457484
+
+- de Almeida Silva, F., de Souza Jardim da Costa, J.P., David, J.M.N.,
+  Dantas, M.A.R. (2024). HPC-SBC: An Experimental Effort to Evaluate
+  Storage in High-Performance Computing Configurations Using a Context
+  Approach. In: Barolli, L. (eds) Advanced Information Networking and
+  Applications. AINA 2024. Lecture Notes on Data Engineering and
+  Communications Technologies, vol 200. Springer,
+  Cham. https://doi.org/10.1007/978-3-031-57853-3_16
+
+- Leonel AGUILAR, Michal GATH-MORAD, Jascha GRÜBEL, et al. Experiments as
+  Code and its application to VR studies in human-building
+  interaction. Scientific Reports, 2024, vol. 14, no 1, p. 9883.
+  https://doi.org/10.1038/s41598-024-60791-3
 
 - Daniel Rosendo, Kate Keahey, Alexandru Costan, Matthieu Simonin, Patrick
   Valduriez, and Gabriel Antoniu. 2023. KheOps: Cost-effective Repeatability,
@@ -21,13 +70,17 @@ Other Publications (using or citing EnOSlib)
   Association for Computing Machinery, New York, NY, USA, 62–73.
   https://doi.org/10.1145/3589806.3600032
 
-
 - Volodia Parol-Guarino and Nikos Parlavantzas. 2023. GIRAFF: Reverse
   Auction-based Placement for Fog Functions. In Proceedings of the 9th
   International Workshop on Serverless Computing (WoSC '23). Association for
   Computing Machinery, New York, NY, USA, 53–58.
   https://doi.org/10.1145/3631295.3631402
 
+- Quentin Guilloteau, Adrien Faure, Millian Poquet, Olivier
+  Richard. Comment rater la reproductibilité de ses expériences ?. ComPAS
+  2023 Conférence francophone en informatique, Jul 2023, Annecy, France. à
+  paraître. ⟨hal-04132438⟩
+  https://hal.science/hal-04132438
 
 - G. Kp, G. Pierre and R. Rouvoy, "Studying the Energy Consumption of Stream
   Processing Engines in the Cloud," 2023 IEEE International Conference on Cloud
@@ -92,6 +145,11 @@ Other Publications (using or citing EnOSlib)
   orchestration platform for geo-distributed multi-cluster environments. ICCCN
   2021 - 30th International Conference on Computer Communications and Networks,
   Jul 2021, Athens, Greece. pp.1-12. ⟨hal-03205743⟩
+
+- Karim Manaouil, Adrien Lebre. Kubernetes and the Edge?. [Research
+  Report] RR-9370, Inria Rennes - Bretagne Atlantique. 2020,
+  pp.19. ⟨hal-02972686v2⟩
+  https://inria.hal.science/hal-02972686
 
 - Mulugeta Tamiru, Guillaume Pierre, Johan Tordsson, Erik Elmroth. Instability
   in Geo-Distributed Kubernetes Federation: Causes and Mitigation. MASCOTS 2020 -
