@@ -1,4 +1,5 @@
 """HTB based emulation."""
+
 import logging
 import os
 from dataclasses import dataclass, field
@@ -298,6 +299,7 @@ class NetemHTB(BaseNetem):
         """
         # populated later
         self.sources: Dict[Host, HTBSource] = {}
+        self.dests: Set[Host] = set()
 
     def add_constraints(
         self,
@@ -354,6 +356,8 @@ class NetemHTB(BaseNetem):
             for sdevice in local_devices:
                 # one possible device
                 for dest_host in dest:
+                    # store dest host
+                    self.dests.add(dest_host)
                     # one possible destination
                     dall_addrs = dest_host.filter_addresses(
                         networks, include_unknown=False
@@ -490,8 +494,11 @@ class NetemHTB(BaseNetem):
         """
         if output_dir is None:
             output_dir = Path.cwd() / TMP_DIRNAME
+
+        # Also validate on hosts that may be only dests
+        validate_hosts = list(self.dests.union(self.sources))
         return _validate(
-            list(self.sources.keys()),
+            validate_hosts,
             networks=networks,
             output_dir=output_dir,
             **kwargs,
