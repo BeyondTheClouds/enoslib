@@ -175,7 +175,7 @@ with en.actions(roles=roles["nantes"]) as p:
 results = p.results
 
 # Print all pairs of pings and check validity
-for (target_node, target) in zip(target_nodes, targets):
+for target_node, target in zip(target_nodes, targets):
     for res in results.filter(task=f"ping {target}"):
         print(f"# {res.host} -> {target_node.address} via Nancy")
         data = json.loads(res.stdout)

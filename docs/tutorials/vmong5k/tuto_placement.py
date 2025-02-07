@@ -45,7 +45,7 @@ virt_conf = (
         roles=["vms"],
         number=n_vms,
         undercloud=roles["role1"],
-        macs=list(islice(subnet[0].free_macs, n_vms))
+        macs=list(islice(subnet[0].free_macs, n_vms)),
         # alternative
         # macs=list(islice(en.mac_range(subnet), n_vms))
     )

@@ -14,6 +14,7 @@ These function can be fed with library-level objects (see :ref:`objects
     .. [#a1] https://docs.ansible.com/ansible/latest/index.html
 
 """
+
 import copy
 import json
 import logging
@@ -383,8 +384,7 @@ class BaseCommandResult:
     payload: Dict
 
     @abstractmethod
-    def _payload_keys(self):
-        ...
+    def _payload_keys(self): ...
 
     def ok(self) -> bool:
         return self.status == STATUS_OK
@@ -1242,20 +1242,19 @@ def _sync_from_facts(roles: Roles, networks: Networks, facts: Dict) -> Roles:
 @overload
 def sync_info(
     roles: Roles, networks: Networks, inplace: bool = False, **kwargs
-) -> Roles:
-    ...
+) -> Roles: ...
 
 
 @overload
-def sync_info(roles: Host, networks: Networks, inplace: bool = False, **kwargs) -> Host:
-    ...
+def sync_info(
+    roles: Host, networks: Networks, inplace: bool = False, **kwargs
+) -> Host: ...
 
 
 @overload
 def sync_info(
     roles: Iterable[Host], networks: Networks, inplace: bool = False, **kwargs
-) -> Iterable[Host]:
-    ...
+) -> Iterable[Host]: ...
 
 
 def sync_info(

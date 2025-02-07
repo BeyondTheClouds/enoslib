@@ -18,6 +18,7 @@ assigned a floating IP (EnOSlib hosts will be configured accordingly).
 
     .. [#os1] https://www.openstack.org/
 """
+
 import ipaddress
 import logging
 import os
