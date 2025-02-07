@@ -6,6 +6,7 @@ This is an advanced example where
 - network emulation will be enforced between those docker containers by
 reusing |enoslib| api functions.
 """
+
 import logging
 from pathlib import Path
 

@@ -1,6 +1,7 @@
 """
 Manage a configuration for EnOSlib.
 """
+
 import copy
 import logging
 from contextlib import contextmanager

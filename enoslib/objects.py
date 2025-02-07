@@ -15,6 +15,7 @@ Most likely you'll interact with ``Roles`` and ``Networks`` right after calling
 ``provider.init()``: this is indeed a provider responsibility to turn your
 abstract resource description into concrete library level objects.
 """
+
 import copy
 from abc import ABC, abstractmethod
 from dataclasses import InitVar, dataclass, field
@@ -120,13 +121,11 @@ class Network(ABC):
 
     @property
     @abstractmethod
-    def gateway(self) -> Optional[AddressInterfaceType]:
-        ...
+    def gateway(self) -> Optional[AddressInterfaceType]: ...
 
     @property
     @abstractmethod
-    def dns(self) -> Optional[AddressInterfaceType]:
-        ...
+    def dns(self) -> Optional[AddressInterfaceType]: ...
 
     @property
     @abstractmethod
@@ -789,7 +788,7 @@ class Roles(RolesDict):
     def with_alias(self, alias: str):
         # a host can belong to different roles
         roles: Set[str] = set()
-        for (role, hosts) in self.data.items():
+        for role, hosts in self.data.items():
             aliases = [h.alias for h in hosts]
             if alias in aliases:
                 roles.add(role)
@@ -799,7 +798,7 @@ class Roles(RolesDict):
         # a host can belong to different roles
         roles: Set[str] = set()
         _ip = ip_address(ip)
-        for (role, hosts) in self.data.items():
+        for role, hosts in self.data.items():
             if any([h.has_address(_ip) for h in hosts]):
                 roles.add(role)
         return roles
