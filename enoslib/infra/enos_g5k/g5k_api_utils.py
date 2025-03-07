@@ -6,6 +6,7 @@ It wraps the python-grid5000 library to provide some usual routines to interact
 with the platform.
 """
 
+import copy
 import os
 import re
 import threading
@@ -456,6 +457,16 @@ def get_site_obj(site: str) -> Site:
     """
     gk = get_api_client()
     return gk.sites[site]
+
+
+def get_cluster_obj(site: str, cluster: str) -> Cluster:
+    """Get the cluster object of a single cluster.
+
+    Returns:
+        Cluster object
+    """
+    gk = get_api_client()
+    return gk.sites[site].clusters[cluster]
 
 
 def clusters_sites_obj(clusters: Iterable[str]) -> Dict[str, Site]:
@@ -1006,3 +1017,78 @@ def enable_group_storage(
             }
         )
     )
+
+
+def available_kwollect_metrics(nodes: Iterable[str]) -> Dict[str, List[Dict]]:
+    """Returns the description of Kwollect metrics available for a set of nodes.
+
+    Args:
+        nodes: List of nodes name
+
+    Returns:
+        dict giving a list of metrics description (as a dict) for each node.
+
+    Example return value:
+        {"gros-46.nancy.grid5000.fr": [
+           {'description': 'Power consumption of node reported by wattmetre, in watt',
+            'name': 'wattmetre_power_watt',
+            'optional_period': 20,
+            'period': 1000,
+            'source': {'protocol': 'wattmetre'}},
+           {'description': 'Default subset of metrics from Prometheus Node Exporter',
+            'name': 'prom_node_load1',
+            'optional_period': 15000,
+            'period': 0,
+            'source': {'port': 9100, 'protocol': 'prometheus'}},
+           ...
+        ]}
+    """
+    # Group nodes by (site, cluster)
+    clusters: Dict[tuple[str, str], List[str]] = defaultdict(list)
+    for node in nodes:
+        uid, site = node.split(".")[0:2]
+        cluster_name = uid.split("-")[0]
+        clusters[(site, cluster_name)].append(node)
+    # We collect (metric, list of nodes) pairs and will expand them later
+    metrics_map = []
+    # Call G5K ref-api
+    for (site, cluster_name), subnodes in clusters.items():
+        cluster = get_cluster_obj(site, cluster_name)
+        for metric in cluster.metrics:
+            # Handle prometheus metrics.  They are only listed in a
+            # subattribute of the API and need fixing (e.g. "node_load1"
+            # becomes "prom_node_load1")
+            if metric["source"]["protocol"] == "prometheus":
+                # Skip prometheus "metric" with no details
+                if "id" not in metric["source"]:
+                    continue
+                # Prepare fake metric dict that will be reused for each prom metric
+                fake_metric_template = copy.deepcopy(metric)
+                del fake_metric_template["source"]["id"]
+                for metric_name in metric["source"]["id"]:
+                    fake_metric = copy.deepcopy(fake_metric_template)
+                    fake_metric["name"] = "prom_" + metric_name
+                    metrics_map.append((fake_metric, subnodes))
+                continue
+            # Handle "only_for" restriction from API that may limit
+            # which nodes have access to the metrics
+            if "only_for" in metric:
+                relevant_nodes_set = set(metric["only_for"]) & {
+                    node.split(".")[0] for node in subnodes
+                }
+                relevant_nodes = [
+                    f"{node_uid}.{site}.grid5000.fr" for node_uid in relevant_nodes_set
+                ]
+                del metric["only_for"]
+                metrics_map.append((metric, relevant_nodes))
+            # Normal case
+            else:
+                metrics_map.append((metric, subnodes))
+    # Expand all collected metrics
+    result: Dict[str, List[Dict]] = {}
+    for metric, subnodes in metrics_map:
+        for node in subnodes:
+            if node not in result:
+                result[node] = []
+            result[node].append(metric)
+    return result
