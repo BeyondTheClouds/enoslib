@@ -448,7 +448,7 @@ def get_all_sites_obj() -> List[Site]:
     return sites
 
 
-def get_site_obj(site) -> Site:
+def get_site_obj(site: str) -> Site:
     """Get a single site.
 
     Returns:
@@ -458,7 +458,7 @@ def get_site_obj(site) -> Site:
     return gk.sites[site]
 
 
-def clusters_sites_obj(clusters: Iterable) -> Dict[str, Site]:
+def clusters_sites_obj(clusters: Iterable[str]) -> Dict[str, Site]:
     """Get all the corresponding sites of the passed clusters.
 
     Args:
