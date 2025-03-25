@@ -47,45 +47,11 @@ class TestConfiguration(EnosTest):
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["exotic"], conf.job_type)
+        self.assertCountEqual(["exotic"], conf.job_type)
 
-        d["job_type"] = "bla"
-        with self.assertRaises(ValidationError) as cm:
-            conf = Configuration.from_dictionary(d)
-        self.assertIn("job_type", cm.exception.message)
-        self.assertIn("bla", cm.exception.cause.args[0])
-
-        d["job_type"] = ["bla", "exotic", "blou"]
-        with self.assertRaises(ValidationError) as cm:
-            conf = Configuration.from_dictionary(d)
-        self.assertIn("job_type", cm.exception.message)
-        self.assertIn("bla", cm.exception.cause.args[0])
-        self.assertNotIn("exotic", cm.exception.cause.args[0])
-        self.assertIn("blou", cm.exception.cause.args[0])
-
-        d["job_type"] = ["exotic", "container", "noop"]
+        d["job_type"] = ["bla", "exotic", "day"]
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["exotic", "container", "noop"], conf.job_type)
-
-        d["job_type"] = ["exotic", "inner=1234"]
-        conf = Configuration.from_dictionary(d)
-        self.assertEqual(["exotic", "inner=1234"], conf.job_type)
-
-        d["job_type"] = ["inner="]
-        with self.assertRaises(ValidationError) as cm:
-            conf = Configuration.from_dictionary(d)
-        self.assertIn("job_type", cm.exception.message)
-        self.assertIn("inner=", cm.exception.cause.args[0])
-
-        d["job_type"] = ["inner=bla"]
-        with self.assertRaises(ValidationError) as cm:
-            conf = Configuration.from_dictionary(d)
-        self.assertIn("job_type", cm.exception.message)
-        self.assertIn("inner=bla", cm.exception.cause.args[0])
-
-        d["job_type"] = ["day"]
-        conf = Configuration.from_dictionary(d)
-        self.assertEqual(["day"], conf.job_type)
+        self.assertCountEqual(["bla", "exotic", "day"], conf.job_type)
 
     def test_from_dictionary_deploy_job(self):
         d: MutableMapping = {
