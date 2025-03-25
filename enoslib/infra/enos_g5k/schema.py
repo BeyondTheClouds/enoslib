@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Iterable
+from typing import Dict
 
 from jsonschema import Draft7Validator, FormatChecker
 
@@ -9,15 +9,10 @@ from .constants import (
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
     DEFAULT_WALLTIME,
-    JOB_TYPES_REGEXP,
     NETWORK_TYPES,
     QUEUE_TYPES,
 )
-from .error import (
-    EnosG5kInvalidJobTypesError,
-    EnosG5kReservationDateFormatError,
-    EnosG5kWalltimeFormatError,
-)
+from .error import EnosG5kReservationDateFormatError, EnosG5kWalltimeFormatError
 
 SCHEMA_USER = {
     "type": "object",
@@ -281,23 +276,6 @@ def is_valid_hostname(instance) -> bool:
     # cluster-n.site.grid5000.fr
     pattern = r"\w+-\d+.\w+.grid5000.fr"
     return re.match(pattern, instance) is not None
-
-
-@G5kFormatChecker.checks("job_type", raises=EnosG5kInvalidJobTypesError)
-def is_valid_job_type(instance: Iterable) -> bool:
-    if isinstance(instance, str):
-        instance = [instance]
-
-    invalid = []
-    for job_type in instance:
-        validation = [re.match(r, job_type) for r in JOB_TYPES_REGEXP]
-        if not any(validation):
-            invalid.append(job_type)
-
-    if invalid:
-        raise EnosG5kInvalidJobTypesError(invalid)
-
-    return True
 
 
 @G5kFormatChecker.checks("walltime", raises=EnosG5kWalltimeFormatError)
