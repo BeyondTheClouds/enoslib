@@ -21,7 +21,20 @@ class TestConfiguration(EnosTest):
         d: MutableMapping = {"resources": {"machines": [], "networks": []}}
         conf = Configuration.from_dictionary(d)
         self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
-        self.assertEqual([], conf.job_type)
+        self.assertEqual(["origin=enoslib_g5k"], conf.job_type)
+        self.assertEqual(constants.DEFAULT_QUEUE, conf.queue)
+        self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
+        self.assertEqual([], conf.machines)
+        self.assertEqual([], conf.networks)
+
+    def test_explicit_origin(self):
+        d: MutableMapping = {
+            "resources": {"machines": [], "networks": []},
+            "job_type": ["origin=unittest"],
+        }
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual(constants.DEFAULT_JOB_NAME, conf.job_name)
+        self.assertEqual(["origin=unittest"], conf.job_type)
         self.assertEqual(constants.DEFAULT_QUEUE, conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertEqual([], conf.machines)
@@ -35,7 +48,7 @@ class TestConfiguration(EnosTest):
         }
         conf = Configuration.from_dictionary(d)
         self.assertEqual("test", conf.job_name)
-        self.assertEqual([], conf.job_type)
+        self.assertEqual(["origin=enoslib_g5k"], conf.job_type)
         self.assertEqual("production", conf.queue)
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
 
@@ -47,11 +60,13 @@ class TestConfiguration(EnosTest):
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionary(d)
-        self.assertCountEqual(["exotic"], conf.job_type)
+        self.assertCountEqual(["exotic", "origin=enoslib_g5k"], conf.job_type)
 
         d["job_type"] = ["bla", "exotic", "day"]
         conf = Configuration.from_dictionary(d)
-        self.assertCountEqual(["bla", "exotic", "day"], conf.job_type)
+        self.assertCountEqual(
+            ["bla", "exotic", "day", "origin=enoslib_g5k"], conf.job_type
+        )
 
     def test_from_dictionary_deploy_job(self):
         d: MutableMapping = {
@@ -62,7 +77,7 @@ class TestConfiguration(EnosTest):
             "resources": {"machines": [], "networks": []},
         }
         conf = Configuration.from_dictionary(d)
-        self.assertEqual(["deploy"], conf.job_type)
+        self.assertCountEqual(["deploy", "origin=enoslib_g5k"], conf.job_type)
         self.assertEqual("debian11-nfs", conf.env_name)
 
         d["job_type"] = []
@@ -78,7 +93,7 @@ class TestConfiguration(EnosTest):
 
         d["job_type"] = []
         conf = Configuration.from_dictionary(d)
-        self.assertEqual([], conf.job_type)
+        self.assertEqual(["origin=enoslib_g5k"], conf.job_type)
 
     def test_from_dictionary_invalid_walltime(self):
         d: MutableMapping = {
@@ -499,7 +514,7 @@ class TestConfiguration(EnosTest):
 
         conf = Configuration.from_settings()
         conf.finalize()
-        self.assertEqual([], conf.job_type)
+        self.assertEqual(["origin=enoslib_g5k"], conf.job_type)
 
     def test_configuration_with_reservation(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:22:00")
