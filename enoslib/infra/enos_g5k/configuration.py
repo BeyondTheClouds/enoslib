@@ -126,6 +126,11 @@ class Configuration(BaseConfiguration):
         # Fill in missing primary networks
         for machine in self.machines:
             self._set_default_primary_network(machine)
+        # Add "origin" job type to track EnOSlib usage.
+        # We respect custom origin values set by downstream users of EnOSlib.
+        # See https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=16061
+        if not any([jobtype.startswith("origin=") for jobtype in self.job_type]):
+            self.job_type.append("origin=enoslib_g5k")
         # Deprecated parameters
         if "allow_classic_ssh" in self.job_type:
             warnings.warn(
