@@ -156,6 +156,7 @@ def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
         queue=vmong5k_conf.queue,
         reservation=vmong5k_conf.reservation,
         project=vmong5k_conf.project,
+        job_type=["origin=enoslib_vmong5k"],
     )
     # role names to assign to the vm network
     subnet_roles = vmong5k_conf.networks
