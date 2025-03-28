@@ -106,10 +106,11 @@ class Configuration(BaseConfiguration):
         # populating the attributes
         for k in self.__dict__:
             v = dictionary.get(k)
+            # Normalize job_type to a list
+            if k == "job_type" and isinstance(v, str):
+                v = [v]
             if v is not None:
                 setattr(self, k, v)
-        if isinstance(self.job_type, str):
-            self.job_type = [self.job_type]
 
         _resources = dictionary["resources"]
         _machines = _resources["machines"]
