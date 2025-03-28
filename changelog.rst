@@ -8,7 +8,9 @@ Unreleased
 
 - Drop support for Python 3.7 and Python 3.8
 - Start testing with Python 3.12 and Python 3.13
-
+- **g5k:** allow any job types instead of restricting to a known list
+- **g5k:** add 'origin' OAR job type to track EnOSlib usage
+- **vmong5k:** add 'origin' OAR job type to track EnOSlib usage
 
 Stable branch
 ~~~~~~~~~~~~~
