@@ -106,10 +106,11 @@ class Configuration(BaseConfiguration):
         # populating the attributes
         for k in self.__dict__:
             v = dictionary.get(k)
+            # Normalize job_type to a list
+            if k == "job_type" and isinstance(v, str):
+                v = [v]
             if v is not None:
                 setattr(self, k, v)
-        if isinstance(self.job_type, str):
-            self.job_type = [self.job_type]
 
         _resources = dictionary["resources"]
         _machines = _resources["machines"]
@@ -126,6 +127,11 @@ class Configuration(BaseConfiguration):
         # Fill in missing primary networks
         for machine in self.machines:
             self._set_default_primary_network(machine)
+        # Add "origin" job type to track EnOSlib usage.
+        # We respect custom origin values set by downstream users of EnOSlib.
+        # See https://intranet.grid5000.fr/bugzilla/show_bug.cgi?id=16061
+        if not any([jobtype.startswith("origin=") for jobtype in self.job_type]):
+            self.job_type.append("origin=enoslib_g5k")
         # Deprecated parameters
         if "allow_classic_ssh" in self.job_type:
             warnings.warn(

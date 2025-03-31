@@ -48,6 +48,8 @@ class EnosG5kWalltimeFormatError(EnosError):
 
 
 class EnosG5kInvalidJobTypesError(EnosError):
+    """No longer used, kept for compatibility"""
+
     def __init__(self, job_types: List[str]):
         super().__init__(f"Invalid job types: {job_types}")
 

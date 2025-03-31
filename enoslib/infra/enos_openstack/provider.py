@@ -40,6 +40,7 @@ from typing import (
 
 from glanceclient import client as glance
 from keystoneauth1.identity import v2, v3
+from keystoneauth1.plugin import BaseAuthPlugin
 from keystoneauth1.session import Session
 from neutronclient.neutron import client as neutron
 from novaclient import client as nova
@@ -66,6 +67,7 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 def get_session() -> Session:
     """Build the session object."""
+    auth: Optional[BaseAuthPlugin] = None
     # NOTE(msimonin): We provide only a basic support which focus
     # Chameleon cloud and its rc files
     if os.environ.get("OS_IDENTITY_API_VERSION") == "3":
