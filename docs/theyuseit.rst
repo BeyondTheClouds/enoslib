@@ -257,6 +257,14 @@ Projects
   Link: https://gitlab.inria.fr/Kerdata/Kerdata-Codes/e2clab
 
 
+Contributed scripts and examples
+================================
+
+- Some contributed scripts are provided "as-in" in the EnOSlib repository:
+
+  Link: https://gitlab.inria.fr/discovery/enoslib/-/tree/main/contrib
+
+
 Miscellaneous
 =============
 
