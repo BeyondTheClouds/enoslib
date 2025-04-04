@@ -11,6 +11,7 @@ Unreleased
 - **g5k:** allow any job types instead of restricting to a known list
 - **g5k:** add 'origin' OAR job type to track EnOSlib usage
 - **vmong5k:** add 'origin' OAR job type to track EnOSlib usage
+- **contrib:** add example scripts using EnOSlib
 
 Stable branch
 ~~~~~~~~~~~~~
