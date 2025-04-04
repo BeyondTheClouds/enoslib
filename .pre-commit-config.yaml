@@ -1,4 +1,4 @@
-exclude: "enoslib/service/skydive/skydive*"
+exclude: "^(contrib|enoslib/service/skydive/skydive)"
 repos:
   - repo: https://github.com/psf/black
     rev: 24.10.0
