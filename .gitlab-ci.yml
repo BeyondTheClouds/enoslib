@@ -379,7 +379,7 @@ test_functional$ubuntu2204$: &ubuntu2204
 
 ## ubuntu 24.04
 #-----------------------------------------------
-test_functional$ubuntu2404$: &ubuntu2204
+test_functional$ubuntu2404$: &ubuntu2404
   <<: *debian-base
   image: ubuntu:24.04
 
