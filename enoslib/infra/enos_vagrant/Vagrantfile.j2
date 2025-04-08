@@ -3,23 +3,26 @@ cp -r /home/vagrant/.ssh /root/.
 SCRIPT
 
 Vagrant.configure(2) do |config|
-  config.vm.box = "{{ provider_conf.box }}"
-  config.vm.provision "shell", inline: $script
 {% if provider_conf.config_extra|length %}
-  {{ provider_conf.config_extra | safe }}
+  {{ provider_conf.config_extra|safe }}
 {% endif %}
   {% for machine in machines %}
   config.vm.define "{{ machine.name }}" do |my|
     my.vm.hostname = "{{ machine.name }}"
+    my.vm.box = "{{ machine.box }}"
+    my.vm.provision "shell", inline: $script
+{% if machine.config_extra_vm|length %}
+    {{ machine.config_extra_vm|safe }}
+{% endif %}
     {% for ip in machine.ips %}
     my.vm.network :private_network, ip: "{{ ip }}", auto_config: true
     {% endfor %}
-{% if provider_conf.backend  == 'virtualbox' %}
+{% if machine.backend  == 'virtualbox' %}
     my.vm.provider :virtualbox do |vb|
       vb.cpus={{ machine.cpu }}
       vb.memory={{ machine.mem }}
     end
-{% elif provider_conf.backend == 'libvirt' %}
+{% elif machine.backend == 'libvirt' %}
     my.vm.provider :libvirt do |lv|
       lv.cpus={{ machine.cpu }}
       lv.memory={{ machine.mem }}

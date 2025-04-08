@@ -71,6 +71,10 @@ class Enos_vagrant(Provider):
                     "cpu": machine.flavour_desc["core"],
                     "mem": machine.flavour_desc["mem"],
                     "ips": [n["netpool"].pop() for n in _networks],
+                    "backend": machine.backend,
+                    "box": machine.box,
+                    "user": machine.user,
+                    "config_extra_vm": machine.config_extra_vm,
                 }
                 vagrant_machines.append(vagrant_machine)
                 # Assign the machines to the right roles
@@ -92,7 +96,6 @@ class Enos_vagrant(Provider):
         # Build env for Vagrant with a copy of env variables (needed by
         # subprocess opened by vagrant
         v_env = dict(os.environ)
-        v_env["VAGRANT_DEFAULT_PROVIDER"] = self.provider_conf.backend
 
         v = vagrant.Vagrant(
             root=os.getcwd(), quiet_stdout=False, quiet_stderr=False, env=v_env
@@ -112,7 +115,7 @@ class Enos_vagrant(Provider):
                     Host(
                         address,
                         alias=machine["name"],
-                        user=self.provider_conf.user,
+                        user=machine["user"],
                         port=port,
                         keyfile=keyfile,
                     )
