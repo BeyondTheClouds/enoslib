@@ -57,7 +57,6 @@ test_invivo_g5k_1$debian11$: &test_invivo_g5k_1
     - when: manual
       allow_failure: true
   script:
-    - env
     - apt update
     - apt install -y python3 python3-pip python3-venv iproute2 cmake zlib1g-dev libssl-dev libffi-dev ssh
     - ip a
@@ -70,6 +69,7 @@ test_invivo_g5k_1$debian11$: &test_invivo_g5k_1
     - chmod 600 ~/.ssh/id_rsa
     - cat $PYTHON_G5K > ~/.python-grid5000.yaml
     - cd docs/tutorials/
+    - unset LD_PRELOAD  # Avoid transparent cache that can cause timeouts https://ci.inria.fr/doc/page/gitlab/#transparent-cache
     - /venv/bin/python3 grid5000/tuto_grid5000_commands.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_commands.py
     - /venv/bin/python3 grid5000/tuto_grid5000_deploy.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_deploy.py
     - /venv/bin/python3 grid5000/tuto_grid5000_deploy_centos.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_deploy_centos.py
@@ -92,7 +92,6 @@ test_invivo_g5k_2$debian11$: &test_invivo_g5k_2
     - when: manual
       allow_failure: true
   script:
-    - env
     - apt update
     - apt install -y python3 python3-pip python3-venv iproute2 cmake zlib1g-dev libssl-dev libffi-dev ssh
     - ip a
@@ -105,6 +104,7 @@ test_invivo_g5k_2$debian11$: &test_invivo_g5k_2
     - chmod 600 ~/.ssh/id_rsa
     - cat $PYTHON_G5K > ~/.python-grid5000.yaml
     - cd docs/tutorials/
+    - unset LD_PRELOAD  # Avoid transparent cache that can cause timeouts https://ci.inria.fr/doc/page/gitlab/#transparent-cache
     - /venv/bin/python3 vmong5k/tuto_vmong5k_home.py || /venv/bin/python3 cleanup_g5k_job.py tuto_vmong5k_home.py
     - /venv/bin/python3 grid5000/tuto_grid5000_multisites.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
     - /venv/bin/python3 grid5000/tuto_grid5000_docker.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
