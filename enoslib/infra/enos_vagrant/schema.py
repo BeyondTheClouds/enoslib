@@ -7,12 +7,12 @@ SCHEMA = {
     "$schema": JSON_SCHEMA,
     "properties": {
         "backend": {
-            "descripton": f"VM hypervisor to use (default: {DEFAULT_BACKEND})",
+            "description": f"Default VM hypervisor to use (default: {DEFAULT_BACKEND})",
             "type": "string",
             "enum": BACKENDS,
         },
         "box": {
-            "description": f"base image to use (default: {DEFAULT_BOX})",
+            "description": f"Base image to use (default: {DEFAULT_BOX})",
             "type": "string",
         },
         "user": {
@@ -24,7 +24,7 @@ SCHEMA = {
             "type": "string",
         },
         "config_extra": {
-            "description": "Extra config to pass (in vargrant DSL",
+            "description": "Extra config to pass (in vagrant DSL)",
             "type": "string",
         },
         "resources": {
@@ -64,6 +64,23 @@ SCHEMA = {
             "$$target": "#/definitions/machine",
             "type": "object",
             "properties": {
+                "backend": {
+                    "description": "VM hypervisor to use",
+                    "type": "string",
+                    "enum": BACKENDS,
+                },
+                "box": {
+                    "description": "Base image to use",
+                    "type": "string",
+                },
+                "user": {
+                    "description": "SSH user to use",
+                    "type": "string",
+                },
+                "config_extra_vm": {
+                    "description": "Extra config to pass (in vagrant DSL)",
+                    "type": "string",
+                },
                 "roles": {"type": "array", "items": {"type": "string"}},
                 "number": {"type": "number"},
                 "name_prefix": {"type": "string"},

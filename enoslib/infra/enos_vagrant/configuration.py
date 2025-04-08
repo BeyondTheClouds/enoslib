@@ -13,7 +13,6 @@ from .schema import SCHEMA
 
 
 class Configuration(BaseConfiguration):
-
     _SCHEMA = SCHEMA
 
     def __init__(self):
@@ -21,8 +20,8 @@ class Configuration(BaseConfiguration):
         # top level attributes
         self.resources = None
         self.backend = DEFAULT_BACKEND
-        self.user = DEFAULT_USER
         self.box = DEFAULT_BOX
+        self.user = DEFAULT_USER
         self.name_prefix = DEFAULT_NAME_PREFIX
         self.config_extra = ""
 
@@ -42,10 +41,16 @@ class Configuration(BaseConfiguration):
         _networks = _resources["networks"]
         self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
         self.networks = [NetworkConfiguration.from_dictionary(n) for n in _networks]
+
         for key in ["backend", "user", "box", "name_prefix", "config_extra"]:
             value = dictionary.get(key)
             if value is not None:
                 setattr(self, key, value)
+
+        for machine in self.machines:
+            machine.backend = machine.backend or self.backend
+            machine.box = machine.box or self.box
+            machine.user = machine.user or self.user
 
         self.finalize()
         return self
@@ -74,9 +79,17 @@ class MachineConfiguration:
         flavour: Optional[str] = None,
         flavour_desc: Optional[Dict] = None,
         number: int = 1,
-        name_prefix: str = ""
+        backend: str = DEFAULT_BACKEND,
+        box: str = "",
+        user: str = "",
+        name_prefix: str = "",
+        config_extra_vm: str = "",
     ):
-
+        self.backend = backend
+        self.box = box
+        self.user = user
+        self.name_prefix = name_prefix
+        self.config_extra_vm = config_extra_vm
         self.roles = roles
         self.name_prefix = name_prefix
 
@@ -108,8 +121,16 @@ class MachineConfiguration:
             kwargs.update(flavour_desc=flavour_desc)
         number = dictionary.get("number", 1)
         kwargs.update(number=number)
+        backend = dictionary.get("backend", "")
+        kwargs.update(backend=backend)
+        box = dictionary.get("box", "")
+        kwargs.update(box=box)
+        user = dictionary.get("user", "")
+        kwargs.update(user=user)
         name_prefix = dictionary.get("name_prefix", "")
         kwargs.update(name_prefix=name_prefix)
+        config_extra_vm = dictionary.get("config_extra_vm", "")
+        kwargs.update(config_extra_vm=config_extra_vm)
 
         return cls(**kwargs)
 
@@ -119,7 +140,11 @@ class MachineConfiguration:
             roles=self.roles,
             flavour_desc=self.flavour_desc,
             number=self.number,
+            box=self.box,
+            backend=self.backend,
+            user=self.user,
             name_prefix=self.name_prefix,
+            config_extra_vm=self.config_extra_vm,
         )
         return d
 
