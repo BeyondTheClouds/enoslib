@@ -1,5 +1,7 @@
+import json
 import time
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from enoslib.infra.enos_g5k import g5k_api_utils
@@ -7,6 +9,7 @@ from enoslib.infra.utils import mk_pools
 from enoslib.objects import Host
 
 from ..service import Service
+from ..utils import _set_dir
 
 
 class Kwollect(Service):
@@ -137,14 +140,25 @@ class Kwollect(Service):
         return g5k_api_utils.available_kwollect_metrics(nodes)
 
     def backup(self, backup_dir: Optional[str] = None):
-        """Backup the kwollect data.  One file is stored for each node.
-
-        TODO: determine storage format.
+        """Backup the kwollect data in JSONL format (one JSON record per line).
+        Data for each node is stored in separate files.
 
         Args:
             backup_dir (str): path of the backup directory to use.
         """
-        pass
+        # Default backup dir
+        identifier = str(time.time_ns())
+        default_dir = Path("enoslib_kwollect") / identifier
+        # Create backup dir
+        _backup_dir = _set_dir(backup_dir, default_dir, mkdir=True)
+        for node, values in self.get_metrics():
+            with open(_backup_dir / node, "w") as f:
+                for value in values:
+                    d = json.dumps(
+                        value, indent=None, separators=(",", ":"), ensure_ascii=False
+                    )
+                    f.write(d)
+                    f.write("\n")
 
     def get_metrics(
         self,
