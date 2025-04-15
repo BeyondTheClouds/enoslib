@@ -14,7 +14,6 @@ from .schema import SCHEMA
 
 
 class Configuration(BaseConfiguration):
-
     _SCHEMA = SCHEMA
 
     def __init__(self):
@@ -53,6 +52,10 @@ class Configuration(BaseConfiguration):
         self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
         self.networks = _networks
 
+        for machine in self.machines:
+            machine.image = machine.image or self.image
+            machine.user = machine.user or self.user
+
         self.finalize()
         return self
 
@@ -72,19 +75,32 @@ class Configuration(BaseConfiguration):
 
 
 class MachineConfiguration:
-    def __init__(self, *, roles=None, flavour=None, number=None):
+    def __init__(self, *, image=None, user=None, roles=None, flavour=None, number=None):
+        self.image = image
+        self.user = user
         self.roles = roles
         self.flavour = flavour
         self.number = number
 
     @classmethod
     def from_dictionary(cls, dictionary: Mapping) -> "MachineConfiguration":
+        image = dictionary.get("image", None)
+        user = dictionary.get("user", None)
         roles = dictionary["roles"]
         flavour = dictionary["flavour"]
         number = dictionary["number"]
-        return cls(roles=roles, flavour=flavour, number=number)
+        return cls(image=image, user=user, roles=roles, flavour=flavour, number=number)
 
     def to_dict(self) -> Dict:
         d: Dict = {}
-        d.update(roles=self.roles, flavour=self.flavour, number=self.number)
+        d.update(
+            roles=self.roles,
+            flavour=self.flavour,
+            number=self.number,
+        )
+        if self.image is not None:
+            d["image"] = self.image
+        if self.user is not None:
+            d["user"] = self.user
+
         return d

@@ -24,6 +24,7 @@ import logging
 import os
 import re
 import time
+from functools import lru_cache
 from operator import itemgetter
 from typing import (
     Any,
@@ -113,6 +114,7 @@ def get_session() -> Session:
     return Session(auth=auth)
 
 
+@lru_cache(maxsize=32)
 def check_glance(session: Session, image_name):
     """Check that the base image is available.
 
@@ -370,7 +372,7 @@ def check_servers(
 
             server = nclient.servers.create(
                 name="-".join([DEFAULT_PREFIX, extra_prefix, str(total)]),
-                image=image_id,
+                image=check_glance(session, machine.image),
                 flavor=nclient.flavors.find(name=flavor),
                 nics=[{"net-id": network["id"]}] if network is not None else None,
                 key_name=key_name,
@@ -448,6 +450,8 @@ def check_environment(provider_conf: Configuration) -> Dict:
     """Check all resources needed by Enos."""
     session = get_session()
     image_id = check_glance(session, provider_conf.image)
+    for machine in provider_conf.machines:
+        check_glance(session, machine.image)
     flavor_to_id, id_to_flavor = check_flavors(session)
     ext_net, network, subnet = check_network(
         session,

@@ -52,6 +52,8 @@ SCHEMA = {
         "title": "Compute",
         "type": "object",
         "properties": {
+            "image": {"type": "string"},
+            "user": {"type": "string"},
             "roles": {"type": "array", "items": {"type": "string"}},
             "flavour": {"type": "string"},
             "number": {"type": "number"},
