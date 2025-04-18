@@ -64,9 +64,6 @@ class Kwollect(Service):
         # important stuff there one day
         if not self.deployed:
             raise ValueError("Method deploy() should be called first")
-        # Prevent resetting the start timestamp by mistake
-        if self.start_time is not None:
-            raise ValueError("Method start() can only be called once")
         # Normal path
         if start_time is None:
             self.start_time = time.time()
@@ -85,9 +82,6 @@ class Kwollect(Service):
         # important stuff there one day
         if not self.deployed:
             raise ValueError("Method deploy() should be called first")
-        # Prevent resetting the stop timestamp by mistake
-        if self.stop_time is not None:
-            raise ValueError("Method stop() can only be called once")
         # Normal path
         if stop_time is None:
             self.stop_time = time.time()
