@@ -243,3 +243,25 @@ class Kwollect(Service):
             # Convert each Metric object to a dict
             data[site] = [r.to_dict() for r in results]
         return data
+
+    def get_metrics_pandas(self, *args, **kwargs):
+        """Same as get_metrics, but returns the result as a Pandas
+        Dataframe.  Data from all sites is aggregated in the same
+        Dataframe, with an additional "site" column.
+
+        Returns:
+            A Pandas Dataframe with all metrics data
+        """
+        import pandas
+
+        raw_data = self.get_metrics(*args, **kwargs)
+        dataframes = []
+        for site, subdata in raw_data.items():
+            df = pandas.DataFrame(subdata)
+            df["site"] = site
+            dataframes.append(df)
+        # Merge all dataframes
+        df_all = pandas.concat(dataframes)
+        # Parse timestamps properly
+        df_all["timestamp"] = pandas.to_datetime(df_all["timestamp"])
+        return df_all
