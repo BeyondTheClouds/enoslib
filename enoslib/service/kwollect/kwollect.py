@@ -139,20 +139,39 @@ class Kwollect(Service):
                 raise ValueError("nodes must be a subset of self.nodes")
         return g5k_api_utils.available_kwollect_metrics(nodes)
 
-    def backup(self, backup_dir: Optional[str] = None):
+    def backup(
+        self,
+        backup_dir: Optional[str] = None,
+        metrics: Optional[List[str]] = None,
+        nodes: Optional[Iterable[Host]] = None,
+        summary: bool = False,
+    ):
         """Backup the kwollect data in JSONL format (one JSON record per line).
         Data for each node is stored in separate files.
 
         Args:
             backup_dir (str): path of the backup directory to use.
+            metrics: optional list of metrics to retrieve (default: all)
+            nodes: optional list of nodes for which to retrieve metrics (default: all)
+            summary: whether to retrieve summarized metrics (default: False)
         """
         # Default backup dir
         identifier = str(time.time_ns())
         default_dir = Path("enoslib_kwollect") / identifier
         # Create backup dir
         _backup_dir = _set_dir(backup_dir, default_dir, mkdir=True)
-        for node, values in self.get_metrics():
-            with open(_backup_dir / node, "w") as f:
+        # Get metrics data and group it by node
+        data = self.get_metrics(metrics, nodes, summary)
+        data_by_node = defaultdict(list)
+        for site, subdata in data.items():
+            for metric in subdata:
+                node = "{}.{}.grid5000.fr".format(metric["device_id"], site)
+                data_by_node[node].append(metric)
+        # Write to files
+        for node, values in data_by_node.items():
+            # TODO: compress output
+            filename = f"{node}.jsonl"
+            with open(_backup_dir / filename, "w") as f:
                 for value in values:
                     d = json.dumps(
                         value, indent=None, separators=(",", ":"), ensure_ascii=False
@@ -169,7 +188,7 @@ class Kwollect(Service):
         """Retrieve metrics from Kwollect
 
         By default, all available metrics on all hosts are retrieved.  To
-        speed up metrics retrieval, it is possible to filter on a subset
+        speed up metrics retrieval, it is recommended to filter on a subset
         of metrics and/or a subset of hosts.
 
         Args:
@@ -178,12 +197,26 @@ class Kwollect(Service):
             summary: whether to retrieve summarized metrics (default: False)
 
         Returns:
-            dict giving a list of data points for each node.  The list is
-            sorted in chronological order, but all metrics are intertwined.
-            Each data point is a dictionary.
+            A list of data points for each site.  Each data point is a
+            dictionary.  All data points are sorted in chronological
+            order.
 
         Example:
-        TODO
+
+        {"nantes": [
+          {"timestamp": "2025-04-18T18:55:33.754307+02:00",
+           "device_id": "ecotype-7",
+           "metric_id": "bmc_node_power_watt",
+           "value": 98,
+           "labels": {}},
+          {"timestamp": "2025-04-18T18:55:34.732712+02:00",
+           "device_id": "ecotype-6",
+           "metric_id": "network_ifacein_bytes_total",
+           "value": 152601965318
+           "labels": {"interface": "eth1", "_device_orig": ["ecotype-prod2-port-1_6"]}
+          },
+          ...
+        ]}
         """
         if self.start_time is None or self.stop_time is None:
             raise ValueError("Must call start() and stop()")
@@ -196,8 +229,7 @@ class Kwollect(Service):
         gk = g5k_api_utils.get_api_client()
         # Get involved G5K sites by building a list of (uid, site) pairs
         nodes_with_site = [host.address.split(".")[0:2] for host in nodes]
-        # Group metrics by node
-        metrics_by_node = defaultdict(list)
+        data = dict()
         # Call kwollect for each site (simple loop for now)
         # TODO: parallelize the loop
         for site, subnodes in mk_pools(
@@ -214,9 +246,6 @@ class Kwollect(Service):
                 kwargs["metrics"] = ",".join(metrics)
             # TODO: stream the result
             results = gk.sites[site].metrics.list(**kwargs)
-            # Split result by node
-            for res in results:
-                metric = res.to_dict()
-                node = "{}.{}.grid5000.fr".format(metric["device_id"], site)
-                metrics_by_node[node].append(metric)
-        return dict(metrics_by_node)
+            # Convert each Metric object to a dict
+            data[site] = [r.to_dict() for r in results]
+        return data

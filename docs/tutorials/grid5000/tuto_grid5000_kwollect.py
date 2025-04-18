@@ -54,8 +54,8 @@ monitor.backup("./enoslib_tuto_kwollect_subset", metrics=["bmc_node_power_watt"]
 
 # Get CPU metrics from nested monitor
 metrics = local_monitor.get_metrics(metrics=["prom_node_cpu_scaling_frequency_hertz"])
-# Compute average CPU frequency across all cores and time
-datapoints = metrics[roles["stress"][0].address]
+# Compute average CPU frequency across all cores and time for the stressed machine
+datapoints = metrics["nantes"]
 average_freq = sum(m["value"] for m in datapoints) / len(datapoints) / 1000000
 print(f"Average CPU frequency: {average_freq} MHz")
 
