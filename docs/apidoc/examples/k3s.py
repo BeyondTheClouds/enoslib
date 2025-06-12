@@ -21,6 +21,13 @@ provider = en.G5k(conf)
 # Get actual resources
 roles, networks = provider.init()
 
+# Available Versions here : https://github.com/k3s-io/k3s/releases
+k3s = en.K3s(
+    master=roles["master"],
+    agent=roles["agent"],
+    data_dir="/tmp/k3s_state",
+    version="v1.32.5+k3s1",
+    dashboard=True,
+)
 
-k3s = en.K3s(master=roles["master"], agent=roles["agent"])
 k3s.deploy()
