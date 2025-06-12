@@ -140,7 +140,8 @@ class Kwollect(Service):
             # Check that we are given a subset of the initial nodes
             if not set(nodes).issubset(self.nodes):
                 raise ValueError("nodes must be a subset of self.nodes")
-        return g5k_api_utils.available_kwollect_metrics(nodes)
+        nodes_name = [node.address for node in nodes]
+        return g5k_api_utils.available_kwollect_metrics(nodes_name)
 
     def backup(
         self,
