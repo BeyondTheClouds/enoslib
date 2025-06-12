@@ -22,6 +22,7 @@ Providers:
 
 Services:
 
+- **Kwollect:** new :py:class:`~enoslib.service.kwollect.kwollect.Kwollect` service to collect environmental metrics such as energy from Grid'5000
 - **NetemHTB:** fix ping-based validation by including dest hosts of constraints even if said hosts are not the source of any constraint
 - **K3s:** add data_dir option to choose storage location when deploying cluster
 - **K3s:** add option to disable Kubernetes dashboard during deployment
