@@ -19,12 +19,21 @@ class Kwollect(Service):
     ):
         """Collect environmental metrics from the Grid'5000 Kwollect service
 
-        To use this service, you must first call start() and stop() to
+        This service must be called on Grid'5000 nodes.
+
+        To fetch metrics from the service, you first have to call
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.start` and
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.stop` to
         define the time range for which you want to retrieve metrics.
         Alternatively, you can use this service as a context manager.
 
-        Then, use get_metrics() to fetch metrics for further processing,
-        or backup() to store the raw data.
+        Then, use
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.get_metrics`
+        or
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.get_metrics_pandas`
+        to fetch metrics for further processing, or
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.backup` to
+        store the raw data locally.
 
         Some metrics are not available by default and require a specific
         job type, see https://www.grid5000.fr/w/Monitoring_Using_Kwollect
@@ -185,6 +194,10 @@ class Kwollect(Service):
         speed up metrics retrieval, it is recommended to filter on a subset
         of metrics and/or a subset of hosts.
 
+        Available metrics can be found with :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.available_metrics`
+        or are listed here:
+        https://www.grid5000.fr/w/Monitoring_Using_Kwollect#Metrics_available_in_Grid'5000
+
         Args:
             metrics: optional list of metrics to retrieve (default: all)
             nodes: optional list of nodes for which to retrieve metrics (default: all)
@@ -211,7 +224,7 @@ class Kwollect(Service):
           },
           ...
         ]}
-        """
+        """  # noqa: E501
         if self.start_time is None or self.stop_time is None:
             raise ValueError("Must call start() and stop()")
         if nodes is None:
@@ -245,12 +258,15 @@ class Kwollect(Service):
         return data
 
     def get_metrics_pandas(self, *args, **kwargs):
-        """Same as get_metrics, but returns the result as a Pandas
-        Dataframe.  Data from all sites is aggregated in the same
-        Dataframe, with an additional "site" column.
+        """Same as
+        :py:meth:`~enoslib.service.kwollect.kwollect.Kwollect.get_metrics`,
+        but returns the result as a Pandas Dataframe.  Data from all sites
+        is aggregated in the same Dataframe, with an additional "site"
+        column.
 
         Returns:
             A Pandas Dataframe with all metrics data
+
         """
         import pandas
 

@@ -17,6 +17,7 @@
    docker.rst
    netem.rst
    monitoring.rst
+   kwollect.rst
    tcpdump.rst
    planning.rst
    skydive.rst
