@@ -6,12 +6,25 @@
 Unreleased
 ~~~~~~~~~~
 
+General:
+
 - Drop support for Python 3.7 and Python 3.8
 - Start testing with Python 3.12 and Python 3.13
-- **g5k:** allow any job types instead of restricting to a known list
-- **g5k:** add 'origin' OAR job type to track EnOSlib usage
-- **vmong5k:** add 'origin' OAR job type to track EnOSlib usage
 - **contrib:** add example scripts using EnOSlib
+
+Providers:
+
+- **G5k:** allow any job types instead of restricting to a known list
+- **G5k:** add 'origin' OAR job type to track EnOSlib usage
+- **VMonG5k:** add 'origin' OAR job type to track EnOSlib usage
+- **Vagrant:** add support for multiple machines with different boxes
+- **Chameleon:** add support for multiple machines with different images
+
+Services:
+
+- **NetemHTB:** fix ping-based validation by including dest hosts of constraints even if said hosts are not the source of any constraint
+- **K3s:** add data_dir option to choose storage location when deploying cluster
+- **K3s:** add option to disable Kubernetes dashboard during deployment
 
 Stable branch
 ~~~~~~~~~~~~~
