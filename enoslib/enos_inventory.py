@@ -6,6 +6,7 @@ from ansible.parsing.dataloader import DataLoader
 from packaging import version
 
 from enoslib.objects import Host
+from enoslib.utils import generate_ssh_option_gateway
 
 ANSIBLE_VERSION = version.parse(ansible.__version__)
 
@@ -45,8 +46,7 @@ class EnosInventory(Inventory):
 
         self._populate_with_roles(roles)
 
-    def _populate_with_roles(self, roles: Mapping):
-
+    def _populate_with_roles(self, roles: Mapping):  # noqa: C901
         for role, machines in roles.items():
             self.add_group(role)
             for machine in machines:
@@ -76,26 +76,33 @@ class EnosInventory(Inventory):
                     common_args.append("-o ForwardAgent=yes")
 
                 gateway = machine.extra.get("gateway", None)
+                gateway_user = machine.extra.get("gateway_user", machine.user)
+                internal_gateway = machine.extra.get("internal_gateway", None)
+                internal_gateway_user = machine.extra.get(
+                    "internal_gateway_user", machine.user
+                )
+                gateways = []
+                # Order is important, outermost gateway goes first
                 if gateway is not None:
-                    proxy_cmd = [
-                        "ssh -W %h:%p",
-                        "-o StrictHostKeyChecking=no",
-                        "-o UserKnownHostsFile=/dev/null",
-                    ]
-                    # Disabling also hostkey checking for the gateway
-                    gateway_user = machine.extra.get("gateway_user", machine.user)
-                    if gateway_user is not None:
-                        proxy_cmd.append(f"-l {gateway_user}")
+                    gateways.append((gateway, gateway_user))
+                if internal_gateway is not None:
+                    gateways.append((internal_gateway, internal_gateway_user))
 
-                    proxy_cmd.append(gateway)
-                    final_proxy_cmd = " ".join(proxy_cmd)
-                    common_args.append(f'-o ProxyCommand="{final_proxy_cmd}"')
+                proxy_args = generate_ssh_option_gateway(gateways)
+                if proxy_args != "":
+                    common_args.append(proxy_args)
 
                 final_common_args = " ".join(common_args)
                 host.set_variable("ansible_ssh_common_args", f"{final_common_args}")
 
                 for k, v in machine.extra.items():
-                    if k not in ["gateway", "gateway_user", "forward_agent"]:
+                    if k not in [
+                        "gateway",
+                        "gateway_user",
+                        "internal_gateway",
+                        "internal_gateway_user",
+                        "forward_agent",
+                    ]:
                         host.set_variable(k, v)
 
                 self.reconcile_inventory()
