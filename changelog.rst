@@ -6,6 +6,14 @@
 Unreleased
 ~~~~~~~~~~
 
+Stable branch
+~~~~~~~~~~~~~
+
+.. _v10.1.0:
+
+10.1.0
+-------
+
 General:
 
 - Drop support for Python 3.7 and Python 3.8
@@ -26,9 +34,6 @@ Services:
 - **NetemHTB:** fix ping-based validation by including dest hosts of constraints even if said hosts are not the source of any constraint
 - **K3s:** add data_dir option to choose storage location when deploying cluster
 - **K3s:** add option to disable Kubernetes dashboard during deployment
-
-Stable branch
-~~~~~~~~~~~~~
 
 
 .. _v10.0.1:
@@ -59,6 +64,19 @@ Breaking
 
 Oldstable branch (supported)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _v9.3.1:
+
+9.3.1
+-----
+
+- **Monitoring services**: Create output dir at backup
+- Fix usage of 'symlink' within 'enostask' decorator which had no effects on function behavior before
+- **NetemHTB:** fix ping-based validation by including dest hosts of constraints even if said hosts are not the source of any constraint
+- **G5k:** allow any job types instead of restricting to a known list
+- **G5k:** add 'origin' OAR job type to track EnOSlib usage
+- **VMonG5k:** add 'origin' OAR job type to track EnOSlib usage
+
 
 .. _v9.3.0:
 
@@ -134,6 +152,20 @@ Documentation
 - Document ``name`` parameter of :py:class:`~enoslib.infra.provider.Provider`
 - VMonG5K: Document :ref:`a simpler way to control VM allocation <vmong5k>`
 
+
+.. _v8.4.1:
+
+8.4.1
+-----
+
+- **G5k**: Add support for multi-site reservation date
+- **VMonG5K**: Fix support for extra disk attached to VMs (#208)
+- **Monitoring services**: Create output dir at backup
+- Fix usage of 'symlink' within 'enostask' decorator which had no effects on function behavior before
+- **NetemHTB:** fix ping-based validation by including dest hosts of constraints even if said hosts are not the source of any constraint
+- **G5k:** allow any job types instead of restricting to a known list
+- **G5k:** add 'origin' OAR job type to track EnOSlib usage
+- **VMonG5k:** add 'origin' OAR job type to track EnOSlib usage
 
 
 .. _v8.4.0:
