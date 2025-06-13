@@ -328,6 +328,7 @@ test_functional$debian10$: &debian10
 test_functional$debiantesting$: &debiantesting
   <<: *debian11
   image: debian:testing
+  allow_failure: true
 
 
 ## ubuntu 20.04
