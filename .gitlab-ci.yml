@@ -370,12 +370,9 @@ package:
 ###############################################################################
 
 pages:
-  # when: manual
   stage: publish
   tags: [ci.inria.fr]
-  rules:
-    # Disable doc publication for oldstable 8.x
-    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^v8\..\..$/
+  when: manual
   dependencies:
     - doc
   script:
