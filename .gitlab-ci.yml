@@ -386,11 +386,9 @@ package:
 ###############################################################################
 
 pages:
-  # when: manual
   stage: publish
   tags: [ci.inria.fr]
-  only:
-    - tags
+  when: manual
   dependencies:
     - doc
   script:
