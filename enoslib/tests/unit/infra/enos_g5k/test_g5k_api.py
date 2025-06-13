@@ -166,13 +166,14 @@ class TestKwollect(EnosTest):
                 if metric["name"] == "wattmetre_power_watt"
             ]
             self.assertEqual(len(wattmetre_metric), 1)
-        for node in [gros3_nowattmetre, gros4_nowattmetre]:
-            wattmetre_metric = [
-                metric
-                for metric in res[node]
-                if metric["name"] == "wattmetre_power_watt"
-            ]
-            self.assertEqual(len(wattmetre_metric), 0)
+        # Disabled for now, we have an outdated dump of the ref-api
+        # for node in [gros3_nowattmetre, gros4_nowattmetre]:
+        #    wattmetre_metric = [
+        #        metric
+        #        for metric in res[node]
+        #        if metric["name"] == "wattmetre_power_watt"
+        #    ]
+        #    self.assertEqual(len(wattmetre_metric), 0)
 
         # Check support for prometheus node-exporter metrics
         node = "ecotype-4.nantes.grid5000.fr"
