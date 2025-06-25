@@ -24,7 +24,7 @@ from zoneinfo import ZoneInfo
 from grid5000.exceptions import Grid5000CreateError
 from sshtunnel import SSHTunnelForwarder
 
-from enoslib.api import CommandResult, CustomCommandResult, run
+from enoslib.api import CommandResult, CustomCommandResult, run, wait_for
 from enoslib.config import config_context
 from enoslib.errors import (
     InvalidReservationCritical,
@@ -581,6 +581,7 @@ class G5kBase(Provider):
 
         if JOB_TYPE_DEPLOY in self.provider_conf.job_type:
             self.deploy()
+            self.wait_nodes()
             self.dhcp_networks()
         else:
             # TODO: let user opt out of this
@@ -692,6 +693,10 @@ class G5kBase(Provider):
 
         self.sshable_hosts += self.deployed
         return self.deployed, self.undeployed
+
+    def wait_nodes(self):
+        hosts = [h.to_enoslib() for h in self.sshable_hosts]
+        wait_for(hosts)
 
     def dhcp_networks(self):
         dhcp = self.provider_conf.dhcp

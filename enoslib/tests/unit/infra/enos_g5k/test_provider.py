@@ -431,10 +431,12 @@ class TestDeploy(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
     @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
     @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
+    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_multisite_deploy_prod(
         self,
         mock_api,
+        mock_wait_for,
         mock_run_dhcp,
         mock_check_deployed_nodes,
         mock_grid_deploy,
@@ -494,6 +496,8 @@ class TestDeploy(EnosTest):
 
         mock_api.return_value = get_offline_client()
 
+        mock_wait_for.return_value = None
+
         roles, networks = p.init()
 
         mock_grid_deploy.assert_not_called()
@@ -514,10 +518,12 @@ class TestDeploy(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
     @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
     @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
+    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_multisite_deploy_kavlan(
         self,
         mock_api,
+        mock_wait_for,
         mock_run_dhcp,
         mock_check_deployed_nodes,
         mock_grid_deploy,
@@ -590,6 +596,8 @@ class TestDeploy(EnosTest):
 
         mock_api.return_value = get_offline_client()
 
+        mock_wait_for.return_value = None
+
         roles, networks = p.init()
 
         mock_grid_deploy.assert_not_called()
@@ -612,12 +620,14 @@ class TestDeploy(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
     @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
     @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
+    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
     @mock.patch("enoslib.infra.enos_g5k.objects.set_nodes_vlan")
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_multisite_deploy_kavlan_secondary(
         self,
         mock_api,
         mock_set_nodes_vlan,
+        mock_wait_for,
         mock_run_dhcp,
         mock_check_deployed_nodes,
         mock_grid_deploy,
@@ -686,6 +696,8 @@ class TestDeploy(EnosTest):
         mock_run_dhcp.return_value = None
 
         mock_api.return_value = get_offline_client()
+
+        mock_wait_for.return_value = None
 
         roles, networks = p.init()
 
