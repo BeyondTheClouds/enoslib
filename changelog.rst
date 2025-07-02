@@ -9,6 +9,14 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.1.1:
+
+10.1.1
+-------
+
+- **G5k:** fix ssh connection timing out after deployement in kavlan
+
+
 .. _v10.1.0:
 
 10.1.0
