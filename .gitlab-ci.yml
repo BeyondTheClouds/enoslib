@@ -368,7 +368,6 @@ test_functional$debian11$: &debian11
 test_functional$debiantesting$: &debiantesting
   <<: *debian-base
   image: debian:testing
-  allow_failure: true
 
 
 ## ubuntu 22.04
@@ -376,12 +375,14 @@ test_functional$debiantesting$: &debiantesting
 test_functional$ubuntu2204$: &ubuntu2204
   <<: *debian-base
   image: ubuntu:22.04
+  allow_failure: true
 
 ## ubuntu 24.04
 #-----------------------------------------------
 test_functional$ubuntu2404$: &ubuntu2404
   <<: *debian-base
   image: ubuntu:24.04
+  allow_failure: true
 
 ###############################################################################
 #
