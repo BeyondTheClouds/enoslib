@@ -725,10 +725,20 @@ class G5kHost:
         if extra:
             all_extra.update(extra)
 
+        # SSH jump gateway
         g5k_auto_jump = get_config()["g5k_auto_jump"]
         if g5k_auto_jump or (g5k_auto_jump is None and not inside_g5k()):
             all_extra["gateway"] = "access.grid5000.fr"
             all_extra["gateway_user"] = get_api_username()
+        # Additional internal SSH jump for kavlan-local
+        if (
+            isinstance(self.primary_network, G5kVlanNetwork)
+            and self.primary_network.vlan_id in KAVLAN_LOCAL_IDS
+        ):
+            vlan_id = self.primary_network.vlan_id
+            site, _, _ = self._where
+            all_extra["internal_gateway"] = f"kavlan-{vlan_id}.{site}.grid5000.fr"
+            all_extra["internal_gateway_user"] = get_api_username()
         h = Host(address=address, user=user, extra=all_extra)
         return h
 
