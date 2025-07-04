@@ -109,6 +109,7 @@ test_invivo_g5k_2$debian11$: &test_invivo_g5k_2
     - /venv/bin/python3 grid5000/tuto_grid5000_multisites.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_multisites.py
     - /venv/bin/python3 grid5000/tuto_grid5000_docker.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_docker.py
     - /venv/bin/python3 grid5000/tuto_grid5000_destroy.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_destroy.py
+    - /venv/bin/python3 grid5000/tuto_grid5000_kavlan_local.py || /venv/bin/python3 cleanup_g5k_job.py tuto_grid5000_kavlan_local.py
 
 # Run same tests on Debian 12 (newer Python version, allows newer Ansible versions)
 # We need to run them in a different stage, otherwise the common OAR job names cause interferences.
