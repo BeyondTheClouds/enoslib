@@ -227,6 +227,24 @@ not break connectivity on this interface.
 
 :download:`tuto_grid5000_kavlan_primary.py <grid5000/tuto_grid5000_kavlan_primary.py>`
 
+You can also use a *local* Kavlan on the primary interface, but note that
+your node will have no network connectivity in that case (a local Kavlan
+is completely isolated).
+
+.. hint::
+
+   Since EnOSlib 10.2.0, an internal SSH jump is automatically configured
+   for nodes in a local kavlan, so that you can still run commands on your
+   nodes.  Of course, the commands will not work properly if they need
+   Internet connectivity (e.g. apt package installation).
+
+.. literalinclude:: grid5000/tuto_grid5000_kavlan_local.py
+   :language: python
+   :linenos:
+
+:download:`tuto_grid5000_kavlan_local.py <grid5000/tuto_grid5000_kavlan_local.py>`
+
+
 Multi-sites layer-2 connectivity with global Kavlan
 ---------------------------------------------------
 
