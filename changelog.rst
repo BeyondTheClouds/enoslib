@@ -9,6 +9,15 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.2.0:
+
+10.2.0
+-------
+
+- **G5k:** automatically setup SSH jump to access nodes in local kavlan
+- **G5k:** add new Jupyter tutorials: energy monitoring with Kwollect, and edge-to-cloud experiment with K3S
+
+
 .. _v10.1.1:
 
 10.1.1
