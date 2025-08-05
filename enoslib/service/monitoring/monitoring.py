@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Dict, Iterable, Optional
 
-from enoslib.api import run_ansible
+from enoslib.api import external_pip_deps, run_ansible
 from enoslib.objects import Host, Network, Roles
 from enoslib.utils import get_address
 
@@ -152,7 +152,8 @@ class TIGMonitoring(Service):
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
-        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
+        with external_pip_deps(roles=self._roles):
+            run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -166,7 +167,8 @@ class TIGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
+        with external_pip_deps(roles=self._roles):
+            run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the monitoring stack.
@@ -184,11 +186,12 @@ class TIGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible(
-            [_playbook],
-            roles=Roles(influxdb=self._roles["influxdb"]),
-            extra_vars=extra_vars,
-        )
+        with external_pip_deps(roles=self._roles["influxdb"]):
+            run_ansible(
+                [_playbook],
+                roles=Roles(influxdb=self._roles["influxdb"]),
+                extra_vars=extra_vars,
+            )
 
     def __exit__(self, *args):
         # special case here, backup will suspend the execution of the database
@@ -282,7 +285,9 @@ class TPGMonitoring(Service):
         }
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
-        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
+
+        with external_pip_deps(roles=self._roles):
+            run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
         """Destroy the monitoring stack.
@@ -296,7 +301,8 @@ class TPGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
+        with external_pip_deps(roles=self._roles):
+            run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def backup(self, backup_dir: Optional[str] = None):
         """Backup the monitoring stack.
@@ -316,11 +322,12 @@ class TPGMonitoring(Service):
         extra_vars.update(self.extra_vars)
         _playbook = os.path.join(SERVICE_PATH, "monitoring.yml")
 
-        run_ansible(
-            [_playbook],
-            roles=Roles(prometheus=self._roles["prometheus"]),
-            extra_vars=extra_vars,
-        )
+        with external_pip_deps(roles=self._roles["prometheus"]):
+            run_ansible(
+                [_playbook],
+                roles=Roles(prometheus=self._roles["prometheus"]),
+                extra_vars=extra_vars,
+            )
 
     def __exit__(self, *args):
         # special case here, backup will suspend the execution of the database

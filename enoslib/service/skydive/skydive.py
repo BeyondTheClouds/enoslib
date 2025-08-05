@@ -7,6 +7,7 @@ from enoslib.api import (
     run_ansible,
     __python3__,
     __docker__,
+    external_pip_deps
 )
 from enoslib.objects import Host, Network, Roles
 from ..service import Service
@@ -119,4 +120,6 @@ class Skydive(Service):
         ) as p:
             p.pip(task_name="[Preinstall] Installing pyyaml", name="pyyaml")
         _playbook = os.path.join(SERVICE_PATH, "skydive", "skydive.yml")
-        run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
+
+        with external_pip_deps(roles=self.roles):
+            run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)

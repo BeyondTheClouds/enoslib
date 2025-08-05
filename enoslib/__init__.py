@@ -10,6 +10,7 @@ from enoslib.api import (
     STATUS_UNREACHABLE,
     actions,
     ensure_python3,
+    external_pip_deps,
     gather_facts,
     generate_inventory,
     get_hosts,

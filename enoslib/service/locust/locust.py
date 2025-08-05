@@ -3,7 +3,7 @@ import time
 from pathlib import Path
 from typing import Dict, Iterable, List, MutableMapping, Optional
 
-from enoslib.api import __python3__, actions
+from enoslib.api import __python3__, actions, external_pip_deps
 from enoslib.html import (
     dict_to_html_foldable_sections,
     html_from_sections,
@@ -166,8 +166,17 @@ class Locust(Service):
             priors=self.priors,
             extra_vars=self.extra_vars,
         ) as p:
-            p.pip(task_name="Installing Locust", name="locust")
-            p.file(path=self.remote_working_dir, recurse="yes", state="directory")
+            # make sure the priors are played (python3)
+            p.apt(name="python3-pip", update_cache="yes")
+
+        with external_pip_deps(roles=self.roles):
+            with actions(
+                pattern_hosts="all",
+                roles=self.roles,
+                extra_vars=self.extra_vars,
+            ) as p:
+                p.pip(task_name="Installing Locust", name="locust")
+                p.file(path=self.remote_working_dir, recurse="yes", state="directory")
 
     def deploy(self):
         """Install and run locust on the nodes in headless mode."""

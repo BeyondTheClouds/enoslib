@@ -25,6 +25,7 @@ import time
 import warnings
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict, namedtuple
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -1584,3 +1585,42 @@ def wrap_ns(ns: str) -> str:
         ns: the namespace name to wrap
     """
     return f"{NAMESPACE_WRAPPER}{ns}{NAMESPACE_WRAPPER}"
+
+
+@contextmanager
+def external_pip_deps(roles):
+    """Make sure that pip install can be used on target nodes.
+
+    On Debian 12 pip install can't be run as root by default.  This
+    contextmanager allows to use pip as root by removing (resp. recovering) the
+    EXTERNALLY-MANAGED marker files when entering (resp. exiting)
+
+    On Debian < 12 it's supposed to be a no-op
+    """
+    # remove marker file
+    r = run("find /usr/lib/python* -name EXTERNALLY-MANAGED", roles=roles)
+    markers = []
+    if r[0].stdout:
+        # not empty
+        markers = r[0].stdout.strip().split("\n")
+    if len(markers) > 0:
+        with actions(roles=roles) as p:
+            p.file(
+                name="{{ item }}",
+                state="absent",
+                loop=markers,
+                task_name="External dependencies: allow",
+            )
+    try:
+        yield
+    except Exception as e:
+        raise e
+    finally:
+        if len(markers) > 0:
+            with play_on(roles=roles) as p:
+                p.file(
+                    name="{{ item }}",
+                    state="touch",
+                    loop=markers,
+                    task_name="External dependencies: dis-allow",
+                )

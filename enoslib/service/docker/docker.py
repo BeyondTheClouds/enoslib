@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 
 from jsonschema import validate
 
-from enoslib.api import run_ansible
+from enoslib.api import external_pip_deps, run_ansible
 from enoslib.objects import Host, Roles
 
 from ..service import Service
@@ -200,7 +200,10 @@ class Docker(Service):
         if self.nvidia_toolkit is not None:
             # In the Ansible playbook, undefined means auto-detect
             extra_vars.update(nvidia_toolkit=self.nvidia_toolkit)
-        run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
+
+        # use pip internally
+        with external_pip_deps(roles=self._roles):
+            run_ansible([_playbook], roles=self._roles, extra_vars=extra_vars)
 
     def destroy(self):
         """(Not implemented) Destroy docker
