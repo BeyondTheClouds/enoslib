@@ -697,7 +697,7 @@ class G5kHost:
         """
         # Handle vlans for secondary networks
         if len(self.secondary_networks) > len(self._all_secondary_nics):
-            raise ValueError("There's not enough NIC on the node {self.fqdn}")
+            raise ValueError(f"There's not enough NIC on the node {self.fqdn}")
         for net, (eth, _) in zip(self.secondary_networks, self._all_secondary_nics):
             # NOTE(msimonin): in the global vlan case the site of the nodes and
             # the site of the vlan may differ.

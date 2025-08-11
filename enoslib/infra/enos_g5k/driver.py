@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Iterable, List, MutableSequence, Optional, Tuple, Union
+from typing import Iterable, List, MutableSequence, Optional, Tuple, Union
 
 from grid5000.objects import Job
 
@@ -8,7 +8,6 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     OarNetwork,
     build_resources,
     get_api_username,
-    grid_deploy,
     grid_destroy_from_ids,
     grid_destroy_from_name,
     grid_get_or_create_job,
@@ -25,9 +24,8 @@ logger = getLogger(__name__, ["G5k"])
 class Driver:
     """Base class for all g5k drivers.
 
-    A driver is responsible for interacting with Grid5000 to get resources and
-    destroy them. These action can be done using oar (single site), oargrid
-    (multisite) or the REST API.
+    A driver is responsible for interacting with Grid5000 to interract with the
+    g5k resources...
 
     TODO: Turn this into a singleton
     """
@@ -50,9 +48,6 @@ class Driver:
 
     @abstractmethod
     def destroy(self, wait: bool = False): ...
-
-    @abstractmethod
-    def deploy(self, site, nodes, options): ...
 
     @abstractmethod
     def get_jobs(self): ...
@@ -89,11 +84,6 @@ class OargridStaticDriver(Driver):
 
     def destroy(self, wait: bool = False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
-
-    def deploy(
-        self, site: str, nodes: List[str], options: Dict
-    ) -> Tuple[List[str], List[str]]:
-        return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
         return grid_reload_jobs_from_ids(self.oargrid_jobids)
@@ -143,11 +133,6 @@ class OargridDynamicDriver(Driver):
 
     def destroy(self, wait: bool = False):
         grid_destroy_from_name(self.job_name, wait=wait, restrict_to=self.sites)
-
-    def deploy(
-        self, site: str, nodes: List[str], options: Dict
-    ) -> Tuple[List[str], List[str]]:
-        return grid_deploy(site, nodes, options)
 
     def get_jobs(self) -> List[Job]:
         return grid_reload_jobs_from_name(self.job_name, restrict_to=self.sites)

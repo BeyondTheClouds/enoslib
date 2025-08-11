@@ -1,11 +1,12 @@
 import copy
+import datetime as dt
 import logging
 import operator
 import re
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import datetime, time, timezone
 from itertools import groupby
+from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -40,6 +41,7 @@ from enoslib.infra.enos_g5k.concrete import (
 from enoslib.infra.enos_g5k.constants import (
     JOB_TYPE_DEPLOY,
     KAVLAN_TYPE,
+    MAX_DEPLOY,
     PROD,
     PROD_VLAN_ID,
     SLASH_16,
@@ -53,6 +55,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_api_client,
     get_api_username,
     get_clusters_status,
+    grid_deploy,
 )
 from enoslib.infra.enos_g5k.objects import (
     G5kHost,
@@ -79,7 +82,7 @@ logger = getLogger(__name__, ["G5k"])
 
 def _check_deployed_nodes(
     net: G5kNetwork, nodes: List[G5kHost]
-) -> Tuple[List[str], List[str]]:
+) -> Tuple[List[G5kHost], List[G5kHost]]:
     """This is borrowed from execo."""
     # Translate host names using the right vlan
     fqdns: List[str] = [node.fqdn for node in nodes]
@@ -120,11 +123,95 @@ def _check_deployed_nodes(
         else:
             undeployed.append(r.host)
 
-    # un-translate to stay in the fqdns world
-    deployed = [t[1] for t in net.translate(deployed, reverse=True)]
-    undeployed = [t[1] for t in net.translate(undeployed, reverse=True)]
+    # leave the fqdn world and work with G5kHost again
+    deployed = [
+        n
+        for n in nodes
+        for _, fqdn in net.translate(deployed, reverse=True)
+        if fqdn == n.fqdn
+    ]
+    undeployed = [
+        n
+        for n in nodes
+        for _, fqdn in net.translate(undeployed, reverse=True)
+        if fqdn == n.fqdn
+    ]
 
     return deployed, undeployed
+
+
+def check_deployments(
+    hosts: List[G5kHost], force_deploy: bool, options: Dict
+) -> Tuple[List[G5kHost], List[Dict]]:
+    """Create the deployments to perform."""
+
+    def _key(host):
+        """Get the site and the primary network of a concrete description"""
+        site, _, _ = host._where
+        return site, host.primary_network
+
+    # keep track of already deployed nodes (due to a previous round of
+    # deployment)
+    already_deployed = []
+
+    s_hosts = sorted(hosts, key=_key)
+    configs = []
+    for (site, net), i_hosts in groupby(s_hosts, key=_key):
+        _hosts = list(i_hosts)
+        config = dict(**options)
+
+        hosts_to_deploy: List[G5kHost] = []
+        if not force_deploy:
+            _already_deployed, hosts_to_deploy = _check_deployed_nodes(net, _hosts)
+            already_deployed += _already_deployed
+        else:
+            hosts_to_deploy = _hosts
+
+        if len(hosts_to_deploy) > 0:
+            # Inject the nodes to deploy (use their fqdns).
+            # the deployment API use the fqdn to identify the nodes
+            config.update(nodes=[h.fqdn for h in hosts_to_deploy])
+
+            # We remove the vlan id for the productiovn
+            # network (it is undocumented behavior on G5k side) so let's not
+            # take any risk of creating a black hole.
+            if net.vlan_id and net.vlan_id != PROD_VLAN_ID:
+                config.update(vlan=net.vlan_id)
+
+            config.update(site=site)
+
+            configs.append(config)
+
+    return already_deployed, configs
+
+
+def _deploy_attempt(hosts: List[G5kHost], force_deploy: bool, options: Dict):
+    already_deployed, configs = check_deployments(hosts, force_deploy, options)
+
+    deployed_fqdns, undeployed_fqdns = grid_deploy(configs)
+    # don't forget already deployed nodes
+    deployed_fqdns += [h.fqdn for h in already_deployed]
+
+    # go back the the EnOSlib object
+    deployed = [host for host in hosts for fqdn in deployed_fqdns if host.fqdn == fqdn]
+    undeployed = [
+        host for host in hosts for fqdn in undeployed_fqdns if host.fqdn == fqdn
+    ]
+
+    return deployed, undeployed
+
+
+def deploy_with_retries(hosts: List[G5kHost], force_deploy, options):
+    deployed_hosts = []
+    undeployed_hosts = hosts
+    attempt = 0
+    while attempt < MAX_DEPLOY and undeployed_hosts:
+        deployed_hosts, undeployed_hosts = _deploy_attempt(
+            undeployed_hosts, force_deploy, options
+        )
+        attempt += 1
+
+    return deployed_hosts, undeployed_hosts
 
 
 def _run_dhcp(sshable_hosts: Sequence[G5kHost]):
@@ -550,7 +637,6 @@ class G5kBase(Provider):
         self.networks = []
         self.hosts = []
         self.launch()
-
         return self._to_enoslib()
 
     def ensure_reserved(self):
@@ -563,6 +649,8 @@ class G5kBase(Provider):
     @property
     def jobs(self) -> List[Job]:
         return self.driver.get_jobs()
+
+    def deploy(self): ...
 
     def launch(self):
         self.reserve()
@@ -607,7 +695,7 @@ class G5kBase(Provider):
                 format(error),
             )
             if search is not None:
-                date = datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
+                date = dt.datetime.strptime(search.group(1), "%Y-%m-%d %H:%M:%S")
                 date = date.replace(tzinfo=self.timezone())
                 raise InvalidReservationTime(date) from error
             search = re.search(
@@ -631,68 +719,6 @@ class G5kBase(Provider):
 
     def wait(self):
         self.driver.wait()
-
-    def deploy(self) -> Tuple[List[G5kHost], List[G5kHost]]:
-        def _key(host):
-            """Get the site and the primary network of a concrete description"""
-            site, _, _ = host._where
-            return site, host.primary_network
-
-        # Should we deploy whatever the previous state ?
-        force_deploy = self.provider_conf.force_deploy
-
-        # G5k api requires to create one deployment per site and per
-        # network type.
-        # hosts = copy.deepcopy(self.hosts)
-        hosts = self.hosts
-
-        # keep track of sshable hosts == deployed ones
-        self.sshable_hosts = []
-        # keep track of deploy/undeployed host globally
-        self.deployed = []
-        self.undeployed = []
-        s_hosts = sorted(hosts, key=_key)
-        for (site, net), i_hosts in groupby(s_hosts, key=_key):
-            _hosts = list(i_hosts)
-            fqdns = [h.fqdn for h in _hosts]
-            # handle deployment options
-            # key option    config.update(environment=config.env_name)
-            options = dict(
-                environment=self.provider_conf.env_name, key=self.provider_conf.key
-            )
-
-            if self.provider_conf.env_version is not None:
-                options.update(version=self.provider_conf.env_version)
-
-            # We remove the vlan id for the production
-            # network (it is undocumented behavior on G5k side) so let's not
-            # take any risk of creating a black hole.
-            if net.vlan_id and net.vlan_id != PROD_VLAN_ID:
-                options.update(vlan=net.vlan_id)
-
-            # Yes, this is sequential
-            deployed: List[str] = []
-            undeployed: List[str] = fqdns
-            if not force_deploy:
-                deployed, undeployed = _check_deployed_nodes(net, _hosts)
-
-            if force_deploy or undeployed:
-                new_deployed, undeployed = self.driver.deploy(site, undeployed, options)
-                deployed.extend(new_deployed)
-
-            if undeployed:
-                logger.warning(f"Undeployed nodes: {undeployed}")
-
-            # set the ssh_address attribute of the concrete hosts
-            for fqdn, t_fqdn in net.translate(fqdns):
-                # get the corresponding host
-                h = [host for host in hosts if host.fqdn == fqdn][0]
-                h.ssh_address = t_fqdn
-            self.deployed += [h for h in _hosts if h.fqdn in deployed]
-            self.undeployed += [h for h in _hosts if h.fqdn in undeployed]
-
-        self.sshable_hosts += self.deployed
-        return self.deployed, self.undeployed
 
     def wait_nodes(self):
         hosts = [h.to_enoslib() for h in self.sshable_hosts]
@@ -885,7 +911,7 @@ class G5kBase(Provider):
         )
 
     def set_reservation(self, timestamp: int):
-        date = datetime.fromtimestamp(timestamp, timezone.utc)
+        date = dt.datetime.fromtimestamp(timestamp, dt.timezone.utc)
         date = date.astimezone(tz=self.timezone())
         self.provider_conf.reservation = date.strftime("%Y-%m-%d %H:%M:%S")
         self.driver.reservation_date = self.provider_conf.reservation
@@ -900,7 +926,7 @@ class G5kBase(Provider):
         )
         if walltime_sec <= 0:
             raise NegativeWalltime
-        new_walltime = time(
+        new_walltime = dt.time(
             hour=int(walltime_sec / 3600),
             minute=int((walltime_sec % 3600) / 60),
             second=int(walltime_sec % 60),
@@ -929,6 +955,7 @@ class G5k(G5kBase):
         if len(sites) == 1:
             # follow the super behaviour
             # which is scoped to one single site anyway.
+            # This avoid to go through the synchronization logic for a single site
             super().reserve()
         else:
             # Use a temporary Providers instance to secure the resources.  Self
@@ -939,15 +966,51 @@ class G5k(G5kBase):
             providers = Providers([G5kBase(conf) for conf in confs_per_site])
 
             if self.provider_conf.reservation is not None:
-                date = datetime.strptime(
+                date = dt.datetime.strptime(
                     self.provider_conf.reservation,
                     "%Y-%m-%d %H:%M:%S",
-                ).astimezone(tz=timezone.utc)
+                ).astimezone(tz=dt.timezone.utc)
                 start_time = int(date.timestamp())
             else:
                 start_time = None
 
             providers.async_init(start_time=start_time)
+
+    def deploy(self):
+        # Should we deploy whatever the previous state ?
+        force_deploy = self.provider_conf.force_deploy
+
+        # keep track of sshable hosts == deployed ones
+        self.sshable_hosts = []
+
+        # keep track of deploy/undeployed host globally
+        self.deployed = []
+        self.undeployed = self.hosts
+
+        # handle deployment options
+        # key option  config.update(environment=config.env_name)
+        options = dict(
+            environment=self.provider_conf.env_name, key=self.provider_conf.key
+        )
+
+        if self.provider_conf.env_version is not None:
+            options.update(version=self.provider_conf.env_version)
+
+        key_path = Path(options["key"]).expanduser().resolve()
+        if not key_path.is_file():
+            raise Exception(f"The public key file {key_path} is not correct.")
+        logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
+        options.update(key=key_path.read_text())
+
+        self.deployed, self.undeployed = deploy_with_retries(
+            self.hosts, force_deploy, options
+        )
+
+        # update sshable_hosts
+        for deployed in self.deployed:
+            _, t_fqdn = deployed.primary_network.translate([deployed.fqdn])[0]
+            deployed.ssh_address = t_fqdn
+            self.sshable_hosts += [deployed]
 
 
 def _lookup_networks(network_id: str, networks: Iterable[G5kNetwork]) -> G5kNetwork:

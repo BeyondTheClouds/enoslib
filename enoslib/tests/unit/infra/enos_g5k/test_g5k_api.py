@@ -1,70 +1,11 @@
 from unittest.mock import patch
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
-    _deploy,
     _do_grid_make_reservation,
     available_kwollect_metrics,
 )
 from enoslib.tests.unit import EnosTest
 from enoslib.tests.unit.infra.enos_g5k.utils import get_offline_client
-
-
-class TestDeploy(EnosTest):
-    def test_deploy_default_count(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[(["a"], [])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], ["a"], 1, {})
-            m.assert_called_once()
-
-    def test_deploy_max_count(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[(["a"], [])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], ["a"], 3, {})
-            m.assert_called_once()
-
-    def test_deploy_no_undeployed(self):
-        with patch("enoslib.infra.enos_g5k.g5k_api_utils.deploy") as m:
-            deployed, undeployed = _deploy("rennes", [], [], 1, {})
-            m.assert_not_called()
-
-    def test_deploy_above_count(self):
-        with patch("enoslib.infra.enos_g5k.g5k_api_utils.deploy") as m:
-            deployed, undeployed = _deploy("rennes", [], ["a"], 4, {})
-            m.assert_not_called()
-
-    def test_deploy_2_deploy_successful(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[(["a"], ["b"]), (["b"], [])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], ["a", "b"], 1, {})
-            m.assert_called()
-            self.assertCountEqual(["a", "b"], deployed)
-            self.assertCountEqual([], undeployed)
-
-    def test_deploy_3_deploy_successful(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[(["a"], ["b"]), ([], ["b"]), (["b"], [])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], ["a", "b"], 1, {})
-            m.assert_called()
-            self.assertCountEqual(["a", "b"], deployed)
-            self.assertCountEqual([], undeployed)
-
-    def test_deploy_3_deploy_unsuccessful(self):
-        with patch(
-            "enoslib.infra.enos_g5k.g5k_api_utils.deploy",
-            side_effect=[(["a"], ["b"]), ([], ["b"]), ([], ["b"])],
-        ) as m:
-            deployed, undeployed = _deploy("rennes", [], ["a", "b"], 1, {})
-            m.assert_called()
-            self.assertCountEqual(["a"], deployed)
-            self.assertCountEqual(["b"], undeployed)
 
 
 class TestDoGridMakeReservation(EnosTest):

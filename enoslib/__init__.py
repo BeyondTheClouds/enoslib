@@ -77,7 +77,7 @@ try:
         ServersConfiguration as G5kServersConf,
     )
     from enoslib.infra.enos_g5k.provider import G5k, G5kTunnel
-except ImportError:
+except ImportError as e:
     pass
 
 try:

@@ -9,6 +9,7 @@ Unreleased
 - **API:** Introduce ``external_pip_deps`` context manager for install ``pip``
   dependencies as root on Debian 12. This also allows for fixing services (Docker,
   Locust, Skydive, Monitoring) on Debian 12.
+- **G5k**: Speed-up multi-site deployments with parallel deployments.
 
 Stable branch
 ~~~~~~~~~~~~~

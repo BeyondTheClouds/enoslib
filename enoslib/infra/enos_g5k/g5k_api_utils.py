@@ -14,7 +14,6 @@ import time
 from collections import defaultdict, namedtuple
 from datetime import datetime, timezone
 from functools import lru_cache
-from pathlib import Path
 from typing import (
     Dict,
     Iterable,
@@ -40,7 +39,6 @@ from .constants import (
     KAVLAN_IDS,
     KAVLAN_LOCAL,
     KAVLAN_LOCAL_IDS,
-    MAX_DEPLOY,
     NATURE_PROD,
     PROD_VLAN_ID,
 )
@@ -341,43 +339,6 @@ def wait_for_jobs(jobs: Iterable):
             if job.state == "error":
                 raise Exception(f"The job {job} is in error state")
     logger.info("All jobs are Running !")
-
-
-def _deploy(
-    site: str, deployed: List[str], undeployed: List[str], count: int, config: Dict
-) -> Tuple[List[str], List[str]]:
-    if count > MAX_DEPLOY or len(undeployed) == 0:
-        return deployed, undeployed
-
-    logger.info(
-        "Deploying %s with options %s [%s/%s]", undeployed, config, count, MAX_DEPLOY
-    )
-    d, u = deploy(site, undeployed, config)
-
-    return _deploy(site, deployed + d, u, count + 1, config)
-
-
-def grid_deploy(
-    site: str, nodes: List[str], config: Dict
-) -> Tuple[List[str], List[str]]:
-    """Deploy and wait for the deployment to be finished.
-
-    Args:
-        site (str): the site
-        nodes (list): list of nodes (str) to depoy
-        config (dict): option of the deployment (refer to the Grid'5000 API
-            Specifications)
-
-    Returns:
-        tuple of deployed(list), undeployed(list) nodes.
-    """
-
-    key_path = Path(config["key"]).expanduser().resolve()
-    if not key_path.is_file():
-        raise Exception(f"The public key file {key_path} is not correct.")
-    logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
-    config.update(key=key_path.read_text())
-    return _deploy(site, [], nodes, 1, config)
 
 
 def set_nodes_vlan(nodes: List[str], interface: str, vlan_id: str):
@@ -1092,3 +1053,63 @@ def available_kwollect_metrics(nodes: Iterable[str]) -> Dict[str, List[Dict]]:
                 result[node] = []
             result[node].append(metric)
     return result
+
+
+def grid_deploy(configs):
+    # fqdns
+    terminated = 0
+    # don't forget previously deployed nodes
+    deployed_fqdns: List[str] = []
+    undeployed_fqdns: List[str] = []
+
+    gk = get_api_client()
+    deployments = []
+    # create all the deployments
+    for config in configs:
+        site = config.pop("site")
+        logger.info(f"Deploying {config['nodes']} on {site}")
+        deployments.append((gk.sites[site].deployments.create(config), config))
+        logger.info("Preparing deployment on %s with config: %s", site, config)
+
+    while terminated != len(deployments):
+        # reset previous iteration state
+        terminated = 0
+        deployed_fqdns = []
+        undeployed_fqdns = []
+
+        time.sleep(10)
+
+        for deployment, config in deployments:
+            if deployment.status not in ["terminated", "error"]:
+                deployment.refresh()
+                logger.info(
+                    "Waiting for the end of deployment [%s](processing on %s)",
+                    deployment.uid,
+                    deployment.site,
+                )
+            _deploy = []
+            _undeploy = []
+            if deployment.status == "terminated":
+                terminated = terminated + 1
+                _deploy = [
+                    node for node, v in deployment.result.items() if v["state"] == "OK"
+                ]
+                _undeploy = [
+                    node for node, v in deployment.result.items() if v["state"] == "KO"
+                ]
+                logger.info(
+                    "Waiting for the end of deployment [%s](terminated on %s)",
+                    deployment.uid,
+                    deployment.site,
+                )
+            elif deployment.status == "error":
+                terminated = terminated + 1
+                _undeploy = config["nodes"]
+                logger.info(
+                    "Waiting for the end of deployment [%s](error on %s)",
+                    deployment.uid,
+                    deployment.site,
+                )
+            deployed_fqdns += _deploy
+            undeployed_fqdns += _undeploy
+    return deployed_fqdns, undeployed_fqdns

@@ -1,21 +1,10 @@
 import ipaddress
-from collections import namedtuple
-from typing import Dict, List, Optional
+from typing import List
 from unittest import mock
 
 from enoslib.api import STATUS_FAILED, STATUS_OK, CommandResult, Results
 from enoslib.errors import NegativeWalltime
-from enoslib.infra.enos_g5k.configuration import (
-    ClusterConfiguration,
-    Configuration,
-    NetworkConfiguration,
-)
-from enoslib.infra.enos_g5k.constants import (
-    DEFAULT_SSH_KEYFILE,
-    KAVLAN,
-    NETWORK_ROLE_PROD,
-    PROD,
-)
+from enoslib.infra.enos_g5k.configuration import Configuration
 from enoslib.infra.enos_g5k.error import (
     EnosG5kInvalidArgumentsError,
     EnosG5kKavlanNodesError,
@@ -35,8 +24,8 @@ from enoslib.infra.enos_g5k.provider import (
     G5kSubnetNetwork,
     G5kVlanNetwork,
     _check_deployed_nodes,
+    check_deployments,
 )
-from enoslib.objects import Host
 from enoslib.tests.unit import EnosTest
 from enoslib.tests.unit.infra.enos_g5k.utils import get_offline_client
 
@@ -200,537 +189,6 @@ class TestTranslate(EnosTest):
         self.assertEqual(self.uids[0], rt)
 
 
-class TestDeploy(EnosTest):
-    def build_provider(self, conf: Optional[Dict] = None):
-        if conf is None:
-            conf = {}
-        site = "rennes"
-        oar_nodes = [
-            "foocluster-1.rennes.grid5000.fr",
-            "foocluster-2.rennes.grid5000.fr",
-        ]
-
-        # conf
-        network_config = NetworkConfiguration(
-            id="network1", type=PROD, site=site, roles=["roles1"]
-        )
-        # concrete
-        g5k_networks = [G5kProdNetwork(["roles1"], "id1", site)]
-
-        # conf
-        cluster_config = ClusterConfiguration(
-            cluster="foocluster",
-            site="rennes",
-            primary_network=network_config,
-        )
-
-        provider_config = (
-            Configuration()
-            .from_settings(**conf)
-            .add_machine_conf(cluster_config)
-            .add_network_conf(network_config)
-        )
-        # build a provider
-        p = G5k(provider_config)
-
-        # mimic a reservation
-        p.hosts = [
-            G5kHost(oar_nodes[0], ["r1"], g5k_networks[0], []),
-            G5kHost(oar_nodes[1], ["r1"], g5k_networks[0], []),
-        ]
-
-        return p, site, oar_nodes
-
-    def build_complex_provider(self, conf: Optional[Dict] = None):
-
-        if conf is None:
-            conf = {"job_type": ["deploy"], "env_name": "debian11-min"}
-        site = "rennes"
-        oar_nodes_1 = [
-            "foocluster-1.rennes.grid5000.fr",
-            "foocluster-2.rennes.grid5000.fr",
-        ]
-        oar_nodes_2 = [
-            "barcluster-1.rennes.grid5000.fr",
-            "barcluster-2.rennes.grid5000.fr",
-        ]
-
-        network_1 = NetworkConfiguration(id="network_1", type=PROD, site=site)
-        network_2 = NetworkConfiguration(id="network_2", type=KAVLAN, site=site)
-
-        cluster_config_1 = ClusterConfiguration(
-            cluster="foocluster", site="rennes", primary_network=network_1
-        )
-        cluster_config_2 = ClusterConfiguration(
-            cluster="barcluster", site="rennes", primary_network=network_2
-        )
-
-        oar_network_1 = G5kProdNetwork(["roles1"], "id1", "rennes")
-        oar_network_2 = G5kVlanNetwork(["roles1"], "id2", "rennes", "4")
-
-        provider_config = (
-            Configuration()
-            .from_settings(**conf)
-            .add_machine_conf(cluster_config_1)
-            .add_machine_conf(cluster_config_2)
-            .add_network_conf(network_1)
-            .add_network_conf(network_2)
-        )
-        # build a provider
-        p = G5k(provider_config)
-
-        # mimic a reservation
-        p.hosts = [
-            G5kHost(oar_nodes_1[0], ["r1"], oar_network_1, []),
-            G5kHost(oar_nodes_1[1], ["r1"], oar_network_1, []),
-            G5kHost(oar_nodes_2[0], ["r1"], oar_network_2, []),
-            G5kHost(oar_nodes_2[1], ["r1"], oar_network_2, []),
-        ]
-
-        return p, oar_nodes_1, oar_nodes_2, oar_network_2
-
-    def test_prod(self):
-        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
-        p, site, oar_nodes = self.build_provider(conf=conf)
-        # mimic a successful deployment
-        deployed: List[str] = [h.fqdn for h in p.hosts]
-        # no nodes has been deployed initially
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = ([], deployed)
-            p.driver.deploy = mock.Mock(return_value=(deployed, []))
-            p.deploy()
-
-        p.driver.deploy.assert_called_with(
-            site,
-            deployed,
-            {"environment": "debian11-nfs", "key": DEFAULT_SSH_KEYFILE},
-        )
-        # self.assertCountEqual(actual_deployed, p.hosts)
-        self.assertCountEqual([], p.undeployed)
-        self.assertCountEqual(p.sshable_hosts, p.deployed)
-
-    def test_prod_alt_key(self):
-        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"], "key": "test_key"}
-        p, site, oar_nodes = self.build_provider(conf=conf)
-        # mimic a successful deployment
-        deployed: List[str] = [h.fqdn for h in p.hosts]
-        # no nodes has been deployed initially
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = ([], deployed)
-            p.driver.deploy = mock.Mock(return_value=(deployed, []))
-            p.deploy()
-
-        p.driver.deploy.assert_called_with(
-            site, deployed, {"environment": "debian11-nfs", "key": "test_key"}
-        )
-        # self.assertCountEqual(p.hosts, p.deployed)
-        self.assertCountEqual([], p.undeployed)
-        self.assertCountEqual(p.sshable_hosts, p.deployed)
-
-    def test_dont_deploy_if_check_deployed_pass(self):
-        p, site, oar_nodes = self.build_provider()
-        # mimic a successful deployment
-        deployed: List[str] = [h.fqdn for h in p.hosts]
-        # all nodes are already deployed
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (deployed, [])
-            p.driver.deploy = mock.Mock(return_value=(deployed, []))
-            actual_deployed, _ = p.deploy()
-
-        p.driver.deploy.assert_not_called()
-        # self.assertCountEqual(p.hosts, p.deployed)
-        self.assertCountEqual([], p.undeployed)
-        self.assertCountEqual(actual_deployed, p.sshable_hosts)
-
-    def test_both_deployed_undeployed(self):
-        conf = {"env_name": "debian11-nfs", "job_type": ["deploy"]}
-        p, site, oar_nodes = self.build_provider(conf=conf)
-        to_deploy: List[str] = [h.fqdn for h in p.hosts]
-        # One host is already deployed
-        already_deployed: List[str] = to_deploy[:1]
-        undeployed: List[str] = to_deploy[1:]
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = (already_deployed, undeployed)
-            # mimic a successful deployment
-            p.driver.deploy = mock.Mock(return_value=(to_deploy[1:], []))
-            actual_deployed, _ = p.deploy()
-
-        p.driver.deploy.assert_called_with(
-            site,
-            to_deploy[1:],
-            {"environment": "debian11-nfs", "key": DEFAULT_SSH_KEYFILE},
-        )
-        # self.assertCountEqual(p.hosts, p.deployed)
-        self.assertCountEqual([], p.undeployed)
-        self.assertEqual(len(to_deploy), len(p.deployed))
-
-    def test_1_deployments_with_undeployed(self):
-        p, site, oar_nodes = self.build_provider()
-        # mimic a unsuccessful deployment
-        undeployed: List[str] = [h.fqdn for h in p.hosts]
-
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as mock_check_deployed_nodes:
-            mock_check_deployed_nodes.return_value = ([], undeployed)
-            p.driver.deploy = mock.Mock(side_effect=[([], undeployed)])
-            p.deploy()
-
-        self.assertEqual(1, p.driver.deploy.call_count)
-        self.assertCountEqual([], p.deployed)
-        self.assertCountEqual([], p.sshable_hosts)
-        self.assertCountEqual(p.undeployed, p.hosts)
-
-    def test_2_primary_network_one_vlan_ko(self):
-        p, oar_nodes_1, oar_nodes_2, _ = self.build_complex_provider()
-
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as patch_check_deployed_nodes:
-            patch_check_deployed_nodes.side_effect = [
-                ([], oar_nodes_1),
-                ([], oar_nodes_2),
-            ]
-            p.driver.deploy = mock.Mock(
-                side_effect=[([], oar_nodes_1), ([], oar_nodes_2)]
-            )
-            p.deploy()
-
-        self.assertEqual(2, p.driver.deploy.call_count)
-
-    def test_2_primary_network_one_vlan_ok(self):
-        p, oar_nodes_1, oar_nodes_2, vlan = self.build_complex_provider()
-
-        with mock.patch(
-            "enoslib.infra.enos_g5k.provider._check_deployed_nodes"
-        ) as patch_check_deployed_nodes:
-            patch_check_deployed_nodes.side_effect = [
-                ([], oar_nodes_1),
-                ([], oar_nodes_2),
-            ]
-            p.driver.deploy = mock.Mock(
-                side_effect=[(oar_nodes_1, []), (oar_nodes_2, [])]
-            )
-            p.deploy()
-
-        self.assertEqual(2, p.driver.deploy.call_count)
-        # check that the names is ok
-        names = [n[1] for n in vlan.translate(oar_nodes_2)]
-        self.assertCountEqual([h.ssh_address for h in p.hosts], oar_nodes_1 + names)
-
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_reload_jobs_from_name")
-    @mock.patch("enoslib.infra.enos_g5k.driver.wait_for_jobs")
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
-    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
-    @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
-    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
-    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
-    def test_multisite_deploy_prod(
-        self,
-        mock_api,
-        mock_wait_for,
-        mock_run_dhcp,
-        mock_check_deployed_nodes,
-        mock_grid_deploy,
-        mock_wait_for_jobs,
-        mock_grid_reload_jobs_from_name,
-    ):
-
-        cluster_config_nancy = ClusterConfiguration(
-            cluster="grisou", site="nancy", roles=["role1"], nodes=2
-        )
-        cluster_config_rennes = ClusterConfiguration(
-            cluster="paravance", site="rennes", roles=["role1"], nodes=2
-        )
-
-        provider_config = (
-            Configuration.from_settings(job_type=["deploy"], env_name="debian11-nfs")
-            .add_machine_conf(cluster_config_nancy)
-            .add_machine_conf(cluster_config_rennes)
-        )
-
-        # build a provider
-        p = G5k(provider_config)
-
-        # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()  # type: ignore
-        p.reserve.return_value = None
-
-        p.mirror_state = mock.MagicMock()  # type: ignore
-        p.mirror_state.return_value = None  # type: ignore
-
-        # mimicking a grid5000.Job object (we only need to access the status,
-        # assigned_resources)
-        Job = namedtuple(
-            "Job", ["status", "site", "assigned_nodes", "resources_by_type"]
-        )
-
-        oar_nodes_rennes = [
-            "paravance-1.rennes.grid5000.fr",
-            "paravance-2.rennes.grid5000.fr",
-        ]
-        oar_nodes_nancy = ["grisou-1.nancy.grid5000.fr", "grisou-2.nancy.grid5000.fr"]
-        mock_grid_reload_jobs_from_name.return_value = [
-            Job("Running", "nancy", oar_nodes_nancy, {}),
-            Job("Running", "rennes", oar_nodes_rennes, {}),
-        ]
-        mock_wait_for_jobs.return_value = None
-
-        # not called (see below)
-        mock_grid_deploy.side_effect = [(oar_nodes_nancy, []), (oar_nodes_rennes, [])]
-
-        # called twice one per site
-        mock_check_deployed_nodes.side_effect = [
-            (oar_nodes_nancy, []),
-            (oar_nodes_rennes, []),
-        ]
-        mock_run_dhcp.return_value = None
-
-        mock_api.return_value = get_offline_client()
-
-        mock_wait_for.return_value = None
-
-        roles, networks = p.init()
-
-        mock_grid_deploy.assert_not_called()
-        self.assertEqual(2, mock_check_deployed_nodes.call_count)
-        # two hosts are equal if they target the same machine with the same user
-        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
-        self.assertCountEqual(
-            [
-                Host(h, user="root", extra=extra)
-                for h in oar_nodes_nancy + oar_nodes_rennes
-            ],
-            roles["role1"],
-        )
-        self.assertEqual(4, len(networks[NETWORK_ROLE_PROD]))
-
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_reload_jobs_from_name")
-    @mock.patch("enoslib.infra.enos_g5k.driver.wait_for_jobs")
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
-    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
-    @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
-    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
-    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
-    def test_multisite_deploy_kavlan(
-        self,
-        mock_api,
-        mock_wait_for,
-        mock_run_dhcp,
-        mock_check_deployed_nodes,
-        mock_grid_deploy,
-        mock_wait_for_jobs,
-        mock_grid_reload_jobs_from_name,
-    ):
-
-        kavlan_rennes = NetworkConfiguration(
-            roles=["role1"], type="kavlan-global", site="rennes"
-        )
-
-        cluster_config_nancy = ClusterConfiguration(
-            cluster="grisou",
-            site="nancy",
-            roles=["role1"],
-            nodes=2,
-            primary_network=kavlan_rennes,
-        )
-        cluster_config_rennes = ClusterConfiguration(
-            cluster="paravance",
-            site="rennes",
-            roles=["role1"],
-            nodes=2,
-            primary_network=kavlan_rennes,
-        )
-
-        provider_config = (
-            Configuration.from_settings(job_type=["deploy"], env_name="debian11-nfs")
-            .add_machine_conf(cluster_config_nancy)
-            .add_machine_conf(cluster_config_rennes)
-            .add_network_conf(kavlan_rennes)
-        )
-
-        # build a provider
-        p: G5k = G5k(provider_config)
-
-        # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()  # type: ignore
-        p.reserve.return_value = None
-
-        p.mirror_state = mock.MagicMock()  # type: ignore
-        p.mirror_state.return_value = None  # type: ignore
-
-        # mimicking a grid5000.Job object (we only need to access the status,
-        # assigned_resources)
-        Job = namedtuple(
-            "Job", ["status", "site", "assigned_nodes", "resources_by_type"]
-        )
-
-        oar_nodes_rennes = [
-            "paravance-1.rennes.grid5000.fr",
-            "paravance-2.rennes.grid5000.fr",
-        ]
-        oar_nodes_nancy = ["grisou-1.nancy.grid5000.fr", "grisou-2.nancy.grid5000.fr"]
-        mock_grid_reload_jobs_from_name.return_value = [
-            Job("Running", "nancy", oar_nodes_nancy, {}),
-            Job("Running", "rennes", oar_nodes_rennes, {"vlans": ["16"]}),
-        ]
-        mock_wait_for_jobs.return_value = None
-
-        # not called (see below)
-        mock_grid_deploy.side_effect = [(oar_nodes_nancy, []), (oar_nodes_rennes, [])]
-
-        # called twice one per site
-        mock_check_deployed_nodes.side_effect = [
-            (oar_nodes_nancy, []),
-            (oar_nodes_rennes, []),
-        ]
-        mock_run_dhcp.return_value = None
-
-        mock_api.return_value = get_offline_client()
-
-        mock_wait_for.return_value = None
-
-        roles, networks = p.init()
-
-        mock_grid_deploy.assert_not_called()
-        self.assertEqual(2, mock_check_deployed_nodes.call_count)
-        kavlan_nodes = [
-            "paravance-1-kavlan-16.rennes.grid5000.fr",
-            "paravance-2-kavlan-16.rennes.grid5000.fr",
-            "grisou-1-kavlan-16.nancy.grid5000.fr",
-            "grisou-2-kavlan-16.nancy.grid5000.fr",
-        ]
-        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
-        self.assertCountEqual(
-            [Host(h, user="root", extra=extra) for h in kavlan_nodes], roles["role1"]
-        )
-        # 1 vlan ipv4 + its ipv6 counterpart
-        self.assertEqual(2, len(networks["role1"]))
-
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_reload_jobs_from_name")
-    @mock.patch("enoslib.infra.enos_g5k.driver.wait_for_jobs")
-    @mock.patch("enoslib.infra.enos_g5k.driver.grid_deploy")
-    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
-    @mock.patch("enoslib.infra.enos_g5k.provider._run_dhcp")
-    @mock.patch("enoslib.infra.enos_g5k.provider.wait_for")
-    @mock.patch("enoslib.infra.enos_g5k.objects.set_nodes_vlan")
-    @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
-    def test_multisite_deploy_kavlan_secondary(
-        self,
-        mock_api,
-        mock_set_nodes_vlan,
-        mock_wait_for,
-        mock_run_dhcp,
-        mock_check_deployed_nodes,
-        mock_grid_deploy,
-        mock_wait_for_jobs,
-        mock_grid_reload_jobs_from_name,
-    ):
-
-        kavlan_rennes = NetworkConfiguration(
-            roles=["role1"], type="kavlan-global", site="rennes"
-        )
-
-        cluster_config_nancy = ClusterConfiguration(
-            cluster="grisou",
-            site="nancy",
-            roles=["role1"],
-            nodes=2,
-            secondary_networks=[kavlan_rennes],
-        )
-        cluster_config_rennes = ClusterConfiguration(
-            cluster="paravance",
-            site="rennes",
-            roles=["role1"],
-            nodes=2,
-            secondary_networks=[kavlan_rennes],
-        )
-
-        provider_config = (
-            Configuration.from_settings(job_type=["deploy"], env_name="debian11-nfs")
-            .add_machine_conf(cluster_config_nancy)
-            .add_machine_conf(cluster_config_rennes)
-            .add_network_conf(kavlan_rennes)
-        )
-
-        # build a provider
-        p = G5k(provider_config)
-
-        # we bypass the reserve phase / wait phase
-        p.reserve = mock.MagicMock()  # type: ignore
-        p.reserve.return_value = None
-
-        # mimicking a grid5000.Job object (we only need to access the status,
-        # assigned_resources)
-        Job = namedtuple(
-            "Job", ["status", "site", "assigned_nodes", "resources_by_type"]
-        )
-
-        oar_nodes_rennes = [
-            "paravance-1.rennes.grid5000.fr",
-            "paravance-2.rennes.grid5000.fr",
-        ]
-        oar_nodes_nancy = ["grisou-1.nancy.grid5000.fr", "grisou-2.nancy.grid5000.fr"]
-        mock_grid_reload_jobs_from_name.return_value = [
-            Job("Running", "nancy", oar_nodes_nancy, {}),
-            Job("Running", "rennes", oar_nodes_rennes, {"vlans": ["16"]}),
-        ]
-        mock_wait_for_jobs.return_value = None
-
-        # not called (see below)
-        mock_grid_deploy.side_effect = [(oar_nodes_nancy, []), (oar_nodes_rennes, [])]
-
-        # called twice one per site
-        mock_check_deployed_nodes.side_effect = [
-            (oar_nodes_nancy, []),
-            (oar_nodes_rennes, []),
-        ]
-        mock_run_dhcp.return_value = None
-
-        mock_api.return_value = get_offline_client()
-
-        mock_wait_for.return_value = None
-
-        roles, networks = p.init()
-
-        mock_grid_deploy.assert_not_called()
-        self.assertEqual(2, mock_check_deployed_nodes.call_count)
-        kavlan_nodes = [
-            "paravance-1.rennes.grid5000.fr",
-            "paravance-2.rennes.grid5000.fr",
-            "grisou-1.nancy.grid5000.fr",
-            "grisou-2.nancy.grid5000.fr",
-        ]
-        self.maxDiff = None
-        extra = {"gateway": "access.grid5000.fr", "gateway_user": "dummy"}
-        self.assertCountEqual(
-            [Host(h, user="root", extra=extra) for h in kavlan_nodes], roles["role1"]
-        )
-
-        mock_set_nodes_vlan.assert_any_call(
-            ["paravance-1.rennes.grid5000.fr"], "eth1", "16"
-        )
-        mock_set_nodes_vlan.assert_any_call(
-            ["paravance-2.rennes.grid5000.fr"], "eth1", "16"
-        )
-        mock_set_nodes_vlan.assert_any_call(
-            ["grisou-1.nancy.grid5000.fr"], "eth1", "16"
-        )
-        mock_set_nodes_vlan.assert_any_call(
-            ["grisou-2.nancy.grid5000.fr"], "eth1", "16"
-        )
-        # 1 vlan ipv4 + its ipv6 counterpart
-        self.assertEqual(2, len(networks["role1"]))
-
-
 class TestKavlan(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")
     def test_set_nodes_vlan_multisite_error(self, mock_api):
@@ -826,15 +284,74 @@ class TestCheckDeployedNode(EnosTest):
         )
         mock_api.return_value = get_offline_client()
         net = G5kProdNetwork(["tag1"], "id", "rennes")
-        deployed, undeployed = _check_deployed_nodes(
-            net,
-            [
-                G5kHost("plip-1.rennes.grid5000.fr", [], net),
-                G5kHost("plip-2.rennes.grid5000.fr", [], net),
-            ],
-        )
-        self.assertCountEqual(["plip-1.rennes.grid5000.fr"], deployed)
-        self.assertCountEqual(["plip-2.rennes.grid5000.fr"], undeployed)
+        node1 = G5kHost("plip-1.rennes.grid5000.fr", [], net)
+        node2 = G5kHost("plip-2.rennes.grid5000.fr", [], net)
+        deployed, undeployed = _check_deployed_nodes(net, [node1, node2])
+        self.assertCountEqual([node1], deployed)
+        self.assertCountEqual([node2], undeployed)
+
+
+class TestCheckDeployments(EnosTest):
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
+    def test_check_deployments_force(self, mock__check_deployed_nodes):
+        net = G5kProdNetwork(["tag1"], "id", "rennes")
+        node1 = G5kHost("plip-1.rennes.grid5000.fr", [], net)
+        node2 = G5kHost("plip-2.rennes.grid5000.fr", [], net)
+
+        # one undeployed
+        mock__check_deployed_nodes.return_value = ([node1], [node2])
+        already_deployed, configs = check_deployments([node1, node2], True, {})
+        # force so no check
+        self.assertEqual(0, mock__check_deployed_nodes.call_count)
+        self.assertCountEqual([], already_deployed)
+        self.assertEqual(1, len(configs))
+        self.assertCountEqual([node1.fqdn, node2.fqdn], configs[0]["nodes"])
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
+    def test_check_deployments_with_one_undeployed(self, mock__check_deployed_nodes):
+        net = G5kProdNetwork(["tag1"], "id", "rennes")
+        node1 = G5kHost("plip-1.rennes.grid5000.fr", [], net)
+        node2 = G5kHost("plip-2.rennes.grid5000.fr", [], net)
+
+        # one undeployed
+        mock__check_deployed_nodes.return_value = ([node1], [node2])
+        already_deployed, configs = check_deployments([node1, node2], False, {})
+        self.assertEqual(1, mock__check_deployed_nodes.call_count)
+        self.assertCountEqual([node1], already_deployed)
+        self.assertEqual(1, len(configs))
+        self.assertCountEqual([node2.fqdn], configs[0]["nodes"])
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
+    def test_check_deployments_with_kavlan(self, mock__check_deployed_nodes):
+        kavlan = G5kVlanNetwork(["net"], "id", "rennes", "4")
+        node1 = G5kHost("plip-1.rennes.grid5000.fr", [], kavlan)
+
+        # one undeployed
+        mock__check_deployed_nodes.return_value = ([], [node1])
+        already_deployed, configs = check_deployments([node1], False, {})
+        self.assertEqual(1, mock__check_deployed_nodes.call_count)
+        self.assertCountEqual([], already_deployed)
+        self.assertEqual(1, len(configs))
+        self.assertCountEqual([node1.fqdn], configs[0]["nodes"])
+        # vlan_id is set under the vlan key
+        self.assertCountEqual("4", configs[0]["vlan"])
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_deployed_nodes")
+    def test_check_deployments_multi_deployment(self, mock__check_deployed_nodes):
+        net1 = G5kProdNetwork(["tag1"], "id1", "siteA")
+        net2 = G5kProdNetwork(["tag1"], "id2", "siteB")
+        node1 = G5kHost("plip-1.siteA.grid5000.fr", [], net1)
+        node2 = G5kHost("plip-2.siteB.grid5000.fr", [], net2)
+
+        # one undeployed for each site
+        mock__check_deployed_nodes.side_effect = [([], [node1]), ([], [node2])]
+
+        already_deployed, configs = check_deployments([node1, node2], False, {})
+        self.assertEqual(2, mock__check_deployed_nodes.call_count)
+        self.assertCountEqual([], already_deployed)
+        self.assertEqual(2, len(configs))
+        self.assertEqual([node1.fqdn], configs[0]["nodes"])
+        self.assertEqual([node2.fqdn], configs[1]["nodes"])
 
 
 class TestToEnoslib(EnosTest):
