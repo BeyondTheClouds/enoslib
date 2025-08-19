@@ -13,7 +13,7 @@ job_name = Path(__file__).name
 conf = en.G5kConf.from_settings(
     job_name=job_name,
     job_type=["deploy"],
-    env_name="centosstream9-min",
+    env_name="almalinux9-min",
     walltime="0:15:00",
 ).add_machine(roles=["node"], cluster=CLUSTER, nodes=1)
 
