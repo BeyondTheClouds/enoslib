@@ -282,3 +282,7 @@ class Kwollect(Service):
         # Parse timestamps properly
         df_all["timestamp"] = pandas.to_datetime(df_all["timestamp"])
         return df_all
+
+    def destroy(self):
+        # No specific action needed for kwollect
+        pass

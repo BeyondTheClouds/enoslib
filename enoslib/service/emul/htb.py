@@ -307,7 +307,7 @@ class NetemHTB(BaseNetem):
         dest: Iterable[Host],
         delay: str,
         rate: str,
-        loss: Optional[float] = None,
+        loss: Optional[str] = None,
         networks: Optional[Iterable[Network]] = None,
         symmetric: bool = False,
         *,
