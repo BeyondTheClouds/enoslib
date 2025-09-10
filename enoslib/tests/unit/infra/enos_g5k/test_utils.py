@@ -209,6 +209,26 @@ class TestConcretizeNodesWithServers(EnosTest):
             concrete[1].oar_nodes, ["barcluster-1.rennes.grid5000.fr"]
         )
 
+    def test_dispatch_with_servers(self):
+        nodes = ["foocluster-1.rennes.grid5000.fr", "foocluster-2.rennes.grid5000.fr"]
+        machines = [
+            ServersConfiguration(
+                roles=["compute"], nodes=1, servers=nodes, site="rennes"
+            ),
+            ServersConfiguration(
+                roles=["compute"], nodes=1, servers=nodes, site="rennes"
+            ),
+        ]
+
+        concrete = _concretize_nodes(machines, nodes)
+        # only one should be given
+        self.assertCountEqual(
+            ["foocluster-1.rennes.grid5000.fr"], concrete[0].oar_nodes
+        )
+        self.assertCountEqual(
+            ["foocluster-2.rennes.grid5000.fr"], concrete[1].oar_nodes
+        )
+
 
 class TestConcretizeNodesMin(EnosTest):
     def setUp(self):

@@ -252,22 +252,35 @@ def _concretize_nodes(
     _oar_nodes = copy.deepcopy(g5k_nodes)
     servers_config = [m for m in group_configs if isinstance(m, ServersConfiguration)]
     concrete: List[ConcreteGroup] = []
+    # intersectio between _oar_nodes and servers_config
+
     for config in servers_config:
         # create a concrete version
         assert isinstance(config, ServersConfiguration)
         _concrete_servers = []
+        # take the number of nodes requested
+        # FIXME(msimonin): we could fulfill the min requirement first
+        # and then complete with remaining nodes if needed
+        left = config.nodes
         for s in config.servers:
-            # NOTE(msimonin) this will simply fail if the node isn't here
+            if left == 0:
+                break
             try:
                 _oar_nodes.remove(s)
                 _concrete_servers.append(s)
+                left = left - 1
             except ValueError:
-                # The server is missing in the concrete version
-                # this shouldn't happen because it has been explicitly requested
-                logger.debug(
-                    "The impossible happened: an explicitly requested "
-                    "server is missing in the concrete resource"
-                )
+                # that might happen if s is not in oar_nodes anymore
+                pass
+
+        if left > 0:
+            # The server is missing in the concrete version
+            # this shouldn't happen because it has been explicitly requested
+            logger.debug(
+                "The impossible happened: an explicitly requested "
+                "server is missing in the concrete resource"
+                "or already dispatched to another groupe"
+            )
         c = ConcreteServersConf(_concrete_servers, config)
         c.raise_for_min()
         concrete.append(c)
