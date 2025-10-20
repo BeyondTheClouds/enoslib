@@ -180,6 +180,15 @@ python3.13:
         coverage_format: cobertura
         path: cov.xml
 
+python3.14:
+  image: python:3.14
+  stage: test
+  tags: [ci.inria.fr]
+  allow_failure: true
+  script:
+    - pip install $TOX_PACKAGE
+    - tox -e py314
+
 pep8:
   image: python:3.13
   stage: test
