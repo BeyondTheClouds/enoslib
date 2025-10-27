@@ -13,7 +13,7 @@ conf = en.G5kConf.from_settings(
     job_name=job_name, job_type=[], walltime="0:30:00"
 ).add_machine(
     roles=["storage"],
-    cluster="grimoire",
+    cluster="parasilo",
     nodes=2,
     reservable_disks=True,
 )
@@ -25,7 +25,7 @@ roles, _ = provider.init()
 
 with en.actions(roles=roles) as p:
     # Check that the expected disks are present.
-    # https://www.grid5000.fr/w/Nancy:Hardware#grimoire
+    # https://www.grid5000.fr/w/Rennes:Hardware#parasilo
     # Notice that we use the "diskN" aliases because they are more
     # stable than "sdX".
     disks = ["disk1", "disk2", "disk3", "disk4"]

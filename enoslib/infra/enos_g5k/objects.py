@@ -615,7 +615,7 @@ class G5kHost:
         ]
 
     def dhcp_networks_command(self) -> str:
-        """Get the command to set up the dhcp an all interfaces.
+        """Get the command to set up the dhcp on all interfaces.
 
         Returns:
             The command as a string.
@@ -625,7 +625,7 @@ class G5kHost:
             return ""
 
         if len(self.secondary_networks) > len(self._all_secondary_nics):
-            raise ValueError("There's not enough NIC on the node {self.fqdn}")
+            raise ValueError(f"There's not enough NIC on the node {self.fqdn}")
 
         ifconfig = []
         dhcp = []

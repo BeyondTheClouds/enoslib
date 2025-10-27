@@ -24,7 +24,8 @@ The following shows how to deal with a basic reservation. This will use
 nodes running the `standard Grid'5000 software environment
 <https://www.grid5000.fr/w/Getting_Started#Using_nodes_in_the_default_environment>`_
 (Debian stable with performance tuning and many pre-installed software)
-and connect to them over SSH as root. For this purpose you must have a SSH key file available in ``~/.ssh`` (no matter the encryption). Using the standard Grid'5000
+and connect to them over SSH as root. For this purpose you must have a SSH key file
+available in ``~/.ssh`` (no matter the encryption). Using the standard Grid'5000
 environment is good for prototyping, but not for scientific experiments
 that care about reproducibility: we'll see later how to deploy a specific
 operating system.
@@ -127,9 +128,8 @@ software RAID array with ``mdadm`` and then benchmark it using ``fio``:
     disk3,Create partition on disk4,Create RAID array,Install fio,Run fio,Stop RAID array,Wipe RAID
     signatures)
     ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-    fio-3.25 running on grimoire-8.nancy.grid5000.fr: average /dev/md0 read performance = 550.67 IOPS
-    fio-3.25 running on grimoire-6.nancy.grid5000.fr: average /dev/md0 read performance = 519.71 IOPS
-
+    fio-3.25 running on parasilo-6.rennes.grid5000.fr: average /dev/md0 read performance = 495.78 IOPS
+    fio-3.25 running on parasilo-7.rennes.grid5000.fr: average /dev/md0 read performance = 352.92 IOPS
 
 Specific nodes reservation
 ==========================
@@ -269,13 +269,12 @@ between them.
 Using many Kavlan networks together
 -----------------------------------
 
-For this much more complex example, we use the `grisou cluster
-<https://www.grid5000.fr/w/Nancy:Hardware#grisou>`_ on which every node
-has 4 physical network interfaces.  In addition, this example includes
-many advanced features:
+For this much more complex example, we use the `servan cluster
+<https://www.grid5000.fr/w/Grenoble:Hardware#servan>`_  on which every node has
+3 usable physical network interfaces.  In addition, this example includes many advanced
+features:
 
 - how to setup a complex network topology involving several Grid'5000 sites
-- how to target specific network interfaces (here, the Intel X520 NIC of grisou nodes)
 - how to efficiently iterate on groups of hosts to setup routes
 - how to install python packages, copy a script and run it on target nodes
 - how to process results
@@ -284,7 +283,7 @@ many advanced features:
    :language: python
    :linenos:
 
-:download:`tuto_grid5000_kavlan_global.py <grid5000/tuto_grid5000_kavlan_complex.py>`
+:download:`tuto_grid5000_kavlan_complex.py <grid5000/tuto_grid5000_kavlan_complex.py>`
 
 
 .. _g5k_reconfigurable_firewall:
@@ -335,12 +334,12 @@ inspecting the acquired resources.
 
     # Example on getting on host
     [x] provider.hosts[0]
-    <G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>
+    <G5kHost(roles=['control'], fqdn=servan-1.grenoble.grid5000.fr, ssh_address=servan-1-kavlan-4.grenoble.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=grenoble, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=grenoble, vlan_id=5)>])>
 
     # Another example (what are the hosts in the same network as me)
     [x] provider.hosts[0].primary_network.hosts
-    [<G5kHost(roles=['control'], fqdn=grisou-8.nancy.grid5000.fr, ssh_address=grisou-8-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>,
-     <G5kHost(roles=['control', 'compute'], fqdn=grisou-9.nancy.grid5000.fr, ssh_address=grisou-9-kavlan-4.nancy.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=nancy, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=nancy, vlan_id=5)>])>]
+    [<G5kHost(roles=['control'], fqdn=servan-1.grenoble.grid5000.fr, ssh_address=servan-1-kavlan-4.grenoble.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=grenoble, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=grenoble, vlan_id=5)>])>,
+     <G5kHost(roles=['control', 'compute'], fqdn=servan-2.grenoble.grid5000.fr, ssh_address=servan-2-kavlan-4.grenoble.grid5000.fr, primary_network=<G5kVlanNetwork(roles=['my_network'], site=grenoble, vlan_id=4)>, secondary_networks=[<G5kVlanNetwork(roles=['my_second_network'], site=grenoble, vlan_id=5)>])>]
 
 
 Accessing internal services from the outside

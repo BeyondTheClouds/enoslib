@@ -11,7 +11,7 @@ en.check()
 job_name = Path(__file__).name
 
 # Topology goal:
-# (Nantes nodes) --- (node1.nancy) --- (node2.nancy) --- (Rennes nodes)
+# (Nantes nodes) --- (node1.grenoble) --- (node2.grenoble) --- (Rennes nodes)
 
 # The site doesn't really matter, but let's be consistent with nodes
 kavlan_global1 = en.G5kNetworkConf(
@@ -24,16 +24,18 @@ kavlan_global2 = en.G5kNetworkConf(
     roles=["global2"],
     site="nantes",
 )
-# Internal VLAN in Nancy
-nancy_kavlan = en.G5kNetworkConf(type="kavlan-local", roles=["nancy"], site="nancy")
-# Default network for nancy (see below)
-nancy_prod = en.G5kNetworkConf(type="prod", roles=["prod"], site="nancy")
+# Internal VLAN in Grenoble
+nancy_kavlan = en.G5kNetworkConf(
+    type="kavlan-local", roles=["grenoble"], site="grenoble"
+)
+# Default network for grenoble (see below)
+nancy_prod = en.G5kNetworkConf(type="prod", roles=["prod"], site="grenoble")
 
-# Request nodes from Rennes, Nantes and Nancy
+# Request nodes from Rennes, Nantes and Grenoble
 conf = (
     en.G5kConf()
     .from_settings(
-        job_type=["deploy"],
+        job_type=["deploy", "exotic"],
         env_name="debian11-nfs",
         job_name=job_name,
         walltime="00:30:00",
@@ -50,30 +52,29 @@ conf = (
     )
     .add_machine(
         roles=["nantes"],
-        cluster="econome",
+        cluster="ecotype",
         nodes=2,
         secondary_networks=[kavlan_global2],
     )
-    # These two nodes in Nancy will act as routers: one as a gateway for
+    # These two nodes in Grenoble will act as routers: one as a gateway for
     # Rennes nodes, one as a gateway for Nantes nodes.
     .add_machine(
-        roles=["nancy", "router", "gw-rennes"],
-        cluster="grisou",
+        roles=["grenoble", "router", "gw-rennes"],
+        cluster="servan",
         nodes=1,
         # Demonstrates how to choose the correct physical network
         # interfaces.  Here, we assume we specifically want to use the
-        # Intel X520 NIC on grisou:
+        # Intel E810-C NIC on servan:
         #
-        # https://www.grid5000.fr/w/Nancy:Hardware#grisou
+        # https://www.grid5000.fr/w/Grenoble:Hardware#servan
         #
-        # To do this, we specify that "eth1" should simply use the regular
-        # network, while "eth2" and "eth3" are configured with our kavlan
-        # networks.
+        # To do this, we specify that "eth1" and "eth2" are configured with
+        # our kavlan networks.
         secondary_networks=[nancy_prod, kavlan_global1, nancy_kavlan],
     )
     .add_machine(
-        roles=["nancy", "router", "gw-nantes"],
-        cluster="grisou",
+        roles=["grenoble", "router", "gw-nantes"],
+        cluster="servan",
         nodes=1,
         secondary_networks=[nancy_prod, kavlan_global2, nancy_kavlan],
     )
@@ -109,16 +110,16 @@ gw_nantes = roles["gw-nantes"][0]
 # For each group, define which routes need to be added, and which nexthop
 # will be used for these routes.
 routes = {
-    "rennes": networks["nancy"] + networks["global2"],
-    "nantes": networks["nancy"] + networks["global1"],
+    "rennes": networks["grenoble"] + networks["global2"],
+    "nantes": networks["grenoble"] + networks["global1"],
     "gw-rennes": networks["global2"],
     "gw-nantes": networks["global1"],
 }
 nexthops = {
     "rennes": get_ip(gw_rennes, networks["global1"]),
     "nantes": get_ip(gw_nantes, networks["global2"]),
-    "gw-rennes": get_ip(gw_nantes, networks["nancy"]),
-    "gw-nantes": get_ip(gw_rennes, networks["nancy"]),
+    "gw-rennes": get_ip(gw_nantes, networks["grenoble"]),
+    "gw-nantes": get_ip(gw_rennes, networks["grenoble"]),
 }
 
 # Setup actual routes
@@ -137,14 +138,14 @@ for group in routes.keys():
 # Enable IP forwarding on routers
 en.run_command("sysctl net.ipv4.ip_forward=1", roles=roles["router"])
 
-# Test connectivity from Rennes to Nancy
-target = get_ip(gw_nantes, networks["nancy"])
+# Test connectivity from Rennes to Grenoble
+target = get_ip(gw_nantes, networks["grenoble"])
 cmd = f"ping -c 3 {target}"
 results = en.run_command(cmd, task_name=cmd, roles=roles["rennes"])
 display_results(results)
 
-# Test connectivity from Nantes to Nancy
-target = get_ip(gw_rennes, networks["nancy"])
+# Test connectivity from Nantes to Grenoble
+target = get_ip(gw_rennes, networks["grenoble"])
 cmd = f"ping -c 3 {target}"
 results = en.run_command(cmd, task_name=cmd, roles=roles["nantes"])
 display_results(results)
@@ -177,7 +178,7 @@ results = p.results
 # Print all pairs of pings and check validity
 for target_node, target in zip(target_nodes, targets):
     for res in results.filter(task=f"ping {target}"):
-        print(f"# {res.host} -> {target_node.address} via Nancy")
+        print(f"# {res.host} -> {target_node.address} via Grenoble")
         data = json.loads(res.stdout)
         print(f"TTL = {data['ttl']}")
         print(f"Min RTT = {data['rtt_min_ms']} ms")
