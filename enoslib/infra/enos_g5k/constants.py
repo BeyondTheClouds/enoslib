@@ -37,7 +37,7 @@ PROD = "prod"
 PROD_VLAN_ID = "DEFAULT"
 
 NETWORK_TYPES = [PROD] + KAVLAN_TYPE + SUBNET_TYPES
-QUEUE_TYPES = ["default", "production", "testing", "besteffort"]
+QUEUE_TYPES = ["default", "production", "testing", "besteffort", "admin"]
 
 
 MAX_DEPLOY = 3
