@@ -230,16 +230,21 @@ def parse_statuses(fun):
                 "enoslib.infra.enos_g5k.configuration.get_cluster_site",
                 return_value="siteA",
             ):
-                g5k_provider = parse_g5k_request(g5k_request)
-                iot_provider = parse_iot_request(iot_request)
-                # dirty hack (changing the internal state) we should find a better way
-                g5k_provider.clusters_status = parse_g5k_clusters_status(g5k_status)
-                iot_provider.experiments_status = parse_iot_status_experiments(
-                    iot_experiment_status
-                )
-                iot_provider.nodes_status = parse_iot_status(iot_status)
+                with patch(
+                    "enoslib.infra.enos_g5k.configuration.is_exotic_cluster",
+                    return_value=True,
+                ):
+                    g5k_provider = parse_g5k_request(g5k_request)
+                    iot_provider = parse_iot_request(iot_request)
+                    # dirty hack (changing the internal state)
+                    # we should find a better way
+                    g5k_provider.clusters_status = parse_g5k_clusters_status(g5k_status)
+                    iot_provider.experiments_status = parse_iot_status_experiments(
+                        iot_experiment_status
+                    )
+                    iot_provider.nodes_status = parse_iot_status(iot_status)
 
-                return fun(self, g5k_provider, iot_provider, expected)
+                    return fun(self, g5k_provider, iot_provider, expected)
 
     return wrapped
 

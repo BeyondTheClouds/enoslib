@@ -444,10 +444,11 @@ class TestConfiguration(EnosTest):
         with self.assertRaises(ValueError) as _:
             Configuration.from_dictionary(d)
 
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True)
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
-    def test_programmatic(self, mock_get_cluster_site):
+    def test_programmatic(self, mock_get_cluster_site, mock_is_exotic_cluster):
         conf = Configuration()
         network = NetworkConfiguration(
             id="id", roles=["my_network"], type="prod", site="rennes"
@@ -468,10 +469,11 @@ class TestConfiguration(EnosTest):
         self.assertEqual(2, len(conf.machines))
         self.assertEqual(1, len(conf.networks))
 
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True)
     @patch(
         "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="siteA"
     )
-    def test_programmatic_invalid(self, mock_get_cluster_site):
+    def test_programmatic_invalid(self, mock_get_cluster_site, mock_is_exotic_cluster):
         conf = Configuration.from_settings(walltime="02:00")
         with self.assertRaises(ValidationError) as cm:
             conf.finalize()
@@ -515,6 +517,50 @@ class TestConfiguration(EnosTest):
         conf = Configuration.from_settings()
         conf.finalize()
         self.assertEqual(["origin=enoslib_g5k"], conf.job_type)
+
+    @patch("enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site")
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True)
+    def test_cluster_configuration_exotic(
+        self, mock_get_cluster_site, mock_is_exotic_cluster
+    ):
+        conf = Configuration.from_settings().add_machine_conf(
+            ClusterConfiguration(cluster="cluster", nodes=1)
+        )
+
+        self.assertIn("exotic", conf.job_type)  # pylint: disable=E1101
+
+    @patch("enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site")
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=False)
+    def test_cluster_configuration_non_exotic(
+        self, mock_get_cluster_site, mock_is_exotic_cluster
+    ):
+        conf: Configuration = Configuration.from_settings().add_machine_conf(
+            ClusterConfiguration(cluster="cluster", nodes=1)
+        )
+
+        self.assertNotIn("exotic", conf.job_type)  # pylint: disable=E1101
+
+    @patch("enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site")
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True)
+    def test_servers_configuration_exotic(
+        self, mock_get_cluster_site, mock_is_exotic_cluster
+    ):
+        conf: Configuration = Configuration.from_settings().add_machine_conf(
+            ServersConfiguration(servers=["paragrid5000.fr"])
+        )
+
+        self.assertIn("exotic", conf.job_type)  # pylint: disable=E1101
+
+    @patch("enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site")
+    @patch("enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=False)
+    def test_servers_configuration_non_exotic(
+        self, mock_get_cluster_site, mock_is_exotic_cluster
+    ):
+        conf: Configuration = Configuration.from_settings().add_machine_conf(
+            ServersConfiguration(servers=["paragrid5000.fr"])
+        )
+
+        self.assertNotIn("exotic", conf.job_type)  # pylint: disable=E1101
 
     def test_configuration_with_reservation(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:22:00")

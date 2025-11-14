@@ -753,6 +753,19 @@ def get_vlan(site, vlan_id) -> Vlan:
     return site_info.vlans[vlan_id]
 
 
+@lru_cache(maxsize=32)
+def is_exotic_cluster(machine) -> bool:
+    """Indicates whether a group of machines is part of an exotic cluster or not.
+
+    Args:
+        machine (GroupConfiguration): a group of machines
+
+    Returns:
+        True if exotic, else False
+    """
+    return get_cluster_obj(machine.site, machine.cluster).exotic
+
+
 def get_clusters_status(clusters: Iterable[str]) -> Dict:
     """Get the status of the clusters (current and future reservations)."""
     # mapping cluster -> site

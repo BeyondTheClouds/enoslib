@@ -22,11 +22,15 @@ class TestBuildG5kConf(EnosTest):
         "enoslib.infra.enos_vmong5k.configuration.get_cluster_site",
         return_value="site1",
     )
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True
+    )
     def test_do_build_g5k_conf(
         self,
         mock_get_cluster_site_vmong5k,
         mock_get_cluster_site_g5k,
         mock_find_node_number,
+        mock_is_exotic_cluster,
     ):
         conf = Configuration()
         conf.add_machine(roles=["r1"], cluster="cluster1", number=10, flavour="tiny")
@@ -58,11 +62,15 @@ class TestBuildG5kConf(EnosTest):
         "enoslib.infra.enos_vmong5k.configuration.get_cluster_site",
         return_value="site1",
     )
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True
+    )
     def test_do_build_g5k_conf_top_level(
         self,
         mock_get_cluster_site_vmong5k,
         mock_get_cluster_site_g5k,
         mock_find_node_number,
+        mock_is_exotic_cluster,
     ):
         conf = Configuration.from_settings(
             job_name="test_name",

@@ -11,7 +11,7 @@ from typing import (
 )
 from uuid import uuid4
 
-from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site
+from enoslib.infra.enos_g5k.g5k_api_utils import get_cluster_site, is_exotic_cluster
 
 from ..configuration import BaseConfiguration
 from .constants import (
@@ -79,9 +79,15 @@ class Configuration(BaseConfiguration):
             self.add_network_conf(net)
             machine.primary_network = net
 
+    def _add_exotic_jobtype(self, machine):
+        if "exotic" not in self.job_type and is_exotic_cluster(machine):
+            self.job_type.append("exotic")
+
     def add_machine_conf(self, machine):
         # Add missing primary network if needed
         self._set_default_primary_network(machine)
+        # Add the exotic job_type if necessary
+        self._add_exotic_jobtype(machine)
         return super().add_machine_conf(machine)
 
     def add_machine(self, *args, **kwargs) -> "Configuration":
