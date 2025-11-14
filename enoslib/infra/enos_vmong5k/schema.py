@@ -35,6 +35,14 @@ SCHEMA = {
             "description": f"Name of the job (default: {DEFAULT_JOB_NAME})",
             "type": "string",
         },
+        "job_type": {
+            "description": "OAR job type (default: []).",
+            "anyOf": [
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
+            ],
+            "format": "job_type",
+        },
         "queue": {
             "description": f"Grid'5000 queue to use (default: {DEFAULT_QUEUE})",
             "type": "string",

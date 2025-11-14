@@ -34,6 +34,10 @@ class Configuration(BaseConfiguration):
         self.enable_taktuk = False
         self.force_deploy = False
         self.job_name = DEFAULT_JOB_NAME
+        # since https://gitlab.inria.fr/discovery/enoslib/-/issues/103
+        # this is an array.
+        # At some point we'll need to rename this to job_type*s*
+        self.job_type: List[str] = []
         self.queue = DEFAULT_QUEUE
         self.reservation = None
         self.walltime = DEFAULT_WALLTIME
@@ -59,6 +63,9 @@ class Configuration(BaseConfiguration):
         self = cls()
         for k in self.__dict__.keys():
             v = dictionary.get(k)
+            # Normalize job_type to a list
+            if k == "job_type" and isinstance(v, str):
+                v = [v]
             if v is not None:
                 setattr(self, k, v)
 
