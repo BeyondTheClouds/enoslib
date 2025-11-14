@@ -6,13 +6,22 @@
 Unreleased
 ~~~~~~~~~~
 
+
+Stable branch
+~~~~~~~~~~~~~
+
+.. _v10.3.0:
+
+10.3.0
+-------
+
 - **API:** Introduce ``external_pip_deps`` context manager for install ``pip``
   dependencies as root on Debian 12. This also allows for fixing services (Docker,
   Locust, Skydive, Monitoring) on Debian 12.
 - **G5k**: Speed-up multi-site deployments with parallel deployments.
+- **G5k:** Automatically add the "exotic" job_type to configuration if requested resources are so.
+- **VMonG5k:** Add the job_type parameter so that the user can reserve exotic resources.
 
-Stable branch
-~~~~~~~~~~~~~
 
 .. _v10.2.0:
 
