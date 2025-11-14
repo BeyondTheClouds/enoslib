@@ -15,12 +15,22 @@ Stable branch
 10.3.0
 -------
 
-- **API:** Introduce ``external_pip_deps`` context manager for install ``pip``
-  dependencies as root on Debian 12. This also allows for fixing services (Docker,
-  Locust, Skydive, Monitoring) on Debian 12.
+General:
+
+- **API:** Introduce ``external_pip_deps`` context manager for installing ``pip``
+  dependencies as root on Debian 12. This is used internally to fix several services
+  (Docker, Locust, Skydive, Monitoring) on Debian 12.
+
+New features for providers:
+
 - **G5k**: Speed-up multi-site deployments with parallel deployments.
 - **G5k:** Automatically add the "exotic" job_type to configuration if requested resources are so.
-- **VMonG5k:** Add the job_type parameter so that the user can reserve exotic resources.
+- **VMonG5k:** Add the job_type parameter so that the user can reserve exotic resources or use day/night job types.
+- **G5k:** Add admin queue as possible OAR queue.
+
+Bugfixes:
+
+- **G5k:** Fix wrong roles when reserving specific nodes with an overlap (fix #230).
 
 
 .. _v10.2.0:
