@@ -81,16 +81,18 @@ def get_address(host: Host, networks: Optional[Iterable[Network]] = None) -> str
 
 # Implementation note: we can't simply use "ssh -J gwA,gwB" because we
 # need to disable StrictHostKeyChecking at each hop.
-def generate_ssh_option_gateway(gateways: Iterable[Tuple[str, Optional[str]]]) -> str:
+def generate_ssh_option_gateway(
+    gateways: Iterable[Tuple[str, Optional[str], Optional[int]]]
+) -> str:
     """Generates the appropriate SSH options to connect through a list of
     gateways (i.e. SSH jump hosts).
 
     The first gateway in the argument should be the outermost one.  For
     example, the connection [client] -> [gwA] -> [gwB] -> [destination]
-    can be expressed as [('gwA', None), ('gwB', None)]
+    can be expressed as [('gwA', None, None), ('gwB', None, None)]
 
     Args:
-        gateways: List of (gateway, gateway_user) tuples
+        gateways: List of (gateway, gateway_user, gateway_port) tuples
 
     Returns:
         str: ssh option that can be fed to the "ssh" command
@@ -110,10 +112,13 @@ def generate_ssh_option_gateway(gateways: Iterable[Tuple[str, Optional[str]]]) -
     ]
     inner_gateway = gateways[-1][0]
     inner_gateway_user = gateways[-1][1]
+    inner_gateway_port = gateways[-1][2]
     inner_proxy_cmd = ["ssh -W %h:%p"]
     inner_proxy_cmd.extend(common_args)
     if inner_gateway_user is not None and inner_gateway_user != "":
         inner_proxy_cmd.append(f"-l {inner_gateway_user}")
+    if inner_gateway_port is not None:
+        inner_proxy_cmd.append(f"-p {inner_gateway_port}")
     if len(gateways) == 1:
         inner_proxy_cmd.append(inner_gateway)
         final_proxy_cmd = " ".join(inner_proxy_cmd)
@@ -121,11 +126,14 @@ def generate_ssh_option_gateway(gateways: Iterable[Tuple[str, Optional[str]]]) -
     if len(gateways) == 2:
         outer_gateway = gateways[0][0]
         outer_gateway_user = gateways[0][1]
+        outer_gateway_port = gateways[0][2]
         # Escape tokens so they are interpreted in the second SSH command
         outer_proxy_cmd = ["ssh -W %%h:%%p"]
         outer_proxy_cmd.extend(common_args)
         if outer_gateway_user is not None and outer_gateway_user != "":
             outer_proxy_cmd.append(f"-l {outer_gateway_user}")
+        if outer_gateway_port is not None:
+            outer_proxy_cmd.append(f"-p {outer_gateway_port}")
         outer_proxy_cmd.append(outer_gateway)
         final_outer_proxy_cmd = " ".join(outer_proxy_cmd)
         # Integrate in first command

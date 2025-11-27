@@ -77,16 +77,20 @@ class EnosInventory(Inventory):
 
                 gateway = machine.extra.get("gateway", None)
                 gateway_user = machine.extra.get("gateway_user", machine.user)
+                gateway_port = machine.extra.get("gateway_port", None)
                 internal_gateway = machine.extra.get("internal_gateway", None)
                 internal_gateway_user = machine.extra.get(
                     "internal_gateway_user", machine.user
                 )
+                internal_gateway_port = machine.extra.get("internal_gateway_port", None)
                 gateways = []
                 # Order is important, outermost gateway goes first
                 if gateway is not None:
-                    gateways.append((gateway, gateway_user))
+                    gateways.append((gateway, gateway_user, gateway_port))
                 if internal_gateway is not None:
-                    gateways.append((internal_gateway, internal_gateway_user))
+                    gateways.append(
+                        (internal_gateway, internal_gateway_user, internal_gateway_port)
+                    )
 
                 proxy_args = generate_ssh_option_gateway(gateways)
                 if proxy_args != "":
@@ -99,8 +103,10 @@ class EnosInventory(Inventory):
                     if k not in [
                         "gateway",
                         "gateway_user",
+                        "gateway_port",
                         "internal_gateway",
                         "internal_gateway_user",
+                        "internal_gateway_port",
                         "forward_agent",
                     ]:
                         host.set_variable(k, v)
