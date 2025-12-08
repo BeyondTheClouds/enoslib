@@ -93,6 +93,15 @@ except ImportError:
     pass
 
 try:
+    from enoslib.infra.enos_fabric.configuration import Configuration as FabricConf
+    from enoslib.infra.enos_fabric.configuration import (
+        MachineConfiguration as FabricMachineMachineConf,
+    )
+    from enoslib.infra.enos_fabric.provider import Fabric as Fabric
+except ImportError:
+    pass
+
+try:
     from enoslib.infra.enos_distem.configuration import Configuration as DistemConf
     from enoslib.infra.enos_distem.configuration import (
         MachineConfiguration as DistemMachineConf,
@@ -194,6 +203,7 @@ PROVIDERS = [
     ("Chameleon", "enos_chameleonbaremetal", _PIP_CHAMELON),
     ("ChameleonKVM", "enos_chameleonkvm", _PIP_CHAMELON),
     ("ChameleonEdge", "enos_chameleonedge", _PIP_CHAMELON),
+    ("Fabric", "enos_fabric", r"pip install enoslib\[fabric]"),
     ("Distem", "enos_distem", r"pip install enoslib\[distem]"),
     ("IOT-lab", "enos_iotlab", r"pip install enoslib\[iotlab]"),
     ("Grid'5000", "enos_g5k", ""),
@@ -313,13 +323,14 @@ def check(platform_filter: Optional[List[str]] = None):
         platform_filter: A list of specific checks to perform.
 
     Example:
-        ```python
+
+    .. code:: python
+
         # Perform all checks
         check()
 
         # Perform specific checks
         check(['check1', 'check2'])
-        ```
     """
     if platform_filter is None:
         platform_filter = []

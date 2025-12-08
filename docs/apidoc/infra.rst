@@ -163,6 +163,26 @@ Chameleon(bare metal) schema
 .. literalinclude:: ../../enoslib/infra/enos_chameleonkvm/schema.py
 
 
+FABRIC
+======
+
+FABRIC Provider Class
+---------------------
+
+.. automodule:: enoslib.infra.enos_fabric.provider
+    :members: Fabric
+
+.. _fabric-schema:
+
+FABRIC Schema
+-------------
+
+.. jsonschema:: enoslib.infra.enos_fabric.schema.SCHEMA
+    :lift_definitions:
+    :auto_reference:
+    :auto_target:
+
+
 Providers Class
 ===============
 

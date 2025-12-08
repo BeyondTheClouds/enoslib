@@ -11,6 +11,7 @@
     vmong5k
     distem
     chameleon
+    fabric
     iotlab
     multi_providers
     reproducibility
