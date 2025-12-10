@@ -334,14 +334,22 @@ def wait_for_jobs(jobs: Iterable):
             waiting_interval += 5
         else:
             waiting_interval = 150
+        logger.info(
+            "Waiting for %d seconds before next OAR job(s) check...", waiting_interval
+        )
         time.sleep(waiting_interval)
         for job in jobs:
             job.refresh()
             scheduled = getattr(job, "scheduled_at", None)
             if scheduled is not None:
                 logger.info(
-                    "Waiting for %s on %s [%s]", job.uid, job.site, _date2h(scheduled)
+                    "Job %s on %s: scheduled for %s",
+                    job.uid,
+                    job.site,
+                    _date2h(scheduled),
                 )
+            else:
+                logger.info("Job %s on %s: no schedule estimate", job.uid, job.site)
             all_running = all_running and job.state == "running"
             if job.state == "error":
                 raise Exception(f"The job {job} is in error state")
