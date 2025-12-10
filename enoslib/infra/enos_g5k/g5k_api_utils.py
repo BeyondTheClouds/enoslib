@@ -325,9 +325,16 @@ def wait_for_jobs(jobs: Iterable):
     """
 
     all_running = False
+    waiting_interval = 0
     while not all_running:
         all_running = True
-        time.sleep(5)
+        if waiting_interval < 45:
+            # Start with linear backoff to stay reactive (OAR might take a bit
+            # of time to start jobs, even if resources are free)
+            waiting_interval += 5
+        else:
+            waiting_interval = 150
+        time.sleep(waiting_interval)
         for job in jobs:
             job.refresh()
             scheduled = getattr(job, "scheduled_at", None)
