@@ -885,6 +885,10 @@ def _do_grid_make_reservation(
     if monitor is not None:
         job_type.append(f"monitor={monitor}")
     for site, criteria in criterias.items():
+        # since https://gitlab.inria.fr/discovery/enoslib/-/issues/236,
+        # ordering nodes reservation in OAR string for a given cluster
+        # by prioritizing specific over dynamic ones
+        criteria = sorted(criteria, key=lambda x: "network_address" in x, reverse=True)
         resources = "+".join(criteria)
         resources = f"{resources},walltime={walltime}"
         job_spec = {
