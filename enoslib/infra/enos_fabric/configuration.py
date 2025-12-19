@@ -11,7 +11,6 @@ from .constants import (
     DEFAULT_IMAGE,
     DEFAULT_NAME_PREFIX,
     DEFAULT_SITE,
-    DEFAULT_USER,
     DEFAULT_WALLTIME,
     FABNETV4,
     FABNETV4EXT,
@@ -51,7 +50,6 @@ class Configuration(BaseConfiguration):
         self.walltime = DEFAULT_WALLTIME
         self.site = DEFAULT_SITE
         self.image = DEFAULT_IMAGE
-        self.user = DEFAULT_USER
         self.name_prefix = DEFAULT_NAME_PREFIX
 
         self._machine_cls: type[MachineConfiguration] = MachineConfiguration
@@ -71,7 +69,7 @@ class Configuration(BaseConfiguration):
         self.machines = [MachineConfiguration.from_dictionary(m) for m in _machines]
         self.networks = [networks_from_dictionary(n) for n in _networks]
 
-        for key in ["walltime", "rc_file", "site", "image", "user", "name_prefix"]:
+        for key in ["walltime", "rc_file", "site", "image", "name_prefix"]:
             value = dictionary.get(key)
             if value is not None:
                 setattr(self, key, value)
@@ -79,7 +77,6 @@ class Configuration(BaseConfiguration):
         for machine in self.machines:
             machine.site = machine.site or self.site
             machine.image = machine.image or self.image
-            machine.user = machine.user or self.user
 
         self.finalize()
         return self
@@ -90,7 +87,6 @@ class Configuration(BaseConfiguration):
             rc_file=self.rc_file,
             site=self.site,
             image=self.image,
-            user=self.user,
             name_prefix=self.name_prefix,
             resources={
                 "machines": [m.to_dict() for m in self.machines],
@@ -198,7 +194,6 @@ class MachineConfiguration:
         *,
         site: str = "",
         image: str = "",
-        user: str = "",
         gpus: list[dict] | None = [],
         storage: list[dict] | None = [],
         roles=None,
@@ -208,7 +203,7 @@ class MachineConfiguration:
     ):
         self.site = site
         self.image = image
-        self.user = user
+        self.user = ""
         self.gpus: list[GPUComponentConfiguration] = []
         self.storage: list[StorageComponentConfiguration] = []
         self.roles = roles
@@ -241,8 +236,6 @@ class MachineConfiguration:
         kwargs.update(site=site)
         image = dictionary.get("image", "")
         kwargs.update(image=image)
-        user = dictionary.get("user", "")
-        kwargs.update(user=user)
         flavour = dictionary.get("flavour")
         if flavour is not None:
             kwargs.update(flavour=flavour)
@@ -265,7 +258,6 @@ class MachineConfiguration:
         d.update(
             site=self.site,
             image=self.image,
-            user=self.user,
             roles=self.roles,
             number=self.number,
         )

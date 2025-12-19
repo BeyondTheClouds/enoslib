@@ -24,7 +24,6 @@ class TestConfiguration(EnosTest):
         self.assertEqual(constants.DEFAULT_WALLTIME, conf.walltime)
         self.assertEqual(constants.DEFAULT_SITE, conf.site)
         self.assertEqual(constants.DEFAULT_IMAGE, conf.image)
-        self.assertEqual(constants.DEFAULT_USER, conf.user)
 
     def test_programmatic(self) -> None:
         conf = Configuration()

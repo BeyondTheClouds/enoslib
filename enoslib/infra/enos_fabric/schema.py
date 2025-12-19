@@ -9,7 +9,6 @@ from .constants import (  # L3VPN,; L2PTP, PORTMIRROR,
     DEFAULT_IMAGE,
     DEFAULT_NAME_PREFIX,
     DEFAULT_SITE,
-    DEFAULT_USER,
     DEFAULT_WALLTIME,
     FABNETV4,
     FABNETV4EXT,
@@ -50,10 +49,6 @@ SCHEMA = {
         },
         "image": {
             "description": f"Base image to use (default: {DEFAULT_IMAGE})",
-            "type": "string",
-        },
-        "user": {
-            "description": f"SSH user to use (default: {DEFAULT_USER})",
             "type": "string",
         },
         "name_prefix": {
@@ -216,10 +211,6 @@ SCHEMA = {
                 },
                 "image": {
                     "description": "Base image to use",
-                    "type": "string",
-                },
-                "user": {
-                    "description": "SSH user to use",
                     "type": "string",
                 },
                 "gpus": {
