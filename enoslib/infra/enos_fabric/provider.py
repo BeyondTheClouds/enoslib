@@ -674,7 +674,7 @@ class Fabric(Provider):
             "-o ForwardAgent=yes"
         )
         proxy_cmd = (
-            f"ssh -W %h:%p {base_ssh_args} -i '{self.gateway_private_key}' "
+            f"ssh -W \\[%h\\]:%p {base_ssh_args} -i '{self.gateway_private_key}' "
             f"-l '{self.gateway_user}' {self.gateway}"
         )
         for index_i, index_j, machine in self.itermachines():
