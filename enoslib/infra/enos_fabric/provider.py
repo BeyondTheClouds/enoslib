@@ -684,6 +684,7 @@ class Fabric(Provider):
             node = nodes[name]
             host = Host(
                 address=str(node.get_management_ip()),
+                alias=name,
                 user=node.get_username(),
                 keyfile=self.private_key,
                 extra={
