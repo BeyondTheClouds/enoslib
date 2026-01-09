@@ -64,6 +64,7 @@ from enoslib.infra.enos_g5k.objects import (
     G5kSubnetNetwork,
     G5kVlanNetwork,
 )
+from enoslib.infra.enos_g5k.utils import get_ssh_keys
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
 from enoslib.infra.utils import mk_pools, pick_things
@@ -576,13 +577,6 @@ class G5kBase(Provider):
         # will hold the status of the cluster
         self.clusters_status = None
 
-        # execo connection params for routines configuration and checks
-        # the priv key path is built from the public key path by removing the
-        # .pub suffix...
-        self.key_path = self.provider_conf.key
-        priv_key = self.key_path.replace(".pub", "")
-        self.root_conn_params = {"user": "root", "keyfile": priv_key}
-
     def init(
         self, force_deploy: bool = False, start_time: Optional[int] = None, **kwargs
     ) -> Tuple[Roles, Networks]:
@@ -1002,18 +996,38 @@ class G5k(G5kBase):
 
         # handle deployment options
         # key option  config.update(environment=config.env_name)
-        options = dict(
-            environment=self.provider_conf.env_name, key=self.provider_conf.key
-        )
+        options = dict(environment=self.provider_conf.env_name)
 
         if self.provider_conf.env_version is not None:
             options.update(version=self.provider_conf.env_version)
 
-        key_path = Path(options["key"]).expanduser().resolve()
-        if not key_path.is_file():
-            raise Exception(f"The public key file {key_path} is not correct.")
-        logger.info("Deploy the public key contained in %s to remote hosts.", key_path)
-        options.update(key=key_path.read_text())
+        input_key_path = self.provider_conf.key
+
+        if input_key_path:
+            key_path = Path(input_key_path)
+            if not key_path.is_file():
+                raise FileNotFoundError(
+                    f"This path for the SSH key doesn't exist : {key_path}"
+                )
+            key_content = key_path.read_text().strip()
+            if not key_content:
+                raise ValueError(
+                    f"This path for the SSH key leads to an empty file : {key_path}"
+                )
+            options.update(key=key_content)
+            logger.info(
+                "Deploying the public key contained in %s to remote hosts.", key_path
+            )
+
+        # If no key path given
+        else:
+            # Calling this function might raise an error
+            keys_content = get_ssh_keys()
+            options.update(key=keys_content)
+            logger.info(
+                f"Deploying all public keys contained in {Path.home()}/.ssh "
+                "to remote hosts."
+            )
 
         self.deployed, self.undeployed = deploy_with_retries(
             self.hosts, force_deploy, options

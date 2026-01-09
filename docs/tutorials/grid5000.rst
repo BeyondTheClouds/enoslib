@@ -24,8 +24,7 @@ The following shows how to deal with a basic reservation. This will use
 nodes running the `standard Grid'5000 software environment
 <https://www.grid5000.fr/w/Getting_Started#Using_nodes_in_the_default_environment>`_
 (Debian stable with performance tuning and many pre-installed software)
-and connect to them over SSH as root. For this purpose you must have a
-``~/.ssh/id_rsa.pub`` file available. Using the standard Grid'5000
+and connect to them over SSH as root. For this purpose you must have a SSH key file available in ``~/.ssh`` (no matter the encryption). Using the standard Grid'5000
 environment is good for prototyping, but not for scientific experiments
 that care about reproducibility: we'll see later how to deploy a specific
 operating system.

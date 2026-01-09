@@ -562,6 +562,14 @@ class TestConfiguration(EnosTest):
 
         self.assertNotIn("exotic", conf.job_type)  # pylint: disable=E1101
 
+    def test_configuration_with_key(self):
+        conf = Configuration.from_settings(key="/path/to/key")
+        self.assertIn('"key": "/path/to/key"', repr(conf))
+
+    def test_configuration_without_key(self):
+        conf = Configuration.from_settings()
+        self.assertNotIn('"key": ', repr(conf))
+
     def test_configuration_with_reservation(self):
         conf = Configuration.from_settings(reservation="2022-06-09 16:22:00")
         conf.finalize()

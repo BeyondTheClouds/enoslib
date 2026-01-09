@@ -19,7 +19,6 @@ from .constants import (
     DEFAULT_JOB_NAME,
     DEFAULT_NUMBER,
     DEFAULT_QUEUE,
-    DEFAULT_SSH_KEYFILE,
     DEFAULT_WALLTIME,
     JOB_TYPE_DEPLOY,
     KAVLAN_TYPE,
@@ -45,7 +44,10 @@ class Configuration(BaseConfiguration):
         # this is an array.
         # At some point we'll need to rename this to job_type*s*
         self.job_type: List[str] = []
-        self.key = DEFAULT_SSH_KEYFILE
+        # since https://gitlab.inria.fr/discovery/enoslib/-/issues/232,
+        # the user have the choice between imposing a path to a key or
+        # automatic retrieval of detained public keys
+        self.key: Optional[str] = None
         self.monitor = None
         self.oargrid_jobids = None
         self.project = None

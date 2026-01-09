@@ -1,5 +1,7 @@
 import copy
+from pathlib import Path
 from typing import List, MutableSequence
+from unittest.mock import patch
 
 from ddt import data, ddt
 
@@ -24,6 +26,7 @@ from enoslib.infra.enos_g5k.provider import (
     _concretize_nodes,
     _join,
 )
+from enoslib.infra.enos_g5k.utils import get_ssh_keys
 from enoslib.tests.unit import EnosTest
 
 
@@ -574,3 +577,91 @@ class TestGridStuffs(EnosTest):
 
         ok = g5k_api_utils.can_start_on_cluster(nodes_status, 2, [], 2, 1)
         self.assertTrue(ok)
+
+
+class TestUtils(EnosTest):
+
+    @patch("pathlib.Path.exists", return_value=False)
+    def test_get_ssh_keys_dir_not_exists(self, mock_path_exists):
+        with self.assertRaises(FileNotFoundError) as context_manager:
+            _ = get_ssh_keys()
+
+        self.assertEqual(
+            str(context_manager.exception),
+            "No .ssh folder found, please create a SSH key.",
+        )
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("pathlib.Path.glob", return_value=[])
+    def test_get_ssh_keys_no_file_in_dir(self, mock_path_exists, mock_file_exists):
+        with self.assertRaises(FileNotFoundError) as context_manager:
+            _ = get_ssh_keys()
+
+        self.assertEqual(
+            str(context_manager.exception),
+            "No public SSH key found, please create one.",
+        )
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("pathlib.Path.glob", return_value=[Path("ssh_key.pub")])
+    @patch("pathlib.Path.read_text", return_value="\n")
+    def test_get_ssh_keys_carriage_return_as_content(
+        self, mock_path_exists, mock_file_exists, mock_keys_content
+    ):
+        with self.assertRaises(ValueError) as context_manager:
+            _ = get_ssh_keys()
+
+        self.assertEqual(
+            str(context_manager.exception),
+            "Empty SSH key files, please fix it.",
+        )
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("pathlib.Path.glob", return_value=[Path("ssh_key.pub")])
+    @patch("pathlib.Path.read_text", return_value=" ")
+    def test_get_ssh_keys_space_as_content(
+        self, mock_path_exists, mock_file_exists, mock_keys_content
+    ):
+        with self.assertRaises(ValueError) as context_manager:
+            _ = get_ssh_keys()
+
+        self.assertEqual(
+            str(context_manager.exception),
+            "Empty SSH key files, please fix it.",
+        )
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch("pathlib.Path.glob", return_value=[Path("ssh_key.pub")])
+    @patch("pathlib.Path.read_text", return_value="")
+    def test_get_ssh_keys_no_content(
+        self, mock_path_exists, mock_file_exists, mock_keys_content
+    ):
+        with self.assertRaises(ValueError) as context_manager:
+            _ = get_ssh_keys()
+
+        self.assertEqual(
+            str(context_manager.exception),
+            "Empty SSH key files, please fix it.",
+        )
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch(
+        "pathlib.Path.glob", return_value=[Path("ssh_key_1.pub"), Path("ssh_key_2.pub")]
+    )
+    @patch("pathlib.Path.read_text", return_value="Content\n")
+    def test_get_ssh_keys_file_content_carriage_return(
+        self, mock_path_exists, mock_file_exists, mock_keys_content
+    ):
+        keys_content = get_ssh_keys()
+        self.assertEqual("Content\n\nContent\n", keys_content)
+
+    @patch("pathlib.Path.exists", return_value=True)
+    @patch(
+        "pathlib.Path.glob", return_value=[Path("ssh_key_1.pub"), Path("ssh_key_2.pub")]
+    )
+    @patch("pathlib.Path.read_text", return_value="Content")
+    def test_get_ssh_keys_file_content(
+        self, mock_path_exists, mock_file_exists, mock_keys_content
+    ):
+        keys_content = get_ssh_keys()
+        self.assertEqual("Content\nContent", keys_content)

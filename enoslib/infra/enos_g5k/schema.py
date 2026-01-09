@@ -51,10 +51,9 @@ SCHEMA_USER = {
             "format": "job_type",
         },
         "key": {
-            # Note: We don't use the constants.DEFAULT_SSH_KEYFILE
-            # Because at build time on the CI this will be set to /root/.ssh
-            # which doesn't correspond to what the user will have most likely
-            "description": "SSH public key to use (default: ~/.ssh/.id_rsa.pub)",
+            "description": (
+                "SSH public key to use (default: all public keys in ~/.ssh folder)"
+            ),
             "type": "string",
         },
         "monitor": {
