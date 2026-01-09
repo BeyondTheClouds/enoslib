@@ -10,6 +10,20 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.5.0:
+
+10.5.0
+-------
+
+New features for providers:
+
+- **G5k:** Retrieve automatically public SSH keys for deploy jobs, unless a path is given by the user.
+
+Bugfixes:
+
+- **FABRIC:** Fix the error that prevents Ansible from connecting to a machine using an IPv6 address via a gateway.
+
+
 .. _v10.4.0:
 
 10.4.0
@@ -18,7 +32,7 @@ Stable branch
 **New provider:**
 
 - **FABRIC:** Add preliminary support for the FABRIC testbed. Nodes and networks can be reserved,
-  but some features are not yet supported (some network types are not implemented, and the list of possible GPU/NIC/storage models is hard-coded for now)
+  but some features are not yet supported (some network types are not implemented, and the list of possible GPU/NIC/storage models is hard-coded for now).
 
 General:
 
@@ -28,7 +42,7 @@ Bugfixes:
 
 - **G5k:** Fix error when mixing machine-level and cluster-level reservation on the same cluster: order node reservations in OAR request.
 - **G5k:** Increase polling interval when checking if OAR job has started, to avoid hammering the G5K API.
-- **G5k:** Improve logging when waiting for a job to start
+- **G5k:** Improve logging when waiting for a job to start.
 
 
 .. _v10.3.0:
