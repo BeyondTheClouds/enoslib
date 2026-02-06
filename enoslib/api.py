@@ -658,7 +658,10 @@ class _Phantom:
 
     def __call__(self, *args, **kwds):
         task_name = kwds.pop("task_name", self.prefix)
+        register = kwds.pop("register", None)
         task = {"name": task_name}
+        if register is not None:
+            task.update(register=register)
         # retrieve global kwargs
         _kwds = copy.copy(self.parent.kwds)
         # override with specific ones
