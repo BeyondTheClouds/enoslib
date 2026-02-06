@@ -59,6 +59,7 @@ from .collections import ResourcesSet, RolesDict
 AddressInterfaceType = Union[IPv4Address, IPv6Address]
 NetworkType = Union[bytes, int, str, IPv4Network, IPv6Network]
 AddressType = Union[bytes, int, str, IPv4Address, IPv6Address]
+AnyNetDevice = Union["NetDevice", "BridgeDevice", "AliasDevice"]
 
 Role = str
 RolesNetworks = Tuple["Roles", "Networks"]
@@ -72,16 +73,22 @@ RolesLike = Union["Roles", Iterable["Host"], "Host"]
 PathLike = Union[Path, str]
 
 
-def _build_devices(
-    facts: Mapping, networks: "Networks"
-) -> Set[Union["NetDevice", "BridgeDevice"]]:
+def _build_devices(facts: Mapping, networks: "Networks") -> Set[AnyNetDevice]:
     """Extract the network devices information from the facts."""
     devices = set()
-    for interface in facts["ansible_interfaces"]:
-        ansible_interface = "ansible_" + interface
+    ansible_interfaces: Set[str] = set(facts["ansible_interfaces"])
+    for interface_name in ansible_interfaces:
+        ansible_interface = "ansible_" + interface_name
         # filter here (active/ name...)
         if ansible_interface in facts:
-            devices.add(NetDevice.sync_from_ansible(facts[ansible_interface], networks))
+            devices.add(
+                NetDevice.sync_from_ansible(
+                    facts[ansible_interface],
+                    interface_name,
+                    ansible_interfaces,
+                    networks,
+                )
+            )
     return devices
 
 
@@ -375,8 +382,12 @@ class NetDevice:
 
     @classmethod
     def sync_from_ansible(
-        cls, device: Mapping, networks: Networks
-    ) -> Union["NetDevice", "BridgeDevice"]:
+        cls,
+        device: Mapping,
+        device_name: str,
+        ansible_interfaces: Set[str],
+        networks: Networks,
+    ) -> AnyNetDevice:
         """
 
         "ansible_br0": {
@@ -421,14 +432,31 @@ class NetDevice:
         # addresses contains all the addresses for this devices
         # even those that doesn't correspond to an enoslib network
 
+        device_name_key = device.get("device")
+
+        if not device_name_key and "_" in device_name:
+            # probably an alias (virtual interface) : try to retrieve the name of
+            # the physical interface on which the virtual one is based
+            # (cf. https://gitlab.inria.fr/discovery/enoslib/-/issues/238)
+            probable_parent = device_name.split("_")[0]
+            if probable_parent in ansible_interfaces:
+                return AliasDevice(
+                    name=device_name, parent=probable_parent, addresses=addresses
+                )
+
         # detect if that's a bridge
         if device["type"] == "bridge":
             return BridgeDevice(
-                name=device["device"], addresses=addresses, bridged=device["interfaces"]
+                name=str(device_name_key),
+                addresses=addresses,
+                bridged=device["interfaces"],
             )
-        else:
-            # regular "ether"
-            return cls(name=device["device"], addresses=addresses)
+
+        # prioritize the hardware name, else the ansible facts one
+        final_name = device_name_key or device_name
+
+        # regular "ether" / fallback if no device key nor underscore in device_name
+        return cls(name=final_name, addresses=addresses)
 
     @property
     def interfaces(self) -> List[str]:
@@ -499,6 +527,29 @@ class BridgeDevice(NetDevice):
     def to_dict(self) -> Dict:
         d = super().to_dict()
         d.update(type="bridge", interfaces=self.interfaces)
+        return d
+
+
+@dataclass(unsafe_hash=True)
+class AliasDevice(NetDevice):
+    """
+    Represent a virtual interface (IP Alias).
+
+    This is a specialization of :py:class:`~enoslib.objects.NetDevice`.
+    Unlike physical interfaces, an AliasDevice is always attached to a parent interface
+    (e.g. ``lo:0`` is attached to ``lo``).
+
+    Attributes:
+        parent (Optional[str]): The name of the parent physical interface
+                                (e.g. ``lo`` for ``lo_0``).
+                                Defaults to None if the parent could not be determined.
+    """
+
+    parent: Optional[str] = field(default=None, compare=False, hash=False)
+
+    def to_dict(self) -> Dict:
+        d = super().to_dict()
+        d.update(type="alias", parent=self.parent)
         return d
 
 
@@ -577,7 +628,7 @@ class Host(BaseHost):
     # - sync_info can set this for you
     # - also there's a plan to make the provider fill that for you when
     #   possible (e.g. in G5K we can use the REST API)
-    net_devices: Set[NetDevice] = field(default_factory=set, hash=False)
+    net_devices: Set[AnyNetDevice] = field(default_factory=set, hash=False)
     __original_extra: Dict = field(default_factory=dict, init=False, hash=False)
 
     def __post_init__(self):

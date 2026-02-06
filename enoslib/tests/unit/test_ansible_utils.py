@@ -1,5 +1,6 @@
 from enoslib.enos_inventory import EnosInventory
 from enoslib.objects import (
+    AliasDevice,
     BridgeDevice,
     DefaultNetwork,
     Host,
@@ -215,3 +216,46 @@ class TestGetHostNet(EnosTest):
         self.assertCountEqual(expected, _build_devices(facts, networks))
 
     # todo bridge
+
+    def test_map_devices_alias(self):
+        n1 = DefaultNetwork(address="1.2.3.0/24")
+        n2 = DefaultNetwork(address="4.5.6.0/24")
+
+        networks = Networks(dict(role1=[n1, n2]))
+
+        facts = {
+            "ansible_interfaces": ["eth0", "eth0_0"],
+            "ansible_eth0": {
+                "device": "eth0",
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+            "ansible_eth0_0": {
+                "ipv4": [{"address": "4.5.6.7", "netmask": "255.255.255.0"}],
+            },
+        }
+
+        expected = [
+            NetDevice("eth0", {IPAddress("1.2.3.4/24", n1)}),
+            AliasDevice("eth0_0", {IPAddress("4.5.6.7/24", n2)}, "eth0"),
+        ]
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
+
+    def test_map_devices_fallback_no_device_key(self):
+        n1 = DefaultNetwork(address="1.2.3.0/24")
+        n2 = DefaultNetwork(address="4.5.6.0/24")
+
+        networks = Networks(dict(role1=[n1, n2]))
+
+        facts = {
+            "ansible_interfaces": ["eth0"],
+            "ansible_eth0": {
+                "ipv4": [{"address": "1.2.3.4", "netmask": "255.255.255.0"}],
+                "type": "ether",
+            },
+        }
+
+        expected = [NetDevice("eth0", {IPAddress("1.2.3.4/24", n1)})]
+
+        self.assertCountEqual(expected, _build_devices(facts, networks))
