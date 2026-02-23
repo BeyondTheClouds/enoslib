@@ -34,7 +34,8 @@ class TestDriverPassConf(unittest.TestCase):
         driver = get_driver(c)
         self.assertIsInstance(driver, OargridDynamicDriver)
         with mock.patch(
-            "enoslib.infra.enos_g5k.driver.grid_get_or_create_job", return_value=None
+            "enoslib.infra.enos_g5k.driver.grid_get_create_or_update_job",
+            return_value=([], True),
         ) as p:
             driver.reserve()
             p.assert_called_with(

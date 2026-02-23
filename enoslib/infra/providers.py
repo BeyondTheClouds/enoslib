@@ -139,6 +139,10 @@ def find_slot_and_start(
     If this fail it will try to raise an error indicating a next possible
     slot if possible
 
+    Returns:
+        bool: True if reloading a previously init'ed Providers instance, False
+              if proceeding to find a common slot on for all providers
+
     Raises:
         InvalidReservationTime: Happens if one of the provider cannot be initialized
         with reservation_timestamp as reservation date. Will provide an indication
@@ -147,9 +151,9 @@ def find_slot_and_start(
     # Don't look for a common date if a job is already running
     _providers = [p for p in providers if not p.is_created()]
     # Expected output here
-    # - _providers is empty:
-    #   ideal case we can proceed to find a common slot on for all of them
     # - _providers equals providers:
+    #   ideal case we can proceed to find a common slot on for all of them
+    # - _providers is empty:
     #   normal case also, that means we're only reloading a previously init'ed
     #   Providers instance.
     # - providers have been partially init'ed
@@ -299,6 +303,29 @@ class Providers(Provider):
         time_window: Optional[int] = None,
         **kwargs,
     ):
+        """Partial init: secure the resources to the targeted infrastructure.
+
+        This is primarily used internally by
+        :py:class:`~enoslib.infra.providers.Providers` to get the resources from
+        different platforms. As this method actually starts some real resources
+        somewhere, errors may occur (e.g no more available resources, ...). It's
+        up to the provider to indicate if the error is critical or not. For
+        instance an :py:class:`~enoslib.errors.InvalidReservationTime` can be
+        raised to indicate the Providers to retry later.
+
+        Args:
+            kwargs: keyword arguments.
+                Fit those from
+                :py:meth:`~enoslib.infra.provider.Provider.init`
+
+        Raises:
+            InvalidReservationTime:
+                Resources can't be reserved at the specific time.
+            InvalidReservationTooOld:
+                The reservation time is in the past
+            _: provider specific exception
+        """
+
         self._reserve(time_window=time_window, start_time=start_time)
 
     def destroy(self, wait: bool = True, **kwargs):

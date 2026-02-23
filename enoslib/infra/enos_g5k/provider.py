@@ -67,7 +67,7 @@ from enoslib.infra.enos_g5k.objects import (
 from enoslib.infra.enos_g5k.utils import get_ssh_keys
 from enoslib.infra.provider import Provider
 from enoslib.infra.providers import Providers
-from enoslib.infra.utils import mk_pools, pick_things
+from enoslib.infra.utils import is_contained_in_order, mk_pools, pick_things
 from enoslib.log import DisableLogging, getLogger
 from enoslib.objects import Host, Networks, Roles
 
@@ -546,6 +546,55 @@ def check() -> List[Tuple[str, bool, str]]:
     return statuses
 
 
+def _check_env_name_and_version(
+    sshable_hosts: Sequence[G5kHost],
+) -> List[str]:
+    logger.debug("Checking the environment name and version on reloaded nodes")
+
+    cmd = "cat /etc/grid5000/release"
+
+    hosts = [h.to_enoslib(extra=dict(cmd=cmd)) for h in sshable_hosts]
+
+    # for any first deploy, an 'Unreachable hosts' error is systematically risen
+    # this must be hidden from users
+    with DisableLogging(level=logging.ERROR):
+        results = run(
+            "{{ cmd }}",
+            hosts,
+            raw=True,
+            gather_facts=False,
+            on_error_continue=True,
+            task_name="Check environment name and version on reloaded nodes",
+        )
+
+    failed_nodes = []
+    parsed_results = []
+
+    for res in results:
+
+        # if the command execution is not successful
+        if res.payload.get("rc", 1) != 0:
+            failed_nodes.append(res.host)
+            continue
+
+        stdout_lines = res.payload["stdout_lines"]
+
+        if not stdout_lines:
+            failed_nodes.append(res.host)
+            continue
+
+        output = stdout_lines[0].strip()
+        parsed_results.append(output)
+
+    if failed_nodes:
+        logger.debug(
+            "The environment of these reloaded nodes could not be verified : "
+            f"{failed_nodes}."
+        )
+
+    return parsed_results
+
+
 class G5kBase(Provider):
     """Internal class.
 
@@ -601,7 +650,19 @@ class G5kBase(Provider):
 
             The call to the function is **idempotent** and the following is ensured:
 
-            - Existing job(s) (based on the name) will be reloaded.
+            - Existing job(s) (based on the name) will be reloaded. Job types and
+            environment are evaluated to assess recreation and redeployment needs :
+
+                - If the requested job types are not a subset of the currently running
+                job types, every related job will be destroyed and resubmitted. This
+                allows tolerating extra job types added by the provider.
+
+                - However, the 'deploy' job type must match the initial deployment.
+                Adding or removing it on reload will force related jobs recreation.
+
+                - If the requested environment differs from what is actually deployed on
+                the nodes, a new OS deployment will be performed.
+
             - The mapping between concrete resources and their corresponding roles
               is fixed across runs. This includes:
 
@@ -660,6 +721,7 @@ class G5kBase(Provider):
     def deploy(self): ...
 
     def launch(self):
+
         self.reserve()
         self.wait()
 
@@ -674,20 +736,72 @@ class G5kBase(Provider):
 
         self.sshable_hosts = self.hosts
 
-        if JOB_TYPE_DEPLOY in self.provider_conf.job_type:
-            self.deploy()
-            self.wait_nodes()
-            self.dhcp_networks()
-        else:
+        if JOB_TYPE_DEPLOY not in self.provider_conf.job_type:
             # TODO: let user opt out of this
             # even if they won't do much with enoslib in this case.
             self.grant_root_access()
+            return
+
+        logger.info("Checking environment on reloaded nodes")
+        is_consistently_deployed = self._verify_environment_consistency()
+
+        if not is_consistently_deployed:
+            self.provider_conf.force_deploy = True
+            self.deploy()
+            self.wait_nodes()
+            self.dhcp_networks()
+
+    def _verify_environment_consistency(self) -> bool:
+        """Verifies that an environment is deployed on a reloaded reservation, and
+        that it matches the one in the configuration asked by the user.
+
+        Returns:
+            bool: True if the reloaded reservation has a deployed environment and
+            if this environment matches the one specified in the configuration asked
+            by the user, else False
+        """
+
+        retrieved_environments = _check_env_name_and_version(self.sshable_hosts)
+
+        if len(retrieved_environments) != len(self.sshable_hosts):
+            logger.info("Environment deployment missing")
+            return False
+
+        # e. g. : env_name = "ubuntu2404-min"
+        words_seeked = self.provider_conf.env_name.split("-")
+        env_version = self.provider_conf.env_version
+
+        if env_version:
+            words_seeked.append(str(env_version))
+
+        # checking on each node if every word defining the environment asked by the user
+        # appears in the same order in the already deployed environment
+        for retrieved_environment in retrieved_environments:
+
+            deployed_environment = retrieved_environment.split("-")
+
+            environment_evaluation = is_contained_in_order(
+                words_seeked, deployed_environment
+            )
+
+            if not environment_evaluation:
+                # if one of the nodes environment isn't the one given
+                # in the reloading configuration, False is returned
+                asked_environment = "-".join(words_seeked)
+
+                logger.info(
+                    "Delta between the deployed nodes environment "
+                    f"('{retrieved_environment}') and the one in the configuration "
+                    f"('{asked_environment}')"
+                )
+                return False
+        return True
 
     @staticmethod
     def timezone():
         return ZoneInfo("Europe/Paris")
 
-    def reserve(self):
+    def reserve(self, need_redeployment: bool = False):
         try:
             # this is async (will keep the info of the jobs)
             self.driver.reserve()
@@ -722,6 +836,7 @@ class G5kBase(Provider):
         """
         if start_time:
             self.set_reservation(start_time)
+
         self.reserve()
 
     def wait(self):
@@ -952,10 +1067,14 @@ class G5k(G5kBase):
     from :py:class:`~enoslib.infra.enos_g5k.provider.G5kBase`.
     """
 
-    def reserve(self):
-        """Reserve the resources described in the configuration
+    def reserve(self, need_redeployment: bool = False):
+        """Reserve the resources described in the configuration.
 
-        This support multisite configuration.
+        This supports multisite configuration.
+
+        It orchestrates the creation of new jobs or the reloading of existing ones.
+        If a previous environment inconsistency was detected, it destroys the obsolete
+        jobs before securing new resources.
         """
         sites = self.provider_conf.sites
 
@@ -982,6 +1101,9 @@ class G5k(G5kBase):
                 start_time = None
 
             providers.async_init(start_time=start_time)
+
+            # Refresh or set the jobs of the G5k driver instance
+            super().reserve()
 
     def deploy(self):
         # Should we deploy whatever the previous state ?
@@ -1016,7 +1138,7 @@ class G5k(G5kBase):
                 )
             options.update(key=key_content)
             logger.info(
-                "Deploying the public key contained in %s to remote hosts.", key_path
+                "Deploying the public key contained in %s to remote hosts", key_path
             )
 
         # If no key path given
@@ -1026,7 +1148,7 @@ class G5k(G5kBase):
             options.update(key=keys_content)
             logger.info(
                 f"Deploying all public keys contained in {Path.home()}/.ssh "
-                "to remote hosts."
+                "to remote hosts"
             )
 
         self.deployed, self.undeployed = deploy_with_retries(

@@ -21,6 +21,7 @@ from typing import (
     Mapping,
     MutableSequence,
     Optional,
+    Set,
     Tuple,
     Union,
 )
@@ -34,6 +35,7 @@ from enoslib.infra.utils import _date2h
 from enoslib.log import getLogger
 
 from .constants import (
+    JOB_TYPE_DEPLOY,
     KAVLAN,
     KAVLAN_GLOBAL,
     KAVLAN_IDS,
@@ -813,7 +815,7 @@ def deploy(site: str, nodes: List[str], config: Dict) -> Tuple[List[str], List[s
     return deploy, undeploy
 
 
-def grid_get_or_create_job(
+def grid_get_create_or_update_job(
     job_name,
     walltime,
     reservation_date,
@@ -826,8 +828,37 @@ def grid_get_or_create_job(
     wait=True,
     restrict_to: Optional[Iterable[str]] = None,
 ) -> List[Job]:
+    """Try to reload jobs from name, and create them if not retrieved.
+
+    All jobs of the reservation are destroyed and recreated with what configuration
+    asks for if one of the two conditions below is met :
+    - at least one requested job type is not included in the job types of already
+    running jobs ;
+    - the 'deploy' job type has been removed between jobs creation and reload.
+
+    Returns:
+        List[Job]: The jobs list
+    """
     jobs = grid_reload_jobs_from_name(job_name, restrict_to=restrict_to)
-    if len(jobs) == 0:
+
+    if jobs:
+        logger.info("Checking job types on reloaded nodes")
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(jobs, job_type)
+
+        if not is_consistent:
+            logger.info("Killing all jobs from previous reservation")
+            grid_destroy_from_name(job_name, wait=wait, restrict_to=restrict_to)
+            logger.info("Submitting new jobs according to latest given configuration")
+            jobs = []
+
+        elif extra_job_types:
+            logger.debug(
+                "Jobs reloaded successfully, but they contain "
+                "extra job types not in the asked configuration : "
+                f"{sorted(extra_job_types)}"
+            )
+
+    if not jobs:
         jobs = grid_make_reservation(
             job_name,
             walltime,
@@ -839,7 +870,54 @@ def grid_get_or_create_job(
             machines,
             networks,
         )
+
     return jobs
+
+
+def _evaluate_job_types_consistency(
+    jobs: List[Job], job_type: List[str]
+) -> Tuple[bool, Set[str]]:
+    """Evaluates if some requested job types are not included in the job types of
+    already running jobs OR if the 'deploy' job type has been removed between
+    jobs creation and reload. If this is the case, jobs must be recreated.
+
+    Args:
+        jobs (List[Job]): The reloaded jobs list
+        job_type (List[str]): The requested job types list
+
+    Returns:
+        Tuple[bool, Set[str]]:
+            - True if jobs are consistent, else False
+            - A set of extra job types retrieved but not requested
+    """
+    requested_types = set(job_type)
+    extra_job_types = set()
+    has_requested_deploy = JOB_TYPE_DEPLOY in requested_types
+
+    for job in jobs:
+        retrieved_types = set(job.types)
+        has_retrieved_deploy = JOB_TYPE_DEPLOY in retrieved_types
+
+        is_missing_types = not requested_types.issubset(retrieved_types)
+        has_unwanted_deploy = has_retrieved_deploy and not has_requested_deploy
+
+        if is_missing_types:
+            logger.info(
+                f"Some requested job types ({job_type}) are not included in "
+                f"the job types of already running jobs ({job.types})"
+            )
+            return False, set()
+
+        if has_unwanted_deploy:
+            logger.info(
+                "The 'deploy' job type is not in the latest given configuration "
+                "but is present in the job types of already running jobs"
+            )
+            return False, set()
+
+        extra_job_types.update(retrieved_types - requested_types)
+
+    return True, extra_job_types
 
 
 def _build_reservation_criteria(machines: Iterable, networks: Iterable) -> Dict:

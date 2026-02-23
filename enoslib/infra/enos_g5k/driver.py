@@ -10,7 +10,7 @@ from enoslib.infra.enos_g5k.g5k_api_utils import (
     get_api_username,
     grid_destroy_from_ids,
     grid_destroy_from_name,
-    grid_get_or_create_job,
+    grid_get_create_or_update_job,
     grid_reload_from_ids,
     grid_reload_jobs_from_ids,
     grid_reload_jobs_from_name,
@@ -79,8 +79,9 @@ class OargridStaticDriver(Driver):
         self.oargrid_jobids = oargrid_jobids
         self.reservation_date: Optional[str] = None
 
-    def reserve(self, **kwargs):
+    def reserve(self, **kwargs) -> bool:
         self._jobs = grid_reload_from_ids(self.oargrid_jobids)
+        return False
 
     def destroy(self, wait: bool = False):
         grid_destroy_from_ids(self.oargrid_jobids, wait=wait)
@@ -118,7 +119,7 @@ class OargridDynamicDriver(Driver):
         self.sites = configuration.sites
 
     def reserve(self, **kwargs):
-        self._jobs = grid_get_or_create_job(
+        self._jobs = grid_get_create_or_update_job(
             self.job_name,
             self.walltime,
             self.reservation_date,

@@ -6,6 +6,10 @@
 Unreleased
 ~~~~~~~~~~
 
+- **G5k:** Added strict verification on reloaded jobs to ensure consistency between the requested configuration and the already deployed one.
+  - If the requested job types are not a subset of the running ones (or if the `deploy` job type presence changes), related jobs are destroyed and recreated.
+  - If the requested OS environment differs from the deployed one, a new deployment is triggered.
+  - Since checks are now being done on job types, some unofficial workflows related to the "night" job type might be impacted.
 
 Stable branch
 ~~~~~~~~~~~~~

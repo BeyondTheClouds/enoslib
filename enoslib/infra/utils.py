@@ -1,10 +1,12 @@
 import logging
 from itertools import groupby
-from typing import Dict, Iterable, Mapping
+from typing import Dict, Iterable, Mapping, TypeVar
 
 from enoslib.errors import NegativeWalltime
 
 logger = logging.getLogger(__name__)
+
+_X = TypeVar("_X")
 
 
 def mk_pools(things: Iterable, keyfnc=lambda x: x) -> Dict:
@@ -74,3 +76,24 @@ def merge_dict(original: Dict, diff: Dict) -> Dict:
     result = copy.deepcopy(original)
     _merge_dict(result, diff)
     return result
+
+
+def is_contained_in_order(iterable_1: Iterable[_X], iterable_2: Iterable[_X]) -> bool:
+    """Verifies that every element from an iterable 1 appears in an iterable 2 in the
+    same order.
+
+    Args:
+        iterable_1 (Iterable): The target iterable to find.
+        iterable_2 (Iterable): The sequence to search within.
+
+    Returns:
+        bool: True if all elements from iterable 1 are found in the same order in
+        iterable 2, else False
+    """
+    iterator_2 = iter(iterable_2)
+
+    for element_1 in iterable_1:
+        if element_1 not in iterator_2:
+            return False
+
+    return True

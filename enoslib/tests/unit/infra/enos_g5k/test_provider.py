@@ -1,5 +1,5 @@
 import ipaddress
-from typing import List
+from typing import List, Optional
 from unittest import mock
 
 from enoslib.api import STATUS_FAILED, STATUS_OK, CommandResult, Results
@@ -24,6 +24,7 @@ from enoslib.infra.enos_g5k.provider import (
     G5kSubnetNetwork,
     G5kVlanNetwork,
     _check_deployed_nodes,
+    _check_env_name_and_version,
     check_deployments,
 )
 from enoslib.tests.unit import EnosTest
@@ -203,15 +204,28 @@ class TestKavlan(EnosTest):
         nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
         interface = "eth1"
         vlan_id = "42"
+
         # Mock Kavlan API
-        kavlan_api = mock.MagicMock()
-        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
+        mock_submit = mock.MagicMock()
+        mock_submit.return_value = {
             nodes[0]: {"status": "success", "message": "dummy"},
             nodes[1]: {"status": "success", "message": "dummy"},
         }
+
+        mock_vlan = mock.MagicMock()
+        mock_vlan.nodes.submit = mock_submit
+
+        mock_site = mock.MagicMock()
+        mock_site.vlans = {vlan_id: mock_vlan}
+
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites = {site: mock_site}
+
         mock_api.return_value = kavlan_api
+
         # Call mocked API
         set_nodes_vlan(nodes, interface, vlan_id)
+
         # Check calls
         kavlan_api.sites[site].vlans[vlan_id].nodes.submit.assert_called_once_with(
             [
@@ -227,15 +241,28 @@ class TestKavlan(EnosTest):
         nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
         interface = "eth1"
         vlan_id = "42"
+
         # Mock Kavlan API
-        kavlan_api = mock.MagicMock()
-        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
-            nodes[0]: {"status": "success", "message": "dummy"},
-            nodes[1]: {"status": "unchanged", "message": "dummy"},
+        mock_submit = mock.MagicMock()
+        mock_submit.return_value = {
+            nodes[0]: {"status": "unchanged", "message": "dummy"},
+            nodes[1]: {"status": "success", "message": "dummy"},
         }
+
+        mock_vlan = mock.MagicMock()
+        mock_vlan.nodes.submit = mock_submit
+
+        mock_site = mock.MagicMock()
+        mock_site.vlans = {vlan_id: mock_vlan}
+
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites = {site: mock_site}
+
         mock_api.return_value = kavlan_api
+
         # Call mocked API
         set_nodes_vlan(nodes, interface, vlan_id)
+
         # Check calls
         kavlan_api.sites[site].vlans[vlan_id].nodes.submit.assert_called_once_with(
             [
@@ -251,13 +278,25 @@ class TestKavlan(EnosTest):
         nodes = ["paravance-1.rennes.grid5000.fr", "paravance-2.rennes.grid5000.fr"]
         interface = "eth1"
         vlan_id = "42"
+
         # Mock Kavlan API
-        kavlan_api = mock.MagicMock()
-        kavlan_api.sites[site].vlans[vlan_id].nodes.submit.return_value = {
-            nodes[0]: {"status": "success", "message": "dummy"},
-            nodes[1]: {"status": "failure", "message": "error"},
+        mock_submit = mock.MagicMock()
+        mock_submit.return_value = {
+            nodes[0]: {"status": "failure", "message": "error"},
+            nodes[1]: {"status": "success", "message": "dummy"},
         }
+
+        mock_vlan = mock.MagicMock()
+        mock_vlan.nodes.submit = mock_submit
+
+        mock_site = mock.MagicMock()
+        mock_site.vlans = {vlan_id: mock_vlan}
+
+        kavlan_api = mock.MagicMock()
+        kavlan_api.sites = {site: mock_site}
+
         mock_api.return_value = kavlan_api
+
         with self.assertRaises(EnosG5kKavlanNodesError):
             set_nodes_vlan(nodes, interface, vlan_id)
 
@@ -368,6 +407,264 @@ class TestToEnoslib(EnosTest):
             id(roles["tag2"][0]),
             "Host refs aren't duplicated in roles",
         )
+
+
+@mock.patch("enoslib.infra.enos_g5k.provider.run")
+class TestCheckEnvNameAndVersion(EnosTest):
+
+    def _get_mocked_host(self):
+        host = mock.MagicMock()
+        host.to_enoslib.return_value = mock.MagicMock()
+        return host
+
+    def _get_mocked_ansible_result(self, host_name: str, scenario: str):
+        res = mock.MagicMock()
+        res.host = host_name
+
+        if scenario == "success":
+            res.payload = {"rc": 0, "stdout_lines": ["ubuntu2404-x64-min-2024042614"]}
+        elif scenario == "empty_stdout":
+            res.payload = {"rc": 0, "stdout_lines": []}
+        elif scenario == "fail":
+            res.payload = {"rc": 1, "stderr_lines": ["Permission denied"]}
+        elif scenario == "no_rc":
+            res.payload = {
+                "unreachable": True,
+                "msg": "Failed to connect to the host via ssh",
+            }
+
+        return res
+
+    def test_successful_os_retrieving(self, mock_run):
+
+        sshable_hosts = [self._get_mocked_host(), self._get_mocked_host()]
+
+        mock_run.return_value = [
+            self._get_mocked_ansible_result(f"node-{i}", "success") for i in range(1, 3)
+        ]
+
+        parsed_results = _check_env_name_and_version(sshable_hosts)
+
+        self.assertEqual(len(parsed_results), 2)
+        self.assertEqual(parsed_results[0], "ubuntu2404-x64-min-2024042614")
+        self.assertEqual(parsed_results[1], "ubuntu2404-x64-min-2024042614")
+
+    def test_empty_standard_output(self, mock_run):
+        sshable_hosts = [self._get_mocked_host(), self._get_mocked_host()]
+
+        mock_run.return_value = [
+            self._get_mocked_ansible_result(f"node-{i}", "empty_stdout")
+            for i in range(1, 3)
+        ]
+
+        parsed_results = _check_env_name_and_version(sshable_hosts)
+
+        self.assertEqual(len(parsed_results), 0)
+        self.assertEqual(parsed_results, [])
+
+    def test_failed_os_retrieving_with_rc(self, mock_run):
+        sshable_hosts = [self._get_mocked_host(), self._get_mocked_host()]
+
+        mock_run.return_value = [
+            self._get_mocked_ansible_result(f"node-{i}", "fail") for i in range(1, 3)
+        ]
+
+        parsed_results = _check_env_name_and_version(sshable_hosts)
+
+        self.assertEqual(len(parsed_results), 0)
+        self.assertEqual(parsed_results, [])
+
+    def test_failed_os_retrieving_without_rc(self, mock_run):
+        sshable_hosts = [self._get_mocked_host(), self._get_mocked_host()]
+
+        mock_run.return_value = [
+            self._get_mocked_ansible_result(f"node-{i}", "no_rc") for i in range(1, 3)
+        ]
+
+        parsed_results = _check_env_name_and_version(sshable_hosts)
+
+        self.assertEqual(len(parsed_results), 0)
+        self.assertEqual(parsed_results, [])
+
+    def test_heterogeneous_ansible_results(self, mock_run):
+        sshable_hosts = [self._get_mocked_host() for _ in range(4)]
+
+        mock_run.return_value = [
+            self._get_mocked_ansible_result("node-1", "success"),
+            self._get_mocked_ansible_result("node-2", "empty_stdout"),
+            self._get_mocked_ansible_result("node-3", "fail"),
+            self._get_mocked_ansible_result("node-4", "no_rc"),
+        ]
+
+        parsed_results = _check_env_name_and_version(sshable_hosts)
+
+        self.assertEqual(len(parsed_results), 1)
+        self.assertEqual(parsed_results[0], "ubuntu2404-x64-min-2024042614")
+
+
+class TestVerifyEnvironmentConsistency(EnosTest):
+
+    def _get_mocked_provider(self, env_name, env_version, hosts_quantity: int = 0):
+
+        configuration = Configuration.from_settings(
+            env_name=env_name,
+            env_version=env_version,
+            job_type=["deploy"],
+        )
+        provider = G5k(configuration)
+
+        if hosts_quantity:
+            provider.sshable_hosts = [mock.MagicMock() for _ in range(hosts_quantity)]
+
+        return provider
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_no_os_retrieved(self, mock_check_env):
+
+        provider = self._get_mocked_provider(
+            env_name="ubuntu2404-min", env_version=None, hosts_quantity=1
+        )
+
+        mock_check_env.return_value = []
+
+        self.assertEqual(False, provider._verify_environment_consistency())
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_env_name_and_version_os_retrieved_match(self, mock_check_env):
+
+        provider = self._get_mocked_provider(
+            env_name="ubuntu2404-min", env_version=2025082609, hosts_quantity=1
+        )
+
+        mock_check_env.return_value = ["ubuntu2404-x64-min-2025082609"]
+
+        self.assertEqual(True, provider._verify_environment_consistency())
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_env_name_and_version_os_retrieved_no_match(self, mock_check_env):
+
+        provider = self._get_mocked_provider(
+            env_name="ubuntu2404-min", env_version=2025082609, hosts_quantity=1
+        )
+
+        mock_check_env.return_value = ["ubuntu2404-x64-min-2024042614"]
+
+        self.assertEqual(False, provider._verify_environment_consistency())
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_env_name_no_env_version_os_retrieved_match(self, mock_check_env):
+        provider = self._get_mocked_provider(
+            env_name="ubuntu2404-min", env_version=None, hosts_quantity=1
+        )
+
+        mock_check_env.return_value = ["ubuntu2404-x64-min-2025082609"]
+
+        self.assertEqual(True, provider._verify_environment_consistency())
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_env_name_no_env_version_os_retrieved_no_match(self, mock_check_env):
+        provider = self._get_mocked_provider(
+            env_name="debian11-min", env_version=None, hosts_quantity=1
+        )
+
+        mock_check_env.return_value = ["ubuntu2404-x64-min-2024042614"]
+
+        self.assertEqual(False, provider._verify_environment_consistency())
+
+    @mock.patch("enoslib.infra.enos_g5k.provider._check_env_name_and_version")
+    def test_heterogeneous_environments_retrieved(self, mock_check_env):
+        provider = self._get_mocked_provider(
+            env_name="ubuntu2404-min", env_version=2025082609, hosts_quantity=2
+        )
+
+        mock_check_env.return_value = [
+            "ubuntu2404-x64-min-2025082609",
+            "ubuntu2404-x64-std-2024042614",
+        ]
+
+        self.assertEqual(False, provider._verify_environment_consistency())
+
+
+class TestLaunch(EnosTest):
+
+    def _get_mocked_provider(
+        self,
+        has_deploy_job_type: bool,
+        env_name: Optional[str] = "ubuntu2404-min",
+        env_version: Optional[int] = 2025082609,
+    ):
+
+        configuration = Configuration.from_settings(
+            env_name=env_name,
+            env_version=env_version,
+            job_type=["deploy"] if has_deploy_job_type else [],
+        )
+        provider = G5k(configuration)
+
+        # Provider internal methods mocking
+        for method in [
+            "reserve",
+            "wait",
+        ]:
+            setattr(provider, method, mock.MagicMock())
+
+        provider.driver = mock.MagicMock()
+        provider.driver.resources.return_value = ([], [])
+
+        return provider
+
+    @mock.patch.object(G5k, "grant_root_access")
+    def test_launch_no_deploy(self, mock_grant_root_access):
+
+        provider = self._get_mocked_provider(
+            has_deploy_job_type=False,
+            env_name=None,
+            env_version=None,
+        )
+        provider.launch()
+        mock_grant_root_access.assert_called_once()
+
+    @mock.patch.object(G5k, "_verify_environment_consistency")
+    @mock.patch.object(G5k, "deploy")
+    @mock.patch.object(G5k, "wait_nodes")
+    @mock.patch.object(G5k, "dhcp_networks")
+    def test_launch_deploy_consistently_deployed(
+        self,
+        mock_dhcp_networks,
+        mock_wait_nodes,
+        mock_deploy,
+        mock_verify_environment_consistency,
+    ):
+        provider = self._get_mocked_provider(has_deploy_job_type=True)
+        mock_verify_environment_consistency.return_value = True
+
+        provider.launch()
+
+        mock_verify_environment_consistency.assert_called_once()
+        mock_deploy.assert_not_called()
+        mock_wait_nodes.assert_not_called()
+        mock_dhcp_networks.assert_not_called()
+
+    @mock.patch.object(G5k, "_verify_environment_consistency")
+    @mock.patch.object(G5k, "deploy")
+    @mock.patch.object(G5k, "wait_nodes")
+    @mock.patch.object(G5k, "dhcp_networks")
+    def test_launch_deploy_not_consistently_deployed(
+        self,
+        mock_dhcp_networks,
+        mock_wait_nodes,
+        mock_deploy,
+        mock_verify_environment_consistency,
+    ):
+        provider = self._get_mocked_provider(has_deploy_job_type=True)
+        mock_verify_environment_consistency.return_value = False
+
+        provider.launch()
+        mock_verify_environment_consistency.assert_called_once()
+        self.assertTrue(provider.provider_conf.force_deploy)
+        mock_deploy.assert_called_once()
+        mock_wait_nodes.assert_called_once()
+        mock_dhcp_networks.assert_called_once()
 
     # FIXME XXX
     # This produces some side effect on the API

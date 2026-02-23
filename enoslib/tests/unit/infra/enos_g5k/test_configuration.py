@@ -509,6 +509,11 @@ class TestConfiguration(EnosTest):
         with self.assertRaises(ValueError):
             conf.finalize()
 
+        conf = Configuration.from_settings(env_version=2025082609)
+        # Needs env_name and deploy job type
+        with self.assertRaises(ValueError):
+            conf.finalize()
+
         conf = Configuration.from_settings(env_name="debian11-nfs")
         # Needs deploy job type, but still accepted for compatibility
         with pytest.deprecated_call():

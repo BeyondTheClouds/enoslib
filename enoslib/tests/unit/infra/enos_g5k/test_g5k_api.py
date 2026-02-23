@@ -1,8 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
+from grid5000.objects import Job
 
 from enoslib.infra.enos_g5k.g5k_api_utils import (
     _do_grid_make_reservation,
+    _evaluate_job_types_consistency,
     available_kwollect_metrics,
+    grid_get_create_or_update_job,
 )
 from enoslib.tests.unit import EnosTest
 from enoslib.tests.unit.infra.enos_g5k.utils import get_offline_client
@@ -128,6 +132,157 @@ class TestDoGridMakeReservation(EnosTest):
                     )
                 ]
             )
+
+
+@patch("enoslib.infra.enos_g5k.g5k_api_utils._evaluate_job_types_consistency")
+@patch("enoslib.infra.enos_g5k.g5k_api_utils.grid_make_reservation")
+@patch("enoslib.infra.enos_g5k.g5k_api_utils.grid_destroy_from_name")
+@patch("enoslib.infra.enos_g5k.g5k_api_utils.grid_reload_jobs_from_name")
+class TestGridGetCreateOrUpdateJob(EnosTest):
+
+    def _call_target(self):
+        return grid_get_create_or_update_job(
+            "test_name",
+            "12:34:56",
+            "2022-04-01 12:00:00",
+            "test_queue",
+            [],
+            "test_monitor",
+            "test_project",
+            [],
+            [],
+        )
+
+    def test_no_reload(
+        self,
+        mock_grid_reload_jobs_from_name,
+        mock_grid_destroy_from_name,
+        mock_grid_make_reservation,
+        mock__evaluate_job_types_consistency,
+    ):
+        mock_job = MagicMock()
+        mock_grid_reload_jobs_from_name.return_value = []
+        mock_grid_make_reservation.return_value = [mock_job]
+
+        jobs = self._call_target()
+
+        mock__evaluate_job_types_consistency.assert_not_called()
+        mock_grid_destroy_from_name.assert_not_called()
+        mock_grid_make_reservation.assert_called_once()
+        self.assertEqual(jobs, [mock_job])
+
+    def test_reload_do_not_recreate(
+        self,
+        mock_grid_reload_jobs_from_name,
+        mock_grid_destroy_from_name,
+        mock_grid_make_reservation,
+        mock__evaluate_job_types_consistency,
+    ):
+        mock_job = MagicMock()
+        mock_grid_reload_jobs_from_name.return_value = [mock_job]
+
+        mock__evaluate_job_types_consistency.return_value = (True, set())
+
+        jobs = self._call_target()
+
+        mock__evaluate_job_types_consistency.assert_called_once()
+        mock_grid_destroy_from_name.assert_not_called()
+        mock_grid_make_reservation.assert_not_called()
+        self.assertEqual(jobs, [mock_job])
+
+    def test_reload_must_recreate(
+        self,
+        mock_grid_reload_jobs_from_name,
+        mock_grid_destroy_from_name,
+        mock_grid_make_reservation,
+        mock__evaluate_job_types_consistency,
+    ):
+        mock_job = MagicMock()
+        mock_grid_reload_jobs_from_name.return_value = [mock_job]
+
+        mock__evaluate_job_types_consistency.return_value = (False, set())
+
+        mock_grid_make_reservation.return_value = ["new_job"]
+
+        jobs = self._call_target()
+
+        mock__evaluate_job_types_consistency.assert_called_once()
+        mock_grid_destroy_from_name.assert_called_once()
+        mock_grid_make_reservation.assert_called_once()
+        self.assertEqual(jobs, ["new_job"])
+
+
+class TestEvaluateJobTypesConsistency(EnosTest):
+
+    def _get_mocked_job(
+        self, has_job_types: bool = False, has_deploy_job_type: bool = False
+    ):
+        job = MagicMock(spec=Job)
+        list_job_types = []
+        if has_job_types:
+            list_job_types.extend(["sudo-g5k", "besteffort"])
+        if has_deploy_job_type:
+            list_job_types.append("deploy")
+        job.types = list_job_types
+        return job
+
+    def test_no_reload(self):
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[], job_type=[]
+        )
+
+        self.assertTrue(is_consistent)
+        self.assertEqual(len(extra_job_types), 0)
+
+    def test_reload_match_on_job_types_extra_types(self):
+
+        job_1 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+        job_2 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[job_1, job_2], job_type=["deploy"]
+        )
+
+        job_types = sorted(extra_job_types)
+
+        self.assertTrue(is_consistent)
+        self.assertEqual(job_types, ["besteffort", "sudo-g5k"])
+
+    def test_reload_match_on_job_types_no_extra_types(self):
+
+        job_1 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+        job_2 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[job_1, job_2], job_type=["sudo-g5k", "besteffort", "deploy"]
+        )
+
+        self.assertTrue(is_consistent)
+        self.assertEqual(len(extra_job_types), 0)
+
+    def test_reload_no_match_on_job_types(self):
+
+        job_1 = self._get_mocked_job(has_job_types=True)
+        job_2 = self._get_mocked_job(has_job_types=True)
+
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[job_1, job_2], job_type=["exotic"]
+        )
+
+        self.assertFalse(is_consistent)
+        self.assertEqual(len(extra_job_types), 0)
+
+    def test_reload_unwanted_deploy(self):
+
+        job_1 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+        job_2 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
+
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[job_1, job_2], job_type=["sudo-g5k", "besteffort"]
+        )
+
+        self.assertFalse(is_consistent)
+        self.assertEqual(len(extra_job_types), 0)
 
 
 class TestKwollect(EnosTest):

@@ -170,7 +170,12 @@ class Configuration(BaseConfiguration):
             )
         # Check parameters consistency
         if JOB_TYPE_DEPLOY in self.job_type and not self.env_name:
-            raise ValueError("Parameter 'env_name' is required for 'deploy' job type")
+            raise ValueError("Parameter 'env_name' is required for 'deploy' job type.")
+        if not self.env_name and self.env_version:
+            raise ValueError(
+                "Parameter 'env_name' is required with parameter 'env_version', "
+                "please update your code."
+            )
         if self.env_name and JOB_TYPE_DEPLOY not in self.job_type:
             warnings.warn(
                 "Parameter 'env_name' requires the use of 'deploy' job type, "

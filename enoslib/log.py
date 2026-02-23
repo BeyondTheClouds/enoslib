@@ -11,7 +11,7 @@ class TagsAdapter(logging.LoggerAdapter):
 def getLogger(name: str, tags: Optional[Sequence[str]] = None) -> TagsAdapter:
     if tags is None:
         tags = None
-    logger = TagsAdapter(logging.getLogger(__name__), dict(tags=tags))
+    logger = TagsAdapter(logging.getLogger(name), dict(tags=tags))
     return logger
 
 

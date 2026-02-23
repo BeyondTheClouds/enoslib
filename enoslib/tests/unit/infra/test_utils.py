@@ -1,6 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, List, Set
 from unittest.mock import Mock, call, patch
 
 import ddt
@@ -29,7 +29,7 @@ from enoslib.infra.providers import (
     find_slot_and_start,
     start_provider_within_bounds,
 )
-from enoslib.infra.utils import merge_dict, offset_from_format
+from enoslib.infra.utils import is_contained_in_order, merge_dict, offset_from_format
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 from enoslib.tests.unit import EnosTest
 
@@ -462,3 +462,110 @@ class TestMergeDict(EnosTest):
 
         with self.assertRaises(ValueError):
             merge_dict(original, {"c": {"d": {}}})
+
+
+class TestIsContainedInOrder(EnosTest):
+
+    def test_empty_iterables(self):
+        iter_1: List[str] = []
+        iter_2: List[str] = []
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_empty_iterable_1(self):
+        iter_1: List[str] = []
+        iter_2 = ["abc", "bcd", "cde"]
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_empty_iterable_2(self):
+        iter_1 = ["abc", "bcd", "cde"]
+        iter_2: List[str] = []
+
+        self.assertFalse(is_contained_in_order(iter_1, iter_2))
+
+    def test_iterable_1_longer_than_iterable_2(self):
+        iter_1 = iter(["abc", "bcd", "cde"])
+        iter_2 = iter(["abc", "bcd"])
+
+        self.assertFalse(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_strictly_contained_in_order(self):
+        iter_1 = ["abc", "bcd"]
+        iter_2 = ["abc", "bcd"]
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order(self):
+        iter_1 = ["abc", "bcd"]
+        iter_2 = ["abc", "cde", "bcd"]
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_repeated_elements(self):
+        iter_1 = ["abc", "abc"]
+        iter_2 = ["abc", "bcd", "abc"]
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_not_contained_in_order(self):
+        iter_1 = ["abc", "bcd"]
+        iter_2 = ["abc", "cde", "def"]
+
+        self.assertFalse(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_not_contained_in_order_repeated_elements(self):
+        iter_1 = ["abc", "abc"]
+        iter_2 = ["abc", "bcd", "cde"]
+
+        self.assertFalse(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_tuple(self):
+        iter_1 = ("abc", "bcd")
+        iter_2 = ("abc", "cde", "bcd")
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_range(self):
+        iter_1 = range(1, 5, 2)  # 1, 3
+        iter_2 = range(0, 5)  # 0, 1, 2, 3, 4
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_string(self):
+        iter_1 = "min"
+        iter_2 = "terminal"
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_generator(self):
+        iter_1 = (x for x in ["abc", "bcd"])
+        iter_2 = (x for x in ["abc", "cde", "bcd"])
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_dict_keys(self):
+        iter_1 = dict.fromkeys(["abc", "bcd"]).keys()
+        iter_2 = dict.fromkeys(["abc", "cde", "bcd"]).keys()
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_is_contained_in_order_empty_set(self):
+        iter_1: Set[str] = set()
+        iter_2 = {"abc", "cde", "bcd"}
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_mixed_iterable_types(self):
+        iter_1 = (x for x in ["abc", "bcd"])
+        iter_2 = dict.fromkeys(["abc", "cde", "bcd"]).keys()
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
+
+    def test_already_exhausted_iterator(self):
+        iter_1 = iter(["abc", "bcd"])
+        # emptying iter_1
+        list(iter_1)
+        iter_2 = ["abc", "cde", "bcd"]
+
+        self.assertTrue(is_contained_in_order(iter_1, iter_2))
