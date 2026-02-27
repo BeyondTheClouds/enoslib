@@ -10,6 +10,17 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.6.0:
+
+10.6.0
+-------
+
+General:
+
+- **Interfaces:** Add support for virtual interfaces (aliases) in addition to the already existing support for bridges.
+- **Doc:** Add documentation on how to make a release.
+
+
 .. _v10.5.0:
 
 10.5.0
