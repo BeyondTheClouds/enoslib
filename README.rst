@@ -29,6 +29,11 @@ In this context, EnOSlib smoothes the experimental code and can
 - emulate complex network topologies (e.g for your FOG experiments)
 - integrate your code with interactive development environment like Jupyter.
 
+Contributing
+------------
+
+Whether it is fixing bugs, improving documentation or adding new features, please check out our
+`contribution guidelines <CONTRIBUTING.md>`_ to see how you can help make EnOSlib better.
 
 .. |Code| image:: https://img.shields.io/badge/code-gitlab-orange
    :target: https://gitlab.inria.fr/discovery/enoslib
@@ -48,9 +53,8 @@ In this context, EnOSlib smoothes the experimental code and can
 .. |Pepy| image:: https://pepy.tech/badge/enoslib/week
    :target: https://pepy.tech/project/enoslib
 
-
 .. |Chat| image:: https://img.shields.io/badge/mattermost-enoslib-blueviolet
    :target: https://framateam.org/enoslib/channels/town-square
 
 .. |SW| image:: https://archive.softwareheritage.org/badge/origin/https://gitlab.inria.fr/discovery/enoslib.git/
-    :target: https://archive.softwareheritage.org/browse/origin/?origin_url=https://gitlab.inria.fr/discovery/enoslib.git
+   :target: https://archive.softwareheritage.org/browse/origin/?origin_url=https://gitlab.inria.fr/discovery/enoslib.git
