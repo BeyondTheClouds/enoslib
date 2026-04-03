@@ -5,13 +5,9 @@ FABRIC API. The provider will create and manage slices, nodes, and networks.
 
 from __future__ import annotations
 
-# import random
-# import string
-# from itertools import chain
 import base64
 import json
 import logging
-import os
 from collections import Counter
 from datetime import datetime, timezone
 from ipaddress import IPv4Network, IPv6Interface, IPv6Network, ip_interface
@@ -19,14 +15,12 @@ from pathlib import Path
 from typing import Any, Generator, Union
 
 from fabrictestbed_extensions.fablib.component import Component
-from fabrictestbed_extensions.fablib.constants import Constants
 from fabrictestbed_extensions.fablib.fablib import FablibManager
 from fabrictestbed_extensions.fablib.interface import Interface
 from fabrictestbed_extensions.fablib.network_service import NetworkService
 from fabrictestbed_extensions.fablib.node import Node
 from fabrictestbed_extensions.fablib.slice import Slice
 
-from enoslib.infra.enos_fabric.utils import source_credentials_from_rc_file
 from enoslib.infra.provider import Provider
 from enoslib.objects import DefaultNetwork, Host, Networks, Roles
 
@@ -38,6 +32,7 @@ from .configuration import (
     L2BridgeNetworkConfiguration,
     L2SiteToSiteNetworkConfiguration,
     MachineConfiguration,
+    NICComponentConfiguration,
 )
 from .constants import (
     FABNETV4EXT,
@@ -114,11 +109,9 @@ class Fabric(Provider):
         super().__init__(provider_conf, name)
         self.has_public_ip: bool = False
         self.has_storage: bool = False
-        self.fablib: FablibManager = None
         self.project_name: str | None = None
         self.project_uuid: str | None = None
         self.permissions: set[str] = set()
-        self.slice: Slice = None
         self.nodes: dict[str, Node] = {}
         self.sites: set[str] = set()
         self.networks: dict[str, NetworkService] = {}
@@ -132,14 +125,15 @@ class Fabric(Provider):
         Args:
             force_deploy (bool): True iff new machines should be started
         """
-        with source_credentials_from_rc_file(self.provider_conf.rc_file):
-            self.fablib = FablibManager(log_propagate=True)
-            self.load_id_token()
-            self.private_key = os.environ[Constants.FABRIC_SLICE_PRIVATE_KEY_FILE]
-            self.gateway_user = os.environ[Constants.FABRIC_BASTION_USERNAME]
-            self.gateway = os.environ[Constants.FABRIC_BASTION_HOST]
-            self.gateway_private_key = os.environ[Constants.FABRIC_BASTION_KEY_LOCATION]
-            self.scripts_dir = Path(__file__).parent / "scripts"
+        self.fablib: FablibManager = FablibManager(
+            fabric_rc=self.provider_conf.rc_file, log_propagate=True
+        )
+        self.load_id_token()
+        self.private_key = self.fablib.get_default_slice_private_key_file()
+        self.gateway_user = self.fablib.get_bastion_username()
+        self.gateway = self.fablib.get_bastion_host()
+        self.gateway_private_key = self.fablib.get_bastion_key_location()
+        self.scripts_dir = Path(__file__).parent / "scripts"
 
         # Check configuration for checks that can't be done with JSON Schema
         self.check()
@@ -176,8 +170,11 @@ class Fabric(Provider):
                     if start_time
                     else None
                 )
+                # NOTE(x-rajiv): The type ignore is due to an incorrect type hint on
+                # the FABRIC APIs submit method. Remove it when FABRIC APIs are fixed
+                # and minimum supported Python version is 3.10
                 self.slice.submit(
-                    lease_start_time=lease_start_time,
+                    lease_start_time=lease_start_time,  # type: ignore
                     lease_in_hours=lease_in_hours,
                     validate=False,
                 )
@@ -216,7 +213,9 @@ class Fabric(Provider):
     def create_slice(self, force_deploy: bool = False) -> bool:
         """Create a new slice or reuse an existing one."""
         try:
-            self.slice = self.fablib.get_slice(name=self.provider_conf.name_prefix)
+            self.slice: Slice = self.fablib.get_slice(
+                name=self.provider_conf.name_prefix
+            )
             logger.debug("Slice <%s> exists", self.provider_conf.name_prefix)
             slice_exists = not force_deploy
             if force_deploy is True:
@@ -248,15 +247,12 @@ class Fabric(Provider):
         slice = self.slice
         sites = self.sites = set()
         nodes = self.nodes
-        # existing_nodes = {n.get_name() for n in slice.get_nodes()}
-        # config_nodes = set()
 
         for index_i, index_j, machine in self.itermachines():
             kwargs = {}
             site = kwargs["site"] = machine.site
             name = f"{self.provider_conf.name_prefix}-s{site}-m{index_i}-n{index_j}"
             sites.add(site)
-            # config_nodes.add(name)
             node = nodes.get(name)
             if node is None:
                 self._submit = True
@@ -385,6 +381,8 @@ class Fabric(Provider):
         for storage_name in nas_names:
             self.has_storage = True
             storage = nas_names[storage_name]
+            if storage.name is None:
+                raise RuntimeError("Storage name is required")
             model = f"{storage.kind}_{storage.model}"
             logger.debug(
                 "Adding Storage <%s> with name <%s> with auto_mount <%s> to node <%s>",
@@ -455,19 +453,17 @@ class Fabric(Provider):
                 site=node.get_site()
             ):
                 # Add a NIC to the node, if needed
+                nic = network.nic or NICComponentConfiguration.from_dictionary({})
                 nic_model = (
                     NIC_BASIC
-                    if network.nic.kind == NIC_SHARED
-                    else f"{NIC}_{network.nic.model.replace('-', '_')}"
+                    if nic.kind == NIC_SHARED
+                    else f"{NIC}_{nic.model.replace('-', '_')}"
                 )
                 key = (node_name, nic_model)
                 if len(spare_ifaces.get(key, [])) == 0:
                     # Create a NIC
                     count += 1
-                    name = (
-                        network.nic.name
-                        or f"{network.nic.kind}-{network.nic.model}-{count}"
-                    )
+                    name = nic.name or f"{nic.kind}-{nic.model}-{count}"
                     logger.debug(
                         "Creating NIC <%s> with name <%s> on node <%s>",
                         nic_model,
@@ -478,6 +474,10 @@ class Fabric(Provider):
 
                     # Get the NIC's interface
                     ifaces = nic.get_interfaces()
+                    if not isinstance(ifaces, list):
+                        raise RuntimeError(
+                            f"Invalid interface list for NIC {nic_model}"
+                        )
                     for iface in ifaces:
                         iface.set_mode("manual")
 
@@ -577,7 +577,9 @@ class Fabric(Provider):
                 continue
 
             net = slice.get_network(name=name)
-            ip = net.get_available_ips()
+            if net is None:
+                raise RuntimeError(f"Network {name} not found")
+            ip = net.get_available_ips() or []
             total_ips = len(net.get_interfaces())
             kwargs = {f"ipv{network.ip_version}": [str(_) for _ in ip[:total_ips]]}
             logger.debug("Making IPs <%s> publicly routable", kwargs)
@@ -604,6 +606,8 @@ class Fabric(Provider):
         for iface in net.get_interfaces():
             ip = next(ipiter)
             node = iface.get_node()
+            if not isinstance(node, Node):
+                raise TypeError(f"Node {node.get_name()} is not a Node")
             node_name = node.get_name()
             os_ifname = iface.get_physical_os_interface_name()
 
@@ -624,19 +628,23 @@ class Fabric(Provider):
         """Configure network interfaces for each node."""
         gateway = net.get_gateway()
         subnet = net.get_subnet()
+        if subnet is None:
+            raise RuntimeError(f"Subnet for network {name} not found")
         prefix_len = subnet.prefixlen
         network.network = subnet
         kind = network.kind
         logger.debug("Subnet for network <%s> is <%s>", name, subnet)
 
         if "Ext" in network.kind:
-            ipiter = iter(net.get_public_ips())
+            ipiter = iter(net.get_public_ips() or [])
         else:
             ipiter = subnet.hosts()
             next(ipiter)  # Skip first IP (usually gateway)
 
         for iface in net.get_interfaces():
             node = iface.get_node()
+            if not isinstance(node, Node):
+                raise TypeError(f"Node {node.get_name()} is not a Node")
             node_name = node.get_name()
             os_ifname = iface.get_physical_os_interface_name()
             ip = next(ipiter)  # Get next available IP in subnet
@@ -717,14 +725,16 @@ class Fabric(Provider):
             ):
                 net = self.networks[name]
                 subnet = net.get_subnet()
+                if subnet is None:
+                    raise RuntimeError(f"Subnet for network {name} not found")
                 prefix_len = subnet.prefixlen
                 for iface in net.get_interfaces():
                     ip = iface.get_ip_addr()
                     network.allocate_ip(IPv6Interface(f"{ip}/{prefix_len}"))
 
-            net = FabricNetwork(config=network)
+            _net = FabricNetwork(config=network)
             for role in network.roles:
-                networks[role] += [net]
+                networks[role] += [_net]
 
         return networks
 
@@ -763,7 +773,7 @@ class Fabric(Provider):
 
     def load_id_token(self) -> None:
         """Load the permissions from the fabric."""
-        token_location = os.environ[Constants.FABRIC_TOKEN_LOCATION]
+        token_location = self.fablib.get_token_location()
         token = json.load(open(token_location))
         id_token = token["id_token"].split(".")[1]
         # FABRIC tokens are not properly padded causing b64decode to fail
@@ -863,7 +873,8 @@ class Fabric(Provider):
                 )
 
             if (
-                network.nic.kind == NIC_SMART
+                network.nic
+                and network.nic.kind == NIC_SMART
                 and network.nic.model == NIC_MODEL_CONNECTX_5
                 and PERMISSION_CONNECTX_5 not in self.permissions
             ):
@@ -871,7 +882,8 @@ class Fabric(Provider):
                     f"ConnectX_5 permission <{PERMISSION_CONNECTX_5}> is required"
                 )
             elif (
-                network.nic.kind == NIC_SMART
+                network.nic
+                and network.nic.kind == NIC_SMART
                 and network.nic.model == NIC_MODEL_CONNECTX_6
                 and PERMISSION_CONNECTX_6 not in self.permissions
             ):
@@ -893,11 +905,17 @@ class Fabric(Provider):
 
     def destroy(self, wait: bool = False, **kwargs):
         """Destroy all FABRIC nodes involved in the deployment."""
-        with source_credentials_from_rc_file(self.provider_conf.rc_file):
-            logger.info("Deleting FABRIC slice")
-            fablib = FablibManager(log_propagate=True)
+        logger.info("Deleting FABRIC slice")
+        fablib = FablibManager(fabric_rc=self.provider_conf.rc_file, log_propagate=True)
+        try:
             fablib.delete_slice(slice_name=self.provider_conf.name_prefix)
-            logger.info("Deleting FABRIC slice done")
+        except Exception as e:
+            # FIXME(x-rajiv): Catch and ignore FABRIC's SliceNotFound exception,
+            #  when minimum supported Python version by EnOSlib is 3.10
+            # See: https://github.com/fabric-testbed/fabrictestbed-extensions/pull/497
+            if not str(e).startswith("Unable to find slice"):
+                raise
+        logger.info("Deleted FABRIC slice")
 
     def offset_walltime(self, difference: int):
         pass
@@ -913,7 +931,7 @@ class Fabric(Provider):
         """Restore attributes from the pickled state."""
         self.__dict__.update(state)
 
-        self.fablib = None
-        self.slice = None
+        self.fablib = None  # type: ignore
+        self.slice = None  # type: ignore
         self.nodes = {}
         self.networks = {}
