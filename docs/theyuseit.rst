@@ -18,8 +18,69 @@ Main Publication
 Other Publications (using or citing EnOSlib)
 ============================================
 
+- Sidi Mohammed Kaddour, Daniel Balouek, Baptiste Jonglez. Application-level observability for adaptive
+  Edge to Cloud continuum systems. UCC 2025 - IEEE/ACM 18th International Conference on Utility
+  and Cloud Computing, Dec 2025, NANTES, France. ⟨10.1145/3773274.3774855⟩. ⟨hal-05371388⟩
+  https://hal.science/hal-05371388v1
+
+- Khaled Arsalane. Scalable Data Stream Processing in Heterogeneous Environments. Computer science.
+  Université de rennes, 2025. English. ⟨NNT : ⟩. ⟨tel-05433201⟩
+  https://inria.hal.science/tel-05433201/
+
+- Lylian Siffre, Thomas Ledoux, Renaud Pawlak, John Guery. Local Computing vs. Cloud Computing:
+  An Empirical Study of Energy Consumption. IEEE/ACM 18th International Conference on Utility
+  and Cloud Computing, Dec 2025, Nantes, France. pp.1-10, ⟨10.1145/3773274.3774278⟩. ⟨hal-05324506⟩
+  https://hal.science/hal-05324506v1
+
+- Carlos Gonzalez, Salim Mahamat Charfadine. CEI-Net: An open-source
+  framework for P4-driven network management on the CEI Continuum. MedComNet
+  2025 - 23rd Mediterranean Communication and Computer Networking Conference,
+  IEEE, Jun 2025, Cagliari (Sardinia), Italy. pp.1-5,
+  ⟨10.1109/MedComNet65822.2025.11103524⟩. ⟨hal-05176967⟩
+  https://hal.science/hal-05176967v1/
+
+- Julien Caposiena, Oscar Carrillo, Frédéric Le Mouël, Baptiste Jonglez, Pierre Neyron, Thierry Arrabal.
+  Towards a flexible Network Operating System Testbed for the Computing Continuum.
+  CCGridW 2025 - 25th IEEE International Symposium on Cluster, Cloud and Internet Computing
+  Workshops, May 2025, Tromsø Norway, Norway. pp.148-155,
+  ⟨10.1109/CCGridW65158.2025.00029⟩. ⟨hal-05154217⟩
+  https://hal.science/hal-05154217v1
+
+- Martin Molli, Daniel Balouek, Paul Temple, Thomas Ledoux. Facilitating Heterogeneity Management on
+  the Computing Continuum. COMPAS 2025 - Conférence francophone d'informatique en Parallélisme,
+  Architecture et Système, Jun 2025, Bordeaux, France. pp.1-8. ⟨hal-05138189⟩
+  https://hal.science/hal-05138189/
+
+- Vincenzo Paolo Di Perna, Valerio Schiavoni, Francesco Fabris, Marco Bernardo. "Blockchain Energy
+  Consumption: Unveiling the Impact of Network Topologies," 2025 IEEE International Conference on Blockchain
+  and Cryptocurrency (ICBC), Pisa, Italy, 2025, pp. 1-10, doi: 10.1109/ICBC64466.2025.11114569.
+  https://doi.org/10.1109/ICBC64466.2025.11114569
+
+- Sanjana Das, Ruiqing Lan, Caroline Rinks, Aniruddha Gokhale, Abdelilah Essiari, Ezra Kissel,
+  Xi Yang, Paul Ruth. “FEDS: An Intuitive Model-Driven Middleware for Automated Orchestration and
+  Resource Configuration Across Federated Testbeds.” 2025 28th International Symposium on Real-Time
+  Distributed Computing (ISORC) (2025): 1-10.
+  https://ieeexplore.ieee.org/abstract/document/11172968
+
+- Cherif Si Mohammed, Adrien Lebre, Alexandre van Kempen. An analysis for the design of an efficient
+  replica management strategy. COMPAS 2025 - Conférence francophone d'informatique en Parallélisme,
+  Architecture et Système, Jun 2025, Bordeaux, France. pp.1-7. ⟨hal-05079577⟩
+  https://hal.science/hal-05079577/
+
+- Baptiste Jonglez, Matthieu Simonin, Jolan Philippe, Sidi Mohammed Kaddour. Multi-provider
+  capabilities in EnOSlib: driving distributed system experiments on the edge-to-cloud continuum.
+  DAIS 2025: 25th International Conference on Distributed Applications and Interoperable Systems,
+  Jun 2025, Lille, France. pp.25-42, ⟨10.1007/978-3-031-95728-4_2⟩. ⟨hal-05052776⟩
+  https://hal.science/hal-05052776v1
+
+- Georg Carle, Serge Fdida, Kate Keahey, Henning Schulzrinne, Sebastian Gallenmüller. Research Infrastructures
+  and Tools for Collaborative Networked Systems Research (Dagstuhl Seminar 24462). Dagstuhl Reports, 2025,
+  vol. 14, no 11, p. 60-91.
+  https://drops.dagstuhl.de/entities/document/10.4230/DagRep.14.11.60
+
 - Mathieu Bacou, David Beserra, Eugen Dedu, Loïc Desgeorges, Didier
-  Donsez, et al.. Journée thématique du GDR RSD : Pratiques expérimentales
+  Donsez, Alexandre Guitton, Baptiste Jonglez, Arnaud Legrand, Georgios Papadopoulos, Olivier Richard, Samir
+  Si-Mohammed, Nina Tamdrari, Fabrice Theoleyre. Journée thématique du GDR RSD : Pratiques expérimentales
   de la communauté systèmes et réseaux. 2025. ⟨hal-04924273⟩
   https://hal.science/hal-04924273/
 
@@ -50,27 +111,29 @@ Other Publications (using or citing EnOSlib)
   ⟨10.1109/SANER60148.2024.00007⟩. ⟨hal-04457484⟩
   https://hal.science/hal-04457484
 
-- de Almeida Silva, F., de Souza Jardim da Costa, J.P., David, J.M.N.,
-  Dantas, M.A.R. (2024). HPC-SBC: An Experimental Effort to Evaluate
+- Fernando de Almeida Silva, João Pedro de Souza Jardim da Costa, José Maria Nazar
+  David, Mário Antônio Ribeiro Dantas. (2024). HPC-SBC: An Experimental Effort to Evaluate
   Storage in High-Performance Computing Configurations Using a Context
   Approach. In: Barolli, L. (eds) Advanced Information Networking and
   Applications. AINA 2024. Lecture Notes on Data Engineering and
   Communications Technologies, vol 200. Springer,
-  Cham. https://doi.org/10.1007/978-3-031-57853-3_16
+  Cham.
+  https://doi.org/10.1007/978-3-031-57853-3_16
 
-- Leonel AGUILAR, Michal GATH-MORAD, Jascha GRÜBEL, et al. Experiments as
+- Leonel Aguilar, Michal Gath-Morad, Jascha Grübel, Jasper Ermatinger, Hantao Zhao, Stefan Wehrli,
+  Robert W. Sumner, Ce Zhang, Dirk Helbing, Christoph Hölscher. Experiments as
   Code and its application to VR studies in human-building
   interaction. Scientific Reports, 2024, vol. 14, no 1, p. 9883.
   https://doi.org/10.1038/s41598-024-60791-3
 
 - Daniel Rosendo, Kate Keahey, Alexandru Costan, Matthieu Simonin, Patrick
-  Valduriez, and Gabriel Antoniu. 2023. KheOps: Cost-effective Repeatability,
+  Valduriez, Gabriel Antoniu. 2023. KheOps: Cost-effective Repeatability,
   Reproducibility, and Replicability of Edge-to-Cloud Experiments. In Proceedings
   of the 2023 ACM Conference on Reproducibility and Replicability (ACM REP '23).
   Association for Computing Machinery, New York, NY, USA, 62–73.
   https://doi.org/10.1145/3589806.3600032
 
-- Volodia Parol-Guarino and Nikos Parlavantzas. 2023. GIRAFF: Reverse
+- Volodia Parol-Guarino, Nikos Parlavantzas. 2023. GIRAFF: Reverse
   Auction-based Placement for Fog Functions. In Proceedings of the 9th
   International Workshop on Serverless Computing (WoSC '23). Association for
   Computing Machinery, New York, NY, USA, 53–58.
@@ -82,7 +145,7 @@ Other Publications (using or citing EnOSlib)
   paraître. ⟨hal-04132438⟩
   https://hal.science/hal-04132438
 
-- G. Kp, G. Pierre and R. Rouvoy, "Studying the Energy Consumption of Stream
+- Govind Kp, Guillaume Pierre, Romain Rouvoy. "Studying the Energy Consumption of Stream
   Processing Engines in the Cloud," 2023 IEEE International Conference on Cloud
   Engineering (IC2E), Boston, MA, USA, 2023, pp. 99-106, doi:
   10.1109/IC2E59103.2023.00019.
@@ -92,7 +155,8 @@ Other Publications (using or citing EnOSlib)
   Ecole nationale supérieure Mines-Télécom Atlantique, 2023. English. ⟨NNT :
   2023IMTA0347⟩. ⟨tel-04081084⟩
 
-- D. Rosendo et al., "ProvLight: Efficient Workflow Provenance Capture on the
+- Daniel Rosendo, Marta Mattoso, Alexandru Costan, Renan Souza, Débora Pina, Patrick Valduriez,
+  Gabriel Antoniu. "ProvLight: Efficient Workflow Provenance Capture on the
   Edge-to-Cloud Continuum," 2023 IEEE International Conference on Cluster
   Computing (CLUSTER), Santa Fe, NM, USA, 2023, pp. 221-233, doi:
   10.1109/CLUSTER52292.2023.00026.
@@ -107,7 +171,7 @@ Other Publications (using or citing EnOSlib)
   Compose. CLUSTER 2022 - IEEE International Conference on Cluster Computing, Sep
   2022, Heidelberg, Germany. pp.1-12. ⟨hal-03723771⟩
 
-- T. Lambert, S. Ibrahim, T. Jain and D. Guyon, "Stragglers' Detection in Big
+- Thomas Lambert, Shadi Ibrahim, Twinkle Jain, David Guyon. "Stragglers' Detection in Big
   Data Analytic Systems: The Impact of Heartbeat Arrival," 2022 22nd IEEE
   International Symposium on Cluster, Cloud and Internet Computing (CCGrid), 2022,
   pp. 747-751, doi: 10.1109/CCGrid54584.2022.00084.
@@ -117,7 +181,7 @@ Other Publications (using or citing EnOSlib)
   review. Journal of Parallel and Distributed Computing, Elsevier, 2022, 166,
   pp.71-94. ⟨10.1016/j.jpdc.2022.04.004⟩. ⟨hal-03654722⟩
 
-- Balouek-Thomert, D., Rodero, I., & Parashar, M. (2021, November). Evaluating
+- Daniel Balouek-Thomert, Ivan Rodero, Manish Parashar. (2021, November). Evaluating
   policy-driven adaptation on the Edge-to-Cloud Continuum. In 2021 IEEE/ACM HPC
   for Urgent Decision Making (UrgentHPC) (pp. 11-20). IEEE.
 
@@ -127,9 +191,9 @@ Other Publications (using or citing EnOSlib)
   States. ⟨hal-03343942⟩
 
 - Daniel Rosendo, Alexandru Costan, Gabriel Antoniu, Matthieu Simonin,
-  Jean-Christophe Lombardo, et al.. Reproducible Performance Optimization of
-  Complex Applications on the Edge-to-Cloud Continuum. Cluster 2021 - IEEE
-  International Conference on Cluster Computing, Sep 2021, Portland, OR, United
+  Jean-Christophe Lombardo, Alexis Joly, Patrick Valduriez. Reproducible Performance
+  Optimization of Complex Applications on the Edge-to-Cloud Continuum. Cluster
+  2021 - IEEE International Conference on Cluster Computing, Sep 2021, Portland, OR, United
   States. ⟨hal-03310540⟩
 
 - Stefano Tavonatti, Davaadorj Battulga, Mozhdeh Farhadi, Carlo Caprini, Daniele
@@ -137,9 +201,8 @@ Other Publications (using or citing EnOSlib)
   blockchains. FiCloud 2021 - 8th International Conference on Future Internet of
   Things and Cloud, Aug 2021, Rome / Virtual, Italy. pp.1-8. ⟨hal-03263551⟩
 
-- Kubernetes WANWide: a Deployment Scenario to Expose and Use Edge Computing Resources?
-  Karim Manaouil, Adrien Lebre
-  IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
+- Karim Manaouil, Adrien Lebre. Kubernetes WANWide: a Deployment Scenario to Expose
+  and Use Edge Computing Resources? IEEE Euromicro PDP 2021, Valladolid Spain, March 2021.
 
 - Mulugeta Tamiru, Guillaume Pierre, Johan Tordsson, Erik Elmroth. mck8s: An
   orchestration platform for geo-distributed multi-cluster environments. ICCCN
@@ -162,7 +225,7 @@ Other Publications (using or citing EnOSlib)
   2020 International Conference on Cluster Computing, Sep 2020, Kobe, Japan.
   ⟨hal-02916032⟩
 
-- M. Chardet, H. Coullon and C. Perez, "Predictable Efficiency for
+- Maverick Chardet, Hélène Coullon, Christian Perez. "Predictable Efficiency for
   Reconfiguration of Service-Oriented Systems with Concerto," 2020 20th IEEE/ACM
   International Symposium on Cluster, Cloud and Internet Computing (CCGRID), 2020,
   pp. 340-349, doi: 10.1109/CCGrid49817.2020.00-59.
