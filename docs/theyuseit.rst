@@ -234,7 +234,7 @@ Projects
 
 - **enos-kubernetes**: Deploy Kubernetes
 
-  Link: https://gitlab.inria.fr/msimonin/enos-kubernetes
+  Link: https://gitlab.inria.fr/discovery/enos-kubernetes
 
 
 - **ombt-orchestrator**: Benchmark communication bus in various network topologies
@@ -254,7 +254,47 @@ Projects
 
 - **E2Clab**: Exploring the Computing Continuum through Repeatable, Replicable and Reproducible Edge-to-Cloud Experiments
 
-  Link: https://gitlab.inria.fr/Kerdata/Kerdata-Codes/e2clab
+  Link: https://gitlab.inria.fr/E2Clab/e2clab
+
+
+- **overleaf-feature-degradation-replication-package**: Experiment aiming feature degradation in Overleaf LaTeX editor to verify energy consumption decrease
+
+  Link: https://gitlab.inria.fr/lgazeau/overleaf_feature_degradation_replication_package
+
+
+- **congestion-control**: Experiment aiming I/O congestion mitigation to reduce runtime while maintaining performance in HPC environment
+
+  Link: https://gitlab.inria.fr/tcollign/congestion-control
+
+
+- **edge-to-cloud-video-processing**: Experiment available aiming to deploy a distributed surveillance system through a Kubernetes cluster
+
+  Link: https://gitlab.inria.fr/STACK-RESEARCH-GROUP/software/edge-to-cloud-video-processing
+
+
+- **kube5k**: CLI tool to deploy a Kubernetes cluster for experiments on Grid'5000
+
+  Link: https://gitlab.inria.fr/alpetit/kube5k
+
+
+- **Kiso**: Describe your experiment in a YAML file — Kiso handles provisioning, software setup, execution, and result collection
+
+  Link: https://github.com/pegasus-isi/kiso
+
+
+- **FastClick**: Demo to use NPF (Network Performance Framework) library with Grid'5000
+
+  Link: https://github.com/Emilevillette/enoslib-fastclick-test
+
+
+- **deploy-k8s-ow-grid5k**: Deploy Openwhisk with a Kubernetes cluster on Grid'5000
+
+  Link: https://github.com/Guimapi1/deploy-k8s-ow-grid5k
+
+
+- **Data Migration studies**: Benchmark through Colvert, a dedicated solution leveraging knowledge of the data nature for partial migration
+
+  Link: https://gitlab.inria.fr/gplisson/data-migration-studies
 
 
 Contributed scripts and examples
