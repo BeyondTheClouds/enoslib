@@ -1,6 +1,8 @@
 import logging
 import os
+import shutil
 from ipaddress import ip_interface
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import vagrant
@@ -118,6 +120,11 @@ class Enos_vagrant(Provider):
                         user=machine["user"],
                         port=port,
                         keyfile=keyfile,
+                        extra={
+                            "ansible_ssh_common_args": "-o UserKnownHostsFile=/dev/null"
+                            " -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
+                            " -o AddKeysToAgent=no"
+                        },
                     )
                 ]
         networks = Networks()
@@ -139,6 +146,14 @@ class Enos_vagrant(Provider):
         """Destroy all vagrant box involved in the deployment."""
         v = vagrant.Vagrant(root=os.getcwd(), quiet_stdout=False, quiet_stderr=True)
         v.destroy()
+
+        vagrant_dir = Path.cwd() / ".vagrant"
+        if vagrant_dir.exists():
+            shutil.rmtree(vagrant_dir)
+
+        vagrant_file = Path.cwd() / "Vagrantfile"
+        if vagrant_file.exists():
+            vagrant_file.unlink()
 
     def offset_walltime(self, difference: int):
         pass
