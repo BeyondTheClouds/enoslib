@@ -832,11 +832,6 @@ __python3__.raw(
     ),
     task_name="Install python3",
 )
-__default_python3__ = actions()
-__default_python3__.raw(
-    "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
-    task_name="Making python3 the default python interpreter",
-)
 
 
 __docker__ = actions()
@@ -844,8 +839,7 @@ __docker__.shell("which docker || (curl -sSL https://get.docker.com/ | sh)")
 
 
 def ensure_python3(make_default: bool = False, **kwargs):
-    """Make sure python3 is installed on the remote nodes, and optionally make
-    it the default.
+    """Make sure python3 is installed on the remote nodes.
 
     It inherits the arguments of :py:class:`enoslib.api.actions`.
 
@@ -853,8 +847,12 @@ def ensure_python3(make_default: bool = False, **kwargs):
     kwargs.pop("priors", None)
     kwargs.pop("gather_facts", None)
     priors = [__python3__]
+    # Keep the argument for compatibility, but ignore it.
     if make_default:
-        priors.append(__default_python3__)
+        warnings.warn(
+            "The make_default argument of ensure_python3 is now ignored",
+            DeprecationWarning,
+        )
     with actions(priors=priors, gather_facts=False, **kwargs) as p:
         p.raw("hostname")
 
