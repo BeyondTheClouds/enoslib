@@ -329,7 +329,6 @@ class SpinnerCallback(CallbackBase):
 
 
 class _MyCallback(CallbackBase):
-
     CALLBACK_VERSION = 2.0
     CALLBACK_NAME = "mycallback"
 
@@ -825,12 +824,19 @@ __python3__ = actions()
 __python3__.raw(
     (
         "python3 --version"
-        "||"
-        "(apt update && "
-        " DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical "
-        " apt-get install -q -y python3)"
+        " || (command -v apt"
+        "     && apt update"
+        "     && DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical"
+        "        apt-get install -q -y python3)"
+        " || (command -v dnf && dnf install -y python3)"
+        " || (command -v yum && yum install -y python3)"
+        " || (command -v zypper && zypper install -y python3)"
+        " || (command -v apk"
+        "     && apk update"
+        "     && apk add --no-cache --no-interactive python3)"
     ),
     task_name="Install python3",
+    become=True,
 )
 
 
@@ -1575,7 +1581,7 @@ def cg_write(cgroup: str, cpath: str, value: str, cgroup_prefix=CGROUP_PREFIX):
         prefix = activate("hugetlb")
     else:
         raise ValueError(f"{cpath} doesn't correspond to a known controller")
-    command = f"{prefix}" f" && echo {value} > {controller_path}"
+    command = f"{prefix} && echo {value} > {controller_path}"
     return command
 
 
