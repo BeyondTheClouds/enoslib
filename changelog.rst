@@ -10,6 +10,23 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.7.0:
+
+10.7.0
+-------
+
+General:
+
+- **Ansible:** Add code to install python on non-debian/ubuntu distros too
+- **Ansible:** No longer allow to set python3 default symlink in ensure_python3
+- **Documentation:** Update recent publications and projects that are using or citing EnOSlib
+
+Providers:
+
+- **FABRIC:** Improve FABRIC provider robustness and configuration handling
+- **Vagrant:** Clean more aggressively in Vagrant provider
+
+
 .. _v10.6.0:
 
 10.6.0
