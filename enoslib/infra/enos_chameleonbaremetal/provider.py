@@ -189,12 +189,13 @@ class Chameleonbaremetal(cc.Chameleonkvm):
                     if flavor in r["resource_properties"]
                 ]
                 # It's still a bit tricky here
+                _flavor = flavor.replace("_", "-")
                 os_servers = openstack.check_servers(
                     env["session"],
                     _machines,
                     # NOTE(msimonin): we should be able to deduce the flavour from
                     # the name
-                    extra_prefix=f'-o-{flavor.replace("_", "-")}-o-',
+                    extra_prefix=f"-{self.provider_conf.prefix}-o-{_flavor}-o-",
                     force_deploy=force_deploy,
                     key_name=conf.key_name,
                     image_id=env["image_id"],
