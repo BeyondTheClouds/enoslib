@@ -60,19 +60,16 @@ def get_reservation(
 ) -> Optional[Dict]:
     leases = bclient.lease.list()
     leases = [lease for lease in leases if lease["name"] == provider_conf.lease_name]
-    if len(leases) >= 1:
-        lease = leases[0]
+    for lease in leases:
         if lease_is_reusable(lease):
             logger.info("Reusing lease %s", lease_to_s(lease))
             return lease
         elif lease_is_terminated(lease):
-            logger.warning("%s is terminated, destroy it", lease_to_s(lease))
-            return lease
+            logger.warning("%s is terminated, ignoring it", lease_to_s(lease))
         else:
-            logger.error("Error with %s", lease_to_s(lease))
-            raise Exception("lease_error")
-    else:
-        return None
+            logger.warning("Lease in an unexpected state %s", lease_to_s(lease))
+
+    return None
 
 
 def by_flavor(machine: MachineConfiguration):
