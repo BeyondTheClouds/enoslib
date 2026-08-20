@@ -6,6 +6,8 @@
 Unreleased
 ~~~~~~~~~~
 
+- **VMonG5k**: Ignore the 'deploy' job type when given by the user.
+
 
 Stable branch
 ~~~~~~~~~~~~~
@@ -18,9 +20,10 @@ Stable branch
 New features for providers:
 
 - **G5k:** Add strict verification on reloaded jobs to ensure consistency between the requested configuration and the already deployed one.
-  - If the requested job types are not a subset of the running ones (or if the `deploy` job type presence changes), related jobs are destroyed and recreated.
+
+  - If the requested job types are not a subset of the running ones (or if the 'deploy' job type presence changes), related jobs are destroyed and recreated.
   - If the requested OS environment differs from the deployed one, a new deployment is triggered.
-  - Since checks are now being done on job types, some unofficial workflows related to the "night" job type might be impacted.
+  - Since checks are now being done on job types, some unofficial workflows related to the 'night' job type might be impacted.
 
 Bugfixes:
 
@@ -105,8 +108,8 @@ General:
 New features for providers:
 
 - **G5k**: Speed-up multi-site deployments with parallel deployments.
-- **G5k:** Automatically add the "exotic" job_type to configuration if requested resources are so.
-- **VMonG5k:** Add the job_type parameter so that the user can reserve exotic resources or use day/night job types.
+- **G5k:** Automatically add the 'exotic' job type to configuration if requested resources are so.
+- **VMonG5k:** Add the ``job_type`` parameter so that the user can reserve exotic resources or use 'day'/'night' job types.
 - **G5k:** Add admin queue as possible OAR queue.
 
 Bugfixes:
@@ -179,6 +182,7 @@ Breaking
   - To use EnOSlib in a Jupyter notebook, you should install the new pip package extra: ``enoslib[jupyter]``.
 - **Ansible**: Add support for Ansible 8, 9 and 10 (:ref:`corresponding to <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs>`
   ansible-core 2.15, 2.16 and 2.17).
+
   - Be aware that Ansible now requires at least Python 3.10 on the control node, and Python 3.7 on the target nodes (see :ref:`Ansible support Matrix <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-core-support-matrix>`).
   - To support older versions of Python, you can install a specific version of Ansible.
   - Example to force Ansible 8 (ansible-core 2.15): ``pip install 'enoslib>=10,<11' 'enoslib-ansible>=8,<9'``

@@ -26,6 +26,11 @@ class TestConfiguration(EnosTest):
         self.assertEqual("test-job", conf.job_name)
         self.assertEqual("12:34:56", conf.walltime)
 
+    def test_from_dictionary_job_type_normalization(self):
+        d: Dict = {"resources": {"machines": [], "networks": []}, "job_type": "deploy"}
+        conf = Configuration.from_dictionary(d)
+        self.assertEqual(["deploy"], conf.job_type)
+
     def test_programmatic(self):
         conf = Configuration()
         conf.add_machine_conf(

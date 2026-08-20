@@ -91,6 +91,38 @@ class TestBuildG5kConf(EnosTest):
         self.assertEqual("00:10:00", g5k_conf.walltime)
         self.assertEqual("2024-06-18 14:00:00", g5k_conf.reservation)
 
+    @mock.patch(
+        "enoslib.infra.enos_vmong5k.provider._find_nodes_number", return_value=2
+    )
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.get_cluster_site", return_value="site1"
+    )
+    @mock.patch(
+        "enoslib.infra.enos_vmong5k.configuration.get_cluster_site",
+        return_value="site1",
+    )
+    @mock.patch(
+        "enoslib.infra.enos_g5k.configuration.is_exotic_cluster", return_value=True
+    )
+    def test_do_build_g5k_conf_removes_deploy_job_type(
+        self,
+        mock_get_cluster_site_vmong5k,
+        mock_get_cluster_site_g5k,
+        mock_find_node_number,
+        mock_is_exotic_cluster,
+    ):
+        conf = Configuration.from_settings(
+            job_name="test_deploy_removal", job_type=["deploy", "allow_classic_ssh"]
+        ).add_machine(roles=["r1"], cluster="cluster1", number=10, flavour="tiny")
+        conf.finalize()
+        g5k_conf = _do_build_g5k_conf(conf)
+        # it's valid
+        g5k_conf.finalize()
+
+        self.assertNotIn("deploy", g5k_conf.job_type)
+        self.assertIn("allow_classic_ssh", g5k_conf.job_type)
+        self.assertIn("origin=enoslib_vmong5k", g5k_conf.job_type)
+
 
 class TestNodesNumber(EnosTest):
     @mock.patch("enoslib.infra.enos_g5k.g5k_api_utils.get_api_client")

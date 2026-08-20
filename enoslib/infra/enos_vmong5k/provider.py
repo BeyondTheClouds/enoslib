@@ -15,6 +15,7 @@ import enoslib.infra.enos_g5k.provider as g5kprovider
 from enoslib.api import run_ansible
 from enoslib.config import get_config
 from enoslib.infra.enos_g5k import g5k_api_utils
+from enoslib.infra.enos_g5k.constants import JOB_TYPE_DEPLOY
 from enoslib.infra.enos_g5k.objects import G5kEnosSubnetNetwork
 from enoslib.infra.enos_g5k.utils import inside_g5k
 from enoslib.objects import Host, Roles
@@ -149,7 +150,25 @@ def _find_nodes_number(machine: MachineConfiguration) -> int:
     return res
 
 
-def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
+def _do_build_g5k_conf(
+    vmong5k_conf: Configuration, warn: bool = False
+) -> g5kconf.Configuration:
+    """
+    Args:
+        vmong5k_conf (Configuration)
+        warn (bool, optional): True to log about unnecessary 'deploy' parameter.
+            Defaults to False.
+    Returns:
+        g5kconf.Configuration
+    """
+    if JOB_TYPE_DEPLOY in vmong5k_conf.job_type:
+        if warn:
+            logger.info(
+                "Unnecessary 'deploy' job type in configuration "
+                "with VMonG5k provider. Ignoring it."
+            )
+        vmong5k_conf.job_type.remove(JOB_TYPE_DEPLOY)
+
     g5k_conf = g5kconf.Configuration.from_settings(
         job_name=vmong5k_conf.job_name,
         walltime=vmong5k_conf.walltime,
@@ -201,11 +220,22 @@ def _do_build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
     return g5k_conf
 
 
-def _build_g5k_conf(vmong5k_conf: Configuration) -> g5kconf.Configuration:
-    """Build the conf of the g5k provider from the vmong5k conf."""
+def _build_g5k_conf(
+    vmong5k_conf: Configuration, warn: bool = False
+) -> g5kconf.Configuration:
+    """Build the conf of the g5k provider from the vmong5k conf.
+
+    Args:
+        vmong5k_conf (Configuration)
+        warn (bool, optional): True to log about unnecessary 'deploy' parameter.
+            Defaults to False.
+
+    Returns:
+        g5kconf.Configuration
+    """
     # first of all, make sure we don't mutate the vmong5k_conf
     vmong5k_conf = copy.deepcopy(vmong5k_conf)
-    return _do_build_g5k_conf(vmong5k_conf)
+    return _do_build_g5k_conf(vmong5k_conf, warn)
 
 
 def _distribute(
@@ -359,7 +389,7 @@ class VMonG5k(Provider):
     ) -> Tuple[g5kprovider.Roles, g5kprovider.Networks]:
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
-        g5k_conf = _build_g5k_conf(self.provider_conf)
+        g5k_conf = _build_g5k_conf(self.provider_conf, warn=True)
         self._g5k_provider = g5kprovider.G5k(g5k_conf)
         if start_time:
             self._g5k_provider.set_reservation(start_time)
@@ -392,7 +422,7 @@ class VMonG5k(Provider):
     ):
         _force_deploy = self.provider_conf.force_deploy
         self.provider_conf.force_deploy = _force_deploy or force_deploy
-        g5k_conf = _build_g5k_conf(self.provider_conf)
+        g5k_conf = _build_g5k_conf(self.provider_conf, warn=True)
         self._g5k_provider = g5kprovider.G5k(g5k_conf)
         if start_time:
             self._g5k_provider.set_reservation(start_time)
