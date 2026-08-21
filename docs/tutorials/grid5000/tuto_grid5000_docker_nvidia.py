@@ -58,7 +58,10 @@ results = en.run_command(
     ignore_errors=True,
 )
 assert results[0].rc != 0
-assert "could not select device driver" in results[0].stderr, results[0].stderr
+assert (
+    "could not select device driver" in results[0].stderr
+    or "failed to discover GPU vendor from CDI" in results[0].stderr
+), results[0].stderr
 
 results = en.run_command(
     "docker run --rm --gpus all ubuntu:22.04 nvidia-smi",
@@ -67,7 +70,10 @@ results = en.run_command(
     ignore_errors=True,
 )
 assert results[0].rc != 0
-assert "could not select device driver" in results[0].stderr, results[0].stderr
+assert (
+    "could not select device driver" in results[0].stderr
+    or "failed to discover GPU vendor from CDI" in results[0].stderr
+), results[0].stderr
 
 
 # 2. Let Enoslib auto-detect the GPU
@@ -94,7 +100,10 @@ results = en.run_command(
     ignore_errors=True,
 )
 assert results[0].rc != 0
-assert "could not select device driver" in results[0].stderr, results[0].stderr
+assert (
+    "could not select device driver" in results[0].stderr
+    or "failed to discover GPU vendor from CDI" in results[0].stderr
+), results[0].stderr
 
 
 # 3. Force installation on non-GPU node
@@ -114,7 +123,10 @@ results = en.run_command(
     ignore_errors=True,
 )
 assert results[0].rc != 0
-assert "could not select device driver" not in results[0].stderr, results[0].stderr
+assert (
+    "could not select device driver" not in results[0].stderr
+    and "failed to discover GPU vendor from CDI" not in results[0].stderr
+), results[0].stderr
 
 
 # Release all Grid'5000 resources
