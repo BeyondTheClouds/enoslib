@@ -6,11 +6,25 @@
 Unreleased
 ~~~~~~~~~~
 
-- **VMonG5k**: Ignore the 'deploy' job type when given by the user.
-
 
 Stable branch
 ~~~~~~~~~~~~~
+
+.. _v10.8.1:
+
+10.8.1
+-------
+
+General:
+
+- **Documentation:** Update ``tuto_grid5000_kavlan_complex``, ``tuto_grid5000_reservable_disks`` and ``tuto_grid5000_dict`` so that they use
+  present nodes from Grid'5000. Impacted parts from ``Tutorials`` section are also modified accordingly.
+- **Documentation:** Update ``tuto_grid5000_docker_nvidia`` to fix assertions following the latest ``nvidia-container-toolkit`` release.
+
+Bugfixes:
+
+- **VMonG5k**: Ignore the 'deploy' job type when given by the user.
+
 
 .. _v10.8.0:
 
@@ -27,8 +41,8 @@ New features for providers:
 
 Bugfixes:
 
-- **Chameleon**: Not returning a lease anymore when in terminated state.
-- **Chameleon**: Correctly apply the configuration prefix to server names generation when provided.
+- **Chameleon:** Not returning a lease anymore when in terminated state.
+- **Chameleon:** Correctly apply the configuration prefix to server names generation when provided.
 
 
 .. _v10.7.0:
