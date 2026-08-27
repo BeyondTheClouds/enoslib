@@ -112,7 +112,7 @@
     # permission denied
     - name: Applying COW strategy for the image
       shell: |
-        qemu-img create -f qcow2 -o backing_file={{ libvirt_dir }}/enos_vmong5k-base-image.qcow2 {{ libvirt_dir }}/{{ item.alias }}
+        qemu-img create -f qcow2 -F qcow2 -o backing_file={{ libvirt_dir }}/enos_vmong5k-base-image.qcow2 {{ libvirt_dir }}/{{ item.alias }}
         # I know ...
         chmod 777 {{ libvirt_dir }}/{{ item.alias }}
       loop: "{{ vms[inventory_hostname] }}"
