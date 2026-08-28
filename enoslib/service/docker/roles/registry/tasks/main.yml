@@ -1,2 +1,7 @@
 ---
 - include_tasks: "{{ enos_action }}.yml"
+
+- name: Configure NVIDIA runtime
+  command: nvidia-ctk runtime configure --runtime=docker
+  when: (nvidia_toolkit is defined and nvidia_toolkit | bool) or (nvidia_toolkit is not defined and gpu_check is defined and gpu_check.rc == 0)
+  notify: Restart docker daemon

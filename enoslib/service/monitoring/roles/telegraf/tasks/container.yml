@@ -1,4 +1,19 @@
 ---
+- name: Install Python libraries for Docker
+  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
+  pip:
+    name:
+      - "docker<7.1.0"
+      - "requests<2.32"
+    state: present
+    extra_args: "--ignore-installed"
+
+- name: Grant read/write access to Docker socket for monitoring agents
+  file:
+    path: /var/run/docker.sock
+    mode: '0666'
+  ignore_errors: yes
+
 - name: Installing Telegraf
   docker_container:
     name: telegraf

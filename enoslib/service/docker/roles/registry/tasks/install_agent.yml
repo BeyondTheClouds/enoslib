@@ -6,13 +6,14 @@
     state: present
     update_cache: yes
 
-# WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
-- name: Installing docker python bindings
+- name: Installing Docker Python bindings
+  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
   pip:
     name:
       - "docker<7.1.0"
       - "requests<2.32"
     state: present
+    extra_args: "--ignore-installed"
 
 - name: Creating docker state directory
   file:
@@ -59,7 +60,7 @@
 
 # test if we can find an nvidia device
 - shell: lspci| grep -i nvidia
-  register: stdout
+  register: gpu_check
   ignore_errors: yes
   when:
     - nvidia_toolkit is not defined
@@ -67,16 +68,14 @@
 # Install the nvidia container runtime if either
 # - nvidia_toolkit is set to True
 # - nvidia_toolkit is not defined (auto-detect) and auto-detection found a GPU
-# from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit
+# from https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit
 - name: Installing nvidia-container-toolkit
   shell: >
-    distribution=$(. /etc/os-release;echo $ID$VERSION_ID) &&
     curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey |
     gpg --batch --yes --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg &&
-    curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list |
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list |
     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' |
     tee /etc/apt/sources.list.d/nvidia-container-toolkit.list &&
     apt update &&
-    apt install -y nvidia-docker2 &&
-    service docker restart
-  when: (nvidia_toolkit is defined and nvidia_toolkit | bool) or (nvidia_toolkit is not defined and stdout is defined and stdout.rc == 0)
+    apt install -y nvidia-container-toolkit
+  when: (nvidia_toolkit is defined and nvidia_toolkit | bool) or (nvidia_toolkit is not defined and gpu_check is defined and gpu_check.rc == 0)

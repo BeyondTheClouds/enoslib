@@ -1,10 +1,11 @@
 - name: Install docker
   shell: "which docker || (curl -sSL https://get.docker.com/ | sh)"
 
-# WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
 - name: Installing python-docker
+  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
   pip:
     name:
       - "docker<7.1.0"
       - "requests<2.32"
     state: present
+    extra_args: "--ignore-installed"

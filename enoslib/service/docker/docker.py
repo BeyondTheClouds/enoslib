@@ -83,7 +83,7 @@ class Docker(Service):
                 docker = Docker(agent=roles["agent"])
 
                 # Install a specific version of docker agent (recommended)
-                docker = Docker(agent=roles["agent"], docker_version="25.0")
+                docker = Docker(agent=roles["agent"], docker_version="28.1")
 
                 # Don't install nvidia-container-toolkit even if a nvidia GPU
                 # is detected on the target hosts.

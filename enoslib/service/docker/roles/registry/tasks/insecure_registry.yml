@@ -7,9 +7,4 @@
   template:
     src: daemon.json.j2
     dest: /etc/docker/daemon.json
-
-- name: Restart docker daemon
-  systemd:
-    name: docker
-    state: restarted
-    daemon_reload: yes
+  notify: Restart docker daemon

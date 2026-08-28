@@ -14,7 +14,7 @@ job_name = Path(__file__).name
 
 
 # They have GPU in lille !
-CLUSTER = "chifflet"
+CLUSTER = "chifflot"
 SITE = en.g5k_api_utils.get_cluster_site(CLUSTER)
 
 
