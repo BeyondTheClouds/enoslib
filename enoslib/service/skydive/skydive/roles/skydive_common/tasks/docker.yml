@@ -1,11 +1,17 @@
 ---
 - name: Install Docker
-  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
   package:
+    name: docker.io
+    state: present
+
+- name: Install Python libraries for Docker
+  # WORKAROUND https://gitlab.inria.fr/discovery/enoslib/-/issues/202
+  pip:
     name:
       - "docker<7.1.0"
       - "requests<2.32"
     state: present
+    extra_args: "--ignore-installed"
 
 - name: Enable Docker service
   service:

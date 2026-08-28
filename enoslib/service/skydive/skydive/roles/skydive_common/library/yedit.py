@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # pylint: disable=missing-docstring
 #     ___ ___ _  _ ___ ___    _ _____ ___ ___
 #    / __| __| \| | __| _ \  /_\_   _| __|   \

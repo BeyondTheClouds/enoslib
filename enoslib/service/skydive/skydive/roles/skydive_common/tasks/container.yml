@@ -13,10 +13,17 @@
   when:
     - skydive_container_cli is none or skydive_container_cli == ""
 
+- name: Check if container CLI is already installed
+  command: "which {{ skydive_container_cli }}"
+  register: cli_installed
+  ignore_errors: yes
+  changed_when: false
+
 - name: "Install {{ skydive_container_cli }}"
   package:
-    name: "{{ skydive_container_cli }}"
+    name: "{% if skydive_container_cli == 'docker' %}docker.io{% else %}{{ skydive_container_cli }}{% endif %}"
     state: present
+  when: cli_installed.rc != 0
 
 - name: Enable Docker service
   service:

@@ -112,14 +112,16 @@ class Skydive(Service):
 
     def deploy(self):
         """Deploy Skydive service."""
-        # Some requirements
-        with actions(
-            roles=self.roles,
-            priors=self.priors,
-            extra_vars=self.extra_vars,
-        ) as p:
-            p.pip(task_name="[Preinstall] Installing pyyaml", name="pyyaml")
         _playbook = os.path.join(SERVICE_PATH, "skydive", "skydive.yml")
 
         with external_pip_deps(roles=self.roles):
+
+            # Some requirements
+            with actions(
+                roles=self.roles,
+                priors=self.priors,
+                extra_vars=self.extra_vars,
+            ) as p:
+                p.pip(task_name="[Preinstall] Installing pyyaml", name="pyyaml")
+
             run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
