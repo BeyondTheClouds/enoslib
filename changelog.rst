@@ -10,6 +10,43 @@ Unreleased
 Stable branch
 ~~~~~~~~~~~~~
 
+.. _v10.9.0:
+
+10.9.0
+-------
+
+Services:
+
+Recent transition to Debian 13 on Grid'5000 as the default environment for many clusters needed several fixes for Docker service and services relying on Docker.
+
+- **Docker:**
+
+  - Replace the deprecated ``nvidia-docker2`` with ``nvidia-container-toolkit`` and configure NVIDIA runtime using ``nvidia-ctk``.
+  - Bump default Docker version from ``25.0`` to ``28.1`` in ``tuto_grid5000_docker`` and the ``Docker`` class docstring.
+  - Implement an Ansible handler to manage Docker daemon restarts, preventing rate-limit errors from systemd.
+  - Add the ``--ignore-installed`` flag for ``pip`` installation of ``docker`` and ``requests`` for Debian 13 compatibility.
+
+- **Monitoring:**
+
+  - Fix Telegraf pre-installation by properly setting up Python libraries and granting read/write access to the Docker socket.
+  - Fix cluster name in ``monitoring_gpus.py`` script documentation (from ``chifflet`` to ``chifflot``).
+
+- **Skydive:**
+
+  - Update the shebang in ``yedit.py`` to ``python3`` for Debian 13 compatibility.
+  - Use the ``external_pip_deps`` context manager for ``pyyaml`` installation.
+  - Refactor Docker installation to check for existing container CLI before attempting to install ``docker.io``.
+  - Split OS package and Python libraries installations.
+
+Bugfixes:
+
+- **G5k:** Ignore job types starting with ``origin=`` during job types consistency check so that a reservation made with ``oarsub`` can be reloaded with
+  EnOSlib without destroying and recreating it.
+- **G5k:** Set lower boundary for ``paramiko`` version to ``3.5.1`` to maintain ``sshtunnel`` compatibility.
+- **VMonG5k:** Add specification for the backing file format (``-F qcow2``) to ``qemu-img`` while applying COW strategy for the image.
+- **FABRIC:** Set upper boundary for ``fabrictestbed-extensions`` version to ``2.0.6`` to fix the CI for Python 3.10 job.
+
+
 .. _v10.8.1:
 
 10.8.1
@@ -23,7 +60,7 @@ General:
 
 Bugfixes:
 
-- **VMonG5k**: Ignore the 'deploy' job type when given by the user.
+- **VMonG5k:** Ignore the 'deploy' job type when given by the user.
 
 
 .. _v10.8.0:
@@ -193,7 +230,9 @@ Breaking
 ++++++++
 
 - **Packaging**: To reduce dependencies, the default pip package no longer includes Jupyter support.
+
   - To use EnOSlib in a Jupyter notebook, you should install the new pip package extra: ``enoslib[jupyter]``.
+
 - **Ansible**: Add support for Ansible 8, 9 and 10 (:ref:`corresponding to <https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html#ansible-community-changelogs>`
   ansible-core 2.15, 2.16 and 2.17).
 
