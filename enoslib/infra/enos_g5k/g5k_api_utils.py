@@ -891,6 +891,13 @@ def _evaluate_job_types_consistency(
             - A set of extra job types retrieved but not requested
     """
     requested_types = set(job_type)
+
+    # Omitting verification for job types beginning with "origin="
+    # because these job types are not mandatory for a reservation
+    relevant_requested_types = {
+        t for t in requested_types if not t.startswith("origin=")
+    }
+
     extra_job_types = set()
     has_requested_deploy = JOB_TYPE_DEPLOY in requested_types
 
@@ -898,13 +905,13 @@ def _evaluate_job_types_consistency(
         retrieved_types = set(job.types)
         has_retrieved_deploy = JOB_TYPE_DEPLOY in retrieved_types
 
-        is_missing_types = not requested_types.issubset(retrieved_types)
+        is_missing_types = not relevant_requested_types.issubset(retrieved_types)
         has_unwanted_deploy = has_retrieved_deploy and not has_requested_deploy
 
         if is_missing_types:
             logger.info(
-                f"Some requested job types ({job_type}) are not included in "
-                f"the job types of already running jobs ({job.types})"
+                f"Some requested job types ({relevant_requested_types}) are not "
+                f"included in the job types of already running jobs ({job.types})"
             )
             return False, set()
 

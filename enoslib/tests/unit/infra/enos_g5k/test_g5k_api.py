@@ -234,6 +234,20 @@ class TestEvaluateJobTypesConsistency(EnosTest):
         self.assertTrue(is_consistent)
         self.assertEqual(len(extra_job_types), 0)
 
+    def test_reload_match_on_origin_job_type(self):
+
+        job_1 = self._get_mocked_job(has_deploy_job_type=True)
+        job_2 = self._get_mocked_job(has_deploy_job_type=True)
+
+        is_consistent, extra_job_types = _evaluate_job_types_consistency(
+            jobs=[job_1, job_2], job_type=["deploy", "origin=enoslib_g5k"]
+        )
+
+        job_types = sorted(extra_job_types)
+
+        self.assertTrue(is_consistent)
+        self.assertEqual(job_types, [])
+
     def test_reload_match_on_job_types_extra_types(self):
 
         job_1 = self._get_mocked_job(has_job_types=True, has_deploy_job_type=True)
